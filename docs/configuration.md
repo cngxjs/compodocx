@@ -118,7 +118,6 @@ These flags disable entire features, tabs, or pages. Unlike visibility filters w
 | disableTemplateTab | `--disableTemplateTab` | boolean | `false` | Remove the Template tab from component pages |
 | disableStyleTab | `--disableStyleTab` | boolean | `false` | Remove the Style tab from component pages |
 | disableGraph | `--disableGraph` | boolean | `false` | Remove all dependency graphs -- both the overview page graph and per-component dependency tabs |
-| disableMainGraph | `--disableMainGraph` | boolean | `false` | Remove only the main overview dependency graph. Per-component dependency tabs remain |
 | disableDependenciesTab | `--disableDependenciesTab` | boolean | `false` | Remove the per-component Dependencies tab that shows the standalone import graph. The overview graph and other graphs are not affected |
 | disablePlaygroundTab | `--disablePlaygroundTab` | boolean | `false` | Remove the per-component Playground tab even when `@playground` JSDoc blocks are present in the source |
 | disableRoutesGraph | `--disableRoutesGraph` | boolean | `false` | Remove the routes graph page. The page visualizes the Angular router configuration as a tree |
@@ -133,7 +132,7 @@ Controls sidebar behavior and entity page tab configuration.
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
-| toggleMenuItems | `--toggleMenuItems` | string[] | `['all']` | Sidebar sections that start collapsed. Pass `'all'` to collapse everything, or a comma-separated list of specific sections: `modules`, `components`, `directives`, `entities`, `classes`, `injectables`, `tokens`, `guards`, `interfaces`, `interceptors`, `pipes`, `miscellaneous`, `additionalPages`, and `features` (the Features chapter under `menuLayout: 'feature'`; References is a single top-level link with no collapsible tree, so it is not a valid key) |
+| toggleMenuItems | `--toggleMenuItems` | string[] | `['all']` | Sidebar sections that start collapsed. Pass `'all'` to collapse everything, or a comma-separated list of specific sections: `components`, `directives`, `entities`, `classes`, `injectables`, `tokens`, `guards`, `interfaces`, `interceptors`, `pipes`, `miscellaneous`, `additionalPages`, and `features` (the Features chapter under `menuLayout: 'feature'`; References is a single top-level link with no collapsible tree, so it is not a valid key) |
 | navTabConfig | `--navTabConfig` | object[] | `[]` | Customize the order and labels of entity page tabs. Array of `{ id, label }` objects. Available tab IDs: `info` (overview/metadata), `readme` (component README), `source` (source code), `templateData` (component template), `styleData` (component styles), `tree` (DOM tree), `example` (live examples). Tabs not listed are hidden. If empty (default), all applicable tabs are shown in their default order |
 
 ## Coverage

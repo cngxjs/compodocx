@@ -51,7 +51,6 @@ export interface MainDataInterface {
     disableTemplateTab: boolean;
     disableStyleTab: boolean;
     disableGraph: boolean;
-    disableMainGraph: boolean;
     disableCoverage: boolean;
     disablePrivate: boolean;
     disableProtected: boolean;
@@ -81,7 +80,6 @@ export interface MainDataInterface {
     disableOverview: boolean;
     showEffects: boolean;
     watch: boolean;
-    mainGraph: string;
     dependencyGraph: {
         nodes: Array<{ name: string; type: string; url?: string }>;
         edges: Array<{ source: string; target: string }>;
@@ -254,8 +252,6 @@ export interface MainDataInterface {
     categorizedByFeaturePrimary: Record<string, unknown[]>;
     categorizedByFeatureReference: Record<string, unknown[]>;
     groupBy: 'folder' | 'category' | 'none' | '';
-    /** Set by the crawl phase when `groupBy` is auto-detected. */
-    hasNgModules?: boolean;
     groupDepth: number;
     menuLayout: 'type' | 'feature';
     featureLibraryScope: 'primary' | 'auto' | 'all';

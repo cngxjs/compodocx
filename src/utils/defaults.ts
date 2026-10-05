@@ -35,7 +35,6 @@ export const COMPODOC_DEFAULTS = {
     disableTemplateTab: false,
     disableStyleTab: false,
     disableGraph: false,
-    disableMainGraph: false,
     disableCoverage: false,
     disablePrivate: false,
     disableProtected: false,

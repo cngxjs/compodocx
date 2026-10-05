@@ -27,7 +27,7 @@ type LegendItem = {
     readonly labelKey: string;
 };
 
-/** Colored-dot legend for dependency/module graphs. */
+/** Colored-dot legend for dependency graphs. */
 export function GraphLegend(props: { readonly items: LegendItem[] }): string {
     if (props.items.length === 0) {
         return '';
@@ -47,11 +47,10 @@ export function GraphLegend(props: { readonly items: LegendItem[] }): string {
     ) as string;
 }
 
-/** Standard legend for dependency graphs (component, directive, pipe, module, injectable). */
+/** Standard legend for dependency graphs (component, directive, pipe, injectable). */
 export const DEPENDENCY_LEGEND_ITEMS: LegendItem[] = [
     { colorVar: 'var(--color-cdx-entity-component)', labelKey: 'component' },
     { colorVar: 'var(--color-cdx-entity-directive)', labelKey: 'directive' },
     { colorVar: 'var(--color-cdx-entity-pipe)', labelKey: 'pipe' },
-    { colorVar: 'var(--color-cdx-entity-module)', labelKey: 'module' },
     { colorVar: 'var(--color-cdx-entity-service)', labelKey: 'injectable' }
 ];

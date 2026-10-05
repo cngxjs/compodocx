@@ -42,7 +42,6 @@ import {
     IconInjectable,
     IconInterceptor,
     IconInterface,
-    IconModule,
     IconPipe
 } from '../components/Icons';
 import { PrimaryBadge } from '../components/PrimaryBadge';
@@ -84,12 +83,6 @@ const entityMeta: Record<
         badge: 'cdx-badge--entity-pipe',
         label: 'Pipe',
         icon: IconPipe
-    },
-    module: {
-        color: 'var(--color-cdx-entity-module)',
-        badge: 'cdx-badge--entity-module',
-        label: 'Module',
-        icon: IconModule
     },
     class: {
         color: 'var(--color-cdx-entity-class)',
@@ -158,7 +151,6 @@ export type EntityInfoProps = {
     readonly showProperties?: boolean;
     readonly showAccessors?: boolean;
     readonly showIndexSignatures?: boolean;
-    readonly showStandaloneBadge?: boolean;
     readonly showTokenBadge?: boolean;
     readonly showJsdocBadges?: boolean;
     readonly contextLine?: string;
@@ -620,13 +612,6 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
                 <div class="cdx-entity-hero-badges">
                     <span class={`cdx-badge ${meta.badge}`}>{meta.label}</span>
                     {PrimaryBadge({ docsKind: e.docsKind })}
-                    {props.showStandaloneBadge &&
-                    e.standalone &&
-                    Configuration.mainData.hasNgModules ? (
-                        <span class="cdx-badge cdx-badge--standalone">Standalone</span>
-                    ) : (
-                        ''
-                    )}
                     {props.showTokenBadge && e.isToken ? (
                         <span class="cdx-badge cdx-badge--token">Token</span>
                     ) : (

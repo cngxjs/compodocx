@@ -433,11 +433,6 @@ export const ComponentPage = (data: any): string => {
                 <div class="cdx-entity-hero-badges">
                     <span class="cdx-badge cdx-badge--entity-component">Component</span>
                     {PrimaryBadge({ docsKind: c.docsKind })}
-                    {c.standalone && Configuration.mainData.hasNgModules ? (
-                        <span class="cdx-badge cdx-badge--standalone">Standalone</span>
-                    ) : (
-                        ''
-                    )}
                     {c.zoneless ? <span class="cdx-badge cdx-badge--zoneless">Zoneless</span> : ''}
                     {(() => {
                         const cd = String(c.changeDetection ?? '');

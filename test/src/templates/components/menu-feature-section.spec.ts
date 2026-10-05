@@ -282,11 +282,10 @@ describe('Menu — feature layout', () => {
         expect(html).to.not.include('id="references-links"');
     });
 
-    it('still emits Modules / Additional Pages chapters in feature mode, hides Miscellaneous', () => {
+    it('emits the Additional Pages chapter but no Modules chapter in feature mode, hides Miscellaneous', () => {
         const html = Menu({
             data: baseData({
                 menuLayout: 'feature',
-                modules: [{ name: 'AppModule', id: 'm1' }],
                 miscellaneous: { variables: [{ name: 'X' }] },
                 additionalPages: [
                     {
@@ -310,7 +309,7 @@ describe('Menu — feature layout', () => {
                 }
             })
         });
-        expect(html).to.include('id="modules-links"');
+        expect(html).not.to.include('id="modules-links"');
         expect(html).to.include('id="additional-pages"');
         // Miscellaneous redundant in feature mode — everything moved into References.
         expect(html).to.not.include('id="miscellaneous-links"');

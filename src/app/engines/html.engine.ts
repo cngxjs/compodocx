@@ -26,8 +26,6 @@ import { MiscellaneousEnumerations } from '../../templates/pages/MiscellaneousEn
 import { MiscellaneousFunctions } from '../../templates/pages/MiscellaneousFunctions';
 import { MiscellaneousTypealiases } from '../../templates/pages/MiscellaneousTypealiases';
 import { MiscellaneousVariables } from '../../templates/pages/MiscellaneousVariables';
-import { ModulePage } from '../../templates/pages/ModulePage';
-import { Modules } from '../../templates/pages/Modules';
 import { Overview } from '../../templates/pages/Overview';
 import { PackageDependencies } from '../../templates/pages/PackageDependencies';
 import { PackageProperties } from '../../templates/pages/PackageProperties';
@@ -48,8 +46,6 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     contributing: 'markdown',
     license: 'markdown',
     overview: 'overview',
-    modules: 'modules',
-    module: 'module',
     component: 'component',
     entity: 'entity',
     directive: 'directive',
@@ -122,8 +118,6 @@ export class HtmlEngine {
                 return data.disableProperties ? '' : PackageProperties(data);
             case 'overview':
                 return Overview(data);
-            case 'modules':
-                return Modules(data);
             case 'routes':
                 return Routes(data);
             case 'coverage':
@@ -148,8 +142,6 @@ export class HtmlEngine {
                 return InterceptorPage(data);
             case 'interface':
                 return InterfacePage(data);
-            case 'module':
-                return ModulePage(data);
             case 'pipe':
                 data.relationships = DependenciesEngine.getRelationships(data.pipe?.name);
                 return PipePage(data);

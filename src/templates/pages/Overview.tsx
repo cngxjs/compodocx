@@ -7,7 +7,6 @@ import { EmptyIconDashboard } from '../components/EmptyStateIcons';
 import { t } from '../helpers';
 
 type OverviewProps = {
-    readonly modules?: unknown[];
     readonly components?: unknown[];
     readonly entities?: unknown[];
     readonly directives?: unknown[];
@@ -30,7 +29,6 @@ type OverviewProps = {
 
 const hasAnyEntities = (props: OverviewProps): boolean =>
     !!(
-        props.modules?.length ||
         props.components?.length ||
         props.entities?.length ||
         props.directives?.length ||
@@ -86,7 +84,6 @@ export const Overview = (props: OverviewProps): string => {
             {/* 3. Stats Grid or Empty State */}
             {hasAnyEntities(props)
                 ? OverviewStats({
-                      modules: props.modules as any[],
                       components: props.components as any[],
                       directives: props.directives as any[],
                       injectables: props.injectables as any[],

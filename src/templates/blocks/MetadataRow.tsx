@@ -83,7 +83,6 @@ function resolveChip(name: string): { href?: string; target?: string; type?: str
         components: 'component',
         directives: 'directive',
         pipes: 'pipe',
-        modules: 'module',
         classes: 'class',
         interfaces: 'interface',
         guards: 'guard',

@@ -211,11 +211,8 @@ const crawl: Stage = async ctx => {
         logger.warn(line);
     }
 
-    // Auto-detect groupBy if not explicitly set by user
     if (!mainData.groupBy) {
-        const hasModules = dependenciesData.modules && dependenciesData.modules.length > 0;
-        mainData.hasNgModules = hasModules;
-        mainData.groupBy = hasModules ? 'none' : 'folder';
+        mainData.groupBy = 'folder';
     }
 
     DependenciesEngine.init(dependenciesData);
@@ -317,21 +314,16 @@ const exportFormat: Stage = async ctx => {
     return proceed(ctx);
 };
 
-const emit: Stage = async ctx => {
-    if (ctx.config.mainData.exportFormat !== COMPODOC_DEFAULTS.exportFormat) {
-        return exportFormat(ctx);
-    }
-    const graphs = ctx.generators.graph.processGraphs();
-    ctx.onEmitStart?.();
-    await graphs;
-    return writeOutput(ctx);
-};
-
 const emitPages: Stage = ctx => {
     const written = writeOutput(ctx);
     ctx.onEmitStart?.();
     return written;
 };
+
+const emit: Stage = async ctx =>
+    ctx.config.mainData.exportFormat === COMPODOC_DEFAULTS.exportFormat
+        ? emitPages(ctx)
+        : exportFormat(ctx);
 
 const resetRootMarkdownPages: Stage = async ctx => {
     logger.info('Regenerating README.md, CHANGELOG.md, CONTRIBUTING.md, LICENSE.md, TODO.md pages');

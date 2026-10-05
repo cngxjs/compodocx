@@ -75,11 +75,6 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
         run: step(ctx => ctx.generators.component.prepare())
     },
     {
-        key: 'module',
-        when: alwaysUnlessDiffWithout(c => c.modules),
-        run: step(ctx => ctx.generators.module.prepare())
-    },
-    {
         key: 'directive',
         when: hasAny(c => c.directives),
         run: step(ctx => ctx.generators.directive.prepare())

@@ -28,135 +28,6 @@ const loadD3 = async (): Promise<D3Module> => {
     return d3;
 };
 
-// Lazy SVG loading (replaces lazy-load-graphs.js)
-const initLazyGraphs = () => {
-    const lazyEls = document.querySelectorAll<HTMLObjectElement>('[lazy]');
-    if (lazyEls.length === 0) {
-        return;
-    }
-
-    // The scroll container is .content, not the viewport.
-    // Use it as IntersectionObserver root so elements inside it are detected.
-    const scrollRoot = document.querySelector('.content') as HTMLElement | null;
-
-    const observer = new IntersectionObserver(
-        entries => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting) {
-                    return;
-                }
-                const el = entry.target as HTMLObjectElement;
-                const src = el.getAttribute('lazy');
-                if (src) {
-                    el.data = src;
-                    el.removeAttribute('lazy');
-                }
-                observer.unobserve(el);
-            });
-        },
-        { root: scrollRoot, rootMargin: '200px' }
-    );
-
-    lazyEls.forEach(el => observer.observe(el));
-};
-
-// SVG pan-zoom (replaces svg-pan-zoom lib)
-const initSvgPanZoom = async () => {
-    const container = document.getElementById('module-graph-svg');
-    if (!container) {
-        return;
-    }
-
-    const svgEl = container.querySelector('svg');
-    if (!svgEl) {
-        return;
-    }
-
-    // A11y: mark graph as decorative image with label
-    svgEl.setAttribute('role', 'img');
-    svgEl.setAttribute('aria-label', 'Module dependency graph');
-
-    const { zoom, select, zoomIdentity } = await loadD3();
-
-    const svgSelection = select(svgEl);
-
-    // Graphviz SVGs have a <g> with its own transform (scale/rotate/translate).
-    // We must NOT overwrite that. Instead, wrap all SVG content in a new <g>
-    // and apply D3 zoom transforms to the wrapper only.
-    const wrapper = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    wrapper.setAttribute('class', 'zoom-wrapper');
-    // Move all existing children into the wrapper
-    while (svgEl.firstChild) {
-        wrapper.appendChild(svgEl.firstChild);
-    }
-    svgEl.appendChild(wrapper);
-
-    // Make SVG fill its container and use viewBox for scaling
-    const bbox = wrapper.getBBox();
-    svgEl.setAttribute('viewBox', `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
-    svgEl.style.width = '100%';
-    svgEl.style.maxHeight = '400px';
-    svgEl.removeAttribute('width');
-    svgEl.removeAttribute('height');
-
-    const wrapperSelection = select(wrapper);
-
-    const zoomBehavior = zoom<SVGSVGElement, unknown>()
-        .scaleExtent([0.5, 5])
-        .on('zoom', event => {
-            wrapperSelection.attr('transform', event.transform);
-        });
-
-    svgSelection.call(zoomBehavior);
-
-    // Wire zoom buttons + a11y labels
-    const zoomIn = document.getElementById('zoom-in');
-    const zoomOut = document.getElementById('zoom-out');
-    const reset = document.getElementById('reset');
-    const fullscreen = document.getElementById('fullscreen');
-
-    zoomIn?.setAttribute('aria-label', 'Zoom in');
-    zoomOut?.setAttribute('aria-label', 'Zoom out');
-    reset?.setAttribute('aria-label', 'Reset zoom');
-
-    zoomIn?.addEventListener('click', e => {
-        e.preventDefault();
-        svgSelection.transition().duration(300).call(zoomBehavior.scaleBy, 1.3);
-    });
-
-    zoomOut?.addEventListener('click', e => {
-        e.preventDefault();
-        svgSelection.transition().duration(300).call(zoomBehavior.scaleBy, 0.7);
-    });
-
-    reset?.addEventListener('click', e => {
-        e.preventDefault();
-        svgSelection.transition().duration(300).call(zoomBehavior.transform, zoomIdentity);
-    });
-
-    if (fullscreen) {
-        let isFullscreen = false;
-        const originalContainerHeight = container.style.height;
-        const originalMaxHeight = svgEl.style.maxHeight;
-
-        fullscreen.addEventListener('click', () => {
-            if (isFullscreen) {
-                container.style.height = originalContainerHeight;
-                svgEl.style.maxHeight = originalMaxHeight || '400px';
-                isFullscreen = false;
-                fullscreen.setAttribute('aria-label', 'Fullscreen');
-            } else {
-                container.style.height = '85vh';
-                svgEl.style.maxHeight = 'none';
-                isFullscreen = true;
-                fullscreen.setAttribute('aria-label', 'Exit fullscreen');
-            }
-            svgEl.style.height = `${container.clientHeight}px`;
-            svgSelection.transition().duration(300).call(zoomBehavior.transform, zoomIdentity);
-        });
-    }
-};
-
 // Routes graph (replaces routes.js + D3 v3)
 const htmlEntities = (str: string): string =>
     String(str)
@@ -609,7 +480,7 @@ const entityColorMap: Record<string, string> = {
     component: 'var(--color-cdx-entity-component, #14b8a6)',
     directive: 'var(--color-cdx-entity-directive, #7c3aed)',
     pipe: 'var(--color-cdx-entity-pipe, #ec4899)',
-    module: 'var(--color-cdx-entity-module, #3b82f6)',
+    external: 'var(--color-cdx-text-muted, #888)',
     injectable: 'var(--color-cdx-entity-service, #f59e0b)',
     guard: 'var(--color-cdx-entity-guard, #ef4444)',
     interceptor: 'var(--color-cdx-entity-interceptor, #c026d3)'
@@ -715,7 +586,7 @@ const initDependencyGraph = async () => {
 
     node.append('circle')
         .attr('r', (d: any) => d.r)
-        .attr('fill', (d: any) => entityColorMap[d.type] ?? entityColorMap.module)
+        .attr('fill', (d: any) => entityColorMap[d.type] ?? entityColorMap.external)
         .attr('stroke', 'var(--color-cdx-bg-elevated, white)')
         .attr('stroke-width', 2);
 
@@ -806,11 +677,7 @@ const initDependencyGraph = async () => {
 };
 
 export const initGraphs = () => {
-    // Lazy SVG loading runs synchronously (IntersectionObserver)
-    initLazyGraphs();
-
     // Async graph initialization
-    initSvgPanZoom().catch(e => console.error('SVG pan-zoom init failed:', e));
     initRoutesGraph().catch(e => console.error('Routes graph init failed:', e));
     initDomTree().catch(e => console.error('DOM tree init failed:', e));
     initDependencyGraph().catch(e => console.error('Dependency graph init failed:', e));

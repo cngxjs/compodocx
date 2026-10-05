@@ -735,8 +735,8 @@ describe('CLI disable flags', () => {
         });
 
         it('should still generate other standard pages alongside additional documentation', () => {
-            const modulesExists = exists(`${additionalTestFolder}/modules.html`);
-            expect(modulesExists).to.be.true;
+            const routesExists = exists(`${additionalTestFolder}/routes.html`);
+            expect(routesExists).to.be.true;
 
             const indexExists = exists(`${additionalTestFolder}/index.html`);
             expect(indexExists).to.be.true;

@@ -917,7 +917,6 @@ describe('CLI simple generation', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not generate any graph data', () => {
-            expect(stdoutString).to.contain('Graph generation disabled');
             expect(stdoutString).not.to.contain('Process main graph');
         });
 

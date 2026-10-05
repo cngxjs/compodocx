@@ -7,7 +7,7 @@ import {
     type GroupNode
 } from '../../app/engines/dependencies.engine';
 import { t } from '../helpers';
-import { getAloneElements, isToggled } from '../helpers/menu-helpers';
+import { isToggled } from '../helpers/menu-helpers';
 import {
     IconBarChart,
     IconBook,
@@ -26,7 +26,6 @@ import {
     IconInterceptor,
     IconInterface,
     IconList,
-    IconModule,
     IconPipe,
     IconPodium,
     IconSettings,
@@ -138,7 +137,6 @@ const EntityLink = (props: {
     deprecated?: boolean;
     context?: string;
     contextId?: string;
-    standalone?: boolean;
     isToken?: boolean;
     beta?: boolean;
     factoryKind?: string;
@@ -167,9 +165,6 @@ const EntityLink = (props: {
             >
                 <span class="cdx-menu-item-name">{props.name}</span>
                 {props.deprecated ? Badge({ label: 'D', cssClass: 'cdx-badge--deprecated' }) : ''}
-                {props.standalone && Configuration.mainData.hasNgModules
-                    ? Badge({ label: 'S', cssClass: 'cdx-badge--standalone' })
-                    : ''}
                 {props.isToken ? Badge({ label: 'T', cssClass: 'cdx-badge--token' }) : ''}
                 {props.beta ? Badge({ label: 'B', cssClass: 'cdx-badge--beta' }) : ''}
                 {props.factoryKind
@@ -233,7 +228,6 @@ const GroupTree = (props: {
                         href: entityHref(props.hrefPrefix, item),
                         name: item.name,
                         deprecated: item.deprecated,
-                        standalone: item.standalone,
                         isToken: item.isToken,
                         beta: item.beta,
                         factoryKind: item.factoryKind,
@@ -297,9 +291,6 @@ const FeatureEntityLink = (item: EntityWithKind, defaultTab?: 'api'): string =>
                 </span>
                 <span class="cdx-menu-item-name">{item.name}</span>
                 {item.deprecated ? Badge({ label: 'D', cssClass: 'cdx-badge--deprecated' }) : ''}
-                {item.standalone && Configuration.mainData.hasNgModules
-                    ? Badge({ label: 'S', cssClass: 'cdx-badge--standalone' })
-                    : ''}
                 {item.isToken ? Badge({ label: 'T', cssClass: 'cdx-badge--token' }) : ''}
                 {item.beta ? Badge({ label: 'B', cssClass: 'cdx-badge--beta' }) : ''}
                 {item.factoryKind
@@ -504,7 +495,6 @@ const EntitySection = (props: {
                                           href: entityHref(props.hrefPrefix, item),
                                           name: item.name,
                                           deprecated: item.deprecated,
-                                          standalone: item.standalone,
                                           isToken: item.isToken,
                                           beta: item.beta,
                                           factoryKind: item.factoryKind,
@@ -523,7 +513,6 @@ const EntitySection = (props: {
                               href: entityHref(props.hrefPrefix, item),
                               name: item.name,
                               deprecated: item.deprecated,
-                              standalone: item.standalone,
                               isToken: item.isToken,
                               beta: item.beta,
                               factoryKind: item.factoryKind,
@@ -539,63 +528,14 @@ const EntitySection = (props: {
     ) as string;
 };
 
-/** Module sub-section (components/directives/injectables/pipes within a module) */
-const ModuleSubSection = (props: {
-    items: any[];
-    type: string;
-    iconHtml: string;
-    labelKey: string;
-    hrefPrefix: string;
-    moduleId: string;
-}): string => {
-    if (!props.items?.length) {
-        return '';
-    }
-    const id = `${props.type}-links-${props.moduleId}`;
-
-    return (
-        <li class="chapter inner">
-            <button
-                class="simple menu-toggler"
-                type="button"
-                data-cdx-toggle="collapse"
-                data-cdx-target={`#${id}`}
-                aria-expanded="false"
-                aria-controls={id}
-            >
-                {props.iconHtml}
-                <span>{t(props.labelKey)}</span>
-                {chevron()}
-            </button>
-            <ul class="links collapse" id={id}>
-                {props.items.map((item: any) =>
-                    EntityLink({
-                        href: entityHref(props.hrefPrefix, item),
-                        name: item.name,
-                        deprecated: item.deprecated,
-                        context: 'sub-entity',
-                        contextId: 'modules',
-                        entityType: singularizeType(props.type),
-                        selector: item.selector,
-                        inputCount: item.inputsClass?.length,
-                        outputCount: item.outputsClass?.length,
-                        description: item.description
-                    })
-                )}
-            </ul>
-        </li>
-    ) as string;
-};
-
 export const Menu = (props: MenuProps): string => {
     const d = props.data;
 
-    // Filter standalone elements (not in any module)
-    const aloneComponents = d.components ? getAloneElements(d.components) : [];
-    const aloneDirectives = d.directives ? getAloneElements(d.directives) : [];
-    const aloneInjectables = d.injectables ? getAloneElements(d.injectables) : [];
-    const alonePipes = d.pipes ? getAloneElements(d.pipes) : [];
-    const aloneEntities = d.entities ? getAloneElements(d.entities) : [];
+    const components = d.components ?? [];
+    const directives = d.directives ?? [];
+    const injectables = d.injectables ?? [];
+    const pipes = d.pipes ?? [];
+    const entities = d.entities ?? [];
 
     return (
         <nav>
@@ -745,82 +685,6 @@ export const Menu = (props: MenuProps): string => {
                     </li>
                 )}
 
-                {/* Modules */}
-                {d.modules?.length > 0 && (
-                    <li class="chapter modules">
-                        <a data-type="chapter-link" href="modules.html">
-                            {/* biome-ignore lint/a11y/useFocusableInteractive: Bootstrap collapse toggle wired to data-cdx-toggle */}
-                            {/* biome-ignore lint/a11y/useSemanticElements: Bootstrap collapse toggle wired to data-cdx-toggle */}
-                            <div
-                                class="menu-toggler linked"
-                                role="button"
-                                data-cdx-toggle="collapse"
-                                data-cdx-target="#modules-links"
-                                aria-expanded={chapterOpen('modules') ? 'true' : 'false'}
-                                aria-controls="modules-links"
-                            >
-                                {IconModule()}
-                                <span class="link-name">{t('modules')}</span>
-                                {chevron()}
-                            </div>
-                        </a>
-                        <ul
-                            class={`links collapse${chapterOpen('modules') ? ' in' : ''}`}
-                            id="modules-links"
-                        >
-                            {d.modules.map((mod: any) => (
-                                <li class="link">
-                                    <a
-                                        href={`modules/${mod.name}.html`}
-                                        data-type="entity-link"
-                                        class={mod.deprecated ? 'cdx-member-name--deprecated' : ''}
-                                    >
-                                        <span class="cdx-menu-item-name">{mod.name}</span>
-                                        {mod.deprecated
-                                            ? Badge({
-                                                  label: 'D',
-                                                  cssClass: 'cdx-badge--deprecated'
-                                              })
-                                            : ''}
-                                    </a>
-                                    {ModuleSubSection({
-                                        items: mod.compodocxLinks?.components,
-                                        type: 'components',
-                                        iconHtml: IconComponent(),
-                                        labelKey: 'components',
-                                        hrefPrefix: 'components',
-                                        moduleId: mod.id
-                                    })}
-                                    {ModuleSubSection({
-                                        items: mod.compodocxLinks?.directives,
-                                        type: 'directives',
-                                        iconHtml: IconDirective(),
-                                        labelKey: 'directives',
-                                        hrefPrefix: 'directives',
-                                        moduleId: mod.id
-                                    })}
-                                    {ModuleSubSection({
-                                        items: mod.compodocxLinks?.injectables,
-                                        type: 'injectables',
-                                        iconHtml: IconInjectable(),
-                                        labelKey: 'injectables',
-                                        hrefPrefix: 'injectables',
-                                        moduleId: mod.id
-                                    })}
-                                    {ModuleSubSection({
-                                        items: mod.compodocxLinks?.pipes,
-                                        type: 'pipes',
-                                        iconHtml: IconPipe(),
-                                        labelKey: 'pipes',
-                                        hrefPrefix: 'pipes',
-                                        moduleId: mod.id
-                                    })}
-                                </li>
-                            ))}
-                        </ul>
-                    </li>
-                )}
-
                 {/* Feature-folder layout renders ONE curated cross-kind chapter ("Features":
                     organisms — components, directives, pipes, injectables, classes, guards,
                     interceptors, entities, plus any reference-kind symbol promoted via
@@ -851,9 +715,9 @@ export const Menu = (props: MenuProps): string => {
                 ) : (
                     <>
                         {/* Standalone entity sections */}
-                        {aloneComponents.length > 0 &&
+                        {components.length > 0 &&
                             EntitySection({
-                                items: aloneComponents,
+                                items: components,
                                 categorized: d.categorizedComponents,
                                 type: 'components',
                                 iconHtml: IconComponent(),
@@ -861,18 +725,18 @@ export const Menu = (props: MenuProps): string => {
                                 hrefPrefix: 'components',
                                 groupDepth: d.groupDepth
                             })}
-                        {aloneEntities.length > 0 &&
+                        {entities.length > 0 &&
                             EntitySection({
-                                items: aloneEntities,
+                                items: entities,
                                 type: 'entities',
                                 iconHtml: IconEntity(),
                                 labelKey: 'entities',
                                 hrefPrefix: 'entities',
                                 groupDepth: d.groupDepth
                             })}
-                        {aloneDirectives.length > 0 &&
+                        {directives.length > 0 &&
                             EntitySection({
-                                items: aloneDirectives,
+                                items: directives,
                                 categorized: d.categorizedDirectives,
                                 type: 'directives',
                                 iconHtml: IconDirective(),
@@ -890,9 +754,9 @@ export const Menu = (props: MenuProps): string => {
                                 hrefPrefix: 'classes',
                                 groupDepth: d.groupDepth
                             })}
-                        {aloneInjectables.length > 0 &&
+                        {injectables.length > 0 &&
                             EntitySection({
-                                items: aloneInjectables,
+                                items: injectables,
                                 categorized: d.categorizedInjectables,
                                 type: 'injectables',
                                 iconHtml: IconInjectable(),
@@ -940,9 +804,9 @@ export const Menu = (props: MenuProps): string => {
                                 hrefPrefix: 'interfaces',
                                 groupDepth: d.groupDepth
                             })}
-                        {alonePipes.length > 0 &&
+                        {pipes.length > 0 &&
                             EntitySection({
-                                items: alonePipes,
+                                items: pipes,
                                 categorized: d.categorizedPipes,
                                 type: 'pipes',
                                 iconHtml: IconPipe(),

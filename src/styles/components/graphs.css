@@ -1,5 +1,5 @@
 .cdx-graph-container {
-    /* Page-level graphs (Overview, ModulePage) sit directly below the
+    /* Page-level graphs (Overview) sit directly below the
        entity hero — breathe top. Reset below for graphs rendered inside
        a tab panel (ComponentPage dependency tab) where the tab bar
        already provides separation. */
@@ -86,42 +86,6 @@
        HTML-element legend dot (which uses bg-elevated as its fill)
        actually visible instead of blending into the legend chrome. */
     border: 1px solid var(--color-cdx-border-strong);
-}
-
-/* Module graph (Graphviz SVG) — override hardcoded colors */
-/* Graphviz generates <g class="graph"><polygon fill="white"> as background.
-   After initSvgPanZoom wraps content in .zoom-wrapper, the path becomes:
-   svg > g.zoom-wrapper > g.graph > polygon */
-#module-graph-svg .graph > polygon {
-    fill: var(--color-cdx-bg-alt);
-    stroke: none;
-}
-
-#module-graph-svg .node polygon {
-    fill: var(--color-cdx-entity-module);
-    fill-opacity: 0.12;
-    stroke: var(--color-cdx-entity-module);
-    stroke-opacity: 0.5;
-}
-
-#module-graph-svg .edge path {
-    stroke: var(--color-cdx-text-muted);
-}
-
-#module-graph-svg .edge polygon {
-    fill: var(--color-cdx-text-muted);
-    stroke: var(--color-cdx-text-muted);
-}
-
-#module-graph-svg .cluster > polygon,
-#module-graph-svg .cluster > path {
-    stroke: var(--color-cdx-text-secondary);
-    stroke-opacity: 0.6;
-}
-
-#module-graph-svg .node text,
-#module-graph-svg text {
-    fill: var(--color-cdx-text);
 }
 
 #tree-container {

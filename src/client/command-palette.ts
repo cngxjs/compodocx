@@ -18,7 +18,6 @@ const ENTITY_TYPES = [
     'injectable',
     'token',
     'pipe',
-    'module',
     'class',
     'interface',
     'guard',
@@ -47,7 +46,6 @@ const entityClass = (type: EntityType | 'other'): string => {
         case 'directive':
         case 'pipe':
         case 'token':
-        case 'module':
         case 'class':
         case 'interface':
         case 'guard':
@@ -108,7 +106,6 @@ const KIND_LABEL_TO_TYPE: Record<string, EntityType> = {
     Function: 'function',
     Variable: 'variable',
     'Type Alias': 'typealias',
-    Module: 'module',
     Entity: 'class'
 };
 
@@ -133,9 +130,6 @@ const RESULT_ICONS: Record<string, string> = {
     ),
     directive: icon('<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>'),
     pipe: icon('<path d="M3 6h18"/><path d="M7 12h10"/><path d="M10 18h4"/>'),
-    module: icon(
-        '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.84Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>'
-    ),
     class: icon(
         '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="m10 13-2 2 2 2"/><path d="m14 17 2-2-2-2"/>'
     ),
