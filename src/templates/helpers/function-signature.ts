@@ -8,6 +8,7 @@ const escapeHtml = (str: string): string =>
         .replaceAll('"', '&quot;');
 
 import BasicTypeUtil from '../../utils/basic-type.util';
+import { relativeUrl } from './relative-url';
 
 // TODO: Refactor this helper to be more modular and testable, and to handle more complex type scenarios (e.g., generics, unions, intersections).
 const miscSubtypeToPage: Record<string, string> = {
@@ -17,20 +18,20 @@ const miscSubtypeToPage: Record<string, string> = {
     variable: 'variables'
 };
 
-function buildHrefForInternalType(data: any): string {
+function buildHrefForInternalType(data: any, depth: number): string {
     if (data.type === 'miscellaneous' || (data.ctype && data.ctype === 'miscellaneous')) {
         const page = miscSubtypeToPage[data.subtype] ?? '';
-        return `../miscellaneous/${page}.html#${data.name}`;
+        return relativeUrl(depth, `miscellaneous/${page}.html#${data.name}`);
     }
     const path = data.type === 'class' ? 'classe' : data.type;
-    return `../${path}s/${data.name}.html`;
+    return relativeUrl(depth, `${path}s/${data.name}.html`);
 }
 
-function resolveTypeLink(typeName: string): string | null {
+function resolveTypeLink(typeName: string, depth: number): string | null {
     const result = DependenciesEngine.find(typeName);
     if (result) {
         if (result.source === 'internal') {
-            const href = buildHrefForInternalType(result.data);
+            const href = buildHrefForInternalType(result.data, depth);
             return `<a href="${href}" target="_self">${escapeHtml(typeName)}</a>`;
         }
         return `<a href="https://angular.dev/${result.data.path}" target="_blank">${escapeHtml(typeName)}</a>`;
@@ -47,12 +48,12 @@ function getOptionalString(arg: any): string {
     return arg.optional ? '?' : '';
 }
 
-function handleFunction(arg: any): string {
+function handleFunction(arg: any, depth: number): string {
     if (arg.function.length === 0) {
         return `${arg.name}${getOptionalString(arg)}: () => void`;
     }
     const argums = arg.function.map((argu: any) => {
-        const link = resolveTypeLink(argu.type);
+        const link = resolveTypeLink(argu.type, depth);
         if (link) {
             return `${argu.name}${getOptionalString(arg)}: ${link}`;
         }
@@ -64,8 +65,11 @@ function handleFunction(arg: any): string {
     return `${arg.name}${getOptionalString(arg)}: (${argums.join(', ')}) => void`;
 }
 
-/** Render a method's full signature as HTML string with type links. */
-export const functionSignature = (method: any): string => {
+/**
+ * Render a method's full signature as HTML string with type links.
+ * `depth` is the directory depth of the page the signature is rendered on.
+ */
+export const functionSignature = (method: any, depth = 1): string => {
     let args = '';
     let destructuredCounterInitial = 0;
     let destructuredCounterReal = 0;
@@ -85,13 +89,13 @@ export const functionSignature = (method: any): string => {
                 destructuredCounterReal += 1;
             }
 
-            const link = resolveTypeLink(arg.type);
+            const link = resolveTypeLink(arg.type, depth);
             if (link) {
                 args += `${arg.name}${getOptionalString(arg)}: ${link}`;
             } else if (arg.dotDotDotToken) {
                 args += `...${arg.name}: ${arg.type}`;
             } else if (arg.function) {
-                args += handleFunction(arg);
+                args += handleFunction(arg, depth);
             } else if (arg.type) {
                 args += `${arg.name}${getOptionalString(arg)}: ${arg.type}`;
             } else {
