@@ -222,6 +222,8 @@ export interface ExportInjectable extends ExportEntityCommon {
     accessors?: Record<string, ExportAccessor>;
     constructorObj?: unknown;
     isToken?: boolean;
+    /** `InjectionToken` or `HttpContextToken`; absent means `InjectionToken`. */
+    tokenClass?: string;
     tokenType?: string;
     providedIn?: string;
     jsdoctags?: JsdocTagInterface[];

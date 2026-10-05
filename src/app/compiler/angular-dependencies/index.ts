@@ -1150,6 +1150,10 @@ export class AngularDependencies extends FrameworkDependencies {
                                             rawdescription: deps.rawdescription || '',
                                             sourceCode: '',
                                             isToken: true,
+                                            tokenClass:
+                                                this.providerDetector.getTokenConstructorName(
+                                                    infos.initializer
+                                                ),
                                             tokenType: this.providerDetector.getInjectionTokenType(
                                                 infos.initializer
                                             ),

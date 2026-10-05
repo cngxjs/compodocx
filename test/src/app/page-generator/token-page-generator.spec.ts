@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Configuration from '../../../../src/app/configuration';
 import DependenciesEngine from '../../../../src/app/engines/dependencies.engine';
 import { TokenPageGenerator } from '../../../../src/app/page-generator/token-page-generator';
+import { TokenPage } from '../../../../src/templates/pages/TokenPage';
 
 const navTabsStub = { resolve: () => [] } as any;
 
@@ -49,5 +50,34 @@ describe('TokenPageGenerator', () => {
         expect(page.token).toBe(token);
         expect(page.token.tokenType).toBe('string');
         expect(page.token.providedIn).toBe('root');
+    });
+
+    it('renders HttpContextToken<T> for an HttpContextToken', () => {
+        const html = TokenPage({
+            token: {
+                name: 'CACHE_ENABLED',
+                file: 'src/tokens.ts',
+                tokenClass: 'HttpContextToken',
+                tokenType: 'boolean'
+            },
+            depth: 1
+        });
+        expect(html).toContain('HttpContextToken&lt;boolean>');
+        expect(html).not.toContain('InjectionToken&lt;');
+    });
+
+    it('keeps InjectionToken<T> for an InjectionToken', () => {
+        const html = TokenPage({
+            token: {
+                name: 'API_BASE_URL',
+                file: 'src/tokens.ts',
+                tokenClass: 'InjectionToken',
+                tokenType: 'string',
+                providedIn: 'root'
+            },
+            depth: 1
+        });
+        expect(html).toContain('InjectionToken&lt;string>');
+        expect(html).toContain("<code>'root'</code>");
     });
 });

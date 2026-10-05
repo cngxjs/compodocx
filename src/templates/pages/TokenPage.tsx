@@ -57,6 +57,10 @@ const Section = (props: SectionProps): string => {
     ) as string;
 };
 
+/** `InjectionToken<T>` or `HttpContextToken<T>`, depending on the constructor. */
+const tokenSignature = (item: any, tokenType: string): string =>
+    `${item.tokenClass ?? 'InjectionToken'}<${tokenType}>`;
+
 const Hero = (item: any, _depth: number): string => {
     const segments = resolveBucketSegments(item);
     const breadcrumbLabel = item.category || segments?.[0] || t('tokens');
@@ -120,7 +124,7 @@ const Hero = (item: any, _depth: number): string => {
             )}
             {tokenType ? (
                 <p class="cdx-entity-hero-context">
-                    <code>{Html.escapeHtml(`InjectionToken<${tokenType}>`) as string}</code>
+                    <code>{Html.escapeHtml(tokenSignature(item, tokenType)) as string}</code>
                 </p>
             ) : (
                 ''
@@ -173,7 +177,7 @@ export const TokenPage = (data: any): string => {
                       children: (
                           <pre class="cdx-derived-body">
                               <code>
-                                  {Html.escapeHtml(`InjectionToken<${tokenType}>`) as string}
+                                  {Html.escapeHtml(tokenSignature(item, tokenType)) as string}
                               </code>
                           </pre>
                       ) as string

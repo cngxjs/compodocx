@@ -63,6 +63,14 @@ export class ProviderDetector {
         return false;
     }
 
+    /** Constructor name of a token declaration; call only after `isInjectionToken`. */
+    public getTokenConstructorName(initializer: any): 'InjectionToken' | 'HttpContextToken' {
+        const expr = initializer?.expression;
+        return expr && ts.isIdentifier(expr) && expr.text === 'HttpContextToken'
+            ? 'HttpContextToken'
+            : 'InjectionToken';
+    }
+
     public getInjectionTokenType(initializer: any): string {
         if (!initializer || !ts.isNewExpression(initializer)) {
             return '';
