@@ -524,6 +524,10 @@ export class AngularDependencies extends FrameworkDependencies {
                                 outputSymbols.entities.push(entityDep);
                             }
                         } else if (this.metadataPredicates.isInjectable(visitedDecorator)) {
+                            const providedIn = this.componentHelper.getInjectableProvidedIn(
+                                props,
+                                srcFile
+                            );
                             const injectableDeps: IInjectableDep = {
                                 name,
                                 id: `injectable-${name}-${hash}`,
@@ -539,6 +543,7 @@ export class AngularDependencies extends FrameworkDependencies {
                                 exampleUrls: this.componentHelper.getComponentExampleUrls(
                                     srcFile.getText()
                                 ),
+                                ...(providedIn && { providedIn }),
                                 // Custom JSDoc tags
                                 ...(IO.beta && { beta: true }),
                                 ...(IO.since && { since: IO.since }),

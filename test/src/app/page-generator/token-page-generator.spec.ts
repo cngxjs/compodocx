@@ -42,12 +42,12 @@ describe('TokenPageGenerator', () => {
             id: 'token-api',
             file: 'src/tokens.ts',
             tokenType: 'string',
-            providedIn: "'root'"
+            providedIn: 'root'
         };
         await new TokenPageGenerator(navTabsStub).prepare([token] as any);
         const page = addPageSpy.mock.calls[0][0] as any;
         expect(page.token).toBe(token);
         expect(page.token.tokenType).toBe('string');
-        expect(page.token.providedIn).toBe("'root'");
+        expect(page.token.providedIn).toBe('root');
     });
 });

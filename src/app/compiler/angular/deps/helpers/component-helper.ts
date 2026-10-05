@@ -90,6 +90,18 @@ export class ComponentHelper {
         return this.symbolHelper.getSymbolDeps(props, 'exportAs', srcFile).pop();
     }
 
+    /**
+     * `providedIn` of an `@Injectable` decorator: the bare value for string
+     * literals (`root`, `platform`, `any`), the identifier text otherwise.
+     */
+    public getInjectableProvidedIn(
+        props: ReadonlyArray<ts.ObjectLiteralElementLike>,
+        srcFile: ts.SourceFile
+    ): string | undefined {
+        const value = this.symbolHelper.getSymbolDeps(props, 'providedIn', srcFile).pop();
+        return typeof value === 'string' && value.length > 0 ? value : undefined;
+    }
+
     public getComponentHostDirectives(
         props: ReadonlyArray<ts.ObjectLiteralElementLike>,
         srcFile?: ts.SourceFile

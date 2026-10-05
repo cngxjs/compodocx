@@ -29,6 +29,7 @@ export {
 } from './pagefind-meta';
 export { parseDescription } from './parse-description';
 export { parseProperty } from './parse-property';
+export { formatProvidedIn } from './provided-in';
 export { relativeUrl } from './relative-url';
 export { shortPath, shortUrl } from './short-url';
 export { signalKindLabel } from './signal-kind';

@@ -88,7 +88,10 @@ export class ProviderDetector {
                     p.name.text === 'providedIn'
             );
             if (providedInProp && ts.isPropertyAssignment(providedInProp)) {
-                return providedInProp.initializer.getText();
+                // Same convention as `@Injectable`: bare value for string
+                // literals, source text for class or module references.
+                const value = providedInProp.initializer;
+                return ts.isStringLiteralLike(value) ? value.text : value.getText();
             }
         }
         return '';

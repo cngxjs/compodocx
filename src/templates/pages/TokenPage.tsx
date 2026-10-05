@@ -9,6 +9,7 @@ import { WcagBadge } from '../components/WcagBadge';
 import {
     codeWrap,
     deriveLibFromBucket,
+    formatProvidedIn,
     pagefindFilterBlock,
     pagefindMetaBlock,
     parseDescription,
@@ -182,7 +183,7 @@ export const TokenPage = (data: any): string => {
             {providedIn
                 ? Section({
                       title: t('provided-in') ?? 'Provided in',
-                      children: codeWrap(providedIn)
+                      children: codeWrap(formatProvidedIn(providedIn))
                   })
                 : ''}
         </>
