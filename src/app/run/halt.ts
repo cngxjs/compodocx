@@ -6,6 +6,7 @@ export interface Halt {
     readonly exitCode: 0 | 1 | 2;
     readonly reason:
         | 'coverage-gate'
+        | 'export-format'
         | 'markdown'
         | 'prepare'
         | 'resources'

@@ -112,6 +112,33 @@ export interface RunContext {
     readonly generators: Generators;
     /** Crawl result of the changed files, set by the micro-crawl phase. */
     readonly diff?: DependenciesData;
+    /**
+     * Watch rebuilds only: called once the output phase has started writing
+     * HTML, so the watcher can reset its changed-file buffer.
+     */
+    readonly onEmitStart?: () => void;
 }
+
+/** What every run of one process shares. */
+export interface RunBase {
+    readonly config: typeof Configuration;
+    readonly files: readonly string[];
+    readonly generators: Generators;
+}
+
+export const createRunContext = (
+    base: RunBase,
+    mode: RunMode,
+    updatedFiles: readonly string[] = [],
+    onEmitStart?: () => void
+): RunContext => ({
+    mode,
+    config: base.config,
+    files: base.files,
+    updatedFiles,
+    startTime: Date.now(),
+    generators: base.generators,
+    onEmitStart
+});
 
 export type Stage = (ctx: RunContext) => Promise<Result<RunContext, Halt>>;

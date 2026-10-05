@@ -1,14 +1,10 @@
-// NOTE: prepareDocumentation still exits the process with the coverage gate's
-// exit code. The threshold cascade itself lives in the pure
-// `evaluateCoverageGate` (src/app/run/coverage-gate.ts).
-
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
 import type { CoverageData } from '../interfaces/coverageData.interface';
-import { evaluateCoverageGate } from '../run/coverage-gate';
+import { type CoverageVerdict, evaluateCoverageGate } from '../run/coverage-gate';
 import {
     type CoverageFile,
     computeDocumentationCoverage,
@@ -16,7 +12,12 @@ import {
 } from '../services/coverage';
 
 export class CoveragePageGenerator {
-    public prepareDocumentation(): Promise<any> {
+    /**
+     * Build the documentation coverage page and evaluate the coverage gate.
+     * Resolves with the gate's verdict; the caller logs its lines and halts
+     * the run when the verdict carries an exit code.
+     */
+    public prepareDocumentation(): Promise<CoverageVerdict> {
         logger.info('Process documentation coverage report');
 
         return new Promise((resolve, _reject) => {
@@ -71,14 +72,7 @@ export class CoveragePageGenerator {
                 coverageTestThresholdFail: Configuration.mainData.coverageTestThresholdFail,
                 coverageTestShowOnlyFailed: Configuration.mainData.coverageTestShowOnlyFailed
             });
-            for (const line of verdict.lines) {
-                logger[line.level](line.text);
-            }
-            if (verdict.exitCode === null) {
-                resolve(true);
-            } else {
-                process.exit(verdict.exitCode);
-            }
+            resolve(verdict);
         });
     }
 

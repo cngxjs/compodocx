@@ -1,7 +1,9 @@
 import { err, ok, type Result, sequenceAsync } from '../../lib';
+import { logger } from '../../utils/logger';
 import DependenciesEngine from '../engines/dependencies.engine';
 import type { DependenciesData } from '../services/dependencies';
 import type { RunContext } from './context';
+import { type Halt, halt } from './halt';
 
 /**
  * How many symbols of each kind the prepare phase works on: the whole
@@ -28,8 +30,22 @@ export interface SourceCounts {
 export interface PrepareStage {
     readonly key: string;
     readonly when: (ctx: RunContext, counts: SourceCounts) => boolean;
-    readonly run: (ctx: RunContext) => Promise<unknown>;
+    /** Resolves with a `Halt` when the stage stops the run on purpose. */
+    readonly run: (ctx: RunContext) => Promise<Halt | undefined>;
 }
+
+/** Why the prepare stages stopped: a deliberate halt or a rejected stage. */
+export type PrepareStop =
+    | { readonly kind: 'halt'; readonly halt: Halt }
+    | { readonly kind: 'error'; readonly error: unknown };
+
+/** Adapt a generator call that never halts. */
+const step =
+    (fn: (ctx: RunContext) => unknown) =>
+    async (ctx: RunContext): Promise<undefined> => {
+        await fn(ctx);
+        return undefined;
+    };
 
 const isDiff = (ctx: RunContext) => ctx.mode === 'diff';
 
@@ -56,66 +72,84 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
     {
         key: 'component',
         when: alwaysUnlessDiffWithout(c => c.components),
-        run: ctx => ctx.generators.component.prepare()
+        run: step(ctx => ctx.generators.component.prepare())
     },
     {
         key: 'module',
         when: alwaysUnlessDiffWithout(c => c.modules),
-        run: ctx => ctx.generators.module.prepare()
+        run: step(ctx => ctx.generators.module.prepare())
     },
     {
         key: 'directive',
         when: hasAny(c => c.directives),
-        run: ctx => ctx.generators.directive.prepare()
+        run: step(ctx => ctx.generators.directive.prepare())
     },
-    { key: 'entity', when: hasAny(c => c.entities), run: ctx => ctx.generators.entity.prepare() },
+    {
+        key: 'entity',
+        when: hasAny(c => c.entities),
+        run: step(ctx => ctx.generators.entity.prepare())
+    },
     {
         key: 'injectable',
         when: hasAny(c => c.injectables),
-        run: ctx => ctx.generators.injectable.prepare()
+        run: step(ctx => ctx.generators.injectable.prepare())
     },
-    { key: 'token', when: hasAny(c => c.tokens), run: ctx => ctx.generators.token.prepare() },
+    { key: 'token', when: hasAny(c => c.tokens), run: step(ctx => ctx.generators.token.prepare()) },
     {
         key: 'interceptor',
         when: hasAny(c => c.interceptors),
-        run: ctx => ctx.generators.interceptor.prepare()
+        run: step(ctx => ctx.generators.interceptor.prepare())
     },
-    { key: 'guard', when: hasAny(c => c.guards), run: ctx => ctx.generators.guard.prepare() },
+    { key: 'guard', when: hasAny(c => c.guards), run: step(ctx => ctx.generators.guard.prepare()) },
     {
         key: 'routes',
         when: (ctx, counts) =>
             (isDiff(ctx) || counts.routes) && !ctx.config.mainData.disableRoutesGraph,
-        run: ctx => ctx.generators.routes.prepare()
+        run: step(ctx => ctx.generators.routes.prepare())
     },
-    { key: 'pipe', when: hasAny(c => c.pipes), run: ctx => ctx.generators.pipe.prepare() },
-    { key: 'class', when: hasAny(c => c.classes), run: ctx => ctx.generators.class.prepare() },
+    { key: 'pipe', when: hasAny(c => c.pipes), run: step(ctx => ctx.generators.pipe.prepare()) },
+    {
+        key: 'class',
+        when: hasAny(c => c.classes),
+        run: step(ctx => ctx.generators.class.prepare())
+    },
     {
         key: 'interface',
         when: hasAny(c => c.interfaces),
-        run: ctx => ctx.generators.interface.prepare()
+        run: step(ctx => ctx.generators.interface.prepare())
     },
-    { key: 'appConfig', when: always, run: ctx => ctx.generators.appConfig.prepare() },
+    { key: 'appConfig', when: always, run: step(ctx => ctx.generators.appConfig.prepare()) },
     {
         key: 'miscellaneous',
         when: hasAny(c => c.miscellaneous),
-        run: ctx => ctx.generators.miscellaneous.prepare()
+        run: step(ctx => ctx.generators.miscellaneous.prepare())
     },
-    { key: 'bucketLanding', when: always, run: ctx => ctx.generators.bucketLanding.prepare() },
-    { key: 'apiReference', when: always, run: ctx => ctx.generators.apiReference.prepare() },
+    {
+        key: 'bucketLanding',
+        when: always,
+        run: step(ctx => ctx.generators.bucketLanding.prepare())
+    },
+    { key: 'apiReference', when: always, run: step(ctx => ctx.generators.apiReference.prepare()) },
     {
         key: 'documentationCoverage',
         when: ctx => !ctx.config.mainData.disableCoverage,
-        run: ctx => ctx.generators.coverage.prepareDocumentation()
+        run: async ctx => {
+            const verdict = await ctx.generators.coverage.prepareDocumentation();
+            for (const line of verdict.lines) {
+                logger[line.level](line.text);
+            }
+            return verdict.exitCode === null ? undefined : halt(verdict.exitCode, 'coverage-gate');
+        }
     },
     {
         key: 'unitTestCoverage',
         when: oneShotWhen(ctx => ctx.config.mainData.unitTestCoverage !== ''),
-        run: ctx => ctx.generators.coverage.prepareUnitTest()
+        run: step(ctx => ctx.generators.coverage.prepareUnitTest())
     },
     {
         key: 'externalIncludes',
         when: oneShotWhen(ctx => ctx.config.mainData.includes !== ''),
-        run: ctx => ctx.generators.additional.prepareExternalIncludes()
+        run: step(ctx => ctx.generators.additional.prepareExternalIncludes())
     },
     // Resolve `@playground` file refs after every prepare step has populated
     // `mainData.<kind>.playgrounds` and before page rendering reads
@@ -123,14 +157,14 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
     {
         key: 'playgroundFiles',
         when: always,
-        run: async ctx => ctx.generators.playgroundFiles.resolve()
+        run: step(ctx => ctx.generators.playgroundFiles.resolve())
     },
     // Resolve the `playgroundVendor` closure from the local `dist/` once; a hard
     // error here (unbuilt library) fails the build deliberately.
     {
         key: 'playgroundVendor',
         when: always,
-        run: async ctx => ctx.generators.playgroundVendor.resolve()
+        run: step(ctx => ctx.generators.playgroundVendor.resolve())
     },
     // Validate non-vendored playground imports against the pinned node_modules
     // versions, after vendoring so vendored packages are excluded. Warns by
@@ -138,7 +172,7 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
     {
         key: 'playgroundValidator',
         when: always,
-        run: async ctx => ctx.generators.playgroundValidator.resolve()
+        run: step(ctx => ctx.generators.playgroundValidator.resolve())
     }
 ];
 
@@ -189,20 +223,20 @@ export const countsFromDiff = (diff: DependenciesData): SourceCounts => ({
 });
 
 /**
- * Run the stages one after the other. A rejected stage stops the sequence
- * and comes back as `err` with the rejection reason.
+ * Run the stages one after the other. A halting stage or a rejected stage
+ * stops the sequence; later stages are not called.
  */
 export const runPrepareStages = (
     ctx: RunContext,
     stages: readonly PrepareStage[]
-): Promise<Result<RunContext, unknown>> =>
-    sequenceAsync<RunContext, unknown>(
+): Promise<Result<RunContext, PrepareStop>> =>
+    sequenceAsync<RunContext, PrepareStop>(
         stages.map(stage => async current => {
             try {
-                await stage.run(current);
-                return ok(current);
+                const stopped = await stage.run(current);
+                return stopped ? err({ kind: 'halt', halt: stopped }) : ok(current);
             } catch (error) {
-                return err(error);
+                return err({ kind: 'error', error });
             }
         }),
         ctx
