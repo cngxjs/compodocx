@@ -1,3 +1,5 @@
+import type { LegacyFinding } from '../compiler/legacy-scan';
+
 export interface ParsedData {
     modules?;
     modulesForGraph?;
@@ -16,4 +18,5 @@ export interface ParsedData {
     routes?;
     typescriptImports?;
     appConfig?;
+    legacyFindings?: readonly LegacyFinding[];
 }

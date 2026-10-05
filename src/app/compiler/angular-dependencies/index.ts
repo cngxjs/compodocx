@@ -33,6 +33,7 @@ import { ModuleHelper } from '../angular/deps/helpers/module-helper';
 import { SymbolHelper } from '../angular/deps/helpers/symbol-helper';
 import { ModuleDepFactory } from '../angular/deps/module-dep.factory';
 import { FrameworkDependencies } from '../framework-dependencies';
+import { type LegacyFinding, scanLegacy, sortLegacyFindings } from '../legacy-scan';
 import { EntityVisitor } from './entity-visitor';
 import { ExpressionFinder } from './expression-finder';
 import { IoExtractor } from './io-extractor';
@@ -94,7 +95,8 @@ export class AngularDependencies extends FrameworkDependencies {
                 enumerations: []
             },
             routesTree: undefined,
-            appConfig: []
+            appConfig: [],
+            legacyFindings: [] as readonly LegacyFinding[]
         };
 
         const sourceFiles = this.program.getSourceFiles() || [];
@@ -113,6 +115,7 @@ export class AngularDependencies extends FrameworkDependencies {
                     this.getTypescriptExportsAliases(file, deps);
                     this.getTypescriptImportsAliases(file, deps);
                     this.getSourceFileDecorators(file, deps);
+                    deps.legacyFindings = [...deps.legacyFindings, ...scanLegacy(file)];
                 }
             }
 
@@ -216,6 +219,7 @@ export class AngularDependencies extends FrameworkDependencies {
          * - methods
          */
         deps = ExtendsMerger.merge(deps);
+        deps.legacyFindings = sortLegacyFindings(deps.legacyFindings);
 
         // RouterParserUtil.printModulesRoutes();
         // RouterParserUtil.printRoutes();
