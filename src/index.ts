@@ -1,2 +1,1 @@
-export { Application } from './app/application';
-export { CliApplication } from './index-cli';
+export { type RunOptions, type RunOutcome, runCompodocx } from './app/run';
