@@ -1,1 +1,1 @@
-export { DataModule } from './data.module';
+export { provideData } from './data.module';

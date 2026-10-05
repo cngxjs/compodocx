@@ -4,17 +4,10 @@
 
 ```ts
 
-import * as i0 from '@angular/core';
+import { Provider } from '@angular/core';
 
 // @public (undocumented)
-export class CoreModule {
-    // (undocumented)
-    static ɵfac: i0.ɵɵFactoryDeclaration<CoreModule, never>;
-    // (undocumented)
-    static ɵinj: i0.ɵɵInjectorDeclaration<CoreModule>;
-    // (undocumented)
-    static ɵmod: i0.ɵɵNgModuleDeclaration<CoreModule, never, never, never>;
-}
+export function provideCore(): Provider[];
 
 // (No @packageDocumentation comment for this package)
 

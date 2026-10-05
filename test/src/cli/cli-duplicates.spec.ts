@@ -11,7 +11,7 @@ describe('CLI duplicates support', () => {
             './bin/index-cli.js',
             '--no-multiVersion',
             '-p',
-            './test/fixtures/todomvc-ng2-duplicates/src/tsconfig.json',
+            './test/fixtures/standalone-scenarios/duplicates/tsconfig.json',
             '-d',
             distFolder
         ]);
@@ -110,24 +110,18 @@ describe('CLI duplicates support', () => {
         expect(file).to.be.true;
     });
 
-    it('should support component inside module', () => {
-        // The inline TSX menu (`Menu.tsx`) DOES emit a sub-entity anchor
-        // for nested-in-module components — the link sits inside the
-        // module's `<ul id="components-links-module-…">` group with
-        // `data-context="sub-entity" data-context-id="modules"`.
+    it('should list a standalone component in the components chapter', () => {
         const indexFile = read(`${distFolder}/index.html`);
-        expect(indexFile).to.contain('data-context="sub-entity" data-context-id="modules"');
-        expect(indexFile).to.contain('>ValidationDemo');
+        expect(indexFile).to.contain(
+            '<a href="components/ValidationDemo.html" data-type="entity-link" class="" data-cdx-entity-type="component"><span class="cdx-menu-item-name">ValidationDemo'
+        );
     });
 
-    it('should support component inside module with duplicate', () => {
+    it('should list both duplicated standalone components in the components chapter', () => {
         const indexFile = read(`${distFolder}/index.html`);
-        // The duplicates fixture mounts FooterComponent under its
-        // owning module via the same sub-entity link shape.
-        expect(indexFile).to.contain(
-            'data-context="sub-entity" data-context-id="modules" class="" data-cdx-entity-type="component"'
-        );
-        expect(indexFile).to.contain('>FooterComponent');
+        expect(indexFile).to.contain('<a href="components/FooterComponent.html"');
+        expect(indexFile).to.contain('<a href="components/FooterComponent-1.html"');
+        expect(indexFile).to.contain('<span class="cdx-menu-item-name">FooterComponent');
     });
 
     it('Injectable with multiple decorators should not appear twice', () => {

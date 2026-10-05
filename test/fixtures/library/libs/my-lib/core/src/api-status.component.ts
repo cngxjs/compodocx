@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 /**
  * Renders a small badge that reflects the current API connection status.
@@ -19,9 +19,8 @@ import { Component, Input } from '@angular/core';
  */
 @Component({
     selector: 'my-lib-api-status',
-    standalone: false,
-    template: '<span class="api-status">{{ endpoint }}</span>'
+    template: '<span class="api-status">{{ endpoint() }}</span>'
 })
 export class ApiStatusComponent {
-    @Input() endpoint = '/api';
+    endpoint = input('/api');
 }

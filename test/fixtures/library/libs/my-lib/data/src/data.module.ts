@@ -1,4 +1,4 @@
-import { InjectionToken, NgModule } from '@angular/core';
+import { InjectionToken, Provider } from '@angular/core';
 import { getDefaultApiRoot } from './utils';
 
 export interface DataConfig {
@@ -7,10 +7,6 @@ export interface DataConfig {
 
 export const DATA_CONFIG = new InjectionToken<DataConfig>('DataConfig');
 
-@NgModule({
-    providers: [
-        { provide: DATA_CONFIG, useValue: { apiRoot: getDefaultApiRoot() } }
-    ]
-})
-export class DataModule {
+export function provideData(): Provider[] {
+    return [{ provide: DATA_CONFIG, useValue: { apiRoot: getDefaultApiRoot() } }];
 }

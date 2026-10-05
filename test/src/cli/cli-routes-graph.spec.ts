@@ -12,7 +12,7 @@ describe('CLI Routes graph', () => {
                 './bin/index-cli.js',
                 '--no-multiVersion',
                 '-p',
-                './test/fixtures/todomvc-ng2-simple-routing/src/tsconfig.json',
+                './test/fixtures/standalone-scenarios/routing/simple/tsconfig.json',
                 '--disableRoutesGraph',
                 '-d',
                 distFolder
@@ -31,14 +31,14 @@ describe('CLI Routes graph', () => {
         });
     });
 
-    describe('should support forRoot/forChild', () => {
+    describe('should support provideRouter', () => {
         beforeAll(() => {
             tmp.create(distFolder);
             const ls = shell('node', [
                 './bin/index-cli.js',
                 '--no-multiVersion',
                 '-p',
-                './test/fixtures/todomvc-ng2-simple-routing/src/tsconfig.json',
+                './test/fixtures/standalone-scenarios/routing/simple/tsconfig.json',
                 '-d',
                 distFolder
             ]);
@@ -50,47 +50,22 @@ describe('CLI Routes graph', () => {
         });
         afterAll(() => tmp.clean(distFolder));
 
-        it('should clean forRoot and forChild in modules imports', () => {
-            const file = read(`${distFolder}/modules/AppModule.html`);
-            expect(file).to.contain('<a href="../modules/HomeModule.html">HomeModule</a>');
+        it('should list provideRouter in the app config providers', () => {
+            const file = read(`${distFolder}/app-config.html`);
+            expect(file).to.contain(
+                '<a href="https://angular.dev/api/router/provideRouter" target="_blank">provideRouter()</a>'
+            );
         });
     });
 
-    describe('should support lazy-loaded modules with loadChildren syntax (containing possible trailing commas)', () => {
+    describe('should support lazy-loaded routes with loadChildren syntax (containing possible trailing commas)', () => {
         beforeAll(() => {
             tmp.create(distFolder);
             const ls = shell('node', [
                 './bin/index-cli.js',
                 '--no-multiVersion',
                 '-p',
-                './test/fixtures/todomvc-ng2-simple-routing-standard/src/tsconfig.json',
-                '-d',
-                distFolder
-            ]);
-
-            if (hasStderrError(ls.stderr.toString())) {
-                console.error(`shell error: ${ls.stderr.toString()}`);
-                throw new Error('error');
-            }
-        });
-        afterAll(() => tmp.clean(distFolder));
-
-        it('should have a clean graph', () => {
-            const isFileExists = exists(`${distFolder}/js/routes/routes_index.js`);
-            expect(isFileExists).to.be.true;
-            const file = read(`${distFolder}/js/routes/routes_index.js`);
-            expect(file).to.contain('AboutComponent');
-        });
-    });
-
-    describe('should support lazy-loaded modules with new loadChildren syntax / async', () => {
-        beforeAll(() => {
-            tmp.create(distFolder);
-            const ls = shell('node', [
-                './bin/index-cli.js',
-                '--no-multiVersion',
-                '-p',
-                './test/fixtures/todomvc-ng2-simple-routing-standard-async/src/tsconfig.json',
+                './test/fixtures/standalone-scenarios/routing/lazy-trailing-comma/tsconfig.json',
                 '-d',
                 distFolder
             ]);
@@ -110,14 +85,41 @@ describe('CLI Routes graph', () => {
         });
     });
 
-    describe('should support if statement for bootstrapModule', () => {
+    describe('should support lazy-loaded routes with loadChildren syntax / async', () => {
         beforeAll(() => {
             tmp.create(distFolder);
             const ls = shell('node', [
                 './bin/index-cli.js',
                 '--no-multiVersion',
                 '-p',
-                './test/fixtures/todomvc-ng2-simple-routing-with-if/src/tsconfig.json',
+                './test/fixtures/standalone-scenarios/routing/lazy-async/tsconfig.json',
+                '-d',
+                distFolder
+            ]);
+
+            if (hasStderrError(ls.stderr.toString())) {
+                console.error(`shell error: ${ls.stderr.toString()}`);
+                throw new Error('error');
+            }
+        });
+        afterAll(() => tmp.clean(distFolder));
+
+        it('should have a clean graph', () => {
+            const isFileExists = exists(`${distFolder}/js/routes/routes_index.js`);
+            expect(isFileExists).to.be.true;
+            const file = read(`${distFolder}/js/routes/routes_index.js`);
+            expect(file).to.contain('AboutComponent');
+        });
+    });
+
+    describe('should support if statement for bootstrapApplication', () => {
+        beforeAll(() => {
+            tmp.create(distFolder);
+            const ls = shell('node', [
+                './bin/index-cli.js',
+                '--no-multiVersion',
+                '-p',
+                './test/fixtures/standalone-scenarios/routing/bootstrap-if/tsconfig.json',
                 '-d',
                 distFolder
             ]);
@@ -144,7 +146,7 @@ describe('CLI Routes graph', () => {
                 './bin/index-cli.js',
                 '--no-multiVersion',
                 '-p',
-                './test/fixtures/todomvc-ng2-simple-routing/src/tsconfig.json',
+                './test/fixtures/standalone-scenarios/routing/simple/tsconfig.json',
                 '-d',
                 distFolder
             ]);

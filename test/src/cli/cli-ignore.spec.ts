@@ -12,7 +12,7 @@ describe('CLI ignore JSDoc tag support', () => {
                 './bin/index-cli.js',
                 '--no-multiVersion',
                 '-p',
-                './test/fixtures/todomvc-ng2-ignore/src/tsconfig.json',
+                './test/fixtures/standalone-scenarios/ignore/tsconfig.json',
                 '-d',
                 distFolder
             ]);
@@ -49,18 +49,20 @@ describe('CLI ignore JSDoc tag support', () => {
             expect(file).to.not.contain('<code>ignoredOutput');
         });
 
+        // `host: {}` entries are decorator metadata and stay listed; @ignore
+        // hides the bound member and the listener handler.
         it('Component hostbinding ignored', () => {
             const file = read(`${distFolder}/components/FooterComponent.html`);
-            expect(file).to.not.contain('<code>style.color');
+            expect(file).to.not.contain('cdx-io-member-name">color');
         });
 
         it('Component hostlistener ignored', () => {
             const file = read(`${distFolder}/components/FooterComponent.html`);
-            expect(file).to.not.contain('<code>mouseup');
+            expect(file).to.not.contain('cdx-io-member-name">onMouseup');
         });
 
-        it('Module ignored', () => {
-            const file = exists(`${distFolder}/modules/FooterModule.html`);
+        it('App config ignored', () => {
+            const file = exists(`${distFolder}/app-config.html`);
             expect(file).to.be.false;
         });
 
@@ -70,7 +72,7 @@ describe('CLI ignore JSDoc tag support', () => {
         });
 
         it('Service ignored', () => {
-            const file = exists(`${distFolder}/services/TodoStore.html`);
+            const file = exists(`${distFolder}/injectables/TodoStore.html`);
             expect(file).to.be.false;
         });
 
@@ -137,7 +139,7 @@ describe('CLI ignore JSDoc tag support', () => {
                 './bin/index-cli.js',
                 '--no-multiVersion',
                 '-p',
-                './test/fixtures/todomvc-ng2-ignore/src/tsconfig.json',
+                './test/fixtures/standalone-scenarios/ignore/tsconfig.json',
                 '--disableLifeCycleHooks',
                 '-d',
                 distFolder

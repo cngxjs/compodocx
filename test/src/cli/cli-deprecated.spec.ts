@@ -11,14 +11,14 @@ describe('CLI Deprecated', () => {
     describe('Angular app', () => {
         beforeAll(() => {
             tmp.create(tmpFolder);
-            tmp.copy('./test/fixtures/todomvc-ng2-deprecated/', tmpFolder);
+            tmp.copy('./test/fixtures/standalone-scenarios/deprecated/', tmpFolder);
             const ls = shell(
                 'node',
                 [
                     '../bin/index-cli.js',
                     '--no-multiVersion',
                     '-p',
-                    './tsconfig.doc.json',
+                    './tsconfig.json',
                     '-d',
                     'documentation'
                 ],
@@ -36,16 +36,10 @@ describe('CLI Deprecated', () => {
         });
         afterAll(() => tmp.clean(tmpFolder));
 
-        it('it should contain module deprecated', () => {
-            const file = read(`${distFolder}/modules/AboutModule2.html`);
-            expect(file).to.contain('class="cdx-deprecation-banner"');
-            expect(file).to.contain('<strong>Deprecated</strong>');
-            expect(menuFile).to.contain('cdx-member-name--deprecated">AboutModule2');
-        });
-
         it('it should contain injectable deprecated and one API inside', () => {
             const file = read(`${distFolder}/injectables/TodoStore.html`);
             expect(file).to.contain('class="cdx-deprecation-banner"');
+            expect(file).to.contain('<strong>Deprecated</strong>');
             expect(file).to.contain('cdx-member-name--deprecated">getThemAll');
             expect(menuFile).to.contain(
                 'cdx-member-name--deprecated" data-cdx-entity-type="injectable"'
@@ -60,7 +54,7 @@ describe('CLI Deprecated', () => {
             expect(file).to.contain('cdx-member-name--deprecated">emptyHostBinding');
             expect(file).to.contain('cdx-member-name--deprecated">onMouseup');
             expect(menuFile).to.contain(
-                'cdx-member-name--deprecated" data-cdx-entity-type="component" data-cdx-selector="cp-dumb" data-cdx-io="2/2" data-cdx-desc="empty component">DumbComponent'
+                'cdx-member-name--deprecated" data-cdx-entity-type="component" data-cdx-selector="cp-dumb" data-cdx-io="2/2" data-cdx-desc="empty component"><span class="cdx-menu-item-name">DumbComponent'
             );
         });
 
@@ -69,7 +63,7 @@ describe('CLI Deprecated', () => {
             expect(file).to.contain('class="cdx-deprecation-banner"');
             expect(file).to.contain('cdx-member-name--deprecated">popover');
             expect(menuFile).to.contain(
-                'cdx-member-name--deprecated" data-cdx-entity-type="directive" data-cdx-selector="[donothing]" data-cdx-desc="This directive does nothing !">DoNothingDirective2'
+                'cdx-member-name--deprecated" data-cdx-entity-type="directive" data-cdx-selector="[donothing]" data-cdx-desc="This directive does nothing !"><span class="cdx-menu-item-name">DoNothingDirective2'
             );
         });
 
@@ -78,23 +72,25 @@ describe('CLI Deprecated', () => {
             expect(file).to.contain('class="cdx-deprecation-banner"');
             expect(file).to.contain('cdx-member-name--deprecated">completed');
             expect(menuFile).to.contain(
-                'cdx-member-name--deprecated" data-cdx-entity-type="class" data-cdx-desc="The tidi class">Tidi'
+                'cdx-member-name--deprecated" data-cdx-entity-type="class" data-cdx-desc="The tidi class"><span class="cdx-menu-item-name">Tidi'
             );
         });
 
+        // Functional interceptor and guard pages mark the title as deprecated
+        // but render no deprecation banner (class-based pages do).
         it('it should contain interceptor deprecated and APIs inside', () => {
             const file = read(`${distFolder}/interceptors/NoopInterceptor.html`);
-            expect(file).to.contain('class="cdx-deprecation-banner"');
+            expect(file).to.contain('cdx-member-name--deprecated">NoopInterceptor');
             expect(menuFile).to.contain(
-                'cdx-member-name--deprecated" data-cdx-entity-type="interceptor">NoopInterceptor'
+                'cdx-member-name--deprecated" data-cdx-entity-type="interceptor"><span class="cdx-menu-item-name">NoopInterceptor'
             );
         });
 
         it('it should contain guard deprecated and APIs inside', () => {
             const file = read(`${distFolder}/guards/NotAuthGuard.html`);
-            expect(file).to.contain('class="cdx-deprecation-banner"');
+            expect(file).to.contain('cdx-member-name--deprecated">NotAuthGuard');
             expect(menuFile).to.contain(
-                'cdx-member-name--deprecated" data-cdx-entity-type="guard">NotAuthGuard'
+                'cdx-member-name--deprecated" data-cdx-entity-type="guard"><span class="cdx-menu-item-name">NotAuthGuard'
             );
         });
 
@@ -103,15 +99,16 @@ describe('CLI Deprecated', () => {
             expect(file).to.contain('class="cdx-deprecation-banner"');
             expect(file).to.contain('cdx-member-name--deprecated">value');
             expect(menuFile).to.contain(
-                'cdx-member-name--deprecated" data-cdx-entity-type="interface">IDATA'
+                'cdx-member-name--deprecated" data-cdx-entity-type="interface"><span class="cdx-menu-item-name">IDATA'
             );
         });
 
         it('it should contain pipe deprecated and APIs inside', () => {
             const file = read(`${distFolder}/pipes/FirstUpperPipe2.html`);
             expect(file).to.contain('class="cdx-deprecation-banner"');
+            expect(file).to.contain('cdx-member-name--deprecated">transform');
             expect(menuFile).to.contain(
-                'cdx-member-name--deprecated" data-cdx-entity-type="pipe" data-cdx-desc="Uppercase the first letter of the string">FirstUpperPipe2'
+                'cdx-member-name--deprecated" data-cdx-entity-type="pipe" data-cdx-desc="Uppercase the first letter of the string"><span class="cdx-menu-item-name">FirstUpperPipe2'
             );
         });
 

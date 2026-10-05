@@ -15,7 +15,7 @@ describe('CLI simple generation - extends app', () => {
             './bin/index-cli.js',
             '--no-multiVersion',
             '-p',
-            './test/fixtures/sample-files-extends/src/tsconfig.json',
+            './test/fixtures/standalone-scenarios/extends/tsconfig.json',
             '-d',
             distFolder
         ]);

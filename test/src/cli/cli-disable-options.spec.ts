@@ -198,7 +198,7 @@ describe('CLI disable flags', () => {
                 './bin/index-cli.js',
                 '--no-multiVersion',
                 '-p',
-                './test/fixtures/sample-files-extends/src/tsconfig.json',
+                './test/fixtures/standalone-scenarios/extends/tsconfig.json',
                 '--disableLifeCycleHooks',
                 '-d',
                 distFolder
@@ -300,7 +300,7 @@ describe('CLI disable flags', () => {
                 './bin/index-cli.js',
                 '--no-multiVersion',
                 '-p',
-                './test/fixtures/sample-files-extends/src/tsconfig.json',
+                './test/fixtures/standalone-scenarios/extends/tsconfig.json',
                 '--disableConstructors',
                 '-d',
                 distFolder
@@ -605,7 +605,7 @@ describe('CLI disable flags', () => {
                 './bin/index-cli.js',
                 '--no-multiVersion',
                 '-p',
-                './test/fixtures/todomvc-ng2-ignore/src/tsconfig.json',
+                './test/fixtures/standalone-scenarios/ignore/tsconfig.json',
                 '--disableOverview',
                 '-d',
                 distFolder

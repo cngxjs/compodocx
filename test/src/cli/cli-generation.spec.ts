@@ -1050,7 +1050,7 @@ describe('CLI simple generation', () => {
     });
 
     describe('router parser coverage tests', () => {
-        const distFolder = `${tmp.name}-router-parser-coverage`;
+        const distFolder = `${tmp.name}-routing-coverage`;
         let stdoutString;
 
         beforeAll(() => {
@@ -1059,7 +1059,7 @@ describe('CLI simple generation', () => {
                 './bin/index-cli.js',
                 '--no-multiVersion',
                 '-p',
-                './test/fixtures/router-parser-coverage/tsconfig.json',
+                './test/fixtures/standalone-scenarios/routing-coverage/tsconfig.json',
                 '-d',
                 distFolder
             ]);
@@ -1092,8 +1092,9 @@ describe('CLI simple generation', () => {
             expect(stdoutString).to.contain('found          : RoutePaths');
         });
 
-        it('should generate documentation for routing module', () => {
-            expect(stdoutString).to.contain('found          : AppRoutingModule');
+        it('should generate documentation for the routes file and app config', () => {
+            expect(stdoutString).to.contain('found          : APP_ROUTES');
+            expect(stdoutString).to.contain('found          : appConfig');
         });
     });
 });
