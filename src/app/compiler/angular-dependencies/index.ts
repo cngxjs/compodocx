@@ -1,12 +1,7 @@
 import * as crypto from 'node:crypto';
 import * as path from 'node:path';
 import { Project, SyntaxKind, ts } from 'ts-morph';
-import {
-    getModuleWithProviders,
-    isIgnore,
-    isModuleWithProviders,
-    JsdocParserUtil
-} from '../../../utils';
+import { isIgnore, JsdocParserUtil } from '../../../utils';
 import ExtendsMerger from '../../../utils/extends-merger.util';
 import { logger } from '../../../utils/logger';
 import { markedAcl } from '../../../utils/marked.acl';
@@ -225,9 +220,6 @@ export class AngularDependencies extends FrameworkDependencies {
         // RouterParserUtil.printRoutes();
 
         if (!Configuration.mainData.disableRoutesGraph) {
-            RouterParserUtil.linkModulesAndRoutes();
-            RouterParserUtil.constructModulesTree();
-
             deps.routesTree = RouterParserUtil.constructRoutesTree();
         }
 
@@ -489,16 +481,8 @@ export class AngularDependencies extends FrameworkDependencies {
                                 props,
                                 IO
                             );
-                            if (RouterParserUtil.hasRouterModuleInImports(moduleDep.imports)) {
-                                RouterParserUtil.addModuleWithRoutes(
-                                    name,
-                                    this.moduleHelper.getModuleImportsRaw(props, srcFile),
-                                    file
-                                );
-                            }
                             deps = moduleDep;
                             if (typeof IO.ignore === 'undefined') {
-                                RouterParserUtil.addModule(name, moduleDep.imports);
                                 outputSymbols.modules.push(moduleDep);
                                 outputSymbols.modulesForGraph.push(moduleDep);
                             }
@@ -959,68 +943,6 @@ export class AngularDependencies extends FrameworkDependencies {
                     if (ts.isClassDeclaration(node)) {
                         this.processClass(node, file, srcFile, outputSymbols, fileBody, astFile);
                     }
-                    if (ts.isExpressionStatement(node) || ts.isIfStatement(node)) {
-                        const bootstrapModuleReference = 'bootstrapModule';
-                        // Find the root module with bootstrapModule call
-                        // 1. find a simple call : platformBrowserDynamic().bootstrapModule(AppModule);
-                        // 2. or inside a call :
-                        // () => {
-                        //     platformBrowserDynamic().bootstrapModule(AppModule);
-                        // });
-                        // 3. with a catch : platformBrowserDynamic().bootstrapModule(AppModule).catch(error => console.error(error));
-                        // 4. with parameters : platformBrowserDynamic().bootstrapModule(AppModule, {}).catch(error => console.error(error));
-                        // Find recusively in expression nodes one with name 'bootstrapModule'
-                        let rootModule;
-                        let resultNode;
-                        if (srcFile.text.indexOf(bootstrapModuleReference) !== -1) {
-                            if (node.expression) {
-                                resultNode =
-                                    this.expressionFinder.findExpressionByNameInExpressions(
-                                        node.expression,
-                                        'bootstrapModule'
-                                    );
-                            }
-                            if (typeof (node as any).thenStatement !== 'undefined') {
-                                if (
-                                    (node as any).thenStatement.statements &&
-                                    (node as any).thenStatement.statements.length > 0
-                                ) {
-                                    const firstStatement = (node as any).thenStatement
-                                        .statements[0];
-                                    resultNode =
-                                        this.expressionFinder.findExpressionByNameInExpressions(
-                                            firstStatement.expression,
-                                            'bootstrapModule'
-                                        );
-                                }
-                            }
-                            if (!resultNode) {
-                                if (
-                                    node.expression &&
-                                    (node.expression as any).arguments &&
-                                    (node.expression as any).arguments.length > 0
-                                ) {
-                                    resultNode =
-                                        this.expressionFinder.findExpressionByNameInExpressionArguments(
-                                            (node.expression as any).arguments,
-                                            'bootstrapModule'
-                                        );
-                                }
-                            }
-                            if (resultNode) {
-                                if (resultNode.arguments.length > 0) {
-                                    resultNode.arguments.forEach((argument: any) => {
-                                        if (argument.text) {
-                                            rootModule = argument.text;
-                                        }
-                                    });
-                                }
-                                if (rootModule) {
-                                    RouterParserUtil.setRootModule(rootModule);
-                                }
-                            }
-                        }
-                    }
                     if (ts.isVariableStatement(node)) {
                         const isRoutesVariable = RouterParserUtil.isVariableRoutes(node);
                         // Process all variables, including exported routes variables for miscellaneous
@@ -1261,16 +1183,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                         deps.functionalKind = functionalKind;
                                     }
 
-                                    if (isModuleWithProviders(variableNode)) {
-                                        const routingInitializer =
-                                            getModuleWithProviders(variableNode);
-                                        RouterParserUtil.addModuleWithRoutes(
-                                            name,
-                                            [routingInitializer],
-                                            file
-                                        );
-                                        RouterParserUtil.addModule(name, [routingInitializer]);
-                                    }
                                     if (!isIgnore(variableNode)) {
                                         // Check if variable is allowed by public API filter
                                         if (!this.publicApiFilter.isSymbolAllowed(name, file)) {

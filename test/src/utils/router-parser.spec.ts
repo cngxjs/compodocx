@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import RouterParserUtilFromIndex, {
     RouterParserUtil as RouterParserUtilFromIndexNamed
 } from '../../../src/utils/router-parser/index';
-import { ModuleLinker } from '../../../src/utils/router-parser/module-linker';
 import { RawRouteCleaner } from '../../../src/utils/router-parser/raw-route-cleaner';
 import { RouteStore } from '../../../src/utils/router-parser/route-store';
 import { RoutesTreeBuilder } from '../../../src/utils/router-parser/routes-tree-builder';
@@ -28,15 +27,13 @@ describe('router-parser — orchestrator wiring', () => {
         const routeStore = new RouteStore();
         expect(routeStore).toBeInstanceOf(RouteStore);
         expect(new RawRouteCleaner()).toBeInstanceOf(RawRouteCleaner);
-        expect(new ModuleLinker(routeStore)).toBeInstanceOf(ModuleLinker);
         expect(new RoutesTreeBuilder(routeStore)).toBeInstanceOf(RoutesTreeBuilder);
         expect(new SourceFileCleaner(routeStore)).toBeInstanceOf(SourceFileCleaner);
     });
 
-    it('RouteStore.foundLazyModuleWithPath splits on # and returns the module name', () => {
-        const store = new RouteStore();
-        expect(store.foundLazyModuleWithPath('app/x/x.module#XModule')).toBe('XModule');
-        expect(store.foundLazyComponentWithPath('app/x/x.component#XComponent')).toBe('XComponent');
+    it('RoutesTreeBuilder roots an empty store at a root node', () => {
+        const tree = new RoutesTreeBuilder(new RouteStore()).constructRoutesTree();
+        expect(tree).toEqual({ name: '<root>', kind: 'root', children: [] });
     });
 
     it('RawRouteCleaner.cleanRawRoute strips whitespace and trailing commas', () => {
@@ -50,20 +47,17 @@ describe('router-parser — orchestrator wiring', () => {
         expect(cleaned).not.toMatch(/,}/);
     });
 
-    it('orchestrator delegates addRoute / foundRouteWithModuleName through RouteStore', () => {
+    it('orchestrator delegates addRoute through RouteStore', () => {
         const instance = RouterParserUtilFromShimNamed.getInstance();
         const initialLength = instance.routesLength();
-        instance.addRoute({ name: 'X-test-route', data: '[]', filename: 'x.ts', module: 'XMod' });
-        const found = instance.foundRouteWithModuleName('XMod');
-        expect(found?.name).toBe('X-test-route');
+        instance.addRoute({ name: 'X-test-route', data: '[]', filename: 'x.ts' });
+        const routes = (instance as any).routeStore.routes;
+        expect(routes.find((r: any) => r.name === 'X-test-route')?.filename).toBe('x.ts');
         // cleanup — singleton state leaks into other tests otherwise
-        instance.foundRouteWithModuleName('XMod') &&
-            (instance as any).routeStore.routes.splice(
-                (instance as any).routeStore.routes.findIndex(
-                    (r: any) => r.name === 'X-test-route'
-                ),
-                1
-            );
+        (instance as any).routeStore.routes.splice(
+            (instance as any).routeStore.routes.findIndex((r: any) => r.name === 'X-test-route'),
+            1
+        );
         expect(instance.routesLength()).toBe(initialLength);
     });
 });

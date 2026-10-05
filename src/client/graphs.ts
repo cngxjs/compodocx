@@ -254,9 +254,6 @@ const initRoutesGraph = async () => {
         if (d.data.component) {
             parts.push(`Component: ${d.data.component}`);
         }
-        if (d.data.module) {
-            parts.push(`Module: ${d.data.module}`);
-        }
         if (d.data.guarded) {
             parts.push('Guarded');
         }
@@ -328,15 +325,8 @@ const initRoutesGraph = async () => {
 // Build the label HTML for a route node
 const buildNodeLabel = (d: any): string => {
     let label = '';
-    if (d.kind === 'module') {
-        if (d.module) {
-            label += `<tspan x="0" dy="1.4em"><a href="./modules/${d.module}.html">${d.module}</a></tspan>`;
-            if (d.name) {
-                label += `<tspan x="0" dy="1.4em">${d.name}</tspan>`;
-            }
-        } else {
-            label += `<tspan x="0" dy="1.4em">${htmlEntities(d.name)}</tspan>`;
-        }
+    if (d.kind === 'root') {
+        label += `<tspan x="0" dy="1.4em">${htmlEntities(d.name)}</tspan>`;
     } else if (d.kind === 'component') {
         label += `<tspan x="0" dy="1.4em">${d.path || d.name}</tspan>`;
         if (d.component) {
@@ -352,11 +342,6 @@ const buildNodeLabel = (d: any): string => {
         if (d.component) {
             label += `<tspan x="0" dy="1.4em"><a href="./components/${d.component}.html">${d.component}</a></tspan>`;
         }
-        if (d.loadChildren) {
-            const parts = d.loadChildren.split('#');
-            const moduleName = parts[1] || parts[0];
-            label += `<tspan x="0" dy="1.4em"><a href="./modules/${moduleName}.html">${moduleName}</a></tspan>`;
-        }
         if (d.canActivate) {
             label += '<tspan x="0" dy="1.4em">&#10003; canActivate</tspan>';
         }
@@ -365,9 +350,6 @@ const buildNodeLabel = (d: any): string => {
         }
         if (d.canActivateChild) {
             label += '<tspan x="0" dy="1.4em">&#10003; canActivateChild</tspan>';
-        }
-        if (d.canLoad) {
-            label += '<tspan x="0" dy="1.4em">&#8594; canLoad</tspan>';
         }
         if (d.redirectTo) {
             label += `<tspan x="0" dy="1.4em">&rarr; ${d.redirectTo}</tspan>`;

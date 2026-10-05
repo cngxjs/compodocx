@@ -1,15 +1,13 @@
 import type { SourceFile, ts } from 'ts-morph';
 
-import { ModuleLinker } from './module-linker';
 import { RawRouteCleaner } from './raw-route-cleaner';
 import { RouteStore } from './route-store';
-import { RoutesTreeBuilder } from './routes-tree-builder';
+import { type RoutesTree, RoutesTreeBuilder } from './routes-tree-builder';
 import { SourceFileCleaner } from './source-file-cleaner';
 
 export class RouterParserUtil {
     private routeStore = new RouteStore();
     private rawRouteCleaner = new RawRouteCleaner();
-    private moduleLinker = new ModuleLinker(this.routeStore);
     private routesTreeBuilder = new RoutesTreeBuilder(this.routeStore);
     private sourceFileCleaner = new SourceFileCleaner(this.routeStore);
 
@@ -26,36 +24,6 @@ export class RouterParserUtil {
     private set routes(value: any[]) {
         this.routeStore.routes = value;
     }
-    private get modules(): any[] {
-        return this.routeStore.modules;
-    }
-    private set modules(value: any[]) {
-        this.routeStore.modules = value;
-    }
-    private get modulesWithRoutes(): any[] {
-        return this.routeStore.modulesWithRoutes;
-    }
-    private set modulesWithRoutes(value: any[]) {
-        this.routeStore.modulesWithRoutes = value;
-    }
-    private get rootModule(): string {
-        return this.routeStore.rootModule;
-    }
-    private set rootModule(value: string) {
-        this.routeStore.rootModule = value;
-    }
-    private get modulesTree(): any {
-        return this.routeStore.modulesTree;
-    }
-    private set modulesTree(value: any) {
-        this.routeStore.modulesTree = value;
-    }
-    private get cleanModulesTree(): any {
-        return this.routeStore.cleanModulesTree;
-    }
-    private set cleanModulesTree(value: any) {
-        this.routeStore.cleanModulesTree = value;
-    }
 
     private static instance: RouterParserUtil;
     private constructor() {}
@@ -70,14 +38,6 @@ export class RouterParserUtil {
         this.routeStore.addRoute(route);
     }
 
-    public addModuleWithRoutes(moduleName, moduleImports, filename): void {
-        this.routeStore.addModuleWithRoutes(moduleName, moduleImports, filename);
-    }
-
-    public addModule(moduleName: string, moduleImports): void {
-        this.routeStore.addModule(moduleName, moduleImports);
-    }
-
     public cleanRawRouteParsed(route: string): object {
         return this.rawRouteCleaner.cleanRawRouteParsed(route);
     }
@@ -86,36 +46,8 @@ export class RouterParserUtil {
         return this.rawRouteCleaner.cleanRawRoute(route);
     }
 
-    public setRootModule(module: string): void {
-        this.routeStore.setRootModule(module);
-    }
-
-    public hasRouterModuleInImports(imports: Array<any>): boolean {
-        return this.moduleLinker.hasRouterModuleInImports(imports);
-    }
-
-    public linkModulesAndRoutes(): void {
-        this.moduleLinker.linkModulesAndRoutes();
-    }
-
-    public foundRouteWithModuleName(moduleName: string): any {
-        return this.routeStore.foundRouteWithModuleName(moduleName);
-    }
-
-    public foundLazyModuleWithPath(modulePath: string): string {
-        return this.routeStore.foundLazyModuleWithPath(modulePath);
-    }
-
-    public foundLazyComponentWithPath(componentPath: string): string {
-        return this.routeStore.foundLazyComponentWithPath(componentPath);
-    }
-
-    public constructRoutesTree() {
+    public constructRoutesTree(): RoutesTree {
         return this.routesTreeBuilder.constructRoutesTree();
-    }
-
-    public constructModulesTree(): void {
-        this.routesTreeBuilder.constructModulesTree();
     }
 
     public generateRoutesIndex(outputFolder: string, routes: Array<any>): Promise<void> {
@@ -128,10 +60,6 @@ export class RouterParserUtil {
 
     public printRoutes(): void {
         this.routeStore.printRoutes();
-    }
-
-    public printModulesRoutes(): void {
-        this.routeStore.printModulesRoutes();
     }
 
     public isVariableRoutes(node) {
