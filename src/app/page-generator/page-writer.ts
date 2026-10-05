@@ -46,7 +46,6 @@ export class PageWriter {
         const components = (Configuration.mainData.components as any[]) ?? [];
         const directives = (Configuration.mainData.directives as any[]) ?? [];
         const pipes = (Configuration.mainData.pipes as any[]) ?? [];
-        const modules = (Configuration.mainData.modules as any[]) ?? [];
         const injectables = (Configuration.mainData.injectables as any[]) ?? [];
 
         // Build a name→type+url lookup for all known entities
@@ -59,9 +58,6 @@ export class PageWriter {
         }
         for (const p of pipes) {
             entityMap.set(p.name, { type: 'pipe', url: `./pipes/${p.name}.html` });
-        }
-        for (const m of modules) {
-            entityMap.set(m.name, { type: 'module', url: `./modules/${m.name}.html` });
         }
         for (const s of injectables) {
             entityMap.set(s.name, { type: 'injectable', url: `./injectables/${s.name}.html` });
@@ -89,7 +85,7 @@ export class PageWriter {
             const info = entityMap.get(name);
             return {
                 name,
-                type: info?.type ?? 'module',
+                type: info?.type ?? 'external',
                 url: info?.url
             };
         });

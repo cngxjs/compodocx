@@ -4,7 +4,6 @@ import { OverviewHero } from '../blocks/OverviewHero';
 import { OverviewStats } from '../blocks/OverviewStats';
 import { EmptyState } from '../components/EmptyState';
 import { EmptyIconDashboard } from '../components/EmptyStateIcons';
-import { iconFor } from '../components/Icons';
 import { t } from '../helpers';
 
 type OverviewProps = {
@@ -20,9 +19,7 @@ type OverviewProps = {
     readonly interfaces?: unknown[];
     readonly routes?: unknown[];
     readonly routesLength?: number;
-    readonly mainGraph?: string;
     readonly disableGraph?: boolean;
-    readonly disableMainGraph?: boolean;
     readonly appConfig?: any[];
     readonly coverageData?: { files?: any[]; count?: number };
     readonly angularVersion?: string;
@@ -48,10 +45,8 @@ const hasAnyEntities = (props: OverviewProps): boolean =>
     );
 
 export const Overview = (props: OverviewProps): string => {
-    const hasModules = (props.modules?.length ?? 0) > 0;
-    const showGraph = !props.disableGraph && !props.disableMainGraph && hasModules;
     const hasDepGraph = (props.dependencyGraph?.nodes?.length ?? 0) > 0;
-    const showDepGraph = !props.disableGraph && !hasModules && hasDepGraph;
+    const showDepGraph = !props.disableGraph && hasDepGraph;
 
     return (
         <>
@@ -66,25 +61,7 @@ export const Overview = (props: OverviewProps): string => {
                 generatedAt: props.generatedAt || new Date().toISOString()
             })}
 
-            {/* 2. Module Graph (NgModule apps only) */}
-            {showGraph && (
-                <div class="cdx-graph-container cdx-overview-graph">
-                    <div class="cdx-graph-viewport">
-                        <div id="module-graph-svg">{props.mainGraph}</div>
-                        <button
-                            type="button"
-                            id="fullscreen"
-                            class="cdx-graph-fullscreen-btn"
-                            aria-label="Fullscreen"
-                        >
-                            {iconFor('ion-ios-resize')}
-                        </button>
-                    </div>
-                    {GraphZoomControls({})}
-                </div>
-            )}
-
-            {/* 2b. Dependency Graph (standalone apps without NgModules) */}
+            {/* 2. Dependency Graph */}
             {showDepGraph && (
                 <>
                     <script>{`window.DEPENDENCY_GRAPH = ${JSON.stringify(props.dependencyGraph)};`}</script>

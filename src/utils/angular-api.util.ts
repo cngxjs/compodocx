@@ -27,7 +27,7 @@ export class AngularApiUtil {
         return AngularApiUtil.instance;
     }
 
-    public findApi(type: string): IApiSourceResult<IAngularMainApi> {
+    public findApi(type: string): IApiSourceResult<IAngularApi> {
         let foundedApi;
         AngularAPIs.forEach(mainApi => {
             mainApi.items.forEach(api => {
