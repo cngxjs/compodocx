@@ -127,6 +127,8 @@ export interface MainDataInterface {
     packageProperties: any;
     gaID: string;
     angularProject: boolean;
+    /** Whether the project's package.json lists zone.js (absent = zoneless). */
+    hasZoneJs?: boolean;
     language: string;
     maxSearchResults: number;
     publicApiOnly: string;
@@ -241,6 +243,7 @@ export interface MainDataInterface {
     categorizedComponents: Record<string, unknown[]>;
     categorizedDirectives: Record<string, unknown[]>;
     categorizedInjectables: Record<string, unknown[]>;
+    categorizedTokens?: Record<string, unknown[]>;
     categorizedPipes: Record<string, unknown[]>;
     categorizedClasses: Record<string, unknown[]>;
     categorizedInterfaces: Record<string, unknown[]>;
@@ -251,6 +254,8 @@ export interface MainDataInterface {
     categorizedByFeaturePrimary: Record<string, unknown[]>;
     categorizedByFeatureReference: Record<string, unknown[]>;
     groupBy: 'folder' | 'category' | 'none' | '';
+    /** Set by the crawl phase when `groupBy` is auto-detected. */
+    hasNgModules?: boolean;
     groupDepth: number;
     menuLayout: 'type' | 'feature';
     featureLibraryScope: 'primary' | 'auto' | 'all';

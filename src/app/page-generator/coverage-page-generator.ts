@@ -1,17 +1,10 @@
-// NOTE: prepareDocumentation calls process.exit() eight times in the threshold
-// cascade. This is legitimate CI-fail orchestration carried over verbatim from
-// the legacy Application.prepareCoverage method (Sprint 3 finding S3-2 already
-// established that orchestrator-level exit-code dispatch belongs here). A
-// future sprint can rewrite this to return a Result that the orchestrator acts
-// on; until then, the helper itself owns the exit semantics.
-
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
-import { rejectGenerationPromise, resolveGenerationPromise } from '../generation-promise';
 import type { CoverageData } from '../interfaces/coverageData.interface';
+import { type CoverageVerdict, evaluateCoverageGate } from '../run/coverage-gate';
 import {
     type CoverageFile,
     computeDocumentationCoverage,
@@ -19,7 +12,12 @@ import {
 } from '../services/coverage';
 
 export class CoveragePageGenerator {
-    public prepareDocumentation(): Promise<any> {
+    /**
+     * Build the documentation coverage page and evaluate the coverage gate.
+     * Resolves with the gate's verdict; the caller logs its lines and halts
+     * the run when the verdict carries an exit code.
+     */
+    public prepareDocumentation(): Promise<CoverageVerdict> {
         logger.info('Process documentation coverage report');
 
         return new Promise((resolve, _reject) => {
@@ -64,154 +62,17 @@ export class CoveragePageGenerator {
                 );
             }
 
-            const filesByPercent = [...coverageData.files].sort(
-                (a, b) => a.coveragePercent - b.coveragePercent
-            );
-            const processCoveragePerFile = () => {
-                logger.info('Process documentation coverage per file');
-                logger.info('-------------------');
-
-                const overFiles = filesByPercent.filter(f => {
-                    const overTest =
-                        f.coveragePercent >= Configuration.mainData.coverageMinimumPerFile;
-                    if (overTest && !Configuration.mainData.coverageTestShowOnlyFailed) {
-                        logger.info(
-                            `${f.coveragePercent} % for file ${f.filePath} - ${f.name} - over minimum per file`
-                        );
-                    }
-                    return overTest;
-                });
-                const underFiles = filesByPercent.filter(f => {
-                    const underTest =
-                        f.coveragePercent < Configuration.mainData.coverageMinimumPerFile;
-                    if (underTest) {
-                        logger.error(
-                            `${f.coveragePercent} % for file ${f.filePath} - ${f.name} - under minimum per file`
-                        );
-                    }
-                    return underTest;
-                });
-
-                logger.info('-------------------');
-                return {
-                    overFiles: overFiles,
-                    underFiles: underFiles
-                };
-            };
-
-            let coverageTestPerFileResults;
-            if (
-                Configuration.mainData.coverageTest &&
-                !Configuration.mainData.coverageTestPerFile
-            ) {
-                // Global coverage test and not per file
-                if (coverageData.count >= Configuration.mainData.coverageTestThreshold) {
-                    logger.info(
-                        `Documentation coverage (${coverageData.count}%) is over threshold (${Configuration.mainData.coverageTestThreshold}%)`
-                    );
-                    resolveGenerationPromise(true);
-                    process.exit(0);
-                } else {
-                    const message = `Documentation coverage (${coverageData.count}%) is not over threshold (${Configuration.mainData.coverageTestThreshold}%)`;
-                    rejectGenerationPromise();
-                    if (Configuration.mainData.coverageTestThresholdFail) {
-                        logger.error(message);
-                        process.exit(1);
-                    } else {
-                        logger.warn(message);
-                        process.exit(0);
-                    }
-                }
-            } else if (
-                !Configuration.mainData.coverageTest &&
-                Configuration.mainData.coverageTestPerFile
-            ) {
-                coverageTestPerFileResults = processCoveragePerFile();
-                // Per file coverage test and not global
-                if (coverageTestPerFileResults.underFiles.length > 0) {
-                    const message = `Documentation coverage per file is not over threshold (${Configuration.mainData.coverageMinimumPerFile}%)`;
-                    rejectGenerationPromise();
-                    if (Configuration.mainData.coverageTestThresholdFail) {
-                        logger.error(message);
-                        process.exit(1);
-                    } else {
-                        logger.warn(message);
-                        process.exit(0);
-                    }
-                } else {
-                    logger.info(
-                        `Documentation coverage per file is over threshold (${Configuration.mainData.coverageMinimumPerFile}%)`
-                    );
-                    resolveGenerationPromise(true);
-                    process.exit(0);
-                }
-            } else if (
-                Configuration.mainData.coverageTest &&
-                Configuration.mainData.coverageTestPerFile
-            ) {
-                // Per file coverage test and global
-                coverageTestPerFileResults = processCoveragePerFile();
-                if (
-                    coverageData.count >= Configuration.mainData.coverageTestThreshold &&
-                    coverageTestPerFileResults.underFiles.length === 0
-                ) {
-                    logger.info(
-                        `Documentation coverage (${coverageData.count}%) is over threshold (${Configuration.mainData.coverageTestThreshold}%)`
-                    );
-                    logger.info(
-                        `Documentation coverage per file is over threshold (${Configuration.mainData.coverageMinimumPerFile}%)`
-                    );
-                    resolveGenerationPromise(true);
-                    process.exit(0);
-                } else if (
-                    coverageData.count >= Configuration.mainData.coverageTestThreshold &&
-                    coverageTestPerFileResults.underFiles.length > 0
-                ) {
-                    logger.info(
-                        `Documentation coverage (${coverageData.count}%) is over threshold (${Configuration.mainData.coverageTestThreshold}%)`
-                    );
-                    const message = `Documentation coverage per file is not over threshold (${Configuration.mainData.coverageMinimumPerFile}%)`;
-                    rejectGenerationPromise();
-                    if (Configuration.mainData.coverageTestThresholdFail) {
-                        logger.error(message);
-                        process.exit(1);
-                    } else {
-                        logger.warn(message);
-                        process.exit(0);
-                    }
-                } else if (
-                    coverageData.count < Configuration.mainData.coverageTestThreshold &&
-                    coverageTestPerFileResults.underFiles.length > 0
-                ) {
-                    const messageGlobal = `Documentation coverage (${coverageData.count}%) is not over threshold (${Configuration.mainData.coverageTestThreshold}%)`,
-                        messagePerFile = `Documentation coverage per file is not over threshold (${Configuration.mainData.coverageMinimumPerFile}%)`;
-                    rejectGenerationPromise();
-                    if (Configuration.mainData.coverageTestThresholdFail) {
-                        logger.error(messageGlobal);
-                        logger.error(messagePerFile);
-                        process.exit(1);
-                    } else {
-                        logger.warn(messageGlobal);
-                        logger.warn(messagePerFile);
-                        process.exit(0);
-                    }
-                } else {
-                    const message = `Documentation coverage (${coverageData.count}%) is not over threshold (${Configuration.mainData.coverageTestThreshold}%)`,
-                        messagePerFile = `Documentation coverage per file is over threshold (${Configuration.mainData.coverageMinimumPerFile}%)`;
-                    rejectGenerationPromise();
-                    if (Configuration.mainData.coverageTestThresholdFail) {
-                        logger.error(message);
-                        logger.info(messagePerFile);
-                        process.exit(1);
-                    } else {
-                        logger.warn(message);
-                        logger.info(messagePerFile);
-                        process.exit(0);
-                    }
-                }
-            } else {
-                resolve(true);
-            }
+            const verdict = evaluateCoverageGate({
+                count: coverageData.count,
+                files: coverageData.files,
+                coverageTest: Configuration.mainData.coverageTest,
+                coverageTestPerFile: Configuration.mainData.coverageTestPerFile,
+                coverageTestThreshold: Configuration.mainData.coverageTestThreshold,
+                coverageMinimumPerFile: Configuration.mainData.coverageMinimumPerFile,
+                coverageTestThresholdFail: Configuration.mainData.coverageTestThresholdFail,
+                coverageTestShowOnlyFailed: Configuration.mainData.coverageTestShowOnlyFailed
+            });
+            resolve(verdict);
         });
     }
 

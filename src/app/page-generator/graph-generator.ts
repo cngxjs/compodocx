@@ -4,15 +4,21 @@ import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import NgdEngine from '../engines/ngd.engine';
-import type { PageWriter } from './page-writer';
 
 export class GraphGenerator {
-    constructor(private readonly pageWriter: PageWriter) {}
+    /**
+     * Render the main and per-module graphs. Resolves once every graph is
+     * read back; a failed module graph render or read is logged and the
+     * promise stays pending, so no pages are written.
+     */
+    public processGraphs(): Promise<void> {
+        return new Promise(resolve => this.renderGraphs(resolve));
+    }
 
-    public processGraphs(): void {
+    private renderGraphs(done: () => void): void {
         if (Configuration.mainData.disableGraph) {
             logger.info('Graph generation disabled');
-            this.pageWriter.processPages();
+            done();
         } else {
             logger.info('Process main graph');
             const modules = Configuration.mainData.modules;
@@ -64,7 +70,7 @@ export class GraphGenerator {
                         loop();
                     }
                 } else {
-                    this.pageWriter.processPages();
+                    done();
                 }
             };
             let finalMainGraphPath = Configuration.mainData.output;

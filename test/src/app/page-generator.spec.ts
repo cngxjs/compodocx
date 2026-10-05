@@ -5,12 +5,14 @@ import DependenciesEngine from '../../../src/app/engines/dependencies.engine';
 import {
     AdditionalPageGenerator,
     AppConfigPageGenerator,
-    AssetCopier,
     ClassPageGenerator,
     ComponentPageGenerator,
     CoveragePageGenerator,
+    copyAssetsFolder,
+    copyResources,
     DirectivePageGenerator,
     EntityPageGenerator,
+    finalizeOutput,
     GraphGenerator,
     GuardPageGenerator,
     InjectablePageGenerator,
@@ -49,16 +51,18 @@ function clearState() {
 describe('page-generator — orchestrator wiring', () => {
     afterEach(clearState);
 
-    it('barrel re-exports every generator class', () => {
+    it('barrel re-exports every generator class and output function', () => {
         const exported = [
             AdditionalPageGenerator,
             AppConfigPageGenerator,
-            AssetCopier,
             ClassPageGenerator,
             ComponentPageGenerator,
             CoveragePageGenerator,
+            copyAssetsFolder,
+            copyResources,
             DirectivePageGenerator,
             EntityPageGenerator,
+            finalizeOutput,
             GraphGenerator,
             GuardPageGenerator,
             InjectablePageGenerator,
