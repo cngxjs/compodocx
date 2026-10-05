@@ -4,8 +4,6 @@ import {
     computed,
     effect,
     inject,
-    HostBinding,
-    HostListener,
     viewChild,
     viewChildren,
     contentChild,
@@ -47,6 +45,10 @@ import { ThemeService } from './core/services/theme.service';
         </main>
     `,
     styles: [`:host { display: block; min-height: 100vh; }`],
+    host: {
+        '[class]': 'hostClass',
+        '(document:keydown.escape)': 'onEscape()',
+    },
 })
 export class AppComponent {
     private readonly theme = inject(ThemeService);
@@ -82,7 +84,6 @@ export class AppComponent {
     /**
      * CSS class binding for the theme.
      */
-    @HostBinding('class')
     get hostClass(): string {
         return `theme-${this.theme.currentTheme()}`;
     }
@@ -90,7 +91,6 @@ export class AppComponent {
     /**
      * Handle keyboard shortcuts.
      */
-    @HostListener('document:keydown.escape')
     onEscape(): void {
         this.sidebarOpen.set(false);
     }
