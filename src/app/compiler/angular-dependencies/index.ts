@@ -1182,13 +1182,18 @@ export class AngularDependencies extends FrameworkDependencies {
                                         return;
                                     }
 
-                                    // Detect functional guard/interceptor from type annotation
+                                    // Detect functional guard/interceptor from type annotation.
+                                    // Resolvers have no collection of their own; they stay
+                                    // regular variables tagged with `functionalKind`.
                                     const functionalKind =
                                         this.providerDetector.detectFunctionalAngularKind(
                                             infos.type,
                                             name
                                         );
-                                    if (functionalKind && !isIgnore(variableNode)) {
+                                    const isFunctionalGuardOrInterceptor =
+                                        functionalKind === 'guard' ||
+                                        functionalKind === 'interceptor';
+                                    if (isFunctionalGuardOrInterceptor && !isIgnore(variableNode)) {
                                         if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
                                             logger.debug(
                                                 `Skipping functional ${functionalKind} ${name} (not in public API)`
@@ -1244,6 +1249,9 @@ export class AngularDependencies extends FrameworkDependencies {
                                             outputSymbols.interceptors.push(guardDep);
                                         }
                                         return;
+                                    }
+                                    if (functionalKind === 'resolver') {
+                                        deps.functionalKind = functionalKind;
                                     }
 
                                     if (isModuleWithProviders(variableNode)) {
