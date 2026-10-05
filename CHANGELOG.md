@@ -8,6 +8,12 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ## [Unreleased]
 
+### Changed
+
+- **One generation pipeline.** Every run (one-shot build, coverage test, watch rebuilds) now goes through a single sequence of phases with one table of prepare steps, instead of two hand-maintained queues and a callback chain. The generated output is byte-identical to before; CLI flags, defaults and the export schema are unchanged.
+- **Programmatic entry point is `runCompodocx` (breaking for API users).** The `Application` and `CliApplication` exports are removed. `runCompodocx` is exported as experimental; the CLI remains the supported entry point. See [MIGRATION.md](MIGRATION.md).
+- **The "done" log line waits for every file.** The `--assetsFolder` copy is now awaited, so `Documentation generated in ...` appears only once all files are on disk. The seconds in that line count from the start of the generation run instead of process start.
+
 ### Fixed
 
 - **Functional resolvers are no longer dropped.** An exported const typed as `ResolveFn<T>` was recognised as a functional resolver but then stored nowhere, so it was missing from the docs and the JSON export. It is now listed under miscellaneous variables with `functionalKind: 'resolver'`.

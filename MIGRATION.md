@@ -47,6 +47,25 @@ The rest of this document only matters if:
 - Your CSS or downstream tooling targets compodoc's emitted class names.
 - You scraped or post-processed the generated HTML.
 
+## Breaking change in 0.9.0: programmatic entry point
+
+The package no longer exports the `Application` and `CliApplication` classes. The programmatic entry point is now `runCompodocx`:
+
+```ts
+import { runCompodocx } from '@cngxjs/compodocx';
+
+const outcome = await runCompodocx({
+    files: ['src/app/app.component.ts'],
+    options: { tsconfig: 'tsconfig.json', output: 'docs/' }
+});
+// outcome.kind: 'generated' | 'serving' | 'halted'
+```
+
+- The command line interface is the supported entry point. `runCompodocx` is experimental and may change before 1.0.0.
+- The caller passes the list of source files; file scanning, tsconfig resolution, version labels and `publicApiOnly` handling stay in the CLI.
+- `runCompodocx` never exits the process. A stopped run (for example a failed coverage threshold) resolves to `{ kind: 'halted', exitCode }`.
+- CLI flags, defaults, the config file and the generated output are unchanged.
+
 ## Breaking change in 0.3.0: multi-version output is the default
 
 Starting with `@cngxjs/compodocx@0.3.0`, `compodocx -d <output>` writes the generated HTML to `<output>/<versionLabel>/` instead of `<output>/`, and maintains a small `<output>/versions.json` manifest next to it.
