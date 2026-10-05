@@ -302,7 +302,9 @@ export class CliApplication extends Application {
                     });
 
                     stream.on('end', () => {
-                        super.setFiles(scannedFiles);
+                        // fast-glob streams files in non-deterministic order; sort so crawl order,
+                        // duplicate suffixes and tie order in name sorts are stable between runs.
+                        super.setFiles([...scannedFiles].sort());
                         if (programOptions.coverageTest || programOptions.coverageTestPerFile) {
                             logger.info('Run documentation coverage test');
                             super.testCoverage();

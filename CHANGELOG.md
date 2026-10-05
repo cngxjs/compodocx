@@ -15,6 +15,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **Type links on miscellaneous detail pages.** Links in signatures, parameter lists, return types and type definitions on `miscellaneous/<collection>/<name>.html` pages pointed one directory too shallow and were broken. They now resolve at the page's depth; links on all other pages are unchanged.
 - **`HttpContextToken` on token pages.** Tokens created with `new HttpContextToken(...)` were rendered as `InjectionToken<T>` on the token page and in the llm-md export. The constructor is now kept in the new optional `tokenClass` export field and shown as `HttpContextToken<T>`.
 - **No local machine paths in theme data.** Theme style sources and theme tokens stored the absolute path of each style file, which leaked into the JSON export and made it differ between machines. Their `file` values are now relative to the working directory with forward slashes, like every other entity's `file`.
+- **Stable output between runs.** Source files were crawled in the order the file scanner returned them, which varies between runs. Symbols sharing a name could swap order, and duplicate-name suffixes (`Todo-1`, `Todo-2`) could point at a different declaration on each build. Files are now crawled in sorted path order.
 
 ## [0.8.0] - 2026-08-03
 
