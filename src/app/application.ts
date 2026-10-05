@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 
+import { isErr } from '../lib';
 import AngularVersionUtil from '../utils/angular-version.util';
 import { COMPODOC_DEFAULTS } from '../utils/defaults';
 import { logger } from '../utils/logger';
@@ -23,13 +24,15 @@ import {
     AdditionalPageGenerator,
     ApiReferencePageGenerator,
     AppConfigPageGenerator,
-    AssetCopier,
     BucketLandingPageGenerator,
     ClassPageGenerator,
     ComponentPageGenerator,
     CoveragePageGenerator,
+    copyAssetsFolder,
+    copyResources,
     DirectivePageGenerator,
     EntityPageGenerator,
+    finalizeOutput,
     GraphGenerator,
     GuardPageGenerator,
     InjectablePageGenerator,
@@ -97,7 +100,6 @@ export class Application {
     private readonly playgroundVendorResolver: PlaygroundVendorResolver;
     private readonly playgroundValidator: PlaygroundValidator;
     private readonly coveragePageGenerator: CoveragePageGenerator;
-    private readonly assetCopier: AssetCopier;
     private readonly pageWriter: PageWriter;
     private readonly graphGenerator: GraphGenerator;
 
@@ -145,13 +147,8 @@ export class Application {
         this.playgroundVendorResolver = new PlaygroundVendorResolver();
         this.playgroundValidator = new PlaygroundValidator();
         this.coveragePageGenerator = new CoveragePageGenerator();
-        this.assetCopier = new AssetCopier({
-            onServe: folder => this.serveAndStartWatch(folder),
-            onDone: () => this.endCallback(),
-            getElapsedTime: () => this.getElapsedTime()
-        });
-        this.pageWriter = new PageWriter(this.additionalPageGenerator, this.assetCopier);
-        this.graphGenerator = new GraphGenerator(this.pageWriter);
+        this.pageWriter = new PageWriter();
+        this.graphGenerator = new GraphGenerator();
     }
 
     /**
@@ -382,7 +379,7 @@ export class Application {
 
         promiseSequential(actions)
             .then(_res => {
-                this.pageWriter.processPages();
+                this.emitPages();
                 this.clearUpdatedFiles();
             })
             .catch(errorMessage => {
@@ -425,7 +422,7 @@ export class Application {
 
         promiseSequential(actions)
             .then(_res => {
-                this.pageWriter.processPages();
+                this.emitPages();
                 this.clearUpdatedFiles();
             })
             .catch(errorMessage => {
@@ -591,7 +588,7 @@ export class Application {
                         logger.warn(`Exported format not supported`);
                     }
                 } else {
-                    this.graphGenerator.processGraphs();
+                    this.emitHtml();
                     this.clearUpdatedFiles();
                 }
             })
@@ -800,13 +797,54 @@ export class Application {
                         logger.warn(`Exported format not supported`);
                     }
                 } else {
-                    this.graphGenerator.processGraphs();
+                    this.emitHtml();
                 }
             })
             .catch(errorMessage => {
                 logger.error(errorMessage);
                 process.exit(1);
             });
+    }
+
+    /**
+     * Graphs, then every page and the output finalisation.
+     */
+    private emitHtml(): Promise<void> {
+        return this.graphGenerator.processGraphs().then(() => this.emitPages());
+    }
+
+    /**
+     * Write the pages, the additional pages and the assets, then finalise the
+     * output and either serve it or settle the generation promise.
+     */
+    private async emitPages(): Promise<void> {
+        const outputContext = { config: Configuration, startTime: startTime.valueOf() };
+
+        await this.pageWriter.processPages();
+        if (Configuration.mainData.additionalPages.length > 0) {
+            await this.additionalPageGenerator.processAdditionalPages(this.pageWriter);
+        }
+        if (Configuration.mainData.assetsFolder !== '') {
+            await copyAssetsFolder(outputContext);
+        }
+        const copied = await copyResources(outputContext);
+        if (isErr(copied)) {
+            return;
+        }
+        const finalized = await finalizeOutput(outputContext);
+        if (isErr(finalized)) {
+            process.exit(finalized.message.exitCode);
+        }
+
+        if (Configuration.mainData.serve) {
+            logger.info(
+                `Serving documentation from ${Configuration.mainData.output} at http://${Configuration.mainData.hostname}:${Configuration.mainData.port}`
+            );
+            this.serveAndStartWatch(Configuration.mainData.output);
+        } else {
+            resolveGenerationPromise(true);
+            this.endCallback();
+        }
     }
 
     /**

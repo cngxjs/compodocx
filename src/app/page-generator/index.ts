@@ -1,7 +1,12 @@
 export { AdditionalPageGenerator } from './additional-page-generator';
 export { ApiReferencePageGenerator } from './api-reference-page-generator';
 export { AppConfigPageGenerator } from './app-config-page-generator';
-export { AssetCopier, type AssetCopierCallbacks } from './asset-copier';
+export {
+    copyAssetsFolder,
+    copyResources,
+    finalizeOutput,
+    type OutputContext
+} from './asset-copier';
 export { BucketLandingPageGenerator } from './bucket-landing-page-generator';
 export { ClassPageGenerator } from './class-page-generator';
 export { ComponentPageGenerator } from './component-page-generator';

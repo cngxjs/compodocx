@@ -3,15 +3,8 @@ import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
-import type { AdditionalPageGenerator } from './additional-page-generator';
-import type { AssetCopier } from './asset-copier';
 
 export class PageWriter {
-    constructor(
-        private readonly additionalPageGenerator: AdditionalPageGenerator,
-        private readonly assetCopier: AssetCopier
-    ) {}
-
     public processPage(page): Promise<void> {
         logger.info('Process page', page.name);
 
@@ -35,30 +28,14 @@ export class PageWriter {
         return Promise.resolve();
     }
 
-    public processPages(): void {
+    public async processPages(): Promise<void> {
         this.buildDependencyGraph();
         this.buildEntityIndex();
         Configuration.mainData.generatedAt = new Date().toISOString();
         const pages = [...Configuration.pages].sort((a, b) => a.name.localeCompare(b.name));
 
         logger.info('Process pages');
-        Promise.all(pages.map(page => this.processPage(page)))
-            .then(() => {
-                const callbacksAfterGenerateSearchIndexJson = () => {
-                    if (Configuration.mainData.additionalPages.length > 0) {
-                        this.additionalPageGenerator.processAdditionalPages(this, this.assetCopier);
-                    } else {
-                        if (Configuration.mainData.assetsFolder !== '') {
-                            this.assetCopier.processAssetsFolder();
-                        }
-                        this.assetCopier.processResources();
-                    }
-                };
-                callbacksAfterGenerateSearchIndexJson();
-            })
-            .catch(e => {
-                logger.error(e);
-            });
+        await Promise.all(pages.map(page => this.processPage(page)));
     }
 
     /**

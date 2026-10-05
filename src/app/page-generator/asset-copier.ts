@@ -1,223 +1,177 @@
 import * as path from 'node:path';
 import * as fs from 'fs-extra';
 
+import { err, ok, type Result } from '../../lib';
 import { logger } from '../../utils/logger';
-import Configuration from '../configuration';
+import type Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import { runPagefindIndex } from '../engines/search-indexer.engine';
 import { updateVersionsManifest } from '../engines/versions-manifest.engine';
-import { resolveGenerationPromise } from '../generation-promise';
+import type { MainDataInterface } from '../interfaces/main-data.interface';
+import { type Halt, halt } from '../run/context';
 
 const cwd = process.cwd();
 
-export interface AssetCopierCallbacks {
-    onServe: (folder: string) => void;
-    onDone: () => void;
-    getElapsedTime: () => number;
+/** The slice of the run context the output functions read. */
+export interface OutputContext {
+    readonly config: typeof Configuration;
+    /** `Date.now()` at run start, for the elapsed-time log line. */
+    readonly startTime: number;
 }
 
-export class AssetCopier {
-    constructor(private readonly callbacks: AssetCopierCallbacks) {}
+/** Output folder relative to the process cwd when it lives below it. */
+const relativeOutput = (output: string): string => {
+    const testOutputDir = output.match(cwd);
+    return testOutputDir && testOutputDir.length > 0
+        ? output.replace(`${cwd}${path.sep}`, '')
+        : output;
+};
 
-    public processAssetsFolder(): void {
-        logger.info('Copy assets folder');
-
-        if (!FileEngine.existsSync(Configuration.mainData.assetsFolder)) {
-            logger.error(
-                `Provided assets folder ${Configuration.mainData.assetsFolder} did not exist`
-            );
-        } else {
-            let finalOutput = Configuration.mainData.output;
-
-            const testOutputDir = Configuration.mainData.output.match(cwd);
-
-            if (testOutputDir && testOutputDir.length > 0) {
-                finalOutput = Configuration.mainData.output.replace(cwd + path.sep, '');
-            }
-
-            const destination = path.join(
-                finalOutput,
-                path.basename(Configuration.mainData.assetsFolder)
-            );
-            fs.copy(
-                path.resolve(Configuration.mainData.assetsFolder),
-                path.resolve(destination),
-                err => {
-                    if (err) {
-                        logger.error('Error during resources copy ', err);
-                    }
-                }
-            );
+/** Copy with a success info line; logs and rejects (without a reason) on failure. */
+const copyOrReject = (
+    from: string,
+    to: string,
+    successMessage: string,
+    failureMessage: string
+): Promise<void> =>
+    fs.copy(from, to).then(
+        () => {
+            logger.info(successMessage);
+        },
+        error => {
+            logger.error(failureMessage, error);
+            return Promise.reject();
         }
-    }
+    );
 
-    public processResources(): void {
-        logger.info('Copy main resources');
-
-        const onComplete = () => {
-            // Run Pagefind search indexing after all HTML files are written
-            if (!Configuration.mainData.disableSearch) {
-                runPagefindIndex(Configuration.mainData.output);
-            }
-
-            // Multi-version: append/update this version's entry in
-            // <versionsRoot>/versions.json. Runs after Pagefind so an
-            // indexing failure doesn't leave a stale manifest behind. The
-            // manifest stores a URL-relative path with a trailing slash
-            // (the switcher widget concatenates it with the per-page tail).
-            if (Configuration.mainData.multiVersion && Configuration.mainData.versionsRoot) {
-                try {
-                    updateVersionsManifest({
-                        versionsRoot: Configuration.mainData.versionsRoot,
-                        label: Configuration.mainData.versionLabel,
-                        path: `${Configuration.mainData.versionLabel}/`
-                    });
-                } catch (err) {
-                    logger.error(`Failed to update versions.json: ${(err as Error).message}`);
-                    process.exit(1);
-                }
-            }
-
-            logger.info(
-                'Documentation generated in ' +
-                    Configuration.mainData.output +
-                    ' in ' +
-                    this.callbacks.getElapsedTime() +
-                    ' seconds using ' +
-                    Configuration.mainData.theme +
-                    ' theme'
-            );
-            if (Configuration.mainData.serve) {
-                logger.info(
-                    `Serving documentation from ${Configuration.mainData.output} at http://${Configuration.mainData.hostname}:${Configuration.mainData.port}`
-                );
-                this.callbacks.onServe(Configuration.mainData.output);
-            } else {
-                resolveGenerationPromise(true);
-                this.callbacks.onDone();
-            }
-        };
-
-        let finalOutput = Configuration.mainData.output;
-
-        const testOutputDir = Configuration.mainData.output.match(cwd);
-
-        if (testOutputDir && testOutputDir.length > 0) {
-            finalOutput = Configuration.mainData.output.replace(cwd + path.sep, '');
-        }
-
-        fs.copy(
-            path.resolve(`${__dirname}/../src/resources/`),
-            path.resolve(finalOutput),
-            errorCopy => {
-                if (errorCopy) {
-                    logger.error('Error during resources copy ', errorCopy);
-                } else {
-                    const extThemePromise = new Promise((extThemeResolve, extThemeReject) => {
-                        if (Configuration.mainData.customThemePath) {
-                            fs.copy(
-                                Configuration.mainData.customThemePath,
-                                path.resolve(`${finalOutput}/styles/custom.css`),
-                                errorCopyTheme => {
-                                    if (errorCopyTheme) {
-                                        logger.error(
-                                            'Error during custom theme copy ',
-                                            errorCopyTheme
-                                        );
-                                        extThemeReject();
-                                    } else {
-                                        logger.info('Custom theme copy succeeded');
-                                        extThemeResolve(true);
-                                    }
-                                }
-                            );
-                        } else if (Configuration.mainData.extTheme) {
-                            fs.copy(
-                                path.resolve(cwd + path.sep + Configuration.mainData.extTheme),
-                                path.resolve(`${finalOutput}/styles/`),
-                                errorCopyTheme => {
-                                    if (errorCopyTheme) {
-                                        logger.error(
-                                            'Error during external styling theme copy ',
-                                            errorCopyTheme
-                                        );
-                                        extThemeReject();
-                                    } else {
-                                        logger.info('External styling theme copy succeeded');
-                                        extThemeResolve(true);
-                                    }
-                                }
-                            );
-                        } else {
-                            extThemeResolve(true);
-                        }
-                    });
-
-                    const customFaviconPromise = new Promise(
-                        (customFaviconResolve, customFaviconReject) => {
-                            if (Configuration.mainData.customFavicon !== '') {
-                                logger.info(`Custom favicon supplied`);
-                                fs.copy(
-                                    path.resolve(
-                                        cwd + path.sep + Configuration.mainData.customFavicon
-                                    ),
-                                    path.resolve(`${finalOutput}/images/favicon.ico`),
-                                    errorCopyFavicon => {
-                                        // tslint:disable-line
-                                        if (errorCopyFavicon) {
-                                            logger.error(
-                                                'Error during resources copy of favicon',
-                                                errorCopyFavicon
-                                            );
-                                            customFaviconReject();
-                                        } else {
-                                            logger.info('External custom favicon copy succeeded');
-                                            customFaviconResolve(true);
-                                        }
-                                    }
-                                );
-                            } else {
-                                customFaviconResolve(true);
-                            }
-                        }
-                    );
-
-                    const customLogoPromise = new Promise((customLogoResolve, customLogoReject) => {
-                        if (Configuration.mainData.customLogo !== '') {
-                            logger.info(`Custom logo supplied`);
-                            fs.copy(
-                                path.resolve(cwd + path.sep + Configuration.mainData.customLogo),
-                                path.resolve(
-                                    finalOutput +
-                                        '/images/' +
-                                        Configuration.mainData.customLogo.split('/').pop()
-                                ),
-                                errorCopyLogo => {
-                                    // tslint:disable-line
-                                    if (errorCopyLogo) {
-                                        logger.error(
-                                            'Error during resources copy of logo',
-                                            errorCopyLogo
-                                        );
-                                        customLogoReject();
-                                    } else {
-                                        logger.info('External custom logo copy succeeded');
-                                        customLogoResolve(true);
-                                    }
-                                }
-                            );
-                        } else {
-                            customLogoResolve(true);
-                        }
-                    });
-
-                    Promise.all([extThemePromise, customFaviconPromise, customLogoPromise]).then(
-                        () => {
-                            onComplete();
-                        }
-                    );
-                }
-            }
+const copyTheme = (mainData: MainDataInterface, finalOutput: string): Promise<void> => {
+    if (mainData.customThemePath) {
+        return copyOrReject(
+            mainData.customThemePath,
+            path.resolve(`${finalOutput}/styles/custom.css`),
+            'Custom theme copy succeeded',
+            'Error during custom theme copy '
         );
     }
-}
+    if (mainData.extTheme) {
+        return copyOrReject(
+            path.resolve(cwd + path.sep + mainData.extTheme),
+            path.resolve(`${finalOutput}/styles/`),
+            'External styling theme copy succeeded',
+            'Error during external styling theme copy '
+        );
+    }
+    return Promise.resolve();
+};
+
+const copyFavicon = (mainData: MainDataInterface, finalOutput: string): Promise<void> => {
+    if (mainData.customFavicon === '') {
+        return Promise.resolve();
+    }
+    logger.info(`Custom favicon supplied`);
+    return copyOrReject(
+        path.resolve(cwd + path.sep + mainData.customFavicon),
+        path.resolve(`${finalOutput}/images/favicon.ico`),
+        'External custom favicon copy succeeded',
+        'Error during resources copy of favicon'
+    );
+};
+
+const copyLogo = (mainData: MainDataInterface, finalOutput: string): Promise<void> => {
+    if (mainData.customLogo === '') {
+        return Promise.resolve();
+    }
+    logger.info(`Custom logo supplied`);
+    return copyOrReject(
+        path.resolve(cwd + path.sep + mainData.customLogo),
+        path.resolve(`${finalOutput}/images/${mainData.customLogo.split('/').pop()}`),
+        'External custom logo copy succeeded',
+        'Error during resources copy of logo'
+    );
+};
+
+/** Copy the user's `--assetsFolder` into the output folder. */
+export const copyAssetsFolder = async (ctx: OutputContext): Promise<void> => {
+    const { mainData } = ctx.config;
+    logger.info('Copy assets folder');
+
+    if (!FileEngine.existsSync(mainData.assetsFolder)) {
+        logger.error(`Provided assets folder ${mainData.assetsFolder} did not exist`);
+        return;
+    }
+
+    const destination = path.join(
+        relativeOutput(mainData.output),
+        path.basename(mainData.assetsFolder)
+    );
+    await fs
+        .copy(path.resolve(mainData.assetsFolder), path.resolve(destination))
+        .catch(error => logger.error('Error during resources copy ', error));
+};
+
+/**
+ * Copy the bundled resources (styles, scripts, images) plus the optional
+ * custom theme, favicon and logo. A failed resources copy stops the run
+ * without finalising the output.
+ */
+export const copyResources = async (ctx: OutputContext): Promise<Result<void, Halt>> => {
+    const { mainData } = ctx.config;
+    logger.info('Copy main resources');
+
+    const finalOutput = relativeOutput(mainData.output);
+    try {
+        await fs.copy(path.resolve(`${__dirname}/../src/resources/`), path.resolve(finalOutput));
+    } catch (errorCopy) {
+        logger.error('Error during resources copy ', errorCopy);
+        return err(halt(0, 'resources'));
+    }
+
+    await Promise.all([
+        copyTheme(mainData, finalOutput),
+        copyFavicon(mainData, finalOutput),
+        copyLogo(mainData, finalOutput)
+    ]);
+    return ok(undefined);
+};
+
+/**
+ * Last step after every file is on disk: Pagefind indexing, the multi-version
+ * `versions.json` update and the closing log line.
+ */
+export const finalizeOutput = async (ctx: OutputContext): Promise<Result<void, Halt>> => {
+    const { mainData } = ctx.config;
+
+    // Run Pagefind search indexing after all HTML files are written
+    if (!mainData.disableSearch) {
+        runPagefindIndex(mainData.output);
+    }
+
+    // Multi-version: append/update this version's entry in
+    // <versionsRoot>/versions.json. Runs after Pagefind so an indexing
+    // failure doesn't leave a stale manifest behind. The manifest stores a
+    // URL-relative path with a trailing slash (the switcher widget
+    // concatenates it with the per-page tail).
+    if (mainData.multiVersion && mainData.versionsRoot) {
+        try {
+            updateVersionsManifest({
+                versionsRoot: mainData.versionsRoot,
+                label: mainData.versionLabel,
+                path: `${mainData.versionLabel}/`
+            });
+        } catch (error) {
+            logger.error(`Failed to update versions.json: ${(error as Error).message}`);
+            return err(halt(1, 'versions-manifest'));
+        }
+    }
+
+    logger.info(
+        'Documentation generated in ' +
+            mainData.output +
+            ' in ' +
+            (Date.now() - ctx.startTime) / 1000 +
+            ' seconds using ' +
+            mainData.theme +
+            ' theme'
+    );
+    return ok(undefined);
+};

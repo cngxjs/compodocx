@@ -11,14 +11,13 @@ import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import type { AdditionalNode } from '../interfaces/additional-node.interface';
-import type { AssetCopier } from './asset-copier';
 import type { PageWriter } from './page-writer';
 
 export class AdditionalPageGenerator {
-    public processAdditionalPages(pageWriter: PageWriter, assetCopier: AssetCopier): void {
+    public processAdditionalPages(pageWriter: PageWriter): Promise<void> {
         logger.info('Process additional pages');
         const pages = Configuration.mainData.additionalPages;
-        Promise.all(
+        return Promise.all(
             pages.map(page => {
                 if (page.children.length > 0) {
                     return Promise.all([
@@ -30,12 +29,7 @@ export class AdditionalPageGenerator {
                 }
             })
         )
-            .then(() => {
-                if (Configuration.mainData.assetsFolder !== '') {
-                    assetCopier.processAssetsFolder();
-                }
-                assetCopier.processResources();
-            })
+            .then(() => undefined)
             .catch(e => {
                 logger.error(e);
                 return Promise.reject(e);
