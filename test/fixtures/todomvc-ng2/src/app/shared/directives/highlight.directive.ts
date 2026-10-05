@@ -1,19 +1,22 @@
-import { Directive, ElementRef, HostListener, Input } from '@angular/core';
+import { Directive, ElementRef, inject, input } from '@angular/core';
 
 @Directive({
     selector: '[appHighlight]',
-    standalone: true,
+    host: {
+        '(mouseenter)': 'onMouseEnter()',
+        '(mouseleave)': 'onMouseLeave()'
+    }
 })
 export class HighlightDirective {
-    @Input() color = 'yellow';
+    color = input('yellow');
 
-    constructor(private el: ElementRef) {}
+    private el = inject(ElementRef);
 
-    @HostListener('mouseenter') onMouseEnter() {
-        this.highlight(this.color);
+    onMouseEnter() {
+        this.highlight(this.color());
     }
 
-    @HostListener('mouseleave') onMouseLeave() {
+    onMouseLeave() {
         this.highlight('');
     }
 

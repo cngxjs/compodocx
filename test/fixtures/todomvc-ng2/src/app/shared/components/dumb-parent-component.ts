@@ -1,14 +1,14 @@
-import { Input, Output, output, input } from '@angular/core';
+import { output, input } from '@angular/core';
 
 /**
  * Empty parent component for inheritance demo
  */
 export class DumbParentComponent {
-    @Input() public parentInput: string;
+    public parentInput = input<string>();
 
     label = input.required<string>();
 
-    @Output() public parentoutput;
+    public parentoutput = output();
 
     currentChange = output<number>();
 
@@ -17,9 +17,7 @@ export class DumbParentComponent {
     /**
      * HostBinding description
      */
-    @HostBinding('style.color')
     color: string;
 
-    @HostListener('mouseup')
     onMouseup(): void {}
 }

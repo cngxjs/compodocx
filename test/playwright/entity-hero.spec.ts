@@ -55,11 +55,13 @@ test.describe('Entity Page Hero', () => {
         });
 
         test('status badges render alongside entity badge', async ({ page }) => {
-            await page.goto('/components/AboutComponent2.html');
+            // The standalone badge only shows in projects that still have
+            // NgModules; the all-standalone fixture uses the @beta status badge.
+            await page.goto('/directives/BaseDirective.html');
 
             const badges = page.locator('.cdx-entity-hero-badges');
-            await expect(badges.locator('.cdx-badge--entity-component')).toBeVisible();
-            await expect(badges.locator('.cdx-badge--standalone')).toBeVisible();
+            await expect(badges.locator('.cdx-badge--entity-directive')).toBeVisible();
+            await expect(badges.locator('.cdx-badge--beta')).toBeVisible();
         });
     });
 

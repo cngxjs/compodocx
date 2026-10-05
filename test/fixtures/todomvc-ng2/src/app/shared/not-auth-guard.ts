@@ -1,11 +1,5 @@
-import { Injectable } from '@angular/core';
-import { CanLoad } from '@angular/router';
+import { CanMatchFn } from '@angular/router';
 
-@Injectable({
-    providedIn: 'root'
-})
-class NotAuthGuard implements CanLoad {
-    public canLoad() {
-        return true;
-    }
-}
+const NotAuthGuard: CanMatchFn = () => {
+    return true;
+};

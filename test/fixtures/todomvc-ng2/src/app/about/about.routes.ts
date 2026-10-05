@@ -1,5 +1,4 @@
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
+import { Routes } from '@angular/router';
 
 import { AboutComponent } from './about.component';
 import { TodoMVCComponent } from './todomvc/todomvc.component';
@@ -11,12 +10,20 @@ import { pathMatchStrategy } from './path-match';
 
 import { utils, oneFunction } from './utils';
 
+import { TodoStore } from '../shared/services/todo.store';
+
 const extract = function(s: string) {};
 
-const ABOUT_ROUTES: Routes = [
+/**
+ * About routes
+ *
+ * Exposing just two routes, one for Compodoc, the other one for TodoMVC
+ */
+export const ABOUT_ROUTES: Routes = [
     {
         path: ABOUT_ENUMS.todomvc,
         component: AboutComponent,
+        providers: [TodoStore],
         children: [
             {
                 path: '',
@@ -29,16 +36,3 @@ const ABOUT_ROUTES: Routes = [
         ]
     }
 ];
-
-/**
- * About Routing module
- *
- * Exposing just two routes, one for Compodoc, the other one for TodoMVC
- */
-
-@NgModule({
-    imports: [RouterModule.forChild(ABOUT_ROUTES)],
-    exports: [RouterModule],
-    declarations: [TodoMVCComponent, CompodocComponent]
-})
-export class AboutRoutingModule {}

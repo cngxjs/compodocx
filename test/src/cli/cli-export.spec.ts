@@ -127,12 +127,12 @@ describe('CLI Export', () => {
             expect(file).to.contain('injectable-EmitterService');
             expect(file).to.contain('class-StringIndexedItems');
             expect(file).to.contain('component-AboutComponent');
-            expect(file).to.contain('AboutRoutingModule');
+            expect(file).to.contain('ABOUT_ROUTES');
             expect(file).to.contain('PI');
             expect(file).to.contain('A foo bar function');
             expect(file).to.contain('ChartChange');
             expect(file).to.contain('Direction');
-            expect(file).to.contain('PIPES_AND_DIRECTIVES');
+            expect(file).to.contain('HOME_ROUTES');
             expect(file).to.contain('APP_ROUTES');
             expect(file).to.contain('coveragePercent');
         });
@@ -255,14 +255,14 @@ describe('CLI Export', () => {
             expect(file).to.contain('"comment":"<p>class method return</p>');
         });
 
-        it('should get modules informations', () => {
+        it('should get standalone component informations', () => {
             const file = read(`${distFolder}/documentation.json`);
 
-            // Description
-            expect(file).to.contain('"description":"<p>The list of todos module');
+            // Description (the former ListModule table now lives on ListComponent)
+            expect(file).to.contain('"description":"<p>The list of todos component');
 
             // Sourcecode
-            expect(file).to.contain('"sourceCode":"import { NgModule } from');
+            expect(file).to.contain('"sourceCode":"import { Component, inject } from');
         });
     });
 
@@ -308,12 +308,12 @@ describe('CLI Export', () => {
             expect(file).to.contain('injectable-EmitterService');
             expect(file).to.contain('class-StringIndexedItems');
             expect(file).to.contain('component-AboutComponent');
-            expect(file).to.contain('AboutRoutingModule');
+            expect(file).to.contain('ABOUT_ROUTES');
             expect(file).to.contain('PI');
             expect(file).to.contain('A foo bar function');
             expect(file).to.contain('ChartChange');
             expect(file).to.contain('Direction');
-            expect(file).to.contain('PIPES_AND_DIRECTIVES');
+            expect(file).to.contain('HOME_ROUTES');
             expect(file).to.contain('APP_ROUTES');
             expect(file).not.to.contain('coveragePercent');
             expect(file).not.to.contain('sourceCode');

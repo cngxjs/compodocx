@@ -153,12 +153,13 @@ test.describe('Overview Dashboard', () => {
         });
     });
 
-    test.describe('Module Graph', () => {
-        test('graph container visible for NgModule app', async ({ page }) => {
+    test.describe('Dependency Graph', () => {
+        test('graph container visible for standalone app', async ({ page }) => {
             await page.goto('/overview.html');
 
             const graph = page.locator('.cdx-graph-container');
             await expect(graph).toBeVisible();
+            await expect(page.locator('#dependency-graph-container')).toBeVisible();
         });
     });
 
@@ -239,30 +240,28 @@ test.describe('Overview Dashboard', () => {
         });
     });
 
-    test.describe('Module Graph Styling', () => {
-        test('module graph SVG has role=img and aria-label', async ({ page }) => {
+    test.describe('Dependency Graph Styling', () => {
+        test('dependency graph SVG has role=img and aria-label', async ({ page }) => {
             await page.goto('/overview.html');
-            const svg = page.locator('#module-graph-svg svg');
+            const svg = page.locator('#dependency-graph-container svg');
             await expect(svg).toBeVisible();
             await expect(svg).toHaveAttribute('role', 'img');
-            await expect(svg).toHaveAttribute('aria-label', 'Module dependency graph');
+            await expect(svg).toHaveAttribute(
+                'aria-label',
+                'Standalone component dependency graph'
+            );
         });
 
         test('zoom buttons are present', async ({ page }) => {
             await page.goto('/overview.html');
-            await expect(page.locator('#zoom-in')).toBeVisible();
-            await expect(page.locator('#reset')).toBeVisible();
-            await expect(page.locator('#zoom-out')).toBeVisible();
+            await expect(page.locator('#dep-zoom-in')).toBeVisible();
+            await expect(page.locator('#dep-reset')).toBeVisible();
+            await expect(page.locator('#dep-zoom-out')).toBeVisible();
         });
 
-        test('fullscreen button is present', async ({ page }) => {
+        test('no module graph on standalone app', async ({ page }) => {
             await page.goto('/overview.html');
-            await expect(page.locator('#fullscreen')).toBeVisible();
-        });
-
-        test('no dependency graph on NgModule app', async ({ page }) => {
-            await page.goto('/overview.html');
-            await expect(page.locator('#dependency-graph-container')).toHaveCount(0);
+            await expect(page.locator('#module-graph-svg')).toHaveCount(0);
         });
     });
 

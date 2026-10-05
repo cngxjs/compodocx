@@ -1,17 +1,15 @@
 import {
     Component,
-    ContentChildren,
-    QueryList,
-    Input,
-    ViewChildren,
+    contentChildren,
+    viewChildren,
     AfterViewInit,
-    Output,
-    EventEmitter,
+    model,
+    output,
     TemplateRef,
     ViewContainerRef,
-    ComponentFactoryResolver,
     Type,
-    ChangeDetectorRef
+    inject,
+    effect
 } from '@angular/core';
 import { JigsawTabPane } from './tab-pane';
 import { JigsawTabContent, JigsawTabLabel } from './tab-item';
@@ -22,28 +20,28 @@ import { AbstractJigsawComponent, IDynamicInstantiatable } from '../core';
     template: 'tab.html'
 })
 export class JigsawTab extends AbstractJigsawComponent implements AfterViewInit {
-    constructor(
-        private _cfr: ComponentFactoryResolver,
-        private _changeDetector: ChangeDetectorRef,
-        private _viewContainer: ViewContainerRef
-    ) {
+    private _viewContainer = inject(ViewContainerRef);
+
+    constructor() {
         super();
+        effect(() => {
+            const value = this.selectedIndex();
+            if (this.initialized && typeof value == 'number') {
+                this._handleSelectChange(value);
+            }
+        });
     }
 
     /**
      * @internal
      */
-    @ContentChildren(JigsawTabPane)
-    public _$tabPanes: QueryList<JigsawTabPane>;
+    public _$tabPanes = contentChildren(JigsawTabPane);
 
-    @ViewChildren(JigsawTabLabel)
-    private _tabLabel: QueryList<JigsawTabLabel>;
+    private _tabLabel = viewChildren(JigsawTabLabel);
 
-    @ViewChildren(JigsawTabContent)
-    private _tabContent: QueryList<JigsawTabContent>;
+    private _tabContent = viewChildren(JigsawTabContent);
 
-    @Output()
-    public selectChange = new EventEmitter<JigsawTabPane>();
+    public selectChange = output<JigsawTabPane>();
 
     public length: number;
 
@@ -52,36 +50,13 @@ export class JigsawTab extends AbstractJigsawComponent implements AfterViewInit 
      * @internal
      */
     public _$tabClick(index) {
-        this.selectedIndex = index;
+        this.selectedIndex.set(index);
     }
 
-    /**
-     * @internal
-     */
-    public _$selectedIndex: number;
-
-    @Input()
-    public get selectedIndex(): number {
-        return this._$selectedIndex;
-    }
-
-    public set selectedIndex(value: number) {
-        if (this._$selectedIndex !== value && typeof value == 'number') {
-            this._$selectedIndex = value;
-
-            if (this.initialized) {
-                this._handleSelectChange(value);
-            }
-            this._changeDetector.detectChanges();
-        }
-    }
-
-    @Output()
-    public selectedIndexChange = new EventEmitter<number>();
+    public selectedIndex = model<number>();
 
     private _handleSelectChange(index) {
         this.selectChange.emit(this._getTabPaneByIndex(index));
-        this.selectedIndexChange.emit(index);
 
         this._asyncSetStyle(index);
     }
@@ -100,7 +75,7 @@ export class JigsawTab extends AbstractJigsawComponent implements AfterViewInit 
 
     // 将有纵向切换的封装.
     private _getLabelOffsetByKey(key: number): any {
-        let currentLabel = this._tabLabel.find(item => item.key === key);
+        let currentLabel = this._tabLabel().find(item => item.key === key);
 
         // 非法的 key // 有可能getTop 等扩展Tab页时再重构.
         if (currentLabel) {
@@ -116,13 +91,12 @@ export class JigsawTab extends AbstractJigsawComponent implements AfterViewInit 
     }
 
     private _getTabPaneByIndex(key): JigsawTabPane {
-        return this._$tabPanes.find((item, index) => index === key);
+        return this._$tabPanes().find((item, index) => index === key);
     }
 
     private _autoSelect() {
-        this.selectedIndex = this._$tabPanes
-            .toArray()
-            .findIndex(tabPane => !tabPane.disabled && !tabPane.hidden);
+        this.selectedIndex.set(this._$tabPanes()
+            .findIndex(tabPane => !tabPane.disabled && !tabPane.hidden));
     }
 
     private _asyncSetStyle(index: number): void {
@@ -132,13 +106,13 @@ export class JigsawTab extends AbstractJigsawComponent implements AfterViewInit 
     }
 
     ngAfterViewInit() {
-        if (this.selectedIndex != null) {
-            this._handleSelectChange(this.selectedIndex);
+        if (this.selectedIndex() != null) {
+            this._handleSelectChange(this.selectedIndex());
         } else {
             this._autoSelect();
         }
 
-        this.length = this._$tabPanes.length;
+        this.length = this._$tabPanes().length;
     }
 
     /**
@@ -165,7 +139,7 @@ export class JigsawTab extends AbstractJigsawComponent implements AfterViewInit 
         if (!this._isTabPane(tabPane)) return;
 
         tabPane.hidden = false;
-        this.selectedIndex = index;
+        this.selectedIndex.set(index);
     }
 
     private _isTabPane(tabPane: any): boolean {
@@ -186,8 +160,7 @@ export class JigsawTab extends AbstractJigsawComponent implements AfterViewInit 
         content: TemplateRef<any> | Type<IDynamicInstantiatable>,
         initData?: Object
     ) {
-        const factory = this._cfr.resolveComponentFactory(JigsawTabPane);
-        let tabPane: JigsawTabPane = this._viewContainer.createComponent(factory).instance;
+        let tabPane: JigsawTabPane = this._viewContainer.createComponent(JigsawTabPane).instance;
         if (typeof title == 'string') {
             tabPane.title = title;
         } else {
@@ -196,16 +169,13 @@ export class JigsawTab extends AbstractJigsawComponent implements AfterViewInit 
         tabPane.content = content;
         tabPane.initData = initData;
 
-        let tabTemp = this._$tabPanes.toArray();
-        tabTemp.push(tabPane);
-        this._$tabPanes.reset(tabTemp);
-        this.length = this._$tabPanes.length;
-        this.selectedIndex = this._$tabPanes.length - 1;
+        this.length = this._$tabPanes().length;
+        this.selectedIndex.set(this._$tabPanes().length - 1);
 
         //router link
         setTimeout(() => {
-            let link = this._tabLabel
-                .find(item => item.key === this.selectedIndex)
+            let link = this._tabLabel()
+                .find(item => item.key === this.selectedIndex())
                 .elementRef.nativeElement.querySelector('[routerLink]');
             if (link) {
                 link.click();
@@ -218,21 +188,17 @@ export class JigsawTab extends AbstractJigsawComponent implements AfterViewInit 
      * @param index
      */
     public removeTab(index) {
-        if (this._$tabPanes.length - index < 1) {
+        if (this._$tabPanes().length - index < 1) {
             console.info('没有对应tab-pane 供删除');
             return;
         }
 
-        let tabTemp = this._$tabPanes.toArray();
-        tabTemp.splice(index, 1); // 去掉要删除的元素;
-
-        // 重新修改queryList. 不确定这么做有没有什么隐患.
-        this._$tabPanes.reset(tabTemp);
-        this.length = this._$tabPanes.length;
-        if (this.selectedIndex == index) {
+        this._viewContainer.remove(index);
+        this.length = this._$tabPanes().length;
+        if (this.selectedIndex() == index) {
             this._handleSelect();
         } else {
-            this.selectedIndex = this.selectedIndex - 1;
+            this.selectedIndex.set(this.selectedIndex() - 1);
         }
     }
 
@@ -246,12 +212,12 @@ export class JigsawTab extends AbstractJigsawComponent implements AfterViewInit 
      * @private
      */
     private _handleSelect() {
-        let tabPane = this._getTabPaneByIndex(this.selectedIndex);
+        let tabPane = this._getTabPaneByIndex(this.selectedIndex());
 
         if (!tabPane || tabPane.hidden || tabPane.disabled) {
             this._autoSelect();
         } else {
-            this._asyncSetStyle(this.selectedIndex);
+            this._asyncSetStyle(this.selectedIndex());
         }
     }
 }

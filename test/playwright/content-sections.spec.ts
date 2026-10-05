@@ -104,7 +104,9 @@ test.describe('Content Sections', () => {
         test('component metadata renders as cdx-metadata-card', async ({ page }) => {
             await page.goto('/components/AboutComponent.html');
 
-            const card = page.locator('.cdx-metadata-card');
+            // `host: {}` metadata renders a second card (host listeners);
+            // the decorator metadata card is the first one.
+            const card = page.locator('.cdx-metadata-card').first();
             await expect(card).toBeVisible();
 
             // Should have selector row
@@ -118,14 +120,14 @@ test.describe('Content Sections', () => {
             // correctly render nothing and was unsuitable for this assertion.
             await page.goto('/directives/BorderDirective.html');
 
-            const card = page.locator('.cdx-metadata-card');
+            const card = page.locator('.cdx-metadata-card').first();
             await expect(card).toBeVisible();
         });
 
         test('metadata card uses dl element', async ({ page }) => {
             await page.goto('/components/AboutComponent.html');
 
-            const dl = page.locator('dl.cdx-metadata-card');
+            const dl = page.locator('dl.cdx-metadata-card').first();
             await expect(dl).toBeVisible();
         });
 

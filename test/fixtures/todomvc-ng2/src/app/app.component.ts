@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 /**
  * The main component
@@ -6,7 +7,8 @@ import { Component } from '@angular/core';
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css']
+    styleUrls: ['./app.component.css'],
+    imports: [RouterOutlet, RouterLink, RouterLinkActive]
 })
 export class AppComponent {
     public getOrganizations(): Observable<Todo[]> {

@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import { PipeTransform, Pipe } from '@angular/core';
-import { Directive, HostBinding, HostListener, Input } from '@angular/core';
+import { Directive } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
-import { NgModule } from '@angular/core';
 
 import { Todo } from './app/shared/models/todo.model';
 
@@ -240,7 +239,13 @@ namespace BSBO {
          * This directive does nothing !
          */
         @Directive({
-            selector: '[donothing]'
+            selector: '[donothing]',
+            host: {
+                '[style.color]': 'color',
+                '(mouseup)': 'onMouseup($event.clientX, $event.clientY)',
+                '(mousedown)': 'onMousedown($event.clientX, $event.clientY)',
+                '(click)': 'onClick()'
+            }
         })
         export class DoNothingDirective2 {
             protected popover: string;
@@ -255,22 +260,19 @@ namespace BSBO {
             /**
              * HostBinding description
              */
-            @HostBinding('style.color') color: string;
+            color: string;
 
             /**
              * HostListener description 1
              */
-            @HostListener('mouseup', ['$event.clientX', '$event.clientY'])
             onMouseup(mouseX: number, mouseY: number): void {}
             /**
              * HostListener description 2
              */
-            @HostListener('mousedown', ['$event.clientX', '$event.clientY'])
             onMousedown(mouseX: number, mouseY: number): void {}
             /**
              * HostListener description 3
              */
-            @HostListener('click')
             onClick(): void {}
         }
 
@@ -281,7 +283,10 @@ namespace BSBO {
          */
         @Component({
             selector: 'about',
-            template: 'about.component'
+            template: 'about.component',
+            host: {
+                '(mouseup)': 'onMouseup()'
+            }
         })
         export class AboutComponent2 implements OnInit {
             ngOnInit() {}
@@ -289,7 +294,6 @@ namespace BSBO {
             /**
              * HostListener mouseup description
              */
-            @HostListener('mouseup')
             onMouseup(): void {}
         }
 
@@ -298,10 +302,6 @@ namespace BSBO {
          *
          * Just embedding <about> component and it's routing definition in {@link AboutRoutingModule}
          */
-        @NgModule({
-            declarations: [],
-            imports: []
-        })
         export class AboutModule2 {}
 
         /**

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { TodoStore } from '../shared/services/todo.store';
 
@@ -21,9 +21,9 @@ import { FooterComponentSchema } from './footer-component.metadata';
 @Component(FooterComponentSchema)
 export class FooterComponent {
     /**
-     * Local reference of TodoStore
+     * Local reference of TodoStore -> see {@link TodoStore}
      */
-    todoStore: TodoStore;
+    todoStore = inject(TodoStore);
     /**
      * Local id for EmitterService
      */
@@ -35,15 +35,6 @@ export class FooterComponent {
      */
     @LogPropertyWithArgs('theCurrentFilter')
     currentFilter: string = 'all';
-
-    /**
-     * The "constructor"
-     *
-     * @param {TodoStore} todoStore A TodoStore -> see {@link TodoStore}
-     */
-    constructor(todoStore: TodoStore) {
-        this.todoStore = todoStore;
-    }
 
     /**
      * Removes all the completed todos

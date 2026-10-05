@@ -16,7 +16,7 @@ describe('CLI toggle menu items', () => {
                 '-d',
                 distFolder,
                 '--toggleMenuItems',
-                'modules'
+                'components'
             ]);
 
             if (hasStderrError(ls.stderr.toString())) {
@@ -30,15 +30,15 @@ describe('CLI toggle menu items', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('it should leave the listed type expanded and the rest collapsed', () => {
-            // `--toggleMenuItems modules` keeps the modules section open
+            // `--toggleMenuItems components` keeps the components section open
             // (aria-expanded="true") while every other section starts
             // collapsed (aria-expanded="false"). The `data-cdx-target`
             // pairs each toggler button with the `<ul id="…-links">`
             // it controls.
-            expect(indexFile).to.contain('data-cdx-target="#modules-links" aria-expanded="true"');
             expect(indexFile).to.contain(
-                'data-cdx-target="#components-links" aria-expanded="false"'
+                'data-cdx-target="#components-links" aria-expanded="true"'
             );
+            expect(indexFile).to.contain('data-cdx-target="#pipes-links" aria-expanded="false"');
             expect(indexFile).to.contain(
                 'data-cdx-target="#directives-links" aria-expanded="false"'
             );

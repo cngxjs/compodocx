@@ -1,10 +1,11 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
+import { NgIf } from '@angular/common';
 
 import { Todo } from '../../shared/models/todo.model';
 
 import { TodoStore } from '../../shared/services/todo.store';
 import { DoNothingDirective } from 'app/shared/directives/do-nothing.directive';
-import { AboutModule } from 'app/about';
+import { FirstUpperPipe } from 'app/shared/pipes/first-upper.pipe';
 
 /**
  * The todo component
@@ -19,17 +20,13 @@ import { AboutModule } from 'app/about';
 @Component({
     selector: 'todo',
     templateUrl: './todo.component.html',
-    standalone: true,
-    imports: [DoNothingDirective, AboutModule]
+    imports: [NgIf, DoNothingDirective, FirstUpperPipe]
 })
 export class TodoComponent {
     /**
      * The entry todo from the parent list
      */
-    @Input({
-        required: true
-    })
-    todo: Todo;
+    todo = input.required<Todo>();
 
     unionVariable: string[] | Todo;
 
@@ -38,11 +35,7 @@ export class TodoComponent {
     /**
      * Local reference of TodoStore
      */
-    todoStore: TodoStore;
-
-    constructor(todoStore: TodoStore) {
-        this.todoStore = todoStore;
-    }
+    todoStore = inject(TodoStore);
 
     remove(todo: Todo) {
         this.todoStore.remove(todo);

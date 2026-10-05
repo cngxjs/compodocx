@@ -17,7 +17,7 @@ describe('CLI simple generation - big app', () => {
         doNothingDirectiveFile,
         todoClassFile,
         tidiClassFile,
-        aboutModuleFile,
+        appConfigFile,
         todoStoreFile,
         typeAliasesFile,
         functionsFile,
@@ -66,7 +66,7 @@ describe('CLI simple generation - big app', () => {
         todoClassFile = read(`${distFolder}/classes/Todo.html`);
         tidiClassFile = read(`${distFolder}/classes/Tidi.html`);
 
-        aboutModuleFile = read(`${distFolder}/modules/AboutModule.html`);
+        appConfigFile = read(`${distFolder}/app-config.html`);
 
         todoStoreFile = read(`${distFolder}/injectables/TodoStore.html`);
 
@@ -91,8 +91,8 @@ describe('CLI simple generation - big app', () => {
     it('should have generated main pages', () => {
         const isIndexExists = exists(`${distFolder}/index.html`);
         expect(isIndexExists).to.be.true;
-        const isModulesExists = exists(`${distFolder}/modules.html`);
-        expect(isModulesExists).to.be.true;
+        const isAppConfigExists = exists(`${distFolder}/app-config.html`);
+        expect(isAppConfigExists).to.be.true;
         const isRoutesExists = exists(`${distFolder}/routes.html`);
         expect(isRoutesExists).to.be.true;
     });
@@ -150,9 +150,9 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should have generated files', () => {
-        expect(routesIndex).to.contain('AppModule');
-        expect(routesIndex).to.contain('AppRoutingModule');
-        expect(routesIndex).to.contain('HomeRoutingModule');
+        expect(routesIndex).to.contain('src/app/app.routes.ts');
+        expect(routesIndex).to.contain('src/app/about/about.routes.ts');
+        expect(routesIndex).to.contain('src/app/home/home.routes.ts');
         expect(routesIndex).to.contain('AboutComponent');
     });
 
@@ -239,9 +239,9 @@ describe('CLI simple generation - big app', () => {
         expect(file).to.be.false;
     });
 
-    it('should have generated modules', () => {
-        const file = exists(`${distFolder}/modules/AboutModule.html`);
-        expect(file).to.be.true;
+    it('should have generated the application config', () => {
+        expect(appConfigFile).to.contain('The bootstrapper configuration');
+        expect(appConfigFile).to.contain('provideRouter()');
     });
 
     it('should have generated pipes', () => {
@@ -309,16 +309,13 @@ describe('CLI simple generation - big app', () => {
         expect(todoComponentFile).to.contain('iframe class="cdx-example-container"');
     });
 
-    it('should have managed array declaration in modules', () => {
-        const file = read(`${distFolder}/modules/TodoModule.html`);
-        expect(file).to.contain('<title>FirstUpperPipe</title>'); // Inside svg graph
-        const file2 = read(`${distFolder}/modules/ListModule.html`);
-        expect(file2).to.contain('<title>TodoModule</title>'); // Inside svg graph
+    it('should have managed array declaration in component imports', () => {
+        expect(todoComponentFile).to.contain('href="../pipes/FirstUpperPipe.html"');
+        expect(listComponentFile).to.contain('href="../components/TodoComponent.html"');
     });
 
     it('should have README tabs for each types', () => {
         expect(todoComponentFile).to.contain('id="readme-tab"');
-        expect(aboutModuleFile).to.contain('id="readme-tab"');
         let file = read(`${distFolder}/directives/DoNothingDirective.html`);
         expect(file).to.contain('id="readme-tab"');
         expect(todoStoreFile).to.contain('id="readme-tab"');
@@ -460,8 +457,6 @@ describe('CLI simple generation - big app', () => {
         expect(file).to.contain('Getter of _fullName');
         expect(file).to.contain('Setter of _fullName');
 
-        expect(file).to.contain('Inputs');
-
         file = read(`${distFolder}/components/DumbComponent.html`);
         expect(file).to.contain('cdx-io-member-name">visibleTodos');
         expect(file).to.contain('href="../classes/Todo.html"');
@@ -472,7 +467,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support namespace', () => {
-        let file = read(`${distFolder}/modules/AboutModule2.html`);
+        let file = read(`${distFolder}/classes/AboutModule2.html`);
         expect(file).to.contain('The about module');
 
         file = read(`${distFolder}/components/AboutComponent2.html`);
@@ -504,19 +499,14 @@ describe('CLI simple generation - big app', () => {
         expect(file).to.contain('PI2');
     });
 
-    it('should support spread operator for modules metadatas', () => {
-        const file = read(`${distFolder}/modules/HomeModule.html`);
-        expect(file).to.contain('../modules/FooterModule.html');
-    });
-
     it('should support interceptors', () => {
-        const file = read(`${distFolder}/modules/AppModule.html`);
-        // The interceptor link is now nested inside the `<h3>Providers`
-        // useClass entry — assert the substring (no leading `../` since
-        // the modules page may emit different path styles).
-        expect(file).to.contain('interceptors/NoopInterceptor.html');
+        // The functional interceptor is registered through
+        // `provideHttpClient(withInterceptors([...]))` in the app config.
+        expect(appConfigFile).to.contain('withInterceptors()');
         const fileTest = exists(`${distFolder}/interceptors/NoopInterceptor.html`);
         expect(fileTest).to.be.true;
+        const file = read(`${distFolder}/interceptors/NoopInterceptor.html`);
+        expect(file).to.contain('Functional interceptor');
     });
 
     it('should have DOM tree tab for component with inline template', () => {
@@ -539,39 +529,12 @@ describe('CLI simple generation - big app', () => {
         expect(aboutComponentFile).to.contain('class="cdx-member-modifier">Async');
     });
 
-    it('should support entryComponents for modules', () => {
-        expect(aboutModuleFile).to.contain('<h3>EntryComponents');
-        expect(aboutModuleFile).to.contain('href="../components/AboutComponent.html"');
-    });
-
-    it('should id for modules', () => {
-        // Module ID section heading is now labelled "Identifier" via the
-        // `cdx-section-heading` class; legacy `<h3>Id` is gone.
-        expect(aboutModuleFile).to.contain('<h3 class="cdx-section-heading">Identifier');
-    });
-
-    it('should schemas for modules', () => {
-        const file = read(`${distFolder}/modules/FooterModule.html`);
-        expect(file).to.contain('<h3>Schemas');
-    });
-
     it('should support dynamic path for routes', () => {
         const routesFile = read(`${distFolder}/js/routes/routes_index.js`);
         expect(routesFile).to.contain('homeimported');
         expect(routesFile).to.contain('homeenumimported');
         expect(routesFile).to.contain('homeenuminfile');
         expect(routesFile).to.contain('todomvcinstaticclass');
-    });
-
-    it('should support Object Literal Property Value Shorthand support for metadatas for modules', () => {
-        // Module list-section headings remain bare `<h3>` (no
-        // `cdx-section-heading` class — that's only on Metadata/Identifier).
-        expect(aboutModuleFile).to.contain('<h3>Declarations');
-        expect(aboutModuleFile).to.contain('<h3>Imports');
-        expect(aboutModuleFile).to.contain('<h3>EntryComponents');
-        expect(aboutModuleFile).to.contain('<h3>Providers');
-        expect(aboutModuleFile).to.contain('<h3>Bootstrap');
-        expect(aboutModuleFile).to.contain('<h3>Schemas');
     });
 
     it('should support Object Literal Property Value Shorthand support for metadatas for components', () => {
@@ -706,13 +669,6 @@ describe('CLI simple generation - big app', () => {
         expect(aboutComponentFile).to.contain('cdx-metadata-label">Preserve whitespaces');
     });
 
-    it('should support component metadata entryComponents', () => {
-        // Entry-component chips moved into `MetadataChipsRow`/`cdx-chip-list`.
-        expect(aboutComponentFile).to.contain('cdx-metadata-label">Entry components');
-        expect(aboutComponentFile).to.contain('href="../components/TodoComponent.html"');
-        expect(aboutComponentFile).to.contain('>TodoComponent');
-    });
-
     it('should support component metadata providers', () => {
         expect(aboutComponentFile).to.contain(
             '<code><a href="../injectables/EmitterService.html" target="_self" >EmitterService</a></code>'
@@ -723,8 +679,6 @@ describe('CLI simple generation - big app', () => {
         const file = read(`${distFolder}/components/DumbComponent.html`);
         expect(file).to.contain('cdx-io-member-name">parentInput');
         expect(file).to.contain('cdx-io-member-name">parentoutput');
-        expect(file).to.contain('<code>[style.color]</code>');
-        expect(file).to.contain('mouseup');
     });
 
     it('should display short filename + long filename in title for index of miscellaneous', () => {
@@ -732,23 +686,13 @@ describe('CLI simple generation - big app', () => {
         // Short and long file paths still surface together; assert both
         // substrings present (markup around them is now cdx-* and not
         // a fixed wrapper).
-        expect(file).to.contain('about.module.ts');
-        expect(file).to.contain('src/app/about/about.module.ts');
+        expect(file).to.contain('about.routes.ts');
+        expect(file).to.contain('src/app/about/about.routes.ts');
     });
 
     it('should display component even with no hostlisteners', () => {
         const file = read(`${distFolder}/coverage.html`);
         expect(file).to.contain('src/app/footer/footer.component.ts');
-    });
-
-    it('should display list of import/exports/declarations/providers in asc order', () => {
-        const file = read(`${distFolder}/modules/AboutRoutingModule.html`);
-        // List items are now plain `<li class="link">…</li>` inside
-        // `cdx-entity-list` — Bootstrap `list-group-item` is gone.
-        const compodocIdx = file.indexOf('CompodocComponent.html');
-        const todomvcIdx = file.indexOf('TodoMVCComponent.html');
-        expect(compodocIdx).to.be.greaterThan(0);
-        expect(todomvcIdx).to.be.greaterThan(compodocIdx);
     });
 
     it('should support Tuple types', () => {
@@ -768,11 +712,6 @@ describe('CLI simple generation - big app', () => {
         // chips inside the metadata card, not bare `<li>` items.
         expect(appComponentFile).to.contain('<code>T</code>');
         expect(appComponentFile).to.contain('<code>K</code>');
-    });
-
-    it('should support spread elements with external variables', () => {
-        const file = read(`${distFolder}/modules/FooterModule.html`);
-        expect(file).to.contain('<h3>Declarations<a href=');
     });
 
     it('should support interfaces with custom variables names', () => {
@@ -814,13 +753,6 @@ describe('CLI simple generation - big app', () => {
     it('correct support symbol type', () => {
         // Type alias renders chevrons raw inside `<code>`.
         expect(typeAliasesFile).to.contain('string | symbol | Array<string | symbol>');
-    });
-
-    it('correct support gorRoot & forChild methods for modules', () => {
-        const file = read(`${distFolder}/modules/AppModule.html`);
-        expect(file).to.contain('cdx-io-member-name">forChild');
-        expect(file).to.contain('cdx-io-member-name">forRoot');
-        expect(file).to.contain('config:');
     });
 
     it('correct support returned type for miscellaneous function', () => {
@@ -933,14 +865,12 @@ describe('CLI simple generation - big app', () => {
         expect(todoStore).to.contain(
             'all todos -&gt; see <a href="../components/FooterComponent.html">FooterComponent'
         );
-        // Constructor-parameter @param JSDoc (FooterComponent's
-        // `(todoStore: TodoStore)`) now threads through
-        // `DependenciesSection` — `arg.description` is populated by
-        // `class-helper.ts:visitConstructorDeclaration` after the
-        // `mergeTagsAndArgs` merge.
+        // FooterComponent's `todoStore = inject(TodoStore)` field JSDoc
+        // flows through `DependenciesSection` with the same @link
+        // resolution the former constructor @param had.
         const footer = read(`${distFolder}/components/FooterComponent.html`);
         expect(footer).to.contain(
-            'A TodoStore -&gt; see <a href="../injectables/TodoStore.html">TodoStore'
+            'TodoStore -&gt; see <a href="../injectables/TodoStore.html">TodoStore'
         );
     });
 
@@ -973,17 +903,15 @@ describe('CLI simple generation - big app', () => {
         expect(file).to.contain('<span>src/app/about/about.component.ts</span>');
     });
 
-    it('should not have bootstraped component in components menu entry', () => {
-        // Inline menu in any generated page; AppComponent is in the
-        // bootstrap module so should not appear in the top-level
-        // Components sidebar group.
+    it('should have bootstraped standalone component in components menu entry', () => {
+        // Without an NgModule the bootstrapped AppComponent is a plain
+        // standalone component and is listed in the top-level Components
+        // sidebar group; the app config gets its own chapter link.
         const file = read(`${distFolder}/index.html`);
-        // Match the literal sidebar link the legacy assertion targeted —
-        // attribute order matters here because the same href shows up
-        // inside the AppModule submenu (with `data-context="sub-entity"`).
-        expect(file).to.not.contain(
+        expect(file).to.contain(
             'href="components/AppComponent.html" data-type="entity-link" class="" data-cdx-entity-type="component"'
         );
+        expect(file).to.contain('href="app-config.html"');
     });
 
     it('should support @example', () => {
@@ -993,19 +921,9 @@ describe('CLI simple generation - big app', () => {
         expect(todoMVCComponentFile).to.contain('&lt;todomvc&gt;The example of the component');
     });
 
-    it('should support double layer spread for modules', () => {
-        const file = read(`${distFolder}/modules/HeaderModule.html`);
-        expect(file).to.contain('href="../components/HeaderComponent.html">HeaderComponent');
-    });
-
     it('should support class name includes an interface name', () => {
         const file = read(`${distFolder}/classes/Container.html`);
         expect(file).to.contain('href="../classes/AaBb.html" target="_self" >AaBb');
-    });
-
-    it('should support service/injectable export in module providers', () => {
-        const file = read(`${distFolder}/modules/FooterModule.html`);
-        expect(file).to.contain('href="../injectables/EmitterService.html">EmitterService');
     });
 
     it('should support exportAs for directives', () => {
@@ -1015,19 +933,20 @@ describe('CLI simple generation - big app', () => {
 
     it('should support standalone for components, directives and pipes', () => {
         let file = read(`${distFolder}/components/TodoComponent.html`);
-        // standalone is now surfaced as a sidebar `cdx-badge--standalone`
-        // chip rather than a `<td class="col-md-3">standalone</td>` row.
-        expect(file).to.contain('cdx-badge cdx-badge--standalone');
+        // The `cdx-badge--standalone` chip only distinguishes standalone
+        // declarations in projects that still have NgModules; in an
+        // all-standalone project it is intentionally not rendered.
+        expect(file).to.not.contain('cdx-badge cdx-badge--standalone');
         // Imports list is a metadata card row with chips for each entry.
         expect(file).to.contain('cdx-metadata-label">Imports');
         expect(file).to.contain('href="../directives/DoNothingDirective.html"');
         expect(file).to.contain('>DoNothingDirective');
-        expect(file).to.contain('href="../modules/AboutModule.html"');
-        expect(file).to.contain('>AboutModule');
+        expect(file).to.contain('href="../pipes/FirstUpperPipe.html"');
+        expect(file).to.contain('>FirstUpperPipe');
 
         file = read(`${distFolder}/directives/DoNothingDirective.html`);
         expect(file).to.contain('<code>donothing</code>');
-        expect(file).to.contain('cdx-badge cdx-badge--standalone');
+        expect(file).to.not.contain('cdx-badge cdx-badge--standalone');
 
         file = read(`${distFolder}/pipes/StandAlonePipe.html`);
         expect(file).to.contain('cdx-metadata-label">Standalone');
@@ -1170,6 +1089,6 @@ describe('CLI simple generation - big app', () => {
     it('should support type <unknown>', () => {
         const file = read(`${distFolder}/components/AboutComponent.html`);
         // Generic chevrons in member types render raw inside `<code>`.
-        expect(file).to.contain('<code>TemplateRef<unknown></code>');
+        expect(file).to.contain('<code>Signal<TemplateRef<unknown>></code>');
     });
 });
