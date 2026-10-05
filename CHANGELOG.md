@@ -6,6 +6,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Fixed
+
+- **Functional resolvers are no longer dropped.** An exported const typed as `ResolveFn<T>` was recognised as a functional resolver but then stored nowhere, so it was missing from the docs and the JSON export. It is now listed under miscellaneous variables with `functionalKind: 'resolver'`.
+- **`@Injectable({ providedIn })` is extracted.** The value was never read from the decorator, so every service was labelled `Service` and the `providedIn` context line never rendered. Services provided in `'root'` or `'platform'` now show as singleton services. String values are stored without quotes for both services and injection tokens (tokens previously kept the source quotes, e.g. `"'root'"` in the JSON export); pages still render the literal in single quotes.
+- **Type links on miscellaneous detail pages.** Links in signatures, parameter lists, return types and type definitions on `miscellaneous/<collection>/<name>.html` pages pointed one directory too shallow and were broken. They now resolve at the page's depth; links on all other pages are unchanged.
+- **`HttpContextToken` on token pages.** Tokens created with `new HttpContextToken(...)` were rendered as `InjectionToken<T>` on the token page and in the llm-md export. The constructor is now kept in the new optional `tokenClass` export field and shown as `HttpContextToken<T>`.
+- **No local machine paths in theme data.** Theme style sources and theme tokens stored the absolute path of each style file, which leaked into the JSON export and made it differ between machines. Their `file` values are now relative to the working directory with forward slashes, like every other entity's `file`.
+
 ## [0.8.0] - 2026-08-03
 
 Content slots are now documented on directive pages, not only on component pages.

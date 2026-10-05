@@ -27,6 +27,7 @@ export interface IInjectableDep extends IDep {
     extends?;
 
     isToken?: boolean;
+    tokenClass?: 'InjectionToken' | 'HttpContextToken';
     tokenType?: string;
     providedIn?: string;
 

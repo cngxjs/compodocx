@@ -173,6 +173,17 @@ describe('llm-md/emit — emitInjectable / emitInterceptor / emitGuard', () => {
         expect(out).toContain('Token type: `AuthService`');
     });
 
+    it('emitInjectable names HttpContextToken as the token kind', () => {
+        const out = emitInjectable({
+            name: 'CACHE_ENABLED',
+            file: 'src/app/tokens.ts',
+            isToken: true,
+            tokenClass: 'HttpContextToken',
+            tokenType: 'boolean'
+        });
+        expect(out).toContain('Kind: HttpContextToken');
+    });
+
     it('emitInterceptor renders the basic shape', () => {
         const inc: ExportInterceptor = {
             name: 'AuthInterceptor',

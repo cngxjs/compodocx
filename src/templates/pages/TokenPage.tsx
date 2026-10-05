@@ -9,6 +9,7 @@ import { WcagBadge } from '../components/WcagBadge';
 import {
     codeWrap,
     deriveLibFromBucket,
+    formatProvidedIn,
     pagefindFilterBlock,
     pagefindMetaBlock,
     parseDescription,
@@ -55,6 +56,10 @@ const Section = (props: SectionProps): string => {
         </section>
     ) as string;
 };
+
+/** `InjectionToken<T>` or `HttpContextToken<T>`, depending on the constructor. */
+const tokenSignature = (item: any, tokenType: string): string =>
+    `${item.tokenClass ?? 'InjectionToken'}<${tokenType}>`;
 
 const Hero = (item: any, _depth: number): string => {
     const segments = resolveBucketSegments(item);
@@ -119,7 +124,7 @@ const Hero = (item: any, _depth: number): string => {
             )}
             {tokenType ? (
                 <p class="cdx-entity-hero-context">
-                    <code>{Html.escapeHtml(`InjectionToken<${tokenType}>`) as string}</code>
+                    <code>{Html.escapeHtml(tokenSignature(item, tokenType)) as string}</code>
                 </p>
             ) : (
                 ''
@@ -172,7 +177,7 @@ export const TokenPage = (data: any): string => {
                       children: (
                           <pre class="cdx-derived-body">
                               <code>
-                                  {Html.escapeHtml(`InjectionToken<${tokenType}>`) as string}
+                                  {Html.escapeHtml(tokenSignature(item, tokenType)) as string}
                               </code>
                           </pre>
                       ) as string
@@ -182,7 +187,7 @@ export const TokenPage = (data: any): string => {
             {providedIn
                 ? Section({
                       title: t('provided-in') ?? 'Provided in',
-                      children: codeWrap(providedIn)
+                      children: codeWrap(formatProvidedIn(providedIn))
                   })
                 : ''}
         </>

@@ -1,6 +1,7 @@
 import DependenciesEngine from '../../app/engines/dependencies.engine';
 import BasicTypeUtil from '../../utils/basic-type.util';
 import ExtendsMerger from '../../utils/extends-merger.util';
+import { relativeUrl } from './relative-url';
 
 export type ResolvedType = {
     readonly raw: string;
@@ -19,8 +20,9 @@ const miscSubtypeToPage: Record<string, string> = {
 /**
  * Resolve a type name to a link target.
  * Returns null if the type is unknown (render as plain code).
+ * `depth` is the directory depth of the page the link is rendered on.
  */
-export const resolveType = (name: string, indexKey?: string): ResolvedType | null => {
+export const resolveType = (name: string, indexKey?: string, depth = 1): ResolvedType | null => {
     let result = DependenciesEngine.find(name);
     if (!result) {
         const alias = ExtendsMerger.findInAliases(name);
@@ -36,7 +38,7 @@ export const resolveType = (name: string, indexKey?: string): ResolvedType | nul
             const data = result.data;
             if (data.type === 'miscellaneous' || (data.ctype && data.ctype === 'miscellaneous')) {
                 const page = miscSubtypeToPage[data.subtype] ?? '';
-                let href = `../${data.ctype || data.type}/${page}.html`;
+                let href = relativeUrl(depth, `${data.ctype || data.type}/${page}.html`);
                 if (data.name) {
                     href += `#${data.name}`;
                 }
@@ -44,7 +46,7 @@ export const resolveType = (name: string, indexKey?: string): ResolvedType | nul
             }
 
             const typePath = data.type === 'class' ? 'classe' : data.type;
-            let href = `../${typePath}s/${data.name}.html`;
+            let href = relativeUrl(depth, `${typePath}s/${data.name}.html`);
             if (indexKey) {
                 href += `#${indexKey}`;
             }
@@ -73,9 +75,9 @@ export const resolveType = (name: string, indexKey?: string): ResolvedType | nul
 /** Render a type as an HTML link string (or plain code if unresolvable). */
 export const linkTypeHtml = (
     name: string,
-    options?: { withLine?: boolean; line?: number; indexKey?: string }
+    options?: { withLine?: boolean; line?: number; indexKey?: string; depth?: number }
 ): string => {
-    const resolved = resolveType(name, options?.indexKey);
+    const resolved = resolveType(name, options?.indexKey, options?.depth);
     if (!resolved) {
         return `<code>${name}</code>`;
     }

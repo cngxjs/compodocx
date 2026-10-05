@@ -63,6 +63,14 @@ export class ProviderDetector {
         return false;
     }
 
+    /** Constructor name of a token declaration; call only after `isInjectionToken`. */
+    public getTokenConstructorName(initializer: any): 'InjectionToken' | 'HttpContextToken' {
+        const expr = initializer?.expression;
+        return expr && ts.isIdentifier(expr) && expr.text === 'HttpContextToken'
+            ? 'HttpContextToken'
+            : 'InjectionToken';
+    }
+
     public getInjectionTokenType(initializer: any): string {
         if (!initializer || !ts.isNewExpression(initializer)) {
             return '';
@@ -88,7 +96,10 @@ export class ProviderDetector {
                     p.name.text === 'providedIn'
             );
             if (providedInProp && ts.isPropertyAssignment(providedInProp)) {
-                return providedInProp.initializer.getText();
+                // Same convention as `@Injectable`: bare value for string
+                // literals, source text for class or module references.
+                const value = providedInProp.initializer;
+                return ts.isStringLiteralLike(value) ? value.text : value.getText();
             }
         }
         return '';

@@ -570,11 +570,20 @@ function resolveScssPartial(spec: string, fromDir: string): string | null {
 }
 
 /**
+ * Project-relative, forward-slash form of a resolved style path, matching the
+ * `file` convention of every other entity. Keeps machine paths out of exports.
+ */
+const toProjectPath = (absolutePath: string): string =>
+    path.relative(process.cwd(), absolutePath).split(path.sep).join('/');
+
+/**
  * Resolve the style sources for a component-like dependency.
  *
  * - `styleUrls` are read relative to `entityFile`'s directory.
  * - For SCSS files, top-level `@import`/`@use` rules are followed one level deep.
  * - Inline `styles[]` strings become anonymous CSS sources keyed by index.
+ * - `file` is stored relative to the working directory; the absolute path is
+ *   only used to read the file.
  * - Missing files emit a warning (not an error) and are skipped.
  */
 export function collectStyleSources(args: {
@@ -597,7 +606,11 @@ export function collectStyleSources(args: {
             if (!file) {
                 continue;
             }
-            sources.push({ file: resolved, content: file.content, language: file.lang });
+            sources.push({
+                file: toProjectPath(resolved),
+                content: file.content,
+                language: file.lang
+            });
 
             if (file.lang === 'scss') {
                 const fromDir = path.dirname(resolved);
@@ -610,7 +623,7 @@ export function collectStyleSources(args: {
                         const partialFile = readStyleFile(partial);
                         if (partialFile) {
                             sources.push({
-                                file: partial,
+                                file: toProjectPath(partial),
                                 content: partialFile.content,
                                 language: partialFile.lang
                             });

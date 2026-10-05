@@ -148,7 +148,7 @@ const FunctionApi = (item: any, depth: number): string => {
                   title: t('signature'),
                   children: (
                       <pre class="cdx-derived-body">
-                          <code>{functionSignature(item)}</code>
+                          <code>{functionSignature(item, depth)}</code>
                       </pre>
                   ) as string
               })
@@ -159,6 +159,7 @@ const FunctionApi = (item: any, depth: number): string => {
                   children: ParamsTable({
                       jsdocTags: item.jsdoctags,
                       depth,
+                      typeLinkDepth: depth,
                       showOptional: true,
                       showDefaultValue: true
                   })
@@ -167,18 +168,18 @@ const FunctionApi = (item: any, depth: number): string => {
         item.returnType
             ? Section({
                   title: t('returns'),
-                  children: [linkTypeHtml(item.returnType), returnsComment].join(' ')
+                  children: [linkTypeHtml(item.returnType, { depth }), returnsComment].join(' ')
               })
             : ''
     ].join('');
 };
 
-const VariableApi = (item: any): string => {
+const VariableApi = (item: any, depth: number): string => {
     return [
         item.type
             ? Section({
                   title: t('type'),
-                  children: linkTypeHtml(item.type)
+                  children: linkTypeHtml(item.type, { depth })
               })
             : '',
         item.defaultValue !== undefined && item.defaultValue !== null && item.defaultValue !== ''
@@ -190,14 +191,16 @@ const VariableApi = (item: any): string => {
     ].join('');
 };
 
-const TypealiasApi = (item: any): string => {
+const TypealiasApi = (item: any, depth: number): string => {
     const isCallSignature = item.kind === 160;
     return Section({
         title: t('definition'),
         children: (
             <pre class="cdx-derived-body">
                 <code>
-                    {isCallSignature ? functionSignature(item) : linkTypeHtml(item.rawtype ?? '')}
+                    {isCallSignature
+                        ? functionSignature(item, depth)
+                        : linkTypeHtml(item.rawtype ?? '', { depth })}
                 </code>
             </pre>
         ) as string
@@ -254,9 +257,9 @@ const ApiContent = (props: MiscDetailProps): string => {
         case 'function':
             return FunctionApi(props.item, depth);
         case 'variable':
-            return VariableApi(props.item);
+            return VariableApi(props.item, depth);
         case 'typealias':
-            return TypealiasApi(props.item);
+            return TypealiasApi(props.item, depth);
         case 'enumeration':
             return EnumerationApi(props.item);
     }

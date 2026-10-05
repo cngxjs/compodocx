@@ -4,6 +4,8 @@ import { extractJsdocParams, linkTypeHtml, oneParameterHas, parseDescription } f
 type ParamsTableProps = {
     readonly jsdocTags: any[];
     readonly depth: number;
+    /** Page depth for type links; omitted keeps the depth-1 default of `linkTypeHtml`. */
+    readonly typeLinkDepth?: number;
     readonly showOptional?: boolean;
     readonly showDefaultValue?: boolean;
 };
@@ -30,7 +32,11 @@ export const ParamsTable = (props: ParamsTableProps): string => {
                                 {tag.optional ? '?' : ''}
                             </span>
                         )}
-                        {tag.type && <span class="cdx-param-type">{linkTypeHtml(tag.type)}</span>}
+                        {tag.type && (
+                            <span class="cdx-param-type">
+                                {linkTypeHtml(tag.type, { depth: props.typeLinkDepth })}
+                            </span>
+                        )}
                         {hasDefault && tag.defaultValue && (
                             <span class="cdx-param-default">
                                 = <code>{tag.defaultValue}</code>

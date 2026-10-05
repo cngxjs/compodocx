@@ -253,7 +253,7 @@ export const emitInjectable = (entity: ExportInjectable): string => {
         extras.push(`providedIn: ${inlineCode(entity.providedIn)}`);
     }
     if (entity.isToken) {
-        extras.push('Kind: InjectionToken');
+        extras.push(`Kind: ${entity.tokenClass ?? 'InjectionToken'}`);
         if (entity.tokenType) {
             extras.push(`Token type: ${inlineCode(entity.tokenType)}`);
         }

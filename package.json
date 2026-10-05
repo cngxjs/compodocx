@@ -22,6 +22,7 @@
         "*********UTILS********": "*******************",
         "changelog": "auto-changelog -o CH.md  --template tools/changelog-template.hbs -u",
         "download-api-list": "node tools/download-api-list.js",
+        "bench": "node scripts/bench.mjs",
         "madge": "./node_modules/.bin/madge --warning -i dist/madge.png src/index-cli.ts",
         "*********TEST********": "*******************",
         "pretest": "npm run build",
