@@ -37,13 +37,6 @@ describe('angular-dependencies — orchestrator wiring', () => {
         expect(new JsdocTags(new JsdocParserUtil())).toBeInstanceOf(JsdocTags);
     });
 
-    it('MetadataPredicates.isGuard recognises Angular guard interfaces', () => {
-        const predicates = new MetadataPredicates();
-        expect(predicates.isGuard(['CanActivate'])).toBe(true);
-        expect(predicates.isGuard(['Resolve'])).toBe(true);
-        expect(predicates.isGuard(['NotAGuard'])).toBe(false);
-    });
-
     it('ProviderDetector.detectFactoryKind recognises factory naming conventions', () => {
         const detector = new ProviderDetector();
         expect(detector.detectFactoryKind('provideRouter')).toBe('provider');

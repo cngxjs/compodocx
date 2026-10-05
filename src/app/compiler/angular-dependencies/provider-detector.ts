@@ -115,7 +115,7 @@ export class ProviderDetector {
         const rt = returnType.trim();
         // Check return type annotations
         if (
-            /CanActivateFn|CanActivate|CanDeactivate|CanMatch|CanLoad|boolean\s*\|\s*UrlTree/.test(
+            /CanActivateFn|CanActivateChildFn|CanDeactivateFn|CanMatchFn|boolean\s*\|\s*UrlTree/.test(
                 rt
             )
         ) {

@@ -162,7 +162,6 @@ export class AngularDependencies extends FrameworkDependencies {
             ...(IO.taggedSelector && { taggedSelector: IO.taggedSelector }),
             ...(IO.relatedTo && IO.relatedTo.length > 0 && { relatedTo: IO.relatedTo })
         };
-        let excludeFromClassArray = false;
 
         if (IO.constructor && !Configuration.mainData.disableConstructors) {
             deps.constructorObj = IO.constructor;
@@ -210,21 +209,11 @@ export class AngularDependencies extends FrameworkDependencies {
         }
         if (IO.implements && IO.implements.length > 0) {
             deps.implements = IO.implements;
-
-            if (this.metadataPredicates.isGuard(IO.implements)) {
-                // We don't want the Guard to show up in the Classes menu
-                excludeFromClassArray = true;
-                deps.type = 'guard';
-
-                outputSymbols.guards.push(deps);
-            }
         }
         if (typeof IO.ignore === 'undefined') {
             this.debug(deps);
 
-            if (!excludeFromClassArray) {
-                outputSymbols.classes.push(deps);
-            }
+            outputSymbols.classes.push(deps);
         } else {
             this.ignore(deps);
         }
@@ -464,19 +453,8 @@ export class AngularDependencies extends FrameworkDependencies {
                             }
                             deps = injectableDeps;
                             if (typeof IO.ignore === 'undefined') {
-                                if (IO.implements.includes('HttpInterceptor')) {
-                                    injectableDeps.type = 'interceptor';
-                                    outputSymbols.interceptors.push(injectableDeps);
-                                } else if (this.metadataPredicates.isGuard(IO.implements)) {
-                                    injectableDeps.type = 'guard';
-                                    outputSymbols.guards.push(injectableDeps);
-                                } else {
-                                    injectableDeps.type = 'injectable';
-                                    this.addNewEntityInStore(
-                                        injectableDeps,
-                                        outputSymbols.injectables
-                                    );
-                                }
+                                injectableDeps.type = 'injectable';
+                                this.addNewEntityInStore(injectableDeps, outputSymbols.injectables);
                             }
                         } else if (this.metadataPredicates.isPipe(visitedDecorator)) {
                             const pipeDeps: IPipeDep = {

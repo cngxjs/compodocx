@@ -219,12 +219,10 @@ const InfoContent = (data: any): string => {
                     const injectProps = (c.propertiesClass ?? []).filter(
                         (p: any) => p.signalKind === 'inject'
                     );
-                    const ctorArgs = c.constructorObj?.args ?? [];
-                    return injectProps.length > 0 || ctorArgs.length > 0
+                    return injectProps.length > 0
                         ? DependenciesSection({
                               injectProps,
-                              constructorArgs: ctorArgs,
-                              constructorDescription: c.constructorObj?.description,
+                              constructorArgs: [],
                               depth: depth ?? 0
                           })
                         : '';

@@ -58,14 +58,4 @@ export class MetadataPredicates {
             LEGACY_CLASS_DECORATORS.some(name => this.parseDecorators(metadatas, name))
         );
     }
-
-    public isGuard(ioImplements: string[]): boolean {
-        return (
-            ioImplements.includes('CanActivate') ||
-            ioImplements.includes('CanActivateChild') ||
-            ioImplements.includes('CanDeactivate') ||
-            ioImplements.includes('Resolve') ||
-            ioImplements.includes('CanLoad')
-        );
-    }
 }

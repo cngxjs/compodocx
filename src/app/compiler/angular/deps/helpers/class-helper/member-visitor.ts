@@ -6,7 +6,6 @@ import { StringifyArrowFunction } from '../../../../../../utils/arrow-function.u
 import BasicTypeUtil from '../../../../../../utils/basic-type.util';
 import { JsdocParserUtil } from '../../../../../../utils/jsdoc-parser.util';
 import { kindToType } from '../../../../../../utils/kind-to-type';
-import { markedAcl } from '../../../../../../utils/marked.acl';
 import { getNodeDecorators, nodeHasDecorator } from '../../../../../../utils/node.util';
 import { StringifyObjectLiteralExpression } from '../../../../../../utils/object-literal-expression.util';
 import { getNamesCompareFn, markedtags, mergeTagsAndArgs } from '../../../../../../utils/utils';
@@ -156,19 +155,6 @@ export class MemberVisitor {
             );
             if (!hasAlreadyPrivateKeyword) {
                 result.modifierKind.push(SyntaxKind.PrivateKeyword);
-            }
-        }
-    }
-
-    /**
-     * Set fallback description from jsDoc[0].comment if no description exists
-     */
-    private setFallbackDescription(result: any, node: any): void {
-        if (!result.description && node.jsDoc && node.jsDoc.length > 0) {
-            if (typeof node.jsDoc[0].comment !== 'undefined') {
-                const rawDescription = node.jsDoc[0].comment;
-                result.rawdescription = rawDescription;
-                result.description = markedAcl(rawDescription);
             }
         }
     }
@@ -428,32 +414,24 @@ export class MemberVisitor {
          */
         const inputs = [];
         const outputs = [];
+        const hostBindings = [];
+        const hostListeners = [];
         const methods = [];
         const properties = [];
         const indexSignatures = [];
         let kind;
-        let inputDecorator;
-        const hostBindings = [];
-        const hostListeners = [];
         let constructor;
-        let outputDecorator;
         const accessors = {};
         let result = {};
+
+        // A constructor with parameters on an Angular class is injection, which
+        // is not documented; plain classes keep their constructor.
+        const injectsThroughConstructor =
+            members.length > 0 && this.decoratorInspector.isAngularClass(members[0].parent);
 
         for (let i = 0; i < members.length; i++) {
             // Allows typescript guess type when using ts.is*
             const member = members[i];
-
-            inputDecorator = this.decoratorInspector.getDecoratorOfType(member, 'Input');
-            outputDecorator = this.decoratorInspector.getDecoratorOfType(member, 'Output');
-            const parsedHostBindings = this.decoratorInspector.getDecoratorOfType(
-                member,
-                'HostBinding'
-            );
-            const parsedHostListeners = this.decoratorInspector.getDecoratorOfType(
-                member,
-                'HostListener'
-            );
 
             kind = member.kind;
 
@@ -466,31 +444,6 @@ export class MemberVisitor {
                 Configuration.mainData.disableInternal
             ) {
                 continue;
-            }
-
-            if (inputDecorator && inputDecorator.length > 0) {
-                inputs.push(this.visitInputAndHostBinding(member, inputDecorator[0], sourceFile));
-                if (ts.isSetAccessorDeclaration(member)) {
-                    this.addAccessor(accessors, members[i], sourceFile);
-                }
-            } else if (outputDecorator && outputDecorator.length > 0) {
-                outputs.push(this.visitOutput(member, outputDecorator[0], sourceFile));
-            } else if (parsedHostBindings && parsedHostBindings.length > 0) {
-                let k = 0;
-                const lenHB = parsedHostBindings.length;
-                for (k; k < lenHB; k++) {
-                    hostBindings.push(
-                        this.visitInputAndHostBinding(member, parsedHostBindings[k], sourceFile)
-                    );
-                }
-            } else if (parsedHostListeners && parsedHostListeners.length > 0) {
-                let l = 0;
-                const lenHL = parsedHostListeners.length;
-                for (l; l < lenHL; l++) {
-                    hostListeners.push(
-                        this.visitHostListener(member, parsedHostListeners[l], sourceFile)
-                    );
-                }
             }
 
             if (!this.decoratorInspector.isHiddenMember(member)) {
@@ -518,9 +471,7 @@ export class MemberVisitor {
                                 ts.isPropertyDeclaration(member) ||
                                 ts.isPropertySignature(member)
                             ) {
-                                if (!inputDecorator && !outputDecorator) {
-                                    properties.push(this.visitProperty(member, sourceFile));
-                                }
+                                properties.push(this.visitProperty(member, sourceFile));
                             } else if (ts.isCallSignatureDeclaration(member)) {
                                 properties.push(this.visitCallDeclaration(member, sourceFile));
                             } else if (
@@ -532,7 +483,10 @@ export class MemberVisitor {
                                 indexSignatures.push(
                                     this.visitIndexDeclaration(member, sourceFile)
                                 );
-                            } else if (ts.isConstructorDeclaration(member)) {
+                            } else if (
+                                ts.isConstructorDeclaration(member) &&
+                                !(injectsThroughConstructor && member.parameters.length > 0)
+                            ) {
                                 const _constructorProperties = this.visitConstructorProperties(
                                     member,
                                     sourceFile
@@ -893,48 +847,6 @@ export class MemberVisitor {
         return result;
     }
 
-    private visitOutput(
-        property: ts.PropertyDeclaration,
-        outDecorator: ts.Decorator,
-        sourceFile?: ts.SourceFile
-    ) {
-        const inArgs = (outDecorator.expression as any).arguments;
-        const _return: any = {
-            name:
-                inArgs.length > 0
-                    ? (inArgs[0] as any).text
-                    : (property.name as any).text ||
-                      (ts.isIdentifier(property.name) ? property.name.text : ''),
-            defaultValue: property.initializer
-                ? this.stringifyDefaultValue(property.initializer)
-                : undefined,
-            ...this.initializeDocumentationFields()
-        };
-
-        if ((property as any).jsDoc) {
-            this.jsdocExtractor.extractAndProcessJSDocComment(property, sourceFile, _return);
-            const jsdoctags = this.jsdocParserUtil.getJSDocs(property);
-            this.jsdocExtractor.processJSDocTags(jsdoctags, _return);
-        }
-
-        this.setFallbackDescription(_return, property);
-        _return.line = this.getPosition(property, sourceFile).line + 1;
-
-        if (property.type) {
-            _return.type = this.typeRenderer.visitType(property);
-        } else {
-            // handle NewExpression
-            if (property.initializer) {
-                if (ts.isNewExpression(property.initializer)) {
-                    if (property.initializer.expression) {
-                        _return.type = (property.initializer.expression as any).text;
-                    }
-                }
-            }
-        }
-        return _return;
-    }
-
     private visitArgument(arg: ts.ParameterDeclaration) {
         const _result: any = {
             name: (arg.name as any).text || (ts.isIdentifier(arg.name) ? arg.name.text : ''),
@@ -954,126 +866,5 @@ export class MemberVisitor {
         const jsdoctags = this.jsdocParserUtil.getJSDocs(arg);
         this.jsdocExtractor.processJSDocTags(jsdoctags, _result, false);
         return _result;
-    }
-
-    private visitInputAndHostBinding(property, inDecorator, sourceFile?) {
-        const inArgs = inDecorator.expression.arguments;
-
-        const _return: any = {};
-
-        let isInputConfigStringLiteral = false;
-        let isInputConfigObjectLiteralExpression = false;
-        let hasRequiredField = false;
-        let hasAlias = false;
-
-        const getRequiredField = () =>
-            inArgs[0].properties.find(property => property.name.escapedText === 'required');
-        const getAliasProperty = () =>
-            inArgs[0].properties.find(property => property.name.escapedText === 'alias');
-
-        if (inArgs.length > 0) {
-            isInputConfigStringLiteral = inArgs[0] && ts.isStringLiteral(inArgs[0]);
-
-            isInputConfigObjectLiteralExpression =
-                inArgs[0] && ts.isObjectLiteralExpression(inArgs[0]);
-
-            if (isInputConfigObjectLiteralExpression && inArgs[0].properties) {
-                hasRequiredField = isInputConfigObjectLiteralExpression && !!getRequiredField();
-                hasAlias = isInputConfigObjectLiteralExpression ? !!getAliasProperty() : false;
-
-                _return.required = !!getRequiredField();
-            }
-
-            _return.name = isInputConfigStringLiteral
-                ? inArgs[0].text
-                : hasAlias
-                  ? getAliasProperty().initializer.text
-                  : property.name.text;
-        } else {
-            _return.name = property.name.text;
-        }
-
-        _return.defaultValue = property.initializer
-            ? this.stringifyDefaultValue(property.initializer)
-            : undefined;
-        Object.assign(_return, this.initializeDocumentationFields());
-
-        if (inArgs.length > 0 && inArgs[0].properties && hasRequiredField) {
-            _return.optional = getRequiredField().initializer.kind !== SyntaxKind.TrueKeyword;
-        }
-
-        if (!_return.description && property.jsDoc && property.jsDoc.length > 0) {
-            const jsdoctags = this.jsdocParserUtil.getJSDocs(property);
-            this.jsdocExtractor.processJSDocTags(jsdoctags, _return);
-            this.jsdocExtractor.extractAndProcessJSDocComment(property, sourceFile, _return);
-        }
-        _return.line = this.getPosition(property, sourceFile).line + 1;
-        if (property.type) {
-            _return.type = this.typeRenderer.visitType(property);
-        } else {
-            // handle NewExpression
-            if (property.initializer) {
-                if (ts.isNewExpression(property.initializer)) {
-                    if (property.initializer.expression) {
-                        _return.type = property.initializer.expression.text;
-                    }
-                }
-            }
-            // Try to get inferred type
-            if (property.symbol) {
-                const symbol: ts.Symbol = property.symbol;
-                if (symbol.valueDeclaration) {
-                    const symbolType = this.typeChecker.getTypeOfSymbolAtLocation(
-                        symbol,
-                        symbol.valueDeclaration
-                    );
-                    if (symbolType) {
-                        _return.type = this.typeChecker.typeToString(symbolType);
-                    }
-                }
-            }
-        }
-        if (property.kind === SyntaxKind.SetAccessor) {
-            // For setter accessor, find type in first parameter
-            if (property.parameters && property.parameters.length === 1) {
-                if (property.parameters[0].type) {
-                    _return.type = this.typeRenderer.visitType(property.parameters[0].type);
-                }
-            }
-        }
-
-        if (nodeHasDecorator(property)) {
-            const propertyDecorators = getNodeDecorators(property);
-            _return.decorators = this.formatDecorators(propertyDecorators).filter(
-                item => item.name !== 'Input' && item.name !== 'HostBinding'
-            );
-        }
-        return _return;
-    }
-
-    private visitHostListener(property, hostListenerDecorator, sourceFile?) {
-        const inArgs = hostListenerDecorator.expression.arguments;
-        const _return: any = {};
-        _return.name = inArgs.length > 0 ? inArgs[0].text : property.name.text;
-        _return.args = property.parameters
-            ? property.parameters.map(prop => this.visitArgument(prop))
-            : [];
-        _return.argsDecorator =
-            inArgs.length > 1
-                ? inArgs[1].elements.map(prop => {
-                      return prop.text;
-                  })
-                : [];
-        Object.assign(_return, this.initializeDocumentationFields());
-
-        if (property.jsDoc) {
-            this.jsdocExtractor.extractAndProcessJSDocComment(property, sourceFile, _return);
-            const jsdoctags = this.jsdocParserUtil.getJSDocs(property);
-            this.jsdocExtractor.processJSDocTags(jsdoctags, _return);
-        }
-
-        this.setFallbackDescription(_return, property);
-        _return.line = this.getPosition(property, sourceFile).line + 1;
-        return _return;
     }
 }
