@@ -26,12 +26,6 @@ export class RouterParserUtil {
     private set routes(value: any[]) {
         this.routeStore.routes = value;
     }
-    private get incompleteRoutes(): any[] {
-        return this.routeStore.incompleteRoutes;
-    }
-    private set incompleteRoutes(value: any[]) {
-        this.routeStore.incompleteRoutes = value;
-    }
     private get modules(): any[] {
         return this.routeStore.modules;
     }
@@ -76,10 +70,6 @@ export class RouterParserUtil {
         this.routeStore.addRoute(route);
     }
 
-    public addIncompleteRoute(route): void {
-        this.routeStore.addIncompleteRoute(route);
-    }
-
     public addModuleWithRoutes(moduleName, moduleImports, filename): void {
         this.routeStore.addModuleWithRoutes(moduleName, moduleImports, filename);
     }
@@ -102,10 +92,6 @@ export class RouterParserUtil {
 
     public hasRouterModuleInImports(imports: Array<any>): boolean {
         return this.moduleLinker.hasRouterModuleInImports(imports);
-    }
-
-    public fixIncompleteRoutes(miscellaneousVariables: Array<any>): void {
-        this.moduleLinker.fixIncompleteRoutes(miscellaneousVariables);
     }
 
     public linkModulesAndRoutes(): void {

@@ -1,7 +1,6 @@
 export class RouteStore {
     public scannedFiles: any[] = [];
     public routes: any[] = [];
-    public incompleteRoutes: any[] = [];
     public modules: any[] = [];
     public modulesWithRoutes: any[] = [];
     public rootModule: string;
@@ -12,15 +11,6 @@ export class RouteStore {
         this.routes.push(route);
         this.routes = [
             ...this.routes.filter(
-                (item, i, self) => i === self.findIndex(other => other.name === item.name)
-            )
-        ].sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    public addIncompleteRoute(route): void {
-        this.incompleteRoutes.push(route);
-        this.incompleteRoutes = [
-            ...this.incompleteRoutes.filter(
                 (item, i, self) => i === self.findIndex(other => other.name === item.name)
             )
         ].sort((a, b) => a.name.localeCompare(b.name));

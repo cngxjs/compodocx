@@ -20,25 +20,6 @@ export class ModuleLinker {
         return false;
     }
 
-    public fixIncompleteRoutes(miscellaneousVariables: Array<any>): void {
-        const matchingVariables = [];
-        // For each incompleteRoute, scan if one misc variable is in code
-        // if ok, try recreating complete route
-        const incompleteRoutes = this.routeStore.incompleteRoutes;
-        for (let i = 0; i < incompleteRoutes.length; i++) {
-            for (let j = 0; j < miscellaneousVariables.length; j++) {
-                if (incompleteRoutes[i].data.indexOf(miscellaneousVariables[j].name) !== -1) {
-                    console.log('found one misc var inside incompleteRoute');
-                    console.log(miscellaneousVariables[j].name);
-                    matchingVariables.push(miscellaneousVariables[j]);
-                }
-            }
-            // Clean incompleteRoute
-            incompleteRoutes[i].data = incompleteRoutes[i].data.replace('[', '');
-            incompleteRoutes[i].data = incompleteRoutes[i].data.replace(']', '');
-        }
-    }
-
     public linkModulesAndRoutes(): void {
         const modulesWithRoutes = this.routeStore.modulesWithRoutes;
         const routes = this.routeStore.routes;
