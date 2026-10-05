@@ -1,0 +1,6 @@
+{
+    "kitchen-sink-standalone": {
+        "json": { "wallMs": 790, "rssBytes": 289259520 },
+        "html": { "wallMs": 2198, "rssBytes": 410480640 }
+    }
+}
