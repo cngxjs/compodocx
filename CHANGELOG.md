@@ -8,11 +8,26 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ## [Unreleased]
 
+### Added
+
+- **Legacy notice.** compodocx documents Angular 21+ standalone code only. A full run now warns with the number of legacy constructs it skipped (NgModules, `@Input`/`@Output`/`@HostBinding`/`@HostListener` members, constructor injection, class guards/interceptors/resolvers, `standalone: false`, `RouterModule.forRoot/forChild`, string `loadChildren` and similar) and lists their locations per kind. The exit code is unchanged.
+
 ### Changed
+
+- **Angular 21+ standalone code only (breaking).** NgModules, decorator members, constructor injection in Angular classes and class guards/interceptors/resolvers are no longer documented; class guards and interceptors show up as plain classes or injectables. See [MIGRATION.md](MIGRATION.md).
+- **JSON export schema 3 (breaking for export consumers).** `modules` and `entryComponents` are removed. Component style sources move into a shared top-level `styleSources` map; `themeStyleSources` now lists keys into it, and inline styles get a per-component key (`<component file>#inline-<n>`) instead of a shared `<inline-style-N>`. `compodocx diff` and the llm-md export follow.
+- **Standalone imports link without module pages.** The overview always shows the standalone dependency graph. On component pages, imports link to documented components, directives and pipes, Angular API symbols link to angular.dev, anything else stays plain text.
+- **Routes tree root.** The root node of the routes data is `{ name: '<root>', kind: 'root' }`.
+- **`groupBy` defaults to `'folder'`** when unset (it was `'none'` for projects with NgModules).
 
 - **One generation pipeline.** Every run (one-shot build, coverage test, watch rebuilds) now goes through a single sequence of phases with one table of prepare steps, instead of two hand-maintained queues and a callback chain. The generated output is byte-identical to before; CLI flags, defaults and the export schema are unchanged.
 - **Programmatic entry point is `runCompodocx` (breaking for API users).** The `Application` and `CliApplication` exports are removed. `runCompodocx` is exported as experimental; the CLI remains the supported entry point. See [MIGRATION.md](MIGRATION.md).
 - **The "done" log line waits for every file.** The `--assetsFolder` copy is now awaited, so `Documentation generated in ...` appears only once all files are on disk. The seconds in that line count from the start of the generation run instead of process start.
+
+### Removed
+
+- **Module pages, chapter and graph.** `modules.html`, the per-module pages, the Modules sidebar chapter, the module dependency graphs and the `@compodoc/ngd-transformer` dependency are gone, together with the `disableMainGraph` option and the `modules.js`/`module.js` template overrides. The `toggleMenuItems` value `modules` is ignored with a warning.
+- **i18n keys** `module`, `modules`, `bootstrap`, `declarations`, `entrycomponents` and `no-svg`.
 
 ### Fixed
 

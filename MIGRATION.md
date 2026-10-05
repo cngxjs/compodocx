@@ -66,6 +66,38 @@ const outcome = await runCompodocx({
 - `runCompodocx` never exits the process. A stopped run (for example a failed coverage threshold) resolves to `{ kind: 'halted', exitCode }`.
 - CLI flags, defaults, the config file and the generated output are unchanged.
 
+## Breaking change in 0.9.0: Angular 21+ standalone code only
+
+compodocx now documents Angular 21+ standalone code only. NgModule-based and decorator-based constructs are no longer extracted or rendered.
+
+No longer documented:
+
+- NgModules: the Modules chapter, `modules.html`, the per-module pages and the module dependency graphs (and the Graphviz dependency behind them). `ModuleWithProviders`, `bootstrapModule`, `entryComponents`, `RouterModule.forRoot/forChild` and string `loadChildren` are not read either. A class decorated with `@NgModule` is skipped.
+- Decorator members: `@Input`, `@Output`, `@HostBinding` and `@HostListener`. A formerly decorated field shows up as a plain property. Use `input()`, `output()`, `model()` and the `host` metadata object.
+- Constructor injection in `@Component`, `@Directive`, `@Pipe` and `@Injectable` classes: no parameter properties, no constructor entry. Use `inject()`. Parameterless constructors and plain classes keep their constructor documentation.
+- Class guards, resolvers and interceptors (classes implementing `CanActivate`, `CanDeactivate`, `CanMatch`, `CanLoad`, `Resolve` or `HttpInterceptor`). They are documented as plain classes or injectables. Functional guards, resolvers and interceptors are unchanged.
+
+What you see instead: a full run prints a warning with the number of legacy constructs it skipped and their locations, grouped by kind, for example:
+
+```text
+Angular 21+ only: 93 legacy constructs are not documented
+  ng-module (9): src/app/app.module.ts:32 AppModule, ...
+  input-decorator (28): src/app/app.component.ts:52 AppComponent.title, ...
+```
+
+The exit code is unchanged and the notice is not part of the JSON export.
+
+Configuration and template changes:
+
+- `disableMainGraph` is removed (there is no module graph any more).
+- `toggleMenuItems: ['modules']` is accepted, has no effect and logs a warning. Remove the value.
+- `groupBy` defaults to `'folder'` when unset.
+- The `modules.js` and `module.js` template overrides are removed.
+- The i18n keys `module`, `modules`, `bootstrap`, `declarations`, `entrycomponents` and `no-svg` are removed.
+- The routes tree root node is `{ name: '<root>', kind: 'root' }` (was `kind: 'module'`).
+
+The JSON export moves to `schemaVersion: 3`, see "JSON export shape" below. Re-export older snapshots before comparing them with `compodocx diff`.
+
 ## Breaking change in 0.3.0: multi-version output is the default
 
 Starting with `@cngxjs/compodocx@0.3.0`, `compodocx -d <output>` writes the generated HTML to `<output>/<versionLabel>/` instead of `<output>/`, and maintains a small `<output>/versions.json` manifest next to it.
@@ -117,7 +149,7 @@ Full pattern, deployment recipes, and version-switcher reference: [`docs/version
 | `--disableDependenciesTab` | new | Hides the per-component standalone-import graph independently from `--disableGraph`. |
 | `--customFavicon`, `--customLogo` | unchanged ||
 | `--hideGenerator`, `--hideDarkModeToggle` | unchanged ||
-| `--toggleMenuItems`, `--navTabConfig` | unchanged ||
+| `--toggleMenuItems`, `--navTabConfig` | unchanged | The `toggleMenuItems` value `modules` is ignored with a warning since v0.9.0. |
 | `--gaID` | replaces `--gaSite` | GA4 measurement IDs only (`G-XXXXXXXXXX`). SPA pageviews tracked automatically. |
 | `--gaSite` | removed | Universal Analytics is end-of-life. |
 | `--showEffects` | new (default `false`) | Renders Angular `effect()` blocks in a dedicated section on the API tab. |
@@ -174,7 +206,8 @@ To opt INTO the new layout, no migration is needed - set `menuLayout: 'feature'`
 `documentation.json` produced by `compodocx --exportFormat json` gained:
 
 - **Typed shape.** `ExportData` and every per-entity field are exported from `@cngxjs/compodocx`. Downstream tooling can import and narrow without `any`.
-- **Header fields.** `schemaVersion: 2` (v0.6.0+; was `1` in v0.3.0–v0.5.0), `generatedAt` (ISO 8601), `compodocxVersion`. Pre-v0.3.0 outputs had no `schemaVersion` - consumers should treat its absence as version 0. The v0.6.0 bump from `1` to `2` is a non-breaking additive change: `tokens?: ExportInjectable[]` was added as a top-level entry (InjectionToken / HttpContextToken collection - previously dropped from JSON entirely), plus optional per-entity fields `docsKind?: 'primary'`, `wcagLevel?: 'A' \| 'AA' \| 'AAA'`, `a11yNote?: string`, `taggedSelector?: string`, `relatedTo?: string[]` on directives / components / interfaces / classes / tokens. Old v1 readers ignore unknown fields and keep working; downstream tools that want to react to the new surface should gate on `schemaVersion >= 2`.
+- **Schema 3 (v0.9.0+).** The `modules` bucket and `entryComponents` on components are removed. Style sources are shared: a new top-level `styleSources` map holds `{ content, language }` per key, and each component's `themeStyleSources` lists keys into it (project-relative file path, or `<component file>#inline-<n>` for inline styles). `inputsClass`, `outputsClass`, `hostBindings` and `hostListeners` are fed by signal APIs and the `host` object only; `guards` and `interceptors` list functional ones only. Tools reading v2 must gate on `schemaVersion >= 3`.
+- **Header fields.** `schemaVersion: 3` (v0.9.0+; `2` in v0.6.0 to v0.8.x, `1` in v0.3.0–v0.5.0), `generatedAt` (ISO 8601), `compodocxVersion`. Pre-v0.3.0 outputs had no `schemaVersion` - consumers should treat its absence as version 0. The v0.6.0 bump from `1` to `2` is a non-breaking additive change: `tokens?: ExportInjectable[]` was added as a top-level entry (InjectionToken / HttpContextToken collection - previously dropped from JSON entirely), plus optional per-entity fields `docsKind?: 'primary'`, `wcagLevel?: 'A' \| 'AA' \| 'AAA'`, `a11yNote?: string`, `taggedSelector?: string`, `relatedTo?: string[]` on directives / components / interfaces / classes / tokens. Old v1 readers ignore unknown fields and keep working; downstream tools that want to react to the new surface should gate on `schemaVersion >= 2`.
 - **Indent default `0`.** Single-line by default. Pass `--jsonIndent 2` to restore the previous human-readable formatting. `jq` consumers are unaffected.
 
 ## Themes
@@ -207,7 +240,6 @@ my-templates/
 └── partials/
     ├── overview.js
     ├── component.js
-    ├── module.js
     ├── block-method.js
     └── menu.js
 ```
@@ -300,7 +332,7 @@ Stable contract for `--templates`. Data shapes documented inline in the correspo
 
 ### Page-level
 
-`overview`, `markdown`, `modules`, `module`, `component`, `component-detail`, `controller`, `entity`, `directive`, `injectable`, `interceptor`, `guard`, `pipe`, `class`, `interface`, `routes`, `miscellaneous-functions`, `miscellaneous-variables`, `miscellaneous-typealiases`, `miscellaneous-enumerations`, `miscellaneous-function`, `miscellaneous-variable`, `miscellaneous-typealias`, `miscellaneous-enumeration`, `additional-page`, `package-dependencies`, `package-properties`, `coverage-report`, `unit-test-report`, `menu`, `app-config`, `bucket-landing`
+`overview`, `markdown`, `component`, `component-detail`, `controller`, `entity`, `directive`, `injectable`, `interceptor`, `guard`, `pipe`, `class`, `interface`, `routes`, `miscellaneous-functions`, `miscellaneous-variables`, `miscellaneous-typealiases`, `miscellaneous-enumerations`, `miscellaneous-function`, `miscellaneous-variable`, `miscellaneous-typealias`, `miscellaneous-enumeration`, `additional-page`, `package-dependencies`, `package-properties`, `coverage-report`, `unit-test-report`, `menu`, `app-config`, `bucket-landing`
 
 The four singular miscellaneous contexts (`miscellaneous-function`, `miscellaneous-variable`, `miscellaneous-typealias`, `miscellaneous-enumeration`) target the per-entity detail page generated when a function, variable, type alias, or enumeration carries an `@category` JSDoc tag. The plural contexts continue to drive the shared collection page.
 
@@ -314,6 +346,7 @@ The `referenced-by` block (v0.6.0+) renders the chip-list of primary-kind entiti
 
 ### Removed / not overridable
 
+- `modules`, `module` - removed in v0.9.0 together with the module pages.
 - `search-results`, `search-input` - Pagefind replaces Lunr and ships its own UI shell. No override hook.
 - `breadcrumbs` - replaced by inline rendering in the entity hero. Override the page-level template if you need to change breadcrumb markup.
 - `block-relationships`, `index`, `index-misc`, `link-type` - not overridable. `link-type` was a Handlebars helper, available now as `helpers.linkTypeHtml(typeName)` inside any JS override.
