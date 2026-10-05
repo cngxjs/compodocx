@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     collectStyleSources,
     collectThemeTokens,
@@ -407,6 +407,7 @@ describe('Utils - theme-doc-parser', () => {
         });
 
         afterEach(() => {
+            vi.restoreAllMocks();
             fs.rmSync(tmp, { recursive: true, force: true });
         });
 
@@ -467,6 +468,36 @@ describe('Utils - theme-doc-parser', () => {
                 styleUrls: ['./does-not-exist.scss']
             });
             expect(result).to.deep.equal([]);
+        });
+
+        it('stores source files relative to the working directory with forward slashes', () => {
+            vi.spyOn(process, 'cwd').mockReturnValue(tmp);
+            const entity = writeFile('rel/card.component.ts', '// stub');
+            writeFile('rel/card.component.scss', ["@use './tokens';", '$local: 1px;'].join('\n'));
+            writeFile('rel/_tokens.scss', '$imported: 4px;');
+
+            const sources = collectStyleSources({
+                entityFile: entity,
+                styleUrls: ['./card.component.scss']
+            });
+            expect(sources.map(s => s.file)).to.deep.equal([
+                'rel/card.component.scss',
+                'rel/_tokens.scss'
+            ]);
+        });
+
+        it('stores token files relative to the working directory with forward slashes', () => {
+            vi.spyOn(process, 'cwd').mockReturnValue(tmp);
+            const entity = writeFile('rel/chip.component.ts', '// stub');
+            writeFile('rel/chip.component.css', '/** Chip color */\n:host { --chip-color: red; }');
+
+            const result = collectThemeTokens({
+                entityFile: entity,
+                styleUrls: ['./chip.component.css']
+            });
+            expect(result.tokens).to.have.lengthOf(1);
+            expect(result.tokens[0].file).to.equal('rel/chip.component.css');
+            expect(path.isAbsolute(result.tokens[0].file)).to.equal(false);
         });
 
         it('returns an empty result when no styleUrls and no styles are provided', () => {
