@@ -38,6 +38,23 @@ describe('CLI duplicates support', () => {
         expect(file).to.be.true;
     });
 
+    // Duplicate suffixes follow the sorted source path order, so each page
+    // documents the same declaration on every build.
+    it('Todo documents the miscellaneous todo.model.ts', () => {
+        const file = read(`${distFolder}/classes/Todo.html`);
+        expect(file).to.contain('src/app/shared/miscellaneous/todo.model.ts');
+    });
+
+    it('Todo-1 documents models/todo.model.1.ts', () => {
+        const file = read(`${distFolder}/classes/Todo-1.html`);
+        expect(file).to.contain('src/app/shared/models/todo.model.1.ts');
+    });
+
+    it('Todo-2 documents models/todo.model.ts', () => {
+        const file = read(`${distFolder}/classes/Todo-2.html`);
+        expect(file).to.contain('src/app/shared/models/todo.model.ts');
+    });
+
     it('TimeInterface generated', () => {
         const file = exists(`${distFolder}/interfaces/TimeInterface.html`);
         expect(file).to.be.true;
