@@ -5,14 +5,7 @@ import pkg from '../../../package.json';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 
-import {
-    EXPORT_SCHEMA_VERSION,
-    type ExportData,
-    type ExportModule,
-    type ExportModuleChildGroup
-} from '../interfaces/export-data.interface';
-import type { AngularNgModuleNode } from '../nodes/angular-ngmodule-node';
-import DependenciesEngine from './dependencies.engine';
+import { EXPORT_SCHEMA_VERSION, type ExportData } from '../interfaces/export-data.interface';
 import FileEngine from './file.engine';
 
 export class ExportJsonEngine {
@@ -57,7 +50,7 @@ export class ExportJsonEngine {
         exportData.classes = data.classes;
         exportData.directives = data.directives;
         exportData.components = data.components;
-        exportData.modules = this.processModules();
+        exportData.modules = [];
         exportData.miscellaneous = data.miscellaneous;
         exportData.tokens = data.tokens;
         if (!Configuration.mainData.disableRoutesGraph) {
@@ -74,56 +67,6 @@ export class ExportJsonEngine {
             logger.error('Error during export file generation ', err);
             return Promise.reject(err);
         });
-    }
-
-    public processModules(): ExportModule[] {
-        const modules: AngularNgModuleNode[] = DependenciesEngine.getModules();
-
-        const _resultedModules: ExportModule[] = [];
-
-        for (let moduleNr = 0; moduleNr < modules.length; moduleNr++) {
-            const module = modules[moduleNr];
-            const children: ExportModuleChildGroup[] = [
-                { type: 'providers', elements: [] },
-                { type: 'declarations', elements: [] },
-                { type: 'imports', elements: [] },
-                { type: 'exports', elements: [] },
-                { type: 'bootstrap', elements: [] },
-                { type: 'classes', elements: [] }
-            ];
-            const moduleElement: ExportModule = {
-                name: module.name,
-                id: module.id,
-                description: module.description,
-                rawDescription: module.rawDescription,
-                deprecationMessage: module.deprecationMessage,
-                deprecated: module.deprecated,
-                file: module.file,
-                methods: module.methods,
-                sourceCode: module.sourceCode,
-                children
-            };
-
-            for (let k = 0; k < module.providers.length; k++) {
-                children[0].elements.push({ name: module.providers[k].name });
-            }
-            for (let k = 0; k < module.declarations.length; k++) {
-                children[1].elements.push({ name: module.declarations[k].name });
-            }
-            for (let k = 0; k < module.imports.length; k++) {
-                children[2].elements.push({ name: module.imports[k].name });
-            }
-            for (let k = 0; k < module.exports.length; k++) {
-                children[3].elements.push({ name: module.exports[k].name });
-            }
-            for (let k = 0; k < module.bootstrap.length; k++) {
-                children[4].elements.push({ name: module.bootstrap[k].name });
-            }
-
-            _resultedModules.push(moduleElement);
-        }
-
-        return _resultedModules;
     }
 }
 

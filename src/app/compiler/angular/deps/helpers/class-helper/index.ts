@@ -160,11 +160,10 @@ export class ClassHelper {
         if (nodeHasDecorator(classDeclaration)) {
             const classDecorators = getNodeDecorators(classDeclaration);
             // Loop and search for Angular decorators:
-            // @NgModule, @Component, @Directive, @Injectable, @Pipe
+            // @Component, @Directive, @Injectable, @Pipe
             let isDirective = false;
             let isService = false;
             let isPipe = false;
-            let isModule = false;
             for (let a = 0; a < classDecorators.length; a++) {
                 //console.log(classDeclaration.decorators[i].expression);
 
@@ -175,8 +174,6 @@ export class ClassHelper {
                 isService =
                     isService || this.decoratorInspector.isServiceDecorator(classDecorators[a]);
                 isPipe = isPipe || this.decoratorInspector.isPipeDecorator(classDecorators[a]);
-                isModule =
-                    isModule || this.decoratorInspector.isModuleDecorator(classDecorators[a]);
             }
             if (isDirective) {
                 return {
@@ -226,18 +223,6 @@ export class ClassHelper {
                         rawdescription: rawdescription,
                         jsdoctags: jsdoctags,
                         properties: members.properties,
-                        methods: members.methods
-                    }
-                ];
-            } else if (isModule) {
-                return [
-                    {
-                        fileName,
-                        className,
-                        ...deprecation,
-                        description,
-                        rawdescription: rawdescription,
-                        jsdoctags: jsdoctags,
                         methods: members.methods
                     }
                 ];

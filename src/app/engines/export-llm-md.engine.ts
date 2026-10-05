@@ -7,7 +7,6 @@ import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 
 import { EXPORT_SCHEMA_VERSION, type ExportData } from '../interfaces/export-data.interface';
-import ExportJsonEngine from './export-json.engine';
 import FileEngine from './file.engine';
 
 /**
@@ -54,7 +53,7 @@ export class ExportLlmMdEngine {
         exportData.classes = data.classes;
         exportData.directives = data.directives;
         exportData.components = data.components;
-        exportData.modules = ExportJsonEngine.processModules();
+        exportData.modules = [];
         exportData.miscellaneous = data.miscellaneous;
         if (!Configuration.mainData.disableRoutesGraph) {
             exportData.routes = data.routes;

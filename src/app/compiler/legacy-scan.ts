@@ -54,6 +54,12 @@ const KIND_ORDER: readonly LegacyKind[] = [
     'standalone-false'
 ];
 
+/**
+ * Class decorators of constructs that are not documented. A class carrying one
+ * is skipped by the extractors instead of falling back to a plain class page.
+ */
+export const LEGACY_CLASS_DECORATORS: readonly string[] = ['NgModule'];
+
 const MEMBER_DECORATOR_KINDS: Readonly<Record<string, LegacyKind>> = {
     Input: 'input-decorator',
     Output: 'output-decorator',
@@ -157,7 +163,7 @@ export const scanLegacy = (
         const decorators = decoratorsOf(node);
         const names = decorators.map(decorator => expressionName(decorator.expression));
 
-        if (names.includes('NgModule')) {
+        if (names.some(name => LEGACY_CLASS_DECORATORS.includes(name))) {
             add('ng-module', owner, node);
         }
         for (const decorator of decorators) {

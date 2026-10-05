@@ -15,7 +15,6 @@ import type {
 } from '../compiler/angular/dependencies.interfaces';
 import type { IComponentDep } from '../compiler/angular/deps/component-dep.factory';
 import type { IDirectiveDep } from '../compiler/angular/deps/directive-dep.factory';
-import type { IModuleDep } from '../compiler/angular/deps/module-dep.factory';
 import Configuration from '../configuration';
 import type { MiscellaneousData } from '../interfaces/miscellaneous-data.interface';
 import type { ParsedData } from '../interfaces/parsed-data.interface';
@@ -252,9 +251,6 @@ export function buildGroupTree(groups: Record<string, any[]>): GroupNode[] {
 
 export class DependenciesEngine {
     public rawData: ParsedData;
-    public modules: IModuleDep[];
-    public rawModules: IModuleDep[];
-    public rawModulesForOverview: IModuleDep[];
     public components: IComponentDep[];
     public entities: IDep[];
     public directives: IDirectiveDep[];
@@ -300,48 +296,6 @@ export class DependenciesEngine {
         return DependenciesEngine.instance;
     }
 
-    private updateModulesDeclarationsExportsTypes() {
-        const mergeTypes = entry => {
-            const directive = this.findInCompodocDependencies(
-                entry.name,
-                this.directives,
-                entry.file
-            );
-            if (typeof directive.data !== 'undefined') {
-                entry.type = 'directive';
-                entry.id = directive.data.id;
-            }
-
-            const component = this.findInCompodocDependencies(
-                entry.name,
-                this.components,
-                entry.file
-            );
-            if (typeof component.data !== 'undefined') {
-                entry.type = 'component';
-                entry.id = component.data.id;
-            }
-
-            const pipe = this.findInCompodocDependencies(entry.name, this.pipes, entry.file);
-            if (typeof pipe.data !== 'undefined') {
-                entry.type = 'pipe';
-                entry.id = pipe.data.id;
-            }
-        };
-
-        this.modules.forEach((module: any) => {
-            module.declarations.forEach(declaration => {
-                mergeTypes(declaration);
-            });
-            module.exports.forEach(expt => {
-                mergeTypes(expt);
-            });
-            module.entryComponents.forEach(ent => {
-                mergeTypes(ent);
-            });
-        });
-    }
-
     public init(data: ParsedData) {
         traverse(data).forEach(node => {
             if (node) {
@@ -354,15 +308,6 @@ export class DependenciesEngine {
             }
         });
         this.rawData = data;
-        this.modules = [...this.rawData.modules].sort((a, b) =>
-            (a as any).name.toLowerCase().localeCompare((b as any).name.toLowerCase())
-        );
-        this.rawModulesForOverview = [...data.modulesForGraph].sort((a, b) =>
-            (a as any).name.toLowerCase().localeCompare((b as any).name.toLowerCase())
-        );
-        this.rawModules = [...data.modulesForGraph].sort((a, b) =>
-            (a as any).name.toLowerCase().localeCompare((b as any).name.toLowerCase())
-        );
         this.components = [...this.rawData.components].sort((a, b) =>
             (a as any).name.toLowerCase().localeCompare((b as any).name.toLowerCase())
         );
@@ -396,20 +341,11 @@ export class DependenciesEngine {
         this.appConfig = this.rawData.appConfig || [];
         this.miscellaneous = this.rawData.miscellaneous;
         this.prepareMiscellaneous();
-        this.updateModulesDeclarationsExportsTypes();
         this.routes = this.rawData.routesTree;
         this.manageDuplicatesName();
-        this.cleanRawModulesNames();
         this.prepareCategoryGroups();
         this.prepareFeatureGroups();
         this.prepareReferencedByIndex();
-    }
-
-    private cleanRawModulesNames() {
-        this.rawModulesForOverview = this.rawModulesForOverview.map((module: any) => {
-            module.name = module.name.replace('$', '');
-            return module;
-        });
     }
 
     private findInCompodocDependencies(name, data, file?): IApiSourceResult<any> {
@@ -509,7 +445,6 @@ export class DependenciesEngine {
         this.pipes = this.pipes.map(processDuplicates);
         this.interceptors = this.interceptors.map(processDuplicates);
         this.guards = this.guards.map(processDuplicates);
-        this.modules = this.modules.map(processDuplicates);
         this.components = this.components.map(processDuplicates);
         this.entities = this.entities.map(processDuplicates);
         this.directives = this.directives.map(processDuplicates);
@@ -517,7 +452,6 @@ export class DependenciesEngine {
 
     public find(name: string): IApiSourceResult<any> | undefined {
         const searchFunctions: Array<() => IApiSourceResult<any>> = [
-            () => this.findInCompodocDependencies(name, this.modules),
             () => this.findInCompodocDependencies(name, this.injectables),
             () => this.findInCompodocDependencies(name, this.interceptors),
             () => this.findInCompodocDependencies(name, this.guards),
@@ -550,12 +484,6 @@ export class DependenciesEngine {
     }
 
     public update(updatedData): void {
-        if (updatedData.modules.length > 0) {
-            updatedData.modules.forEach((module: IModuleDep) => {
-                const _index = this.modules.findIndex(m => (m as any).name === module.name);
-                this.modules[_index] = module;
-            });
-        }
         if (updatedData.components.length > 0) {
             updatedData.components.forEach((component: IComponentDep) => {
                 const _index = this.components.findIndex(c => (c as any).name === component.name);
@@ -652,7 +580,6 @@ export class DependenciesEngine {
 
     public findInCompodoc(name: string) {
         const mergedData = [
-            ...this.modules,
             ...this.components,
             ...this.entities,
             ...this.directives,
@@ -987,18 +914,6 @@ export class DependenciesEngine {
         }
     }
 
-    public getModule(name: string) {
-        return this.modules.find(m => (m as any).name === name);
-    }
-
-    public getRawModule(name: string): any {
-        return this.rawModules.find(m => (m as any).name === name);
-    }
-
-    public getModules() {
-        return this.modules;
-    }
-
     public getComponents() {
         return this.components;
     }
@@ -1080,28 +995,6 @@ export class DependenciesEngine {
             subtype?: string;
         }> = [];
         const seen = new Set<string>();
-
-        // Check module declarations/imports for relationships
-        this.modules.forEach((mod: any) => {
-            const modDeclares = (mod.declarations ?? []).map((d: any) => d.name);
-            const modImports = (mod.imports ?? []).map((i: any) => i.name);
-            const modExports = (mod.exports ?? []).map((e: any) => e.name);
-
-            if (
-                modDeclares.includes(entityName) ||
-                modImports.includes(entityName) ||
-                modExports.includes(entityName)
-            ) {
-                if (!seen.has(mod.name) && incoming.length < MAX_NODES) {
-                    incoming.push({
-                        name: mod.name,
-                        type: 'module',
-                        description: this.extractShortDescription(mod)
-                    });
-                    seen.add(mod.name);
-                }
-            }
-        });
 
         // Check standalone component imports
         const allComponents = [...this.components, ...this.directives, ...this.pipes] as any[];
@@ -1192,8 +1085,7 @@ export class DependenciesEngine {
             (this.interfaces as any[]).find(e => e.name === name) ||
             (this.classes as any[]).find(e => e.name === name) ||
             (this.guards as any[]).find(e => e.name === name) ||
-            (this.interceptors as any[]).find(e => e.name === name) ||
-            (this.modules as any[]).find(e => e.name === name)
+            (this.interceptors as any[]).find(e => e.name === name)
         );
     }
 
@@ -1221,9 +1113,6 @@ export class DependenciesEngine {
         }
         if (type === 'component') {
             return entity.standalone ? 'Standalone component' : 'Component';
-        }
-        if (type === 'module') {
-            return entity.standalone ? 'Standalone module' : 'NgModule';
         }
         if (type === 'guard') {
             return entity.functionalKind ? 'Functional guard' : 'Class guard';

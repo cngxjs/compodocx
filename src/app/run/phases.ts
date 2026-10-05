@@ -155,12 +155,6 @@ const markdowns: Stage = ctx =>
 const printStatistics = (ctx: RunContext): void => {
     logger.info('-------------------');
     logger.info('Project statistics ');
-    if (DependenciesEngine.modules.length > 0) {
-        logger.info(`- files        : ${ctx.files.length}`);
-    }
-    if (DependenciesEngine.modules.length > 0) {
-        logger.info(`- module       : ${DependenciesEngine.modules.length}`);
-    }
     if (DependenciesEngine.components.length > 0) {
         logger.info(`- component    : ${DependenciesEngine.components.length}`);
     }

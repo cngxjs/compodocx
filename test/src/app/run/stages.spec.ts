@@ -8,7 +8,6 @@ import {
 
 const EMPTY: SourceCounts = {
     components: 0,
-    modules: 0,
     directives: 0,
     entities: 0,
     injectables: 0,
@@ -24,7 +23,6 @@ const EMPTY: SourceCounts = {
 
 const EVERY_KIND: SourceCounts = {
     components: 1,
-    modules: 1,
     directives: 1,
     entities: 1,
     injectables: 1,

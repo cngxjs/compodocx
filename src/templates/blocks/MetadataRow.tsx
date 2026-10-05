@@ -23,7 +23,6 @@ const HUMAN_LABELS: Record<string, string> = {
     moduleId: 'Module ID',
     preserveWhitespaces: 'Preserve whitespaces',
     queries: 'Queries',
-    entryComponents: 'Entry components',
     templateUrl: 'Template URL',
     styleUrl: 'Style URL',
     styleUrls: 'Style URLs',

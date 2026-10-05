@@ -54,10 +54,6 @@ export class DecoratorInspector {
         return this.hasDecoratorType(decorator, 'Pipe');
     }
 
-    public isModuleDecorator(decorator) {
-        return this.hasDecoratorType(decorator, 'NgModule');
-    }
-
     public isPrivate(member): boolean {
         /**
          * Copyright https://github.com/ng-bootstrap/ng-bootstrap

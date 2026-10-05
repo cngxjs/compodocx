@@ -1,8 +1,6 @@
 import type { LegacyFinding } from '../compiler/legacy-scan';
 
 export interface ParsedData {
-    modules?;
-    modulesForGraph?;
     components?;
     entities?;
     directives?;

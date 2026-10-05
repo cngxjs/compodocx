@@ -29,8 +29,6 @@ describe('DependenciesEngine — Primary/Reference bifurcation', () => {
     });
 
     const makeParsed = (overrides: Partial<any> = {}): any => ({
-        modules: [],
-        modulesForGraph: [],
         components: [],
         directives: [],
         injectables: [],

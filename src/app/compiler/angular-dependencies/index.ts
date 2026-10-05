@@ -24,9 +24,6 @@ import { DirectiveDepFactory } from '../angular/deps/directive-dep.factory';
 import { EntityDepFactory } from '../angular/deps/entity-dep.factory';
 import { ComponentCache } from '../angular/deps/helpers/component-helper';
 import { JsDocHelper } from '../angular/deps/helpers/js-doc-helper';
-import { ModuleHelper } from '../angular/deps/helpers/module-helper';
-import { SymbolHelper } from '../angular/deps/helpers/symbol-helper';
-import { ModuleDepFactory } from '../angular/deps/module-dep.factory';
 import { FrameworkDependencies } from '../framework-dependencies';
 import { type LegacyFinding, scanLegacy, sortLegacyFindings } from '../legacy-scan';
 import { EntityVisitor } from './entity-visitor';
@@ -43,9 +40,7 @@ const project = new Project();
 
 export class AngularDependencies extends FrameworkDependencies {
     private cache: ComponentCache = new ComponentCache();
-    private moduleHelper = new ModuleHelper(this.cache);
     private jsDocHelper = new JsDocHelper();
-    private symbolHelper = new SymbolHelper();
     private jsdocParserUtil = new JsdocParserUtil();
     private metadataPredicates = new MetadataPredicates();
     private jsdocTags = new JsdocTags(this.jsdocParserUtil);
@@ -69,8 +64,6 @@ export class AngularDependencies extends FrameworkDependencies {
     public getDependencies() {
         let deps = {
             aliases: {},
-            modules: [],
-            modulesForGraph: [],
             components: [],
             entities: [],
             injectables: [],
@@ -116,90 +109,6 @@ export class AngularDependencies extends FrameworkDependencies {
 
             return deps;
         });
-
-        // End of file scanning
-        // Try merging inside the same file declarated variables & modules with imports | exports | declarations | providers
-
-        if (deps.miscellaneous.variables.length > 0) {
-            deps.miscellaneous.variables.forEach(_variable => {
-                const newVar = [];
-
-                // link ...VAR to VAR values, recursively
-                ((_var, _newVar) => {
-                    // getType pr reconstruire....
-                    const elementsMatcher = variabelToReplace => {
-                        if (variabelToReplace.initializer) {
-                            if (variabelToReplace.initializer.elements) {
-                                if (variabelToReplace.initializer.elements.length > 0) {
-                                    variabelToReplace.initializer.elements.forEach(element => {
-                                        // Direct value -> Kind 79
-                                        if (
-                                            element.text &&
-                                            element.kind === SyntaxKind.Identifier
-                                        ) {
-                                            newVar.push({
-                                                name: element.text,
-                                                type: this.symbolHelper.getType(element.text)
-                                            });
-                                        }
-                                        // if _variable is ArrayLiteralExpression 203
-                                        // and has SpreadElements in his elements
-                                        // merge them
-                                        if (
-                                            element.kind === SyntaxKind.SpreadElement &&
-                                            element.expression
-                                        ) {
-                                            const el = deps.miscellaneous.variables.find(
-                                                variable =>
-                                                    variable.name === element.expression.text
-                                            );
-                                            if (el) {
-                                                elementsMatcher(el);
-                                            }
-                                        }
-                                    });
-                                }
-                            }
-                        }
-                    };
-                    elementsMatcher(_var);
-                })(_variable, newVar);
-
-                const onLink = mod => {
-                    const process = (initialArray, _var) => {
-                        let indexToClean = 0;
-                        let found = false;
-                        const findVariableInArray = (el, index) => {
-                            if (el.name === _var.name) {
-                                indexToClean = index;
-                                found = true;
-                            }
-                        };
-                        initialArray.forEach(findVariableInArray);
-                        // Clean indexes to replace
-                        if (found) {
-                            initialArray.splice(indexToClean, 1);
-                            // Add variable
-                            newVar.forEach(newEle => {
-                                if (
-                                    typeof initialArray.find(el => el.name === newEle.name) ===
-                                    'undefined'
-                                ) {
-                                    initialArray.push(newEle);
-                                }
-                            });
-                        }
-                    };
-                    process(mod.imports, _variable);
-                    process(mod.exports, _variable);
-                    process(mod.declarations, _variable);
-                    process(mod.providers, _variable);
-                };
-
-                deps.modules.forEach(onLink);
-                deps.modulesForGraph.forEach(onLink);
-            });
-        }
 
         /**
          * If one thing extends another, merge them, only for internal sources
@@ -473,20 +382,7 @@ export class AngularDependencies extends FrameworkDependencies {
                             astFile
                         );
 
-                        if (this.metadataPredicates.isModule(visitedDecorator)) {
-                            const moduleDep = new ModuleDepFactory(this.moduleHelper).create(
-                                file,
-                                srcFile,
-                                name,
-                                props,
-                                IO
-                            );
-                            deps = moduleDep;
-                            if (typeof IO.ignore === 'undefined') {
-                                outputSymbols.modules.push(moduleDep);
-                                outputSymbols.modulesForGraph.push(moduleDep);
-                            }
-                        } else if (this.metadataPredicates.isComponent(visitedDecorator)) {
+                        if (this.metadataPredicates.isComponent(visitedDecorator)) {
                             if (props.length === 0) {
                                 return;
                             }
@@ -663,7 +559,7 @@ export class AngularDependencies extends FrameworkDependencies {
 
                     const filterByDecorators = filteredNode => {
                         if (filteredNode.expression?.expression) {
-                            let _test = /(NgModule|Component|Injectable|Pipe|Directive)/.test(
+                            let _test = /(Component|Injectable|Pipe|Directive)/.test(
                                 filteredNode.expression.expression.text
                             );
                             if (!_test && ts.isClassDeclaration(node)) {

@@ -5,8 +5,6 @@ type CtorCall = { files: string[]; options: { tsconfigDirectory: string } };
 const ctorCalls: CtorCall[] = [];
 const getDependenciesReturn = {
     aliases: {},
-    modules: [],
-    modulesForGraph: [],
     components: [],
     entities: [],
     injectables: [],

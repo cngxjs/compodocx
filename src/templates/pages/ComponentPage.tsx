@@ -115,7 +115,6 @@ const ComponentMetadata = (c: any): string => {
     rows.push(MetadataChipsRow('extends', (c.extends as string[]) ?? []));
     rows.push(MetadataChipsRow('implements', (c.implements as string[]) ?? []));
     rows.push(MetadataChipsRow('imports', c.imports ?? []));
-    rows.push(MetadataChipsRow('entryComponents', c.entryComponents ?? []));
 
     // Host directives stay in core metadata (they're component config, not runtime host bindings)
     if (c.hostDirectives?.length > 0) {
