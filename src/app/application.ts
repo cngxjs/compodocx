@@ -20,37 +20,15 @@ import {
     rejectGenerationPromise,
     resolveGenerationPromise
 } from './generation-promise';
+import { copyAssetsFolder, copyResources, finalizeOutput } from './page-generator';
+import { createGenerators, type Generators, type RunContext, type RunMode } from './run/context';
 import {
-    AdditionalPageGenerator,
-    ApiReferencePageGenerator,
-    AppConfigPageGenerator,
-    BucketLandingPageGenerator,
-    ClassPageGenerator,
-    ComponentPageGenerator,
-    CoveragePageGenerator,
-    copyAssetsFolder,
-    copyResources,
-    DirectivePageGenerator,
-    EntityPageGenerator,
-    finalizeOutput,
-    GraphGenerator,
-    GuardPageGenerator,
-    InjectablePageGenerator,
-    InterceptorPageGenerator,
-    InterfacePageGenerator,
-    MiscellaneousPageGenerator,
-    ModulePageGenerator,
-    NavTabsResolver,
-    OverviewPageGenerator,
-    PackageDependenciesPageGenerator,
-    PageWriter,
-    PipePageGenerator,
-    PlaygroundFileResolver,
-    PlaygroundValidator,
-    PlaygroundVendorResolver,
-    RoutesPageGenerator,
-    TokenPageGenerator
-} from './page-generator';
+    countsFromDiff,
+    countsFromEngine,
+    runPrepareStages,
+    type SourceCounts,
+    selectPrepareStages
+} from './run/stages';
 import { crawlDependencies, crawlMicroDependencies } from './services/dependencies';
 import { startWebServer } from './services/serve';
 
@@ -76,32 +54,7 @@ export class Application {
      */
     public isWatching: boolean = false;
 
-    private readonly navTabs: NavTabsResolver;
-    private readonly pipePageGenerator: PipePageGenerator;
-    private readonly classPageGenerator: ClassPageGenerator;
-    private readonly interfacePageGenerator: InterfacePageGenerator;
-    private readonly entityPageGenerator: EntityPageGenerator;
-    private readonly directivePageGenerator: DirectivePageGenerator;
-    private readonly injectablePageGenerator: InjectablePageGenerator;
-    private readonly tokenPageGenerator: TokenPageGenerator;
-    private readonly interceptorPageGenerator: InterceptorPageGenerator;
-    private readonly guardPageGenerator: GuardPageGenerator;
-    private readonly componentPageGenerator: ComponentPageGenerator;
-    private readonly modulePageGenerator: ModulePageGenerator;
-    private readonly miscellaneousPageGenerator: MiscellaneousPageGenerator;
-    private readonly bucketLandingPageGenerator: BucketLandingPageGenerator;
-    private readonly apiReferencePageGenerator: ApiReferencePageGenerator;
-    private readonly appConfigPageGenerator: AppConfigPageGenerator;
-    private readonly routesPageGenerator: RoutesPageGenerator;
-    private readonly overviewPageGenerator: OverviewPageGenerator;
-    private readonly additionalPageGenerator: AdditionalPageGenerator;
-    private readonly packageDependenciesPageGenerator: PackageDependenciesPageGenerator;
-    private readonly playgroundFileResolver: PlaygroundFileResolver;
-    private readonly playgroundVendorResolver: PlaygroundVendorResolver;
-    private readonly playgroundValidator: PlaygroundValidator;
-    private readonly coveragePageGenerator: CoveragePageGenerator;
-    private readonly pageWriter: PageWriter;
-    private readonly graphGenerator: GraphGenerator;
+    private readonly generators: Generators = createGenerators();
 
     /**
      * Create a new compodocx application instance.
@@ -122,33 +75,6 @@ export class Application {
                 logger.silent = false;
             }
         }
-
-        this.navTabs = new NavTabsResolver();
-        this.pipePageGenerator = new PipePageGenerator(this.navTabs);
-        this.classPageGenerator = new ClassPageGenerator(this.navTabs);
-        this.interfacePageGenerator = new InterfacePageGenerator(this.navTabs);
-        this.entityPageGenerator = new EntityPageGenerator(this.navTabs);
-        this.directivePageGenerator = new DirectivePageGenerator(this.navTabs);
-        this.injectablePageGenerator = new InjectablePageGenerator(this.navTabs);
-        this.tokenPageGenerator = new TokenPageGenerator(this.navTabs);
-        this.interceptorPageGenerator = new InterceptorPageGenerator(this.navTabs);
-        this.guardPageGenerator = new GuardPageGenerator(this.navTabs);
-        this.componentPageGenerator = new ComponentPageGenerator(this.navTabs);
-        this.modulePageGenerator = new ModulePageGenerator(this.navTabs);
-        this.miscellaneousPageGenerator = new MiscellaneousPageGenerator();
-        this.bucketLandingPageGenerator = new BucketLandingPageGenerator();
-        this.apiReferencePageGenerator = new ApiReferencePageGenerator();
-        this.appConfigPageGenerator = new AppConfigPageGenerator();
-        this.routesPageGenerator = new RoutesPageGenerator();
-        this.overviewPageGenerator = new OverviewPageGenerator();
-        this.additionalPageGenerator = new AdditionalPageGenerator();
-        this.packageDependenciesPageGenerator = new PackageDependenciesPageGenerator();
-        this.playgroundFileResolver = new PlaygroundFileResolver();
-        this.playgroundVendorResolver = new PlaygroundVendorResolver();
-        this.playgroundValidator = new PlaygroundValidator();
-        this.coveragePageGenerator = new CoveragePageGenerator();
-        this.pageWriter = new PageWriter();
-        this.graphGenerator = new GraphGenerator();
     }
 
     /**
@@ -298,12 +224,12 @@ export class Application {
 
                 if (!Configuration.mainData.disableDependencies) {
                     if (typeof parsedData.dependencies !== 'undefined') {
-                        this.packageDependenciesPageGenerator.processDependencies(
+                        this.generators.packageDependencies.processDependencies(
                             parsedData.dependencies
                         );
                     }
                     if (typeof parsedData.peerDependencies !== 'undefined') {
-                        this.packageDependenciesPageGenerator.processPeerDependencies(
+                        this.generators.packageDependencies.processPeerDependencies(
                             parsedData.peerDependencies
                         );
                     }
@@ -338,7 +264,7 @@ export class Application {
                     }
                 }
 
-                this.overviewPageGenerator.processMarkdowns().then(
+                this.generators.overview.processMarkdowns().then(
                     () => {
                         this.getDependenciesData();
                     },
@@ -351,7 +277,7 @@ export class Application {
             errorMessage => {
                 logger.error(errorMessage);
                 logger.error('Continuing without package.json file');
-                this.overviewPageGenerator.processMarkdowns().then(
+                this.generators.overview.processMarkdowns().then(
                     () => {
                         this.getDependenciesData();
                     },
@@ -374,7 +300,7 @@ export class Application {
         Configuration.resetRootMarkdownPages();
 
         actions.push(() => {
-            return this.overviewPageGenerator.processMarkdowns();
+            return this.generators.overview.processMarkdowns();
         });
 
         promiseSequential(actions)
@@ -416,7 +342,7 @@ export class Application {
 
         if (Configuration.mainData.includes !== '') {
             actions.push(() => {
-                return this.additionalPageGenerator.prepareExternalIncludes();
+                return this.generators.additional.prepareExternalIncludes();
             });
         }
 
@@ -473,128 +399,14 @@ export class Application {
     }
 
     private prepareJustAFewThings(diffCrawledData): void {
-        const actions = [];
-
         Configuration.resetPages();
 
-        if (!Configuration.mainData.disableRoutesGraph) {
-            actions.push(() => this.routesPageGenerator.prepare());
-        }
-
-        if (diffCrawledData.components.length > 0) {
-            actions.push(() => this.componentPageGenerator.prepare());
-        }
-        if (diffCrawledData.entities.length > 0) {
-            actions.push(() => this.entityPageGenerator.prepare());
-        }
-        if (diffCrawledData.modules.length > 0) {
-            actions.push(() => this.modulePageGenerator.prepare());
-        }
-
-        if (diffCrawledData.directives.length > 0) {
-            actions.push(() => this.directivePageGenerator.prepare());
-        }
-
-        if (diffCrawledData.injectables.length > 0) {
-            actions.push(() => this.injectablePageGenerator.prepare());
-        }
-
-        if ((diffCrawledData.tokens?.length ?? 0) > 0) {
-            actions.push(() => this.tokenPageGenerator.prepare());
-        }
-
-        if (diffCrawledData.interceptors.length > 0) {
-            actions.push(() => this.interceptorPageGenerator.prepare());
-        }
-
-        if (diffCrawledData.guards.length > 0) {
-            actions.push(() => this.guardPageGenerator.prepare());
-        }
-
-        if (diffCrawledData.pipes.length > 0) {
-            actions.push(() => this.pipePageGenerator.prepare());
-        }
-
-        if (diffCrawledData.classes.length > 0) {
-            actions.push(() => this.classPageGenerator.prepare());
-        }
-
-        if (diffCrawledData.interfaces.length > 0) {
-            actions.push(() => this.interfacePageGenerator.prepare());
-        }
-
-        actions.push(() => this.appConfigPageGenerator.prepare());
-
-        if (
-            diffCrawledData.miscellaneous.variables.length > 0 ||
-            diffCrawledData.miscellaneous.functions.length > 0 ||
-            diffCrawledData.miscellaneous.typealiases.length > 0 ||
-            diffCrawledData.miscellaneous.enumerations.length > 0
-        ) {
-            actions.push(() => this.miscellaneousPageGenerator.prepare());
-        }
-
-        actions.push(() => this.bucketLandingPageGenerator.prepare());
-        actions.push(() => this.apiReferencePageGenerator.prepare());
-
-        if (!Configuration.mainData.disableCoverage) {
-            actions.push(() => this.coveragePageGenerator.prepareDocumentation());
-        }
-
-        // Resolve `@playground` file refs after every dependency kind has
-        // been prepared (so `dependency.playgrounds` is fully populated) and
-        // before page rendering reads `data.playgroundFiles`.
-        actions.push(() => Promise.resolve(this.playgroundFileResolver.resolve()));
-        // Resolve the `playgroundVendor` closure from the local `dist/` once;
-        // a hard error here (unbuilt library) fails the build deliberately.
-        actions.push(() => Promise.resolve(this.playgroundVendorResolver.resolve()));
-        // Validate non-vendored playground imports against the pinned
-        // node_modules versions — runs after vendoring so vendored packages
-        // are excluded. Warns by default; throws under `--strictPlaygrounds`.
-        actions.push(() => Promise.resolve(this.playgroundValidator.resolve()));
-
-        promiseSequential(actions)
-            .then(_res => {
-                if (Configuration.mainData.exportFormat !== COMPODOC_DEFAULTS.exportFormat) {
-                    if (
-                        COMPODOC_DEFAULTS.exportFormatsSupported.indexOf(
-                            Configuration.mainData.exportFormat
-                        ) > -1
-                    ) {
-                        logger.info(
-                            `Generating documentation in export format ${Configuration.mainData.exportFormat}`
-                        );
-                        ExportEngine.export(
-                            Configuration.mainData.output,
-                            Configuration.mainData
-                        ).then(() => {
-                            resolveGenerationPromise(true);
-                            this.endCallback();
-                            logger.info(
-                                'Documentation generated in ' +
-                                    Configuration.mainData.output +
-                                    ' in ' +
-                                    this.getElapsedTime() +
-                                    ' seconds'
-                            );
-                            if (Configuration.mainData.serve) {
-                                logger.info(
-                                    `Serving documentation from ${Configuration.mainData.output} at http://${Configuration.mainData.hostname}:${Configuration.mainData.port}`
-                                );
-                                this.serveAndStartWatch(Configuration.mainData.output);
-                            }
-                        });
-                    } else {
-                        logger.warn(`Exported format not supported`);
-                    }
-                } else {
-                    this.emitHtml();
-                    this.clearUpdatedFiles();
-                }
-            })
-            .catch(errorMessage => {
+        const ctx: RunContext = { ...this.runContext('diff'), diff: diffCrawledData };
+        this.runPrepare(ctx, countsFromDiff(diffCrawledData), () => this.clearUpdatedFiles()).catch(
+            errorMessage => {
                 logger.error(errorMessage);
-            });
+            }
+        );
     }
 
     private printStatistics() {
@@ -643,140 +455,47 @@ export class Application {
     }
 
     private prepareEverything() {
-        const actions = [];
-
-        actions.push(() => {
-            return this.componentPageGenerator.prepare();
+        this.runPrepare(this.runContext('full'), countsFromEngine()).catch(errorMessage => {
+            logger.error(errorMessage);
+            process.exit(1);
         });
-        actions.push(() => {
-            return this.modulePageGenerator.prepare();
-        });
+    }
 
-        if (DependenciesEngine.directives.length > 0) {
-            actions.push(() => {
-                return this.directivePageGenerator.prepare();
-            });
-        }
+    private runContext(mode: RunMode): RunContext {
+        return {
+            mode,
+            config: Configuration,
+            files: this.files,
+            updatedFiles: this.updatedFiles,
+            startTime: startTime.valueOf(),
+            generators: this.generators
+        };
+    }
 
-        if (DependenciesEngine.entities.length > 0) {
-            actions.push(() => {
-                return this.entityPageGenerator.prepare();
-            });
-        }
-
-        if (DependenciesEngine.injectables.length > 0) {
-            actions.push(() => {
-                return this.injectablePageGenerator.prepare();
-            });
-        }
-
-        if ((DependenciesEngine.tokens?.length ?? 0) > 0) {
-            actions.push(() => {
-                return this.tokenPageGenerator.prepare();
-            });
-        }
-
-        if (DependenciesEngine.interceptors.length > 0) {
-            actions.push(() => {
-                return this.interceptorPageGenerator.prepare();
-            });
-        }
-
-        if (DependenciesEngine.guards.length > 0) {
-            actions.push(() => {
-                return this.guardPageGenerator.prepare();
-            });
-        }
-
-        if (DependenciesEngine.routes && !Configuration.mainData.disableRoutesGraph) {
-            actions.push(() => {
-                return this.routesPageGenerator.prepare();
-            });
-        }
-
-        if (DependenciesEngine.pipes.length > 0) {
-            actions.push(() => {
-                return this.pipePageGenerator.prepare();
-            });
-        }
-
-        if (DependenciesEngine.classes.length > 0) {
-            actions.push(() => {
-                return this.classPageGenerator.prepare();
-            });
-        }
-
-        if (DependenciesEngine.interfaces.length > 0) {
-            actions.push(() => {
-                return this.interfacePageGenerator.prepare();
-            });
-        }
-
-        actions.push(() => {
-            return this.appConfigPageGenerator.prepare();
-        });
-
-        if (
-            DependenciesEngine.miscellaneous.variables.length > 0 ||
-            DependenciesEngine.miscellaneous.functions.length > 0 ||
-            DependenciesEngine.miscellaneous.typealiases.length > 0 ||
-            DependenciesEngine.miscellaneous.enumerations.length > 0
-        ) {
-            actions.push(() => {
-                return this.miscellaneousPageGenerator.prepare();
-            });
-        }
-
-        actions.push(() => {
-            return this.bucketLandingPageGenerator.prepare();
-        });
-
-        actions.push(() => {
-            return this.apiReferencePageGenerator.prepare();
-        });
-
-        if (!Configuration.mainData.disableCoverage) {
-            actions.push(() => {
-                return this.coveragePageGenerator.prepareDocumentation();
-            });
-        }
-
-        if (Configuration.mainData.unitTestCoverage !== '') {
-            actions.push(() => {
-                return this.coveragePageGenerator.prepareUnitTest();
-            });
-        }
-
-        if (Configuration.mainData.includes !== '') {
-            actions.push(() => {
-                return this.additionalPageGenerator.prepareExternalIncludes();
-            });
-        }
-
-        // Resolve `@playground` file refs after every prepare* step has
-        // populated `Configuration.mainData.<kind>.playgrounds`.
-        actions.push(() => Promise.resolve(this.playgroundFileResolver.resolve()));
-        // Vendor closure (watch mode) — kept in lockstep with the one-shot
-        // queue so `playgroundVendor` rebuilds aren't a silent no-op.
-        actions.push(() => Promise.resolve(this.playgroundVendorResolver.resolve()));
-        // Pre-publish import validation (watch mode) — same lockstep.
-        actions.push(() => Promise.resolve(this.playgroundValidator.resolve()));
-
-        promiseSequential(actions)
-            .then(_res => {
-                if (Configuration.mainData.exportFormat !== COMPODOC_DEFAULTS.exportFormat) {
-                    if (
-                        COMPODOC_DEFAULTS.exportFormatsSupported.indexOf(
-                            Configuration.mainData.exportFormat
-                        ) > -1
-                    ) {
-                        logger.info(
-                            `Generating documentation in export format ${Configuration.mainData.exportFormat}`
-                        );
-                        ExportEngine.export(
-                            Configuration.mainData.output,
-                            Configuration.mainData
-                        ).then(() => {
+    /**
+     * Run the selected prepare stages, then export or emit the HTML output.
+     * A failed stage rejects with the stage's rejection reason.
+     */
+    private runPrepare(
+        ctx: RunContext,
+        counts: SourceCounts,
+        afterHtmlStart: () => void = () => undefined
+    ): Promise<void> {
+        return runPrepareStages(ctx, selectPrepareStages(ctx, counts)).then(prepared => {
+            if (isErr(prepared)) {
+                return Promise.reject(prepared.message);
+            }
+            if (Configuration.mainData.exportFormat !== COMPODOC_DEFAULTS.exportFormat) {
+                if (
+                    COMPODOC_DEFAULTS.exportFormatsSupported.indexOf(
+                        Configuration.mainData.exportFormat
+                    ) > -1
+                ) {
+                    logger.info(
+                        `Generating documentation in export format ${Configuration.mainData.exportFormat}`
+                    );
+                    ExportEngine.export(Configuration.mainData.output, Configuration.mainData).then(
+                        () => {
                             resolveGenerationPromise(true);
                             this.endCallback();
                             logger.info(
@@ -792,25 +511,23 @@ export class Application {
                                 );
                                 this.serveAndStartWatch(Configuration.mainData.output);
                             }
-                        });
-                    } else {
-                        logger.warn(`Exported format not supported`);
-                    }
+                        }
+                    );
                 } else {
-                    this.emitHtml();
+                    logger.warn(`Exported format not supported`);
                 }
-            })
-            .catch(errorMessage => {
-                logger.error(errorMessage);
-                process.exit(1);
-            });
+            } else {
+                this.emitHtml();
+                afterHtmlStart();
+            }
+        });
     }
 
     /**
      * Graphs, then every page and the output finalisation.
      */
     private emitHtml(): Promise<void> {
-        return this.graphGenerator.processGraphs().then(() => this.emitPages());
+        return this.generators.graph.processGraphs().then(() => this.emitPages());
     }
 
     /**
@@ -820,9 +537,9 @@ export class Application {
     private async emitPages(): Promise<void> {
         const outputContext = { config: Configuration, startTime: startTime.valueOf() };
 
-        await this.pageWriter.processPages();
+        await this.generators.pageWriter.processPages();
         if (Configuration.mainData.additionalPages.length > 0) {
-            await this.additionalPageGenerator.processAdditionalPages(this.pageWriter);
+            await this.generators.additional.processAdditionalPages(this.generators.pageWriter);
         }
         if (Configuration.mainData.assetsFolder !== '') {
             await copyAssetsFolder(outputContext);

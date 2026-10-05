@@ -1,19 +1,117 @@
+import type { Result } from '../../lib';
+import type Configuration from '../configuration';
+import {
+    AdditionalPageGenerator,
+    ApiReferencePageGenerator,
+    AppConfigPageGenerator,
+    BucketLandingPageGenerator,
+    ClassPageGenerator,
+    ComponentPageGenerator,
+    CoveragePageGenerator,
+    DirectivePageGenerator,
+    EntityPageGenerator,
+    GraphGenerator,
+    GuardPageGenerator,
+    InjectablePageGenerator,
+    InterceptorPageGenerator,
+    InterfacePageGenerator,
+    MiscellaneousPageGenerator,
+    ModulePageGenerator,
+    NavTabsResolver,
+    OverviewPageGenerator,
+    PackageDependenciesPageGenerator,
+    PageWriter,
+    PipePageGenerator,
+    PlaygroundFileResolver,
+    PlaygroundValidator,
+    PlaygroundVendorResolver,
+    RoutesPageGenerator,
+    TokenPageGenerator
+} from '../page-generator';
+import type { DependenciesData } from '../services/dependencies';
+import type { Halt } from './halt';
+
+export { type Halt, halt } from './halt';
+
 /**
- * A run stopped on purpose. `runCompodocx` reports it as a `halted` outcome;
- * only the CLI boundary turns it into a process exit code.
+ * What a run does. `full` and `coverage` are one-shot runs; `diff`,
+ * `markdown` and `includes` are the partial watch-mode rebuilds.
  */
-export interface Halt {
-    readonly exitCode: 0 | 1 | 2;
-    readonly reason:
-        | 'coverage-gate'
-        | 'markdown'
-        | 'prepare'
-        | 'resources'
-        | 'versions-manifest'
-        | 'no-sources';
+export type RunMode = 'full' | 'coverage' | 'diff' | 'markdown' | 'includes';
+
+/** The page generators, created once per process and shared by every run. */
+export interface Generators {
+    readonly component: ComponentPageGenerator;
+    readonly module: ModulePageGenerator;
+    readonly directive: DirectivePageGenerator;
+    readonly entity: EntityPageGenerator;
+    readonly injectable: InjectablePageGenerator;
+    readonly token: TokenPageGenerator;
+    readonly interceptor: InterceptorPageGenerator;
+    readonly guard: GuardPageGenerator;
+    readonly routes: RoutesPageGenerator;
+    readonly pipe: PipePageGenerator;
+    readonly class: ClassPageGenerator;
+    readonly interface: InterfacePageGenerator;
+    readonly appConfig: AppConfigPageGenerator;
+    readonly miscellaneous: MiscellaneousPageGenerator;
+    readonly bucketLanding: BucketLandingPageGenerator;
+    readonly apiReference: ApiReferencePageGenerator;
+    readonly coverage: CoveragePageGenerator;
+    readonly additional: AdditionalPageGenerator;
+    readonly overview: OverviewPageGenerator;
+    readonly packageDependencies: PackageDependenciesPageGenerator;
+    readonly playgroundFiles: PlaygroundFileResolver;
+    readonly playgroundVendor: PlaygroundVendorResolver;
+    readonly playgroundValidator: PlaygroundValidator;
+    readonly pageWriter: PageWriter;
+    readonly graph: GraphGenerator;
 }
 
-export const halt = (exitCode: Halt['exitCode'], reason: Halt['reason']): Halt => ({
-    exitCode,
-    reason
-});
+export const createGenerators = (): Generators => {
+    const navTabs = new NavTabsResolver();
+    return {
+        component: new ComponentPageGenerator(navTabs),
+        module: new ModulePageGenerator(navTabs),
+        directive: new DirectivePageGenerator(navTabs),
+        entity: new EntityPageGenerator(navTabs),
+        injectable: new InjectablePageGenerator(navTabs),
+        token: new TokenPageGenerator(navTabs),
+        interceptor: new InterceptorPageGenerator(navTabs),
+        guard: new GuardPageGenerator(navTabs),
+        routes: new RoutesPageGenerator(),
+        pipe: new PipePageGenerator(navTabs),
+        class: new ClassPageGenerator(navTabs),
+        interface: new InterfacePageGenerator(navTabs),
+        appConfig: new AppConfigPageGenerator(),
+        miscellaneous: new MiscellaneousPageGenerator(),
+        bucketLanding: new BucketLandingPageGenerator(),
+        apiReference: new ApiReferencePageGenerator(),
+        coverage: new CoveragePageGenerator(),
+        additional: new AdditionalPageGenerator(),
+        overview: new OverviewPageGenerator(),
+        packageDependencies: new PackageDependenciesPageGenerator(),
+        playgroundFiles: new PlaygroundFileResolver(),
+        playgroundVendor: new PlaygroundVendorResolver(),
+        playgroundValidator: new PlaygroundValidator(),
+        pageWriter: new PageWriter(),
+        graph: new GraphGenerator()
+    };
+};
+
+export interface RunContext {
+    readonly mode: RunMode;
+    /** The `Configuration` singleton, passed explicitly. */
+    readonly config: typeof Configuration;
+    /** Files from the initial scan. */
+    readonly files: readonly string[];
+    /** Files changed since the last build (watch rebuilds only). */
+    readonly updatedFiles: readonly string[];
+    /** `Date.now()` at run start. */
+    readonly startTime: number;
+    readonly generators: Generators;
+    /** Crawl result of the changed files, set by the micro-crawl phase. */
+    readonly diff?: DependenciesData;
+}
+
+export type Stage = (ctx: RunContext) => Promise<Result<RunContext, Halt>>;

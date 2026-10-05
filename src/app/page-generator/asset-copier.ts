@@ -8,7 +8,7 @@ import FileEngine from '../engines/file.engine';
 import { runPagefindIndex } from '../engines/search-indexer.engine';
 import { updateVersionsManifest } from '../engines/versions-manifest.engine';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
-import { type Halt, halt } from '../run/context';
+import { type Halt, halt } from '../run/halt';
 
 const cwd = process.cwd();
 
