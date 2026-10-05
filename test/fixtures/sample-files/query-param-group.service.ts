@@ -1,4 +1,4 @@
-import { Inject, Injectable, isDevMode, OnDestroy, Optional } from '@angular/core';
+import { inject, Injectable, isDevMode, OnDestroy } from '@angular/core';
 import { Params } from '@angular/router';
 import { EMPTY, from, Observable, Subject } from 'rxjs';
 import {
@@ -83,10 +83,13 @@ export class QueryParamGroupService implements OnDestroy {
     /** @ignore */
     private destroy$ = new Subject<void>();
 
-    constructor(
-        @Inject(NGQP_ROUTER_ADAPTER) private routerAdapter: RouterAdapter,
-        @Optional() @Inject(NGQP_ROUTER_OPTIONS) private globalRouterOptions: RouterOptions
-    ) {
+    private routerAdapter: RouterAdapter = inject(NGQP_ROUTER_ADAPTER);
+
+    private globalRouterOptions: RouterOptions | null = inject(NGQP_ROUTER_OPTIONS, {
+        optional: true
+    });
+
+    constructor() {
         this.setupNavigationQueue();
     }
 

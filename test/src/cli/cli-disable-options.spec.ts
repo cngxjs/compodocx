@@ -136,15 +136,12 @@ describe('CLI disable flags', () => {
 
         it('correct supports @internal + link', () => {
             const file = read(`${distFolder}/directives/QueryParamNameDirective.html`);
-            // Constructor is now rendered as a `DependenciesSection`-style
-            // block instead of a `<code>constructor(arg: T)</code>` line.
-            // Each dep ends up in `cdx-deps-name` with the parameter type
-            // wrapped in `<code>`. The original assertion's intent — that
-            // the @internal-tagged groupService param survives and is
-            // linked to the QueryParamGroupService injectable — is verified
-            // by the dep landmark + a link to the injectable's page.
+            // Dependencies are rendered by the `DependenciesSection` block.
+            // The groupService `inject()` field survives --disableInternal
+            // even though QueryParamGroupService itself is @internal (its
+            // page is skipped, so the type renders unlinked).
             expect(file).to.contain('cdx-deps-name"><code>QueryParamGroupService');
-            expect(file).to.contain('cdx-badge--constructor');
+            expect(file).to.contain('cdx-badge--inject');
         });
     });
 
@@ -441,15 +438,9 @@ describe('CLI disable flags', () => {
             expect(file).not.to.contain('book-search-input');
         });
 
-        it('should not include the graph on the modules page', () => {
-            fileContents = read(`${distFolder}/modules.html`);
-            expect(fileContents).to.not.contain('dependencies.svg');
-            expect(fileContents).to.not.contain('svg-pan-zoom');
-        });
-
-        it('should not include the graph on the individual modules pages', () => {
-            fileContents = read(`${distFolder}/modules/AppModule.html`);
-            expect(fileContents).to.not.contain('modules/AppModule/dependencies.svg');
+        it('should not include the standalone dependency graph on the overview page', () => {
+            fileContents = read(`${distFolder}/overview.html`);
+            expect(fileContents).to.not.contain('dependency-graph-container');
             expect(fileContents).to.not.contain('svg-pan-zoom');
         });
 
@@ -466,7 +457,7 @@ describe('CLI disable flags', () => {
 
     describe('disabling file path with --disableFilePath', () => {
         let componentFile,
-            moduleFile,
+            appConfigFile,
             directiveFile,
             pipeFile,
             serviceFile,
@@ -501,10 +492,10 @@ describe('CLI disable flags', () => {
             expect(componentFile).not.to.contain('<code>bar.component.ts</code>');
         });
 
-        it('should not display file path in module documentation', () => {
-            moduleFile = read(`${distFolder}/modules/AppModule.html`);
-            expect(moduleFile).not.to.contain('<h3>File</h3>');
-            expect(moduleFile).not.to.contain('<code>app.module.ts</code>');
+        it('should not display file path in application config documentation', () => {
+            appConfigFile = read(`${distFolder}/app-config.html`);
+            expect(appConfigFile).not.to.contain('<h3>File</h3>');
+            expect(appConfigFile).not.to.contain('<code>app.config.ts</code>');
         });
 
         it('should not display file path in directive documentation', () => {
@@ -585,13 +576,13 @@ describe('CLI disable flags', () => {
         it('should still generate other main pages', () => {
             const isIndexExists = exists(`${distFolder}/index.html`);
             expect(isIndexExists).to.be.true;
-            const isModulesExists = exists(`${distFolder}/modules.html`);
-            expect(isModulesExists).to.be.true;
+            const isAppConfigExists = exists(`${distFolder}/app-config.html`);
+            expect(isAppConfigExists).to.be.true;
         });
 
         it('should still display other menu items', () => {
             menuFile = read(`${distFolder}/index.html`);
-            expect(menuFile).to.contain('href="modules.html"');
+            expect(menuFile).to.contain('href="app-config.html"');
             // Ionicons (`ion-ios-archive`) replaced by Lucide SVGs — assert
             // on the cdx-icon class on the inline `<svg>` next to the link.
             expect(menuFile).to.contain('cdx-icon');

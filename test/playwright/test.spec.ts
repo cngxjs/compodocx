@@ -25,9 +25,11 @@ test.describe('Compodoc page', () => {
     });
 
     test('should open menu for specific page', async ({ page }) => {
-        await page.goto('/modules.html');
+        await page.goto('/components/FooComponent.html');
 
-        const menuModulesItem = await page.locator('#sidebar .menu-toggler').nth(0);
-        await expect(menuModulesItem).toHaveClass(/linked/);
+        const menuComponentsItem = page.locator(
+            '#sidebar .menu-toggler[data-cdx-target="#components-links"]'
+        );
+        await expect(menuComponentsItem).toHaveAttribute('aria-expanded', 'true');
     });
 });

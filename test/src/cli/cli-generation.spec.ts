@@ -13,14 +13,7 @@ describe('CLI simple generation', () => {
     const distFolder = `${tmp.name}-simple-generation`;
 
     describe('when generation with d flag - relative folder', () => {
-        let stdoutString,
-            fooComponentFile,
-            fooServiceFile,
-            componentFile,
-            moduleFile,
-            emptyModuleFile,
-            barModuleFile,
-            emptyModuleRawFile;
+        let stdoutString, fooComponentFile, fooServiceFile, componentFile, appConfigFile;
         beforeAll(() => {
             tmp.create(distFolder);
             const ls = shell('node', [
@@ -39,11 +32,8 @@ describe('CLI simple generation', () => {
             stdoutString = ls.stdout.toString();
             fooComponentFile = read(`${distFolder}/components/FooComponent.html`);
             fooServiceFile = read(`${distFolder}/injectables/FooService.html`);
-            moduleFile = read(`${distFolder}/modules/AppModule.html`);
+            appConfigFile = read(`${distFolder}/app-config.html`);
             componentFile = read(`${distFolder}/components/BarComponent.html`);
-            emptyModuleFile = read(`${distFolder}/modules/EmptyModule.html`);
-            emptyModuleRawFile = read(`${distFolder}/modules/EmptyRawModule.html`);
-            barModuleFile = read(`${distFolder}/modules/BarModule.html`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -59,8 +49,8 @@ describe('CLI simple generation', () => {
         it('should have generated main pages', () => {
             const isIndexExists = exists(`${distFolder}/index.html`);
             expect(isIndexExists).to.be.true;
-            const isModulesExists = exists(`${distFolder}/modules.html`);
-            expect(isModulesExists).to.be.true;
+            const isAppConfigExists = exists(`${distFolder}/app-config.html`);
+            expect(isAppConfigExists).to.be.true;
         });
 
         it('should have generated resources folder', () => {
@@ -81,7 +71,7 @@ describe('CLI simple generation', () => {
         it('should have generated sourceCode for files', () => {
             // Shiki wraps tokens in <span> tags, so strip HTML before checking text content
             const strip = (html: string) => html.replace(/<[^>]+>/g, '');
-            expect(strip(moduleFile)).to.contain('import { FooDirective } from');
+            expect(strip(fooComponentFile)).to.contain('import { FooDirective } from');
             expect(strip(fooComponentFile)).to.contain('export class FooComponent');
             expect(strip(fooServiceFile)).to.contain('export class FooService');
         });
@@ -91,19 +81,21 @@ describe('CLI simple generation', () => {
          */
 
         it('it should have a link with this syntax {@link BarComponent}', () => {
-            expect(moduleFile).to.contain(
-                'See <a href="../components/BarComponent.html">BarComponent'
+            expect(appConfigFile).to.contain(
+                'See <a href="./components/BarComponent.html">BarComponent'
             );
         });
 
         it('it should have a link with this syntax [The BarComponent]{@link BarComponent}', () => {
-            expect(barModuleFile).to.contain(
+            expect(componentFile).to.contain(
                 'Watch <a href="../components/BarComponent.html">The BarComponent'
             );
         });
 
         it('it should have a link with this syntax {@link BarComponent|BarComponent3}', () => {
-            expect(fooComponentFile).to.contain('See <a href="../modules/AppModule.html">APP');
+            expect(fooComponentFile).to.contain(
+                '<a href="../components/BarComponent.html">BarComponent3'
+            );
         });
 
         it('it should have infos about FooService open function param', () => {
@@ -132,13 +124,13 @@ describe('CLI simple generation', () => {
         });
 
         it('it should have a link with this syntax {@link http://www.google.fr|Second link}', () => {
-            expect(barModuleFile).to.contain('<a href="http://www.google.fr">Second link</a>');
+            expect(componentFile).to.contain('<a href="http://www.google.fr">Second link</a>');
         });
         it('it should have a link with this syntax {@link http://www.google.uk Third link}', () => {
-            expect(barModuleFile).to.contain('<a href="http://www.google.uk">Third link</a>');
+            expect(componentFile).to.contain('<a href="http://www.google.uk">Third link</a>');
         });
         it('it should have a link with this syntax [Last link]{@link http://www.google.jp}', () => {
-            expect(barModuleFile).to.contain('<a href="http://www.google.jp">Last link</a>');
+            expect(componentFile).to.contain('<a href="http://www.google.jp">Last link</a>');
         });
 
         /**
@@ -168,10 +160,10 @@ describe('CLI simple generation', () => {
             expect(fooComponentFile).to.contain('<h3 id="inputs">Inputs');
             // Each input is a `cdx-io-member--input` row anchored on its name.
             const inputs = [
-                'aliasedAndRequiredInput',
+                'aliasedAndRequired',
                 'aliasedInput',
-                'aliasedInputObjectSyntax',
                 'exampleInput',
+                'objectAliasedInput',
                 'requiredInput',
                 'aliasedInputSignal',
                 'inputSignal',
@@ -189,7 +181,7 @@ describe('CLI simple generation', () => {
             expect(fooComponentFile).to.contain(
                 'An example aliased required input using the object syntax'
             );
-            expect(fooComponentFile).to.contain('data-cdx-line="52"');
+            expect(fooComponentFile).to.contain('data-cdx-line="58"');
             // Required-flag rendering still surfaces somewhere in the row.
             expect(fooComponentFile).to.contain('Required');
         });
@@ -208,21 +200,9 @@ describe('CLI simple generation', () => {
                 expect(fooComponentFile).to.contain(`cdx-io-member-name">${name}`);
                 expect(fooComponentFile).to.contain(`id="${name}"`);
             }
-            // Output type chip + source-line landmark.
-            expect(fooComponentFile).to.contain('EventEmitter');
-            expect(fooComponentFile).to.contain('data-cdx-line="57"');
-        });
-
-        /**
-         * No graph for empty module
-         */
-
-        it('it should not generate graph for empty metadatas module', () => {
-            expect(emptyModuleFile).not.to.contain('module-graph-svg');
-        });
-
-        it('it should not break for empty raw metadatas module', () => {
-            expect(emptyModuleRawFile).not.to.contain('module-graph-svg');
+            // Output kind badge + source-line landmark.
+            expect(fooComponentFile).to.contain('cdx-badge--output-signal');
+            expect(fooComponentFile).to.contain('data-cdx-line="65"');
         });
 
         /**
@@ -282,13 +262,13 @@ describe('CLI simple generation', () => {
         it('should have generated main pages', () => {
             const isIndexExists = exists(`${distFolder}/index.html`);
             expect(isIndexExists).to.be.true;
-            const isModulesExists = exists(`${distFolder}/modules.html`);
-            expect(isModulesExists).to.be.true;
+            const isAppConfigExists = exists(`${distFolder}/app-config.html`);
+            expect(isAppConfigExists).to.be.true;
         });
     });
 
     describe('when generation with d flag - absolute folder', () => {
-        let stdoutString, fooComponentFile, fooServiceFile, componentFile, moduleFile;
+        let stdoutString, fooComponentFile, fooServiceFile, componentFile, appConfigFile;
         beforeAll(() => {
             tmp.create(distFolder);
             const ls = shell(
@@ -311,7 +291,7 @@ describe('CLI simple generation', () => {
             stdoutString = ls.stdout.toString();
             fooComponentFile = read(`/tmp/${distFolder}/components/FooComponent.html`);
             fooServiceFile = read(`/tmp/${distFolder}/injectables/FooService.html`);
-            moduleFile = read(`/tmp/${distFolder}/modules/AppModule.html`);
+            appConfigFile = read(`/tmp/${distFolder}/app-config.html`);
             componentFile = read(`/tmp/${distFolder}/components/BarComponent.html`);
         });
         afterAll(() => tmp.clean(distFolder));
@@ -328,8 +308,8 @@ describe('CLI simple generation', () => {
         it('should have generated main pages', () => {
             const isIndexExists = exists(`/tmp/${distFolder}/index.html`);
             expect(isIndexExists).to.be.true;
-            const isModulesExists = exists(`/tmp/${distFolder}/modules.html`);
-            expect(isModulesExists).to.be.true;
+            const isAppConfigExists = exists(`/tmp/${distFolder}/app-config.html`);
+            expect(isAppConfigExists).to.be.true;
         });
 
         it('should have generated resources folder', () => {
@@ -503,8 +483,8 @@ describe('CLI simple generation', () => {
         it('should have generated main pages', () => {
             const isIndexExists = exists(`${distFolder}/index.html`);
             expect(isIndexExists).to.be.true;
-            const isModulesExists = exists(`${distFolder}/modules.html`);
-            expect(isModulesExists).to.be.true;
+            const isAppConfigExists = exists(`${distFolder}/app-config.html`);
+            expect(isAppConfigExists).to.be.true;
         });
     });
 
@@ -557,8 +537,8 @@ describe('CLI simple generation', () => {
         it('should have generated main pages', () => {
             const isIndexExists = exists(path.join(cwd, 'documentation', 'index.html'));
             expect(isIndexExists).to.be.true;
-            const isModulesExists = exists(path.join(cwd, 'documentation', 'modules.html'));
-            expect(isModulesExists).to.be.true;
+            const isAppConfigExists = exists(path.join(cwd, 'documentation', 'app-config.html'));
+            expect(isAppConfigExists).to.be.true;
         });
 
         it('should have generated resources folder', () => {
@@ -742,7 +722,7 @@ describe('CLI simple generation', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not contain sourceCode tab', () => {
-            index = read(`${distFolder}/modules/AppModule.html`);
+            index = read(`${distFolder}/components/FooComponent.html`);
             expect(index).to.not.contain('id="source-tab"');
         });
     });
@@ -825,7 +805,7 @@ describe('CLI simple generation', () => {
         });
     });
 
-    describe('when generation of module dependency doc with --navTabConfig option', () => {
+    describe('when generation of directive doc with --navTabConfig option', () => {
         let stdoutString, index;
         beforeAll(() => {
             tmp.create(distFolder);
@@ -849,7 +829,7 @@ describe('CLI simple generation', () => {
                 throw new Error('error');
             }
             stdoutString = ls.stdout.toString();
-            index = read(`${distFolder}/modules/AppModule.html`);
+            index = read(`${distFolder}/directives/BarDirective.html`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -941,9 +921,9 @@ describe('CLI simple generation', () => {
             expect(stdoutString).not.to.contain('Process main graph');
         });
 
-        it('should not include the graph on the modules page', () => {
-            fileContents = read(`${distFolder}/modules.html`);
-            expect(fileContents).to.not.contain('dependencies.svg');
+        it('should not include the standalone dependency graph on the overview page', () => {
+            fileContents = read(`${distFolder}/overview.html`);
+            expect(fileContents).to.not.contain('dependency-graph-container');
             expect(fileContents).to.not.contain('svg-pan-zoom');
         });
 
@@ -952,16 +932,10 @@ describe('CLI simple generation', () => {
             expect(fileContents).to.not.contain('graph/dependencies.svg');
             expect(fileContents).to.not.contain('svg-pan-zoom');
         });
-
-        it('should not include the graph on the individual modules pages', () => {
-            fileContents = read(`${distFolder}/modules/AppModule.html`);
-            expect(fileContents).to.not.contain('modules/AppModule/dependencies.svg');
-            expect(fileContents).to.not.contain('svg-pan-zoom');
-        });
     });
 
     describe('when generation with --disableFilePath flag', () => {
-        let stdoutString, componentFile, moduleFile, directiveFile, pipeFile, serviceFile;
+        let stdoutString, componentFile, appConfigFile, directiveFile, pipeFile, serviceFile;
         beforeAll(() => {
             tmp.create(distFolder);
             const ls = shell('node', [
@@ -988,10 +962,10 @@ describe('CLI simple generation', () => {
             expect(componentFile).to.not.contain('<code>bar.component.ts</code>');
         });
 
-        it('should not contain file path in module documentation', () => {
-            moduleFile = read(`${distFolder}/modules/AppModule.html`);
-            expect(moduleFile).to.not.contain('<h3>File</h3>');
-            expect(moduleFile).to.not.contain('<code>app.module.ts</code>');
+        it('should not contain file path in application config documentation', () => {
+            appConfigFile = read(`${distFolder}/app-config.html`);
+            expect(appConfigFile).to.not.contain('<h3>File</h3>');
+            expect(appConfigFile).to.not.contain('<code>app.config.ts</code>');
         });
 
         it('should not contain file path in directive documentation', () => {

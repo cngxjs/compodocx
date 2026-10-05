@@ -6,6 +6,6 @@
       "bar*"
     ],
     "exclude": [
-        "*.module.ts"
+        "*.imports.ts"
     ]
 }
