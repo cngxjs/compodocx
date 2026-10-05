@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "baseUrl": "",
+    "declaration": false,
+    "experimentalDecorators": true,
+    "lib": ["es2022", "dom"],
+    "module": "es2022",
+    "moduleResolution": "node",
+    "target": "es2022"
+  },
+  "include": ["src/**/*.ts"]
+}

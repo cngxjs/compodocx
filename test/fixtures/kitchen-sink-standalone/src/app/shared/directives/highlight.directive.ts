@@ -1,9 +1,6 @@
 import {
     Directive,
     ElementRef,
-    HostBinding,
-    HostListener,
-    Input,
     input,
     output,
     effect,
@@ -37,8 +34,7 @@ export function highlightDefaultColorFactory(theme: ThemeService): string {
  *
  * Fully maxed-out directive showing every metadata field compodocx can
  * extract: `selector`, `standalone`, `exportAs`, `providers` with every
- * DI pattern, `host` bindings and listeners, `hostDirectives` composition
- * plus `@HostBinding` / `@HostListener` decorator members.
+ * DI pattern, `host` bindings and listeners and `hostDirectives` composition.
  *
  * @example
  * ```html
@@ -78,8 +74,12 @@ export function highlightDefaultColorFactory(theme: ThemeService): string {
         class: 'app-highlight',
         '[attr.data-highlight-enabled]': 'enabled()',
         '[style.cursor]': 'enabled() ? "pointer" : "default"',
+        '[style.backgroundColor]': 'bgColor',
+        '[style.transition]': 'transition',
         '(focus)': 'onEnter()',
-        '(blur)': 'onLeave()'
+        '(blur)': 'onLeave()',
+        '(mouseenter)': 'onEnter()',
+        '(mouseleave)': 'onLeave()'
     },
     hostDirectives: [
         {
@@ -109,9 +109,9 @@ export class HighlightDirective {
     readonly enabled = input(true);
 
     /**
-     * Legacy decorator-style input (still supported alongside `input()`).
+     * Highlight intensity.
      */
-    @Input() intensity: 'subtle' | 'normal' | 'strong' = 'normal';
+    readonly intensity = input<'subtle' | 'normal' | 'strong'>('normal');
 
     /**
      * Fires whenever a highlight becomes active (e.g. on hover enter).
@@ -121,12 +121,12 @@ export class HighlightDirective {
     /**
      * Current background color.
      */
-    @HostBinding('style.backgroundColor') bgColor = 'transparent';
+    bgColor = 'transparent';
 
     /**
      * CSS transition.
      */
-    @HostBinding('style.transition') transition = 'background-color 0.2s';
+    transition = 'background-color 0.2s';
 
     constructor() {
         effect(() => {
@@ -137,7 +137,6 @@ export class HighlightDirective {
     /**
      * Apply hover color.
      */
-    @HostListener('mouseenter')
     onEnter(): void {
         if (this.enabled()) {
             const active = this.hoverColor() || this.fallback;
@@ -149,7 +148,6 @@ export class HighlightDirective {
     /**
      * Restore default color.
      */
-    @HostListener('mouseleave')
     onLeave(): void {
         this.bgColor = this.color();
     }

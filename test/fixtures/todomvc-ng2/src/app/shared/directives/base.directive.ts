@@ -1,4 +1,4 @@
-import { Directive, EventEmitter, Input, Output } from '@angular/core';
+import { Directive, input, output } from '@angular/core';
 
 /**
  * @beta
@@ -7,6 +7,6 @@ import { Directive, EventEmitter, Input, Output } from '@angular/core';
  */
 @Directive()
 export abstract class BaseDirective {
-    @Input() testPropertyInBase = false;
-    @Output() testEventInBase = new EventEmitter<void>();
+    testPropertyInBase = input(false);
+    testEventInBase = output<void>();
 }

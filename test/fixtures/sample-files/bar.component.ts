@@ -1,6 +1,16 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, input } from '@angular/core';
 import { BarService } from './bar.service';
 
+/**
+ * BarComponent description
+ *
+ * see {@link http://www.google.fr}
+ * see {@link http://www.google.fr|Second link}
+ * see {@link http://www.google.uk Third link}
+ * see [Last link]{@link http://www.google.jp}
+ *
+ * Watch [The BarComponent]{@link BarComponent}
+ */
 @Component({
     selector: 'app-bar',
     templateUrl: `bar.template.html`,
@@ -27,7 +37,7 @@ export class BarComponent implements OnInit {
     /**
      * @internal
      */
-    @Input() internalInput: string;
+    internalInput = input<string>();
 
     /**
      * @private
@@ -38,12 +48,10 @@ export class BarComponent implements OnInit {
 
     protected varprotected: string;
 
-    constructor(
-        /**
-         * @internal
-         */
-        public internalConstructorProp: string = ''
-    ) {}
+    /**
+     * @internal
+     */
+    public internalConstructorProp: string = '';
 
     ngOnInit() {}
 

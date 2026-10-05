@@ -14,8 +14,6 @@ import {
     TemplateRef,
     ElementRef,
     ChangeDetectionStrategy,
-    HostBinding,
-    HostListener,
 } from '@angular/core';
 
 /**
@@ -54,6 +52,11 @@ import {
         </article>
     `,
     changeDetection: ChangeDetectionStrategy.OnPush,
+    host: {
+        '[class]': 'hostClass',
+        '[attr.tabindex]': 'tabIndex',
+        '(focus)': 'onFocus()',
+    },
 })
 export class SignalCardComponent {
     /**
@@ -141,7 +144,6 @@ export class SignalCardComponent {
     /**
      * CSS class derived from variant.
      */
-    @HostBinding('class')
     get hostClass(): string {
         return `card-${this.variant()}`;
     }
@@ -149,12 +151,11 @@ export class SignalCardComponent {
     /**
      * Tab index for keyboard access.
      */
-    @HostBinding('attr.tabindex') tabIndex = 0;
+    tabIndex = 0;
 
     /**
      * Focus handler.
      */
-    @HostListener('focus')
     onFocus(): void {
         // track focus state
     }

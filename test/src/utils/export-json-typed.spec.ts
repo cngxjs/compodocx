@@ -9,7 +9,6 @@ import {
     type ExportData,
     type ExportInjectable,
     type ExportInterface,
-    type ExportModule,
     type ExportPipe
 } from '../../../src/app/interfaces/export-data.interface';
 
@@ -18,8 +17,8 @@ import {
  * once per spec file, then assert the resulting documentation.json against
  * the typed `ExportData` contract.
  *
- * todomvc is the lightest fixture that has non-empty components, modules,
- * pipes and injectables — exactly the union of entity types most downstream
+ * todomvc is the lightest fixture that has non-empty components, pipes and
+ * injectables (all standalone, no NgModules), the union of entity types most downstream
  * consumers (sprint 3 API Diff, sprint 4 llm-md export) will be diffing.
  */
 
@@ -86,9 +85,10 @@ describe('export-json typed snapshot — todomvc fixture', () => {
         expect(snapshot.compodocxVersion.length).toBeGreaterThan(0);
     });
 
-    it('produces non-empty components, modules, pipes, injectables, interfaces', () => {
+    it('produces non-empty components, pipes, injectables, interfaces and no modules', () => {
         expect(Array.isArray(snapshot.components) && snapshot.components.length).toBeGreaterThan(0);
-        expect(Array.isArray(snapshot.modules) && snapshot.modules.length).toBeGreaterThan(0);
+        // All-standalone fixture: the modules bucket is present but empty.
+        expect(snapshot.modules).toEqual([]);
         expect(Array.isArray(snapshot.pipes) && snapshot.pipes.length).toBeGreaterThan(0);
         expect(Array.isArray(snapshot.injectables) && snapshot.injectables.length).toBeGreaterThan(
             0
@@ -113,20 +113,17 @@ describe('export-json typed snapshot — todomvc fixture', () => {
         }
     });
 
-    it('first module has the ExportModule structured children', () => {
-        const m = (snapshot.modules ?? [])[0] as ExportModule;
-        expect(typeof m.name).toBe('string');
-        expect(Array.isArray(m.children)).toBe(true);
-        const buckets = m.children.map(child => child.type).sort();
-        expect(buckets).toEqual(
-            ['bootstrap', 'classes', 'declarations', 'exports', 'imports', 'providers'].sort()
-        );
-        for (const child of m.children) {
-            expect(Array.isArray(child.elements)).toBe(true);
-            for (const el of child.elements) {
-                expect(typeof el.name).toBe('string');
-            }
+    it('standalone component has structured imports', () => {
+        const c = (snapshot.components ?? []).find(
+            component => component.name === 'TodoComponent'
+        ) as ExportComponent;
+        expect(Array.isArray(c.imports)).toBe(true);
+        const imports = (c.imports ?? []) as ReadonlyArray<{ name: string; type?: string }>;
+        for (const el of imports) {
+            expect(typeof el.name).toBe('string');
         }
+        expect(imports).toContainEqual({ name: 'DoNothingDirective', type: 'directive' });
+        expect(imports).toContainEqual({ name: 'FirstUpperPipe', type: 'pipe' });
     });
 
     it('first pipe has the ExportPipe core fields', () => {

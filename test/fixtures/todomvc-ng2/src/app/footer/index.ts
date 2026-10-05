@@ -1,4 +1,4 @@
-export * from './footer.module';
+export * from './footer.component';
 
 import { FooterComponent } from './footer.component';
 

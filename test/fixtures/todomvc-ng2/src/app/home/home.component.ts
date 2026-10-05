@@ -1,5 +1,9 @@
 import { Component, ChangeDetectionStrategy, ViewEncapsulation } from '@angular/core';
 
+import { HeaderComponent } from '../header/header.component';
+import { ListComponent } from '../list/list.component';
+import { FooterComponent } from '../footer/footer.component';
+
 const selector = 'home';
 const template = `
 <div class="todoapp">
@@ -19,7 +23,8 @@ const encapsulation = ViewEncapsulation.Emulated;
     template,
     templateUrl,
     changeDetection,
-    encapsulation
+    encapsulation,
+    imports: [HeaderComponent, ListComponent, FooterComponent]
 })
 export class HomeComponent {
     public showTab() {}

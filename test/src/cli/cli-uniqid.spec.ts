@@ -1,3 +1,5 @@
+import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
 
 const tmp = temporaryDir();
@@ -5,7 +7,7 @@ const tmp = temporaryDir();
 describe('CLI Uniq id for file', () => {
     const distFolder = `${tmp.name}-uniqid`;
 
-    let indexFile;
+    let exportFile;
     beforeAll(() => {
         tmp.create(distFolder);
         const ls = shell('node', [
@@ -13,6 +15,8 @@ describe('CLI Uniq id for file', () => {
             '--no-multiVersion',
             '-p',
             './test/fixtures/sample-files/tsconfig.simple.json',
+            '-e',
+            'json',
             '-d',
             distFolder
         ]);
@@ -21,20 +25,19 @@ describe('CLI Uniq id for file', () => {
             console.error(`shell error: ${ls.stderr.toString()}`);
             throw new Error('error');
         }
-        // The TSX inline menu still namespaces module-scoped sublist
-        // ids by a stable file-path hash — same SHA-style suffix that
-        // the legacy `js/menu-wc.js` Web Component used. Asserting on
-        // the hash inside `index.html` keeps the "stable id per file"
-        // guarantee covered.
-        indexFile = read(`${distFolder}/index.html`);
+        // Entity ids carry a stable SHA-512 hash of the declaring file's
+        // source text. The standalone fixture renders no module-scoped
+        // menu sublists any more, so the id is asserted on the JSON
+        // export entry of the bootstrapped component.
+        exportFile = read(`${distFolder}/documentation.json`);
     });
     afterAll(() => tmp.clean(distFolder));
 
     it('it should contain a uniqid', () => {
-        const expectedHash =
-            process.platform === 'win32'
-                ? 'c48fd8283c5f5660d3412254501696cd5080663b5835017bc1e9eed1c6dd2b39afde4a46ac75ae8a261853dd21272e87c9451f4226401741750ea62ce2d23172'
-                : 'dc56f8262412f8df33eba175cdc6200ab5cce4608521dd0f6242b9de45c505d7725b7e4cf2e4631b42d759ae86a1aac7f44e1234c398a7c0aef94a1c45e15d29';
-        expect(indexFile).to.contain(`components-links-module-AppModule-${expectedHash}`);
+        // Hash the file as checked out so CRLF checkouts (Windows) match too.
+        const source = fs.readFileSync('./test/fixtures/sample-files/foo.component.ts', 'utf8');
+        const expectedHash = crypto.createHash('sha512').update(source).digest('hex');
+        expect(expectedHash).to.match(/^[0-9a-f]{128}$/);
+        expect(exportFile).to.contain(`"id":"component-FooComponent-${expectedHash}"`);
     });
 });

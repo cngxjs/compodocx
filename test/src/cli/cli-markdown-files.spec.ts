@@ -23,8 +23,8 @@ describe('CLI Markdown files generation', () => {
 
             // Copy source file
             fs.copyFileSync(
-                './test/fixtures/sample-files/app.module.ts',
-                path.join(srcFolder, 'app.module.ts')
+                './test/fixtures/sample-files/app.config.ts',
+                path.join(srcFolder, 'app.config.ts')
             );
 
             // Create a proper tsconfig.json

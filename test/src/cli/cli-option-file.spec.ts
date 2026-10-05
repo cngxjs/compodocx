@@ -41,8 +41,8 @@ describe('CLI option file', () => {
     it('should have generated main pages', () => {
         const isIndexExists = exists(`${distFolder}/index.html`);
         expect(isIndexExists).to.be.true;
-        const isModulesExists = exists(`${distFolder}/modules.html`);
-        expect(isModulesExists).to.be.true;
+        const isAppConfigExists = exists(`${distFolder}/app-config.html`);
+        expect(isAppConfigExists).to.be.true;
         const isRoutesExists = exists(`${distFolder}/routes.html`);
         expect(isRoutesExists).to.be.true;
     });

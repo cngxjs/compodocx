@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { NgFor, NgIf } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 
 import { TodoStore } from '../shared/services/todo.store';
@@ -6,6 +7,8 @@ import { TodoStore } from '../shared/services/todo.store';
 import { EmitterService } from '../shared/services/emitter.service';
 
 import { Todo } from '../shared/models/todo.model';
+
+import { TodoComponent } from './todo/todo.component';
 
 /**
  * The list of todos component
@@ -21,19 +24,20 @@ import { Todo } from '../shared/models/todo.model';
 @Component({
     selector: 'list',
     providers: [],
-    templateUrl: './list.component.html'
+    templateUrl: './list.component.html',
+    imports: [NgIf, NgFor, TodoComponent]
 })
 export class ListComponent {
     /**
      * Local reference of TodoStore
      */
-    todoStore: TodoStore;
+    todoStore = inject(TodoStore);
     todos: Array<Todo>;
     watchTest;
 
-    constructor(todoStore: TodoStore) {
+    constructor() {
         let that = this;
-        this.todoStore = todoStore;
+        const todoStore = this.todoStore;
         this.todos = todoStore.getAll();
         this.watchTest = Observable.of(todoStore.todos);
         EmitterService.get('FooterComponent').subscribe(value => {

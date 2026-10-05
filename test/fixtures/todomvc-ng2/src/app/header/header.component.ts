@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, inject } from '@angular/core';
 
 import { TodoStore } from '../shared/services/todo.store';
 
@@ -17,16 +17,12 @@ export class HeaderComponent {
     /**
      * Local reference of TodoStore
      */
-    todoStore: TodoStore;
+    todoStore = inject(TodoStore);
 
     /**
      * The data-binding value of the input tag, added on enter to the todo store
      */
     newTodoText: string = '';
-
-    constructor(todoStore: TodoStore) {
-        this.todoStore = todoStore;
-    }
 
     /**
      * Ad a todo to the list
@@ -52,7 +48,6 @@ export class HeaderComponent {
      * Setter of _fullName {@link https://compodoc.app/}
      * @param  {string} newName The new name
      */
-    @Input()
     set fullName(newName: string) {
         this._fullName = newName;
     }

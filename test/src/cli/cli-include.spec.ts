@@ -27,9 +27,9 @@ describe('CLI include with tsconfig', () => {
         it('should create files included', () => {
             let isFileExists = exists(`${distFolder}/components/BarComponent.html`);
             expect(isFileExists).to.be.true;
-            isFileExists = exists(`${distFolder}/modules/BarModule.html`);
+            isFileExists = exists(`${distFolder}/miscellaneous/variables.html`);
             expect(isFileExists).to.be.false;
-            isFileExists = exists(`${distFolder}/modules/DeepModule.html`);
+            isFileExists = exists(`${distFolder}/app-config.html`);
             expect(isFileExists).to.be.false;
         });
     });
@@ -56,7 +56,7 @@ describe('CLI include with tsconfig', () => {
         it('should create file included', () => {
             let isFileExists = exists(`${distFolder}/components/BarComponent.html`);
             expect(isFileExists).to.be.true;
-            isFileExists = exists(`${distFolder}/modules/BarModule.html`);
+            isFileExists = exists(`${distFolder}/miscellaneous/variables.html`);
             expect(isFileExists).to.be.false;
         });
     });

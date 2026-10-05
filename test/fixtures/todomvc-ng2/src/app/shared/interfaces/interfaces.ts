@@ -1,5 +1,3 @@
-import { HostBinding, HostListener, Input, Output } from '@angular/core';
-
 import { ClockInterface } from './clock.interface';
 
 /**
@@ -78,27 +76,25 @@ class Clock implements ClockInterface {
      * @example
      * class hostBinding
      */
-    @HostBinding('')
     emptyHostBinding: string;
 
     /**
      * @example
      * class hostListener
      */
-    @HostListener('')
     emptyHostListener() {}
 
     /**
      * @example
      * class input
      */
-    @Input() public emptyInput: string;
+    public emptyInput: string;
 
     /**
      * @example
      * class output
      */
-    @Output() public emptyOutput: string;
+    public emptyOutput: string;
 
     /**
      * @param emptyParam class method param

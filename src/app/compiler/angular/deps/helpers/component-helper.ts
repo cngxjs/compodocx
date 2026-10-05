@@ -478,13 +478,13 @@ export class ComponentHelper {
         props: ReadonlyArray<ts.ObjectLiteralElementLike>,
         srcFile: ts.SourceFile
     ): boolean {
-        let result = null;
+        // Angular 19+: standalone unless the decorator says `standalone: false`
         const parsedData = this.symbolHelper.getSymbolDeps(props, 'standalone', srcFile);
-        if (parsedData.length === 1) {
-            result = JSON.parse(parsedData[0]);
+        if (parsedData.length !== 1) {
+            return true;
         }
 
-        return result;
+        return JSON.parse(parsedData[0]) !== false;
     }
 
     public getComponentTemplate(

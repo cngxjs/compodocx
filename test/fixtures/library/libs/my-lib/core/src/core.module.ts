@@ -1,4 +1,4 @@
-import { InjectionToken, NgModule } from '@angular/core';
+import { InjectionToken, Provider } from '@angular/core';
 import { getDefaultApiRoot } from './utils';
 
 export const API_ROOT = new InjectionToken<string>('my-lib::API_ROOT', {
@@ -6,10 +6,6 @@ export const API_ROOT = new InjectionToken<string>('my-lib::API_ROOT', {
     factory: () => '/api',
 });
 
-@NgModule({
-    providers: [
-        { provide: API_ROOT, useValue: getDefaultApiRoot() }
-    ]
-})
-export class CoreModule {
+export function provideCore(): Provider[] {
+    return [{ provide: API_ROOT, useValue: getDefaultApiRoot() }];
 }

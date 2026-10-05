@@ -37,8 +37,8 @@ describe('CLI custom JS templates', () => {
         });
 
         it('should render constructor from custom template', () => {
-            expect(fooComponentFile).to.contain('<code>myprop</code>');
-            expect(fooComponentFile).to.contain('<i><p>description</p>\n</i>');
+            expect(fooComponentFile).to.contain('<h3 id="constructor">Constructor</h3>');
+            expect(fooComponentFile).to.contain('<code>constructor()</code>');
         });
     });
 });

@@ -1,12 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Injectable()
 export class ListImageService {
+    private sanitizer = inject(DomSanitizer);
+
     images: SafeResourceUrl[];
     readonly base64: string = `data:image/jpeg;base64, `;
 
-    constructor(private sanitizer: DomSanitizer) {
+    constructor() {
         this.images = new Array<SafeResourceUrl>();
     }
 

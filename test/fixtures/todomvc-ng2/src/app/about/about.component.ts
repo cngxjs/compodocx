@@ -1,4 +1,5 @@
-import { Component, HostListener, Input } from '@angular/core';
+import { Component, input, Signal, TemplateRef, viewChild } from '@angular/core';
+import { RouterLink, RouterOutlet } from '@angular/router';
 
 import template from './about.component.html';
 
@@ -23,9 +24,12 @@ import { Subscription } from 'rxjs/Subscription';
     selector: 'about',
     template,
     providers: [EmitterService],
-    entryComponents: [TodoComponent, ListComponent],
+    imports: [RouterLink, RouterOutlet],
     preserveWhitespaces: false,
     hostDirectives: [DoNothingDirective],
+    host: {
+        '(mouseup)': 'onMouseup($event.clientX, $event.clientY)'
+    },
     styles: `
         a {
             color: #03a9f4;
@@ -38,20 +42,18 @@ export class AboutComponent {
     /**
      * HostListener mouseup description
      */
-    @HostListener('mouseup', ['$event.clientX', '$event.clientY'])
     onMouseup(mouseX: number, mouseY: number): void {}
 
     /**
      * Inherited type of Angular Version
      */
-    @Input() public angularVersion = 'Angular 2';
+    public angularVersion = input('Angular 2');
 
     /**
      * Dummy input property with a custom decorator
      */
     @MyCustomInputDecorator()
-    @Input()
-    public myInput: string;
+    public myInput = input<string>();
 
     chartOptions: Highcharts.Options = {
         colors: [
@@ -106,8 +108,7 @@ export class AboutComponent {
         return '';
     }
 
-    @ViewChild('tabGroup', { static: true })
-    tabGroup: TemplateRef<unknown>;
+    tabGroup: Signal<TemplateRef<unknown>> = viewChild.required('tabGroup');
 
     /**
      * This is for testing

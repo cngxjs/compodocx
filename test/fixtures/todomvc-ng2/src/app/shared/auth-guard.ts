@@ -1,7 +1,5 @@
-import { CanActivate } from '@angular/router';
+import { CanActivateFn } from '@angular/router';
 
-class AuthGuard implements CanActivate {
-    public canActivate() {
-        return true;
-    }
-}
+const AuthGuard: CanActivateFn = () => {
+    return true;
+};

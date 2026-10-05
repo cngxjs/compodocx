@@ -1,4 +1,4 @@
-import { Directive, input, inject, ElementRef, Renderer2, HostListener, OnDestroy } from '@angular/core';
+import { Directive, input, inject, ElementRef, Renderer2, OnDestroy } from '@angular/core';
 
 /**
  * Tooltip position type.
@@ -19,6 +19,10 @@ export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right';
     selector: '[appTooltip]',
     standalone: true,
     exportAs: 'tooltip',
+    host: {
+        '(mouseenter)': 'onEnter()',
+        '(mouseleave)': 'onLeave()',
+    },
 })
 export class TooltipDirective implements OnDestroy {
     private readonly el = inject(ElementRef);
@@ -44,7 +48,6 @@ export class TooltipDirective implements OnDestroy {
     /**
      * Show tooltip on hover.
      */
-    @HostListener('mouseenter')
     onEnter(): void {
         if (this.tooltipEl || !this.text()) return;
         this.tooltipEl = this.renderer.createElement('div');
@@ -55,7 +58,6 @@ export class TooltipDirective implements OnDestroy {
     /**
      * Hide tooltip.
      */
-    @HostListener('mouseleave')
     onLeave(): void {
         if (this.tooltipEl) {
             this.renderer.removeChild(document.body, this.tooltipEl);

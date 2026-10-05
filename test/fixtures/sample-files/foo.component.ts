@@ -1,12 +1,16 @@
-import { Component, EventEmitter, Input, input, Output, output, model } from '@angular/core';
+import { Component, input, output, model } from '@angular/core';
+import { FooDirective } from './foo.directive';
+import { BarDirective } from './bar.directive';
+import { BarComponent } from './bar.component';
 
 /**
  * FooComponent description
  *
- * See {@link AppModule|APP}
+ * See {@link appConfig|APP}
  */
 @Component({
     selector: 'app-foo',
+    imports: [FooDirective, BarDirective, BarComponent],
     styles: [
         `
             .host {
@@ -29,32 +33,36 @@ export class FooComponent {
      * An example input
      * {@link BarComponent} or [BarComponent2]{@link BarComponent} or {@link BarComponent|BarComponent3}
      */
-    @Input() exampleInput: string = 'foo';
+    public readonly exampleInput = input<string>('foo');
 
     /**
      * An example required input
      */
-    @Input({ required: true }) requiredInput: string;
+    public readonly requiredInput = input.required<string>();
 
     /**
      * An example aliased input
      */
-    @Input('aliasedInput') aliasedInput: string;
+    public readonly aliasedInput = input<string>(undefined, { alias: 'aliasedInput' });
 
     /**
      * An example aliased input using the object syntax
      */
-    @Input({ alias: 'aliasedInputObjectSyntax' }) objectAliasedInput: string;
+    public readonly objectAliasedInput = input<string>(undefined, {
+        alias: 'aliasedInputObjectSyntax'
+    });
 
     /**
      * An example aliased required input using the object syntax
      */
-    @Input({ alias: 'aliasedAndRequiredInput', required: true }) aliasedAndRequired: string;
+    public readonly aliasedAndRequired = input.required<string>({
+        alias: 'aliasedAndRequiredInput'
+    });
 
     /**
      * An example output
      */
-    @Output() exampleOutput: EventEmitter<{ foo: string }> = new EventEmitter();
+    public readonly exampleOutput = output<{ foo: string }>();
 
     /**
      * An example input signal
@@ -92,8 +100,12 @@ export class FooComponent {
     public readonly modelInputSignal = model(0);
 
     /**
-     * constructor description
-     * @param  {boolean} myprop description
+     * myprop description
      */
-    constructor(public myprop: boolean) {}
+    public myprop = false;
+
+    /**
+     * constructor description
+     */
+    constructor() {}
 }

@@ -3,8 +3,8 @@
     "module": "commonjs"
   },
   "files": [
-    "app.module.ts",
-    "foo.component.ts",
-    "foo.module.ts"
+    "main.ts",
+    "app.config.ts",
+    "foo.component.ts"
   ]
 }

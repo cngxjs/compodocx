@@ -1,4 +1,4 @@
-import { Component, Input, Output, HostBinding, HostListener } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { Todo } from '../models/todo.model';
 
 import { DumbParentComponent } from './dumb-parent-component';
@@ -9,7 +9,11 @@ import { DumbParentComponent } from './dumb-parent-component';
  */
 @Component({
     selector: 'cp-dumb',
-    template: 'dumb component'
+    template: 'dumb component',
+    host: {
+        '[attr.empty]': 'emptyHostBinding',
+        '(empty)': 'emptyHostListener()'
+    }
 })
 export class DumbComponent extends DumbParentComponent {
     /**
@@ -24,13 +28,13 @@ export class DumbComponent extends DumbParentComponent {
      * @example
      * component input
      */
-    @Input() public emptyInput: string;
+    public emptyInput = input<string>();
 
     /**
      * @example
      * component output
      */
-    @Output() public emptyOutput: string;
+    public emptyOutput = output<string>();
 
     /**
      * @example
@@ -48,14 +52,12 @@ export class DumbComponent extends DumbParentComponent {
      * @example
      * component hostBinding
      */
-    @HostBinding('')
     emptyHostBinding: string;
 
     /**
      * @example
      * component hostListener
      */
-    @HostListener('')
     emptyHostListener() {}
 
     /**

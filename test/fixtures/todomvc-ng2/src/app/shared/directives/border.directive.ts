@@ -1,23 +1,26 @@
-import { Directive, ElementRef, HostListener, Input, OnInit } from '@angular/core';
+import { Directive, ElementRef, inject, input, OnInit } from '@angular/core';
 
 @Directive({
     selector: '[appBorder]',
-    standalone: true,
+    host: {
+        '(mouseenter)': 'onMouseEnter()',
+        '(mouseleave)': 'onMouseLeave()'
+    }
 })
 export class BorderDirective implements OnInit {
-    @Input() color: string = 'red';
+    color = input<string>('red');
 
-    constructor(private el: ElementRef) {}
+    private el = inject(ElementRef);
 
     ngOnInit() {
         this.border('');
     }
 
-    @HostListener('mouseenter') onMouseEnter() {
-        this.border(this.color);
+    onMouseEnter() {
+        this.border(this.color());
     }
 
-    @HostListener('mouseleave') onMouseLeave() {
+    onMouseLeave() {
         this.border('');
     }
 

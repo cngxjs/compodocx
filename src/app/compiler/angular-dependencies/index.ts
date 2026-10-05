@@ -945,15 +945,9 @@ export class AngularDependencies extends FrameworkDependencies {
                         try {
                             newRoutes = RouterParserUtil.cleanRawRouteParsed(IO.routes);
                         } catch (_e) {
-                            // tslint:disable-next-line:max-line-length
                             logger.error(
-                                'Routes parsing error, maybe a trailing comma or an external variable, trying to fix that later after sources scanning.'
+                                'Routes parsing error, maybe a trailing comma or an external variable.'
                             );
-                            newRoutes = IO.routes.replace(/ /gm, '');
-                            RouterParserUtil.addIncompleteRoute({
-                                data: newRoutes,
-                                file: file
-                            });
                             return true;
                         }
                         outputSymbols.routes = [...outputSymbols.routes, ...newRoutes];

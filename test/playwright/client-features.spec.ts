@@ -181,12 +181,15 @@ test.describe('SPA navigation', () => {
         await page.goto('/');
         const initialUrl = page.url();
 
-        // Expand a section
-        const toggler = page.locator('#sidebar [data-cdx-toggle="collapse"]').first();
-        await toggler.click();
-        await page.waitForTimeout(300);
-
         const entityLink = page.locator('#sidebar a[data-type="entity-link"]').first();
+
+        // Expand the first section unless it already starts expanded
+        if (!(await entityLink.isVisible())) {
+            const toggler = page.locator('#sidebar [data-cdx-toggle="collapse"]').first();
+            await toggler.click();
+            await page.waitForTimeout(300);
+        }
+
         if ((await entityLink.count()) > 0) {
             // Mark the sidebar DOM to verify it wasn't replaced
             await page.evaluate(() => {
@@ -226,35 +229,17 @@ test.describe('SPA navigation', () => {
     });
 });
 
-test.describe('Module graph', () => {
+test.describe('Dependency graph', () => {
     test('SVG pan-zoom: zoom buttons work', async ({ page }) => {
-        await page.goto('/modules.html');
+        await page.goto('/overview.html');
 
-        const browseBtn = page.locator('a.cdx-btn:has-text("Browse")').first();
-        await browseBtn.click();
-        await page.waitForTimeout(1000);
+        const svg = page.locator('#dependency-graph-container svg');
+        await expect(svg).toBeVisible();
 
-        const svg = page.locator('#module-graph-svg svg');
-        if ((await svg.count()) > 0) {
-            await expect(svg).toBeVisible();
-
-            const zoomIn = page.locator('#zoom-in');
-            if ((await zoomIn.count()) > 0) {
-                await zoomIn.click();
-                await page.waitForTimeout(400);
-                await expect(svg).toBeVisible();
-            }
-        }
-    });
-});
-
-test.describe('Lazy graph loading', () => {
-    test('modules page loads SVG graphs via IntersectionObserver', async ({ page }) => {
-        await page.goto('/modules.html');
-        await page.waitForTimeout(1000);
-
-        const loadedObjects = page.locator('object[type="image/svg+xml"][data]');
-        const count = await loadedObjects.count();
-        expect(count).toBeGreaterThan(0);
+        const zoomIn = page.locator('#dep-zoom-in');
+        await expect(zoomIn).toBeVisible();
+        await zoomIn.click();
+        await page.waitForTimeout(400);
+        await expect(svg).toBeVisible();
     });
 });

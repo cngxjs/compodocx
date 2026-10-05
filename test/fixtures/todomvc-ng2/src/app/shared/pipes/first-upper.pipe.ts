@@ -1,4 +1,4 @@
-import { Input, Output, PipeTransform, Pipe } from '@angular/core';
+import { PipeTransform, Pipe } from '@angular/core';
 
 const name = 'firstUpper';
 const pure = true;
@@ -34,13 +34,13 @@ export class FirstUpperPipe implements PipeTransform {
      * @example
      * pipe input
      */
-    @Input() public emptyInput: string;
+    public emptyInput: string;
 
     /**
      * @example
      * pipe output
      */
-    @Output() public emptyOutput: string;
+    public emptyOutput: string;
 
     /**
      * @example

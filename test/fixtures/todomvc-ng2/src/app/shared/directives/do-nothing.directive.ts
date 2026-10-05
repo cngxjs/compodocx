@@ -1,4 +1,4 @@
-import { Directive, HostBinding, HostListener, Input, Output } from '@angular/core';
+import { Directive, input, output } from '@angular/core';
 
 import { DoNothingDirectiveSchema } from './do-nothing-directive.metadata';
 
@@ -20,7 +20,7 @@ export class DoNothingDirective {
      * @example
      * directive input
      */
-    @Input() public emptyInput: string;
+    public emptyInput = input<string>();
 
     /**
      * @example
@@ -38,7 +38,7 @@ export class DoNothingDirective {
      * @example
      * directive output
      */
-    @Output() public emptyOutput: string;
+    public emptyOutput = output<string>();
 
     constructor() {
         console.log('Do nothing directive');
@@ -61,25 +61,21 @@ export class DoNothingDirective {
      * @example
      * directive hostBinding
      */
-    @HostBinding('style.color') color: string;
+    color: string;
 
     /**
      * HostListener description 1
      * @example
      * directive hostListener
      */
-    @HostListener('mouseup', ['$event.clientX', '$event.clientY'])
     onMouseup(mouseX: number, mouseY: number): void {}
     /**
      * HostListener description 2
      */
-    @HostListener('mousedown', ['$event.clientX', '$event.clientY'])
     onMousedown(mouseX: number, mouseY: number): void {}
     /**
      * HostListener description 3
      */
-    @HostListener('focus', ['$event'])
-    @HostListener('click', ['$event'])
     onClick(e: Event): void {}
 
     private _fullName: string;

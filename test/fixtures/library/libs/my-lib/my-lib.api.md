@@ -4,17 +4,10 @@
 
 ```ts
 
-import * as i0 from '@angular/core';
+import { Provider } from '@angular/core';
 
 // @public (undocumented)
-export class DataModule {
-    // (undocumented)
-    static ɵfac: i0.ɵɵFactoryDeclaration<DataModule, never>;
-    // (undocumented)
-    static ɵinj: i0.ɵɵInjectorDeclaration<DataModule>;
-    // (undocumented)
-    static ɵmod: i0.ɵɵNgModuleDeclaration<DataModule, never, never, never>;
-}
+export function provideData(): Provider[];
 
 // (No @packageDocumentation comment for this package)
 

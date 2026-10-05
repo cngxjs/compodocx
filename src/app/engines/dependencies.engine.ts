@@ -280,9 +280,6 @@ export class DependenciesEngine {
     public categorizedByFeaturePrimary: Record<string, EntityWithKind[]> = {};
     public categorizedByFeatureReference: Record<string, EntityWithKind[]> = {};
     public appConfig: any[] = [];
-    public rawStandaloneComponents: IComponentDep[] = [];
-    public rawStandaloneDirectives: IDirectiveDep[] = [];
-    public rawStandalonePipes: IPipeDep[] = [];
     public miscellaneous: MiscellaneousData = {
         variables: [],
         functions: [],
@@ -400,47 +397,12 @@ export class DependenciesEngine {
         this.miscellaneous = this.rawData.miscellaneous;
         this.prepareMiscellaneous();
         this.updateModulesDeclarationsExportsTypes();
-        this.inferStandaloneStatus();
         this.routes = this.rawData.routesTree;
         this.manageDuplicatesName();
         this.cleanRawModulesNames();
         this.prepareCategoryGroups();
         this.prepareFeatureGroups();
         this.prepareReferencedByIndex();
-    }
-
-    private inferStandaloneStatus() {
-        // Collect all names declared in any NgModule
-        const declaredNames = new Set<string>();
-        this.modules.forEach((module: any) => {
-            if (module.declarations) {
-                module.declarations.forEach(d => declaredNames.add(d.name));
-            }
-        });
-
-        // Components: if explicitly standalone OR not declared in any module -> standalone
-        this.components.forEach((comp: any) => {
-            if (!comp.standalone && !declaredNames.has(comp.name)) {
-                comp.standalone = true;
-            }
-        });
-        this.rawStandaloneComponents = this.components.filter((c: any) => c.standalone);
-
-        // Directives: same logic
-        this.directives.forEach((dir: any) => {
-            if (!dir.standalone && !declaredNames.has(dir.name)) {
-                dir.standalone = true;
-            }
-        });
-        this.rawStandaloneDirectives = this.directives.filter((d: any) => d.standalone);
-
-        // Pipes: same logic
-        this.pipes.forEach((pipe: any) => {
-            if (!pipe.standalone && !declaredNames.has(pipe.name)) {
-                pipe.standalone = true;
-            }
-        });
-        this.rawStandalonePipes = this.pipes.filter((p: any) => p.standalone);
     }
 
     private cleanRawModulesNames() {
