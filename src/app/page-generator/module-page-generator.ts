@@ -14,6 +14,12 @@ export class ModulePageGenerator {
         logger.info('Prepare modules');
         let i = 0;
         const _modules = someModules ? someModules : DependenciesEngine.getModules();
+        // A component some NgModule declares is not standalone, whatever its decorator says
+        const declaredNames = new Set<string>(
+            DependenciesEngine.getModules().flatMap((m: any) =>
+                (m.declarations ?? []).map((d: any) => d.name)
+            )
+        );
 
         return new Promise((resolve, _reject) => {
             Configuration.mainData.modules = _modules.map(ngModule => {
@@ -60,7 +66,7 @@ export class ModulePageGenerator {
                                             selectedComponent &&
                                             !ngModule.compodocxLinks.components.includes(component)
                                         ) {
-                                            if (!component.standalone) {
+                                            if (declaredNames.has((component as any).name)) {
                                                 ngModule.compodocxLinks.components.push(component);
                                             }
                                         }

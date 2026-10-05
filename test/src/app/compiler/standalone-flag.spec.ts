@@ -66,8 +66,8 @@ export class AbsentDirective {}
         expect(component('ExplicitTrueComponent').standalone).toBe(true);
     });
 
-    it('overrides an explicit standalone: false when no NgModule declares the class', () => {
-        expect(component('ExplicitFalseComponent').standalone).toBe(true);
+    it('keeps an explicit standalone: false', () => {
+        expect(component('ExplicitFalseComponent').standalone).toBe(false);
     });
 
     it('treats a component without the property as standalone', () => {

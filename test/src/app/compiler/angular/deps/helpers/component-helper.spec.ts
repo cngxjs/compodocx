@@ -132,13 +132,13 @@ describe('ComponentHelper', () => {
             expect(result).to.be.false;
         });
 
-        it('should return null when no standalone property found', () => {
+        it('should return true when no standalone property found', () => {
             const props = createMockProps({});
             symbolHelperStub.getSymbolDeps.mockReturnValue([]);
 
             const result = componentHelper.getComponentStandalone(props, sourceFile);
 
-            expect(result).to.be.null;
+            expect(result).to.be.true;
         });
     });
 
