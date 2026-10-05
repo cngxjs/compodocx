@@ -21,7 +21,6 @@ import type {
     ExportInterceptor,
     ExportInterface,
     ExportMethod,
-    ExportModule,
     ExportPipe,
     ExportProperty
 } from '../app/interfaces/export-data.interface';
@@ -43,11 +42,6 @@ const buckets = (data: ExportData): ReadonlyArray<EntityBucket<ExportEntityCommo
     { kind: 'class', items: data.classes ?? [] },
     { kind: 'interface', items: data.interfaces ?? [] }
 ];
-
-const moduleBucket = (data: ExportData): EntityBucket<ExportModule & ExportEntityCommon> => ({
-    kind: 'module',
-    items: (data.modules ?? []) as ReadonlyArray<ExportModule & ExportEntityCommon>
-});
 
 const indexByName = <T extends { name: string }>(items: ReadonlyArray<T>): Map<string, T> => {
     const map = new Map<string, T>();
@@ -239,48 +233,6 @@ const compareClassLike = (
     ] as ReadonlyArray<keyof ExportMethod>)
 ];
 
-const compareModule = (oldEntity: ExportModule, newEntity: ExportModule): FieldChange[] => {
-    const out: FieldChange[] = [];
-    const oldDescription = oldEntity.description;
-    const newDescription = newEntity.description;
-    if (!shallowEqual(oldDescription, newDescription)) {
-        out.push({
-            field: 'description',
-            kind: 'value-changed',
-            oldValue: oldDescription,
-            newValue: newDescription
-        });
-    }
-    const oldDeprecated = oldEntity.deprecated;
-    const newDeprecated = newEntity.deprecated;
-    if (oldDeprecated !== newDeprecated) {
-        out.push({
-            field: 'deprecated',
-            kind: 'value-changed',
-            oldValue: oldDeprecated,
-            newValue: newDeprecated
-        });
-    }
-    const oldChildren = oldEntity.children ?? [];
-    const newChildren = newEntity.children ?? [];
-    const oldByType = new Map(oldChildren.map(g => [g.type, g.elements] as const));
-    const newByType = new Map(newChildren.map(g => [g.type, g.elements] as const));
-    const allTypes = new Set([...oldByType.keys(), ...newByType.keys()]);
-    for (const type of allTypes) {
-        const oldElems = (oldByType.get(type) ?? []).map(e => e.name).sort();
-        const newElems = (newByType.get(type) ?? []).map(e => e.name).sort();
-        if (!shallowEqual(oldElems, newElems)) {
-            out.push({
-                field: `children.${type}`,
-                kind: 'value-changed',
-                oldValue: oldElems,
-                newValue: newElems
-            });
-        }
-    }
-    return out;
-};
-
 const compareEntityByKind = (
     kind: EntityKind,
     oldEntity: ExportEntityCommon,
@@ -299,11 +251,6 @@ const compareEntityByKind = (
         case 'class':
         case 'interface':
             return compareClassLike(oldEntity as ExportClass, newEntity as ExportClass);
-        case 'module':
-            return compareModule(
-                oldEntity as unknown as ExportModule,
-                newEntity as unknown as ExportModule
-            );
     }
 };
 
@@ -340,7 +287,6 @@ const countEntities = (data: ExportData): number => {
     for (const bucket of buckets(data)) {
         total += bucket.items.length;
     }
-    total += (moduleBucket(data).items as ReadonlyArray<unknown>).length;
     return total;
 };
 
@@ -367,9 +313,6 @@ export const compare = (
         const newBucket = buckets(newStripped).find(b => b.kind === bucket.kind);
         out.push(...compareBucket(bucket, bucket.items, newBucket?.items ?? []));
     }
-    const oldMods = moduleBucket(oldStripped);
-    const newMods = moduleBucket(newStripped);
-    out.push(...compareBucket(oldMods, oldMods.items, newMods.items));
 
     // unchanged = entities present in new that don't appear as added or changed.
     // Removed entities are gone from `new` so they don't count toward unchanged.

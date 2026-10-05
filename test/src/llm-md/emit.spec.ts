@@ -9,7 +9,6 @@ import type {
     ExportInjectable,
     ExportInterceptor,
     ExportInterface,
-    ExportModule,
     ExportPipe,
     ExportTypeAlias,
     ExportVariable
@@ -24,7 +23,6 @@ import {
     emitInjectable,
     emitInterceptor,
     emitInterface,
-    emitModule,
     emitPipe,
     emitTypeAlias,
     emitVariable
@@ -233,33 +231,6 @@ describe('llm-md/emit — emitClass / emitInterface', () => {
         expect(out).toContain('### Foo');
         expect(out).toContain('Extends: `Base`, `Other`');
         expect(out).toContain('`tick(): void`');
-    });
-});
-
-describe('llm-md/emit — emitModule', () => {
-    it('renders declarations / imports / providers groups', () => {
-        const mod: ExportModule = {
-            name: 'AppModule',
-            file: 'src/app/app.module.ts',
-            description: 'Bootstrap module',
-            children: [
-                { type: 'providers', elements: [{ name: 'TodoStore' }] },
-                { type: 'declarations', elements: [{ name: 'AppComponent' }] },
-                { type: 'imports', elements: [{ name: 'BrowserModule' }] },
-                { type: 'exports', elements: [] },
-                { type: 'bootstrap', elements: [{ name: 'AppComponent' }] },
-                { type: 'classes', elements: [] }
-            ]
-        };
-        const out = emitModule(mod);
-        expect(out).toContain('### AppModule');
-        expect(out).toContain('declarations: `AppComponent`');
-        expect(out).toContain('imports: `BrowserModule`');
-        expect(out).toContain('providers: `TodoStore`');
-        expect(out).toContain('bootstrap: `AppComponent`');
-        // empty buckets are skipped
-        expect(out).not.toContain('exports:');
-        expect(out).not.toContain('classes:');
     });
 });
 

@@ -29,7 +29,6 @@ import {
     emitInjectable,
     emitInterceptor,
     emitInterface,
-    emitModule,
     emitPipe,
     emitTypeAlias,
     emitVariable
@@ -93,7 +92,6 @@ export const emitLlmMd = (input: LlmMdInput): string => {
 
     const sections: string[] = [
         buildHeader(meta, options),
-        renderSection('Modules', data.modules, emitModule),
         renderSection('Components', data.components, emitComponent),
         renderSection('Directives', data.directives, emitDirective),
         renderSection('Pipes', data.pipes, emitPipe),

@@ -20,7 +20,6 @@ export class ComponentDepFactory {
             // animations?: string[]; // TODO
             changeDetection: this.helper.getComponentChangeDetection(props, srcFile),
             encapsulation: this.helper.getComponentEncapsulation(props, srcFile),
-            entryComponents: this.helper.getComponentEntryComponents(props, srcFile),
             exportAs: this.helper.getComponentExportAs(props, srcFile),
             host: this.helper.getComponentHost(props),
             hostStructured: this.helper.getComponentHostStructured(props),
@@ -221,8 +220,6 @@ export interface IComponentDep extends IDep {
 
     standalone: boolean;
     imports: Array<any>;
-
-    entryComponents: Array<any>;
 
     hostBindings: Array<any>;
     hostListeners: Array<any>;

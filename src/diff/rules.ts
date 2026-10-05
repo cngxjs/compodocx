@@ -188,14 +188,6 @@ export const SEVERITY_RULES: ReadonlyArray<SeverityRule> = [
         matches: (c, f) => isChangedKind(c) && f?.kind === 'member-added' && isThemeTokenChange(f)
     },
 
-    // Module children
-    {
-        id: 'module-children-changed',
-        severity: 'breaking',
-        matches: (c, f) =>
-            isChangedKind(c) && fieldStartsWith(f, 'children.') && f?.kind === 'value-changed'
-    },
-
     // Signal deps — internal derivation, not public
     {
         id: 'signal-deps-shift',

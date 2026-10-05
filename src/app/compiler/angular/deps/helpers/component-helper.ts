@@ -594,15 +594,6 @@ export class ComponentHelper {
             .map(name => this.symbolHelper.parseDeepIndentifier(name));
     }
 
-    public getComponentEntryComponents(
-        props: ReadonlyArray<ts.ObjectLiteralElementLike>,
-        srcFile: ts.SourceFile
-    ): Array<IParseDeepIdentifierResult> {
-        return this.symbolHelper
-            .getSymbolDeps(props, 'entryComponents', srcFile)
-            .map(name => this.symbolHelper.parseDeepIndentifier(name));
-    }
-
     public getComponentViewProviders(
         props: ReadonlyArray<ts.ObjectLiteralElementLike>,
         srcFile: ts.SourceFile

@@ -53,7 +53,6 @@ export class ExportLlmMdEngine {
         exportData.classes = data.classes;
         exportData.directives = data.directives;
         exportData.components = data.components;
-        exportData.modules = [];
         exportData.miscellaneous = data.miscellaneous;
         if (!Configuration.mainData.disableRoutesGraph) {
             exportData.routes = data.routes;

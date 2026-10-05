@@ -119,35 +119,6 @@ describe('diff/compare — engine', () => {
         expect(result.unchanged).toBe(1);
     });
 
-    it('module children shifts surface as field changes', () => {
-        const oldData = baseExport({
-            modules: [
-                {
-                    name: 'AppModule',
-                    children: [{ type: 'declarations', elements: [{ name: 'FooComponent' }] }]
-                }
-            ]
-        });
-        const newData = baseExport({
-            modules: [
-                {
-                    name: 'AppModule',
-                    children: [{ type: 'declarations', elements: [{ name: 'BarComponent' }] }]
-                }
-            ]
-        });
-        const result = compare(oldData, newData);
-        expect(result.changes).toHaveLength(1);
-        const change = result.changes[0];
-        expect(change.kind).toBe('module-changed');
-        expect(change.changes[0]).toEqual(
-            expect.objectContaining({
-                field: 'children.declarations',
-                kind: 'value-changed'
-            })
-        );
-    });
-
     it('does not mutate either input', () => {
         const oldData = baseExport({ components: [{ name: 'Foo' }] });
         const newData = baseExport({ components: [{ name: 'Bar' }] });
