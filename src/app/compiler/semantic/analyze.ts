@@ -12,8 +12,9 @@ import {
     findEntryPoints,
     toEntryPoint
 } from './entry-points';
-import { factKey, type SemanticModel, type SymbolFacts } from './model';
+import { factKey, type SemanticModel, type SymbolFacts, type SymbolKey } from './model';
 import { createSemanticProgram } from './program';
+import { usedByEdges } from './used-by';
 
 /** The program and the facts derived from it, kept for one run. */
 export interface SemanticState {
@@ -53,7 +54,8 @@ const rootSourceFiles = (program: ts.Program): readonly ts.SourceFile[] =>
 const symbolFacts = (
     declaration: Declaration,
     exportFacts: ExportFacts,
-    di: DiAnalysis
+    di: DiAnalysis,
+    usedBy: ReadonlyMap<string, readonly SymbolKey[]>
 ): SymbolFacts => {
     const key = factKey(declaration.key);
     return {
@@ -63,7 +65,7 @@ const symbolFacts = (
         notExported: exportFacts.notExported,
         di: di.di.get(key),
         token: di.tokens.get(key),
-        usedBy: []
+        usedBy: usedBy.get(key) ?? []
     };
 };
 
@@ -85,6 +87,7 @@ export const buildSemanticModel = (
     const declarations = collectDeclarations(sourceFiles, checker, cwd);
     const rootFiles = new Set(sourceFiles);
     const di = analyzeDi(declarations, checker, sourceFile => rootFiles.has(sourceFile));
+    const usedBy = usedByEdges(declarations, checker);
     const facts = new Map<string, SymbolFacts>();
     for (const declaration of declarations) {
         const key = factKey(declaration.key);
@@ -97,7 +100,8 @@ export const buildSemanticModel = (
             symbolFacts(
                 declaration,
                 exportFactsOf(declaration, fileName, entryPoints, exported),
-                di
+                di,
+                usedBy
             )
         );
     }

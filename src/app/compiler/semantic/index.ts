@@ -5,3 +5,4 @@ export * from './entry-points';
 export * from './inject-calls';
 export * from './model';
 export * from './program';
+export * from './used-by';
