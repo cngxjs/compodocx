@@ -63,6 +63,12 @@ describe('dependencies service', () => {
             expect(readonlyFiles).toEqual(['x.ts']);
         });
 
+        it('passes the shared source file lookup to the crawler', () => {
+            const sharedSourceFile = () => undefined;
+            crawlDependencies(['a.ts'], { tsconfigDirectory: '/proj', sharedSourceFile });
+            expect(ctorCalls[0].options).toEqual({ tsconfigDirectory: '/proj', sharedSourceFile });
+        });
+
         it('handles an empty files array', () => {
             crawlDependencies([], { tsconfigDirectory: '/proj' });
             expect(ctorCalls[0].files).toEqual([]);

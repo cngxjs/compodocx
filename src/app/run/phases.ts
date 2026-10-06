@@ -217,6 +217,12 @@ const withSemantic = (ctx: RunContext): RunContext => {
     return { ...ctx, semantic: analyzed.value };
 };
 
+/** The crawler parses nothing the semantic program already holds. */
+const sharedSourceFiles = (ctx: RunContext) => {
+    const program = ctx.semantic?.program;
+    return program ? (fileName: string) => program.getSourceFile(fileName) : undefined;
+};
+
 const crawl: Stage = async current => {
     const ctx = withSemantic(current);
     const { mainData } = ctx.config;
@@ -225,7 +231,8 @@ const crawl: Stage = async current => {
     mainData.angularProject = true;
 
     const dependenciesData = crawlDependencies(ctx.files, {
-        tsconfigDirectory: path.dirname(mainData.tsconfig)
+        tsconfigDirectory: path.dirname(mainData.tsconfig),
+        sharedSourceFile: sharedSourceFiles(ctx)
     });
 
     for (const line of formatLegacyNotice(dependenciesData.legacyFindings)) {
@@ -266,7 +273,8 @@ const microCrawl: Stage = async current => {
     ctx.config.mainData.angularProject = true;
 
     const diff = crawlMicroDependencies(ctx.updatedFiles, {
-        tsconfigDirectory: path.dirname(ctx.config.mainData.tsconfig)
+        tsconfigDirectory: path.dirname(ctx.config.mainData.tsconfig),
+        sharedSourceFile: sharedSourceFiles(ctx)
     });
 
     DependenciesEngine.update(diff);

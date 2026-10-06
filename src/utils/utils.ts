@@ -293,8 +293,12 @@ export function findMainSourceFolder(files: string[]) {
     return mainFolder;
 }
 
-// Create a compilerHost object to allow the compiler to read and write files
-export function compilerHost(transpileOptions: any): ts.CompilerHost {
+// Create a compilerHost object to allow the compiler to read and write files.
+// `sharedSourceFile` hands back files another program already parsed.
+export function compilerHost(
+    transpileOptions: any,
+    sharedSourceFile?: (fileName: string) => ts.SourceFile | undefined
+): ts.CompilerHost {
     const inputFileName =
         transpileOptions.fileName || (transpileOptions.jsx ? 'module.tsx' : 'module.ts');
 
@@ -311,6 +315,11 @@ export function compilerHost(transpileOptions: any): ts.CompilerHost {
                 if (path.isAbsolute(fileName) === false) {
                     fileName = path.join(transpileOptions.tsconfigDirectory, fileName);
                 }
+                const shared = sharedSourceFile?.(fileName);
+                if (shared) {
+                    return shared;
+                }
+
                 if (!fs.existsSync(fileName)) {
                     return undefined;
                 }
