@@ -163,6 +163,10 @@ const unwrapForwardRef = (expression: ts.Expression): ts.Expression => {
     return expression;
 };
 
+/** `ElementRef<HTMLElement>` used as a value names the token `ElementRef`. */
+const unwrapInstantiation = (expression: ts.Expression): ts.Expression =>
+    ts.isExpressionWithTypeArguments(expression) ? expression.expression : expression;
+
 const nameOf = (expression: ts.Expression): string | undefined => {
     if (ts.isIdentifier(expression)) {
         return expression.text;
@@ -193,7 +197,7 @@ const toInjectCall = (call: ts.CallExpression): InjectCall | undefined => {
     if (!argument) {
         return undefined;
     }
-    const token = unwrapForwardRef(argument);
+    const token = unwrapInstantiation(unwrapForwardRef(argument));
     return { token, tokenName: nameOf(token), optional: isOptional(call), node: call };
 };
 

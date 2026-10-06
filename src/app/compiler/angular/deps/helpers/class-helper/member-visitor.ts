@@ -11,6 +11,7 @@ import { StringifyObjectLiteralExpression } from '../../../../../../utils/object
 import { getNamesCompareFn, markedtags, mergeTagsAndArgs } from '../../../../../../utils/utils';
 import Configuration from '../../../../../configuration';
 import DependenciesEngine from '../../../../../engines/dependencies.engine';
+import { angularImports, rootInjectCall } from '../../../../semantic/inject-calls';
 import type { DecoratorInspector } from './decorator-inspector';
 import type { JsdocExtractor } from './jsdoc-extractor';
 import type { TypeRenderer } from './type-renderer';
@@ -40,11 +41,14 @@ export class MemberVisitor {
     }
 
     /**
-     * Detect Angular signal primitives from a property's stringified default value.
+     * Detect Angular signal primitives from a property's stringified default value,
+     * and `inject()` fields from its initializer.
      * Returns the signal kind and optional extracted type.
      */
     private detectSignalKind(
-        defaultValue: string
+        defaultValue: string,
+        initializer?: ts.Expression,
+        sourceFile?: ts.SourceFile
     ): { kind: string; signalType?: string; required?: boolean } | undefined {
         if (!defaultValue) {
             return undefined;
@@ -89,8 +93,7 @@ export class MemberVisitor {
             { pattern: /^afterRenderEffect\s*\(/, kind: 'after-render-effect' },
             { pattern: /^afterEveryRender\s*\(/, kind: 'after-every-render' },
             { pattern: /^afterNextRender\s*\(/, kind: 'after-next-render' },
-            { pattern: /^afterRender\s*\(/, kind: 'after-render' },
-            { pattern: /^inject\s*\(\s*([A-Z_]\w*)/, kind: 'inject' }
+            { pattern: /^afterRender\s*\(/, kind: 'after-render' }
         ];
 
         for (const { pattern, kind } of patterns) {
@@ -110,7 +113,27 @@ export class MemberVisitor {
                 return result;
             }
         }
-        return undefined;
+        return this.detectInject(cleaned, initializer, sourceFile);
+    }
+
+    /** `inject(X)` at the root of the initializer; the token name becomes the type. */
+    private detectInject(
+        cleaned: string,
+        initializer?: ts.Expression,
+        sourceFile?: ts.SourceFile
+    ): { kind: string; signalType?: string; required?: boolean } | undefined {
+        if (!initializer || !sourceFile || !ts.isSourceFile(sourceFile)) {
+            return undefined;
+        }
+        const call = rootInjectCall(initializer, angularImports(sourceFile));
+        if (!call?.tokenName) {
+            return undefined;
+        }
+        return {
+            kind: 'inject',
+            signalType: call.tokenName,
+            ...(cleaned.includes('.required') ? { required: true } : {})
+        };
     }
 
     private initializeDocumentationFields(): {
@@ -659,7 +682,7 @@ export class MemberVisitor {
 
         // Detect signal primitives from initializer
         if (result.defaultValue) {
-            const signalKind = this.detectSignalKind(result.defaultValue);
+            const signalKind = this.detectSignalKind(result.defaultValue, initializer, sourceFile);
             if (signalKind) {
                 result.signalKind = signalKind.kind;
                 if (signalKind.signalType) {

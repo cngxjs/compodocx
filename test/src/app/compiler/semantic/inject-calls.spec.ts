@@ -73,6 +73,12 @@ describe('inject() detection', () => {
         expect([call.tokenName, call.optional]).toEqual(['ns.TOKEN', true]);
     });
 
+    it('names the token of an instantiation expression', () => {
+        expect(tokens(`${CORE}function f() { return inject(ElementRef<HTMLElement>); }`)).toEqual([
+            'ElementRef'
+        ]);
+    });
+
     it('unwraps forwardRef', () => {
         expect(tokens(`${CORE}function f() { return inject(forwardRef(() => Service)); }`)).toEqual(
             ['Service']
