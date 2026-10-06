@@ -3,6 +3,11 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { SemanticModel, SymbolFacts } from '../../../src/app/compiler/semantic/model';
+import {
+    miscellaneousWithFacts,
+    withSemanticFacts
+} from '../../../src/app/engines/export-json.engine';
 import {
     EXPORT_SCHEMA_VERSION,
     type ExportComponent,
@@ -227,4 +232,76 @@ describe('export-json typed snapshot — todomvc fixture', () => {
             fs.rmSync(failDir, { recursive: true, force: true });
         }
     }, 60_000);
+});
+
+describe('export-json semantic facts', () => {
+    const facts = (overrides: Partial<SymbolFacts>): SymbolFacts => ({
+        key: { name: 'provideFoo', file: 'src/foo.ts' },
+        exportedBy: [],
+        notExported: false,
+        usedBy: [],
+        ...overrides
+    });
+    const model = (entries: SymbolFacts[]): SemanticModel => ({
+        entryPoints: [],
+        facts: new Map(entries.map(f => [`${f.key.file}#${f.key.name}`, f])),
+        summary: {
+            entryPoints: 0,
+            providers: 0,
+            features: 0,
+            injectionContext: { direct: 0, viaCall: 0, unresolved: 0 },
+            notExported: 0
+        }
+    });
+    const entry = { name: 'provideFoo', file: 'src/foo.ts', description: 'Provides foo.' };
+
+    it('appends the facts of a symbol joined by file and name', () => {
+        const withFacts = withSemanticFacts(
+            entry,
+            model([
+                facts({
+                    entryPoint: '@lib/foo',
+                    exportedBy: ['@lib/foo'],
+                    usedBy: [{ name: 'bar', file: 'src/bar.ts' }],
+                    di: {
+                        role: 'provider',
+                        providesTokens: [{ name: 'FOO', file: 'src/tokens.ts' }],
+                        readsTokens: []
+                    }
+                })
+            ])
+        );
+        expect(withFacts).toEqual({
+            ...entry,
+            entryPoint: '@lib/foo',
+            exportedBy: ['@lib/foo'],
+            usedBy: [{ name: 'bar', file: 'src/bar.ts' }],
+            di: { role: 'provider', providesTokens: [{ name: 'FOO', file: 'src/tokens.ts' }] }
+        });
+        expect(entry).not.toHaveProperty('di');
+    });
+
+    it('returns the entry itself when the symbol has no facts', () => {
+        expect(withSemanticFacts(entry, model([]))).toBe(entry);
+        expect(withSemanticFacts(entry, model([facts({})]))).toBe(entry);
+    });
+
+    it('keeps the sorted order of the model lists', () => {
+        const usedBy = [
+            { name: 'a', file: 'src/a.ts' },
+            { name: 'b', file: 'src/a.ts' },
+            { name: 'a', file: 'src/b.ts' }
+        ];
+        const result = withSemanticFacts(entry, model([facts({ usedBy })])) as { usedBy?: unknown };
+        expect(result.usedBy).toEqual(usedBy);
+    });
+
+    it('writes no false flags and no empty lists, also in grouped lists', () => {
+        const misc = miscellaneousWithFacts(
+            { functions: [entry], groupedFunctions: { 'src/foo.ts': [entry] } },
+            model([facts({ notExported: true, di: { providesTokens: [], readsTokens: [] } })])
+        ) as { functions: object[]; groupedFunctions: Record<string, object[]> };
+        expect(misc.functions[0]).toEqual({ ...entry, notExported: true });
+        expect(misc.groupedFunctions['src/foo.ts'][0]).toEqual({ ...entry, notExported: true });
+    });
 });
