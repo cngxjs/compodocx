@@ -9,7 +9,6 @@ import {
     IconInjectable,
     IconInterceptor,
     IconInterface,
-    IconModule,
     IconPipe,
     IconSettings
 } from '../components/Icons';
@@ -28,7 +27,6 @@ type EntityChip = {
 };
 
 type OverviewStatsProps = {
-    readonly modules?: any[];
     readonly components?: any[];
     readonly directives?: any[];
     readonly injectables?: any[];
@@ -164,17 +162,8 @@ type ChipGroup = { label: string; chips: EntityChip[] };
 function buildChipGroups(props: OverviewStatsProps): ChipGroup[] {
     const groups: ChipGroup[] = [];
 
-    // Structure: Modules, Routes, AppConfig
+    // Structure: Routes, AppConfig
     const structure: EntityChip[] = [];
-    if (props.modules?.length) {
-        structure.push({
-            icon: IconModule,
-            count: props.modules.length,
-            label: t('modules'),
-            href: './modules.html',
-            colorVar: 'var(--color-cdx-entity-module)'
-        });
-    }
     if (props.routes?.length) {
         structure.push({
             icon: IconGitBranch,

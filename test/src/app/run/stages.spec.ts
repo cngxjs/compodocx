@@ -8,7 +8,6 @@ import {
 
 const EMPTY: SourceCounts = {
     components: 0,
-    modules: 0,
     directives: 0,
     entities: 0,
     injectables: 0,
@@ -24,7 +23,6 @@ const EMPTY: SourceCounts = {
 
 const EVERY_KIND: SourceCounts = {
     components: 1,
-    modules: 1,
     directives: 1,
     entities: 1,
     injectables: 1,
@@ -40,7 +38,6 @@ const EVERY_KIND: SourceCounts = {
 
 const ALL_KEYS = [
     'component',
-    'module',
     'directive',
     'entity',
     'injectable',
@@ -88,7 +85,6 @@ describe('prepare stage table', () => {
     it('selects only the unconditional stages for an empty full run', () => {
         expect(keys(context('full'), EMPTY)).toEqual([
             'component',
-            'module',
             'appConfig',
             'bucketLanding',
             'apiReference',
@@ -99,7 +95,7 @@ describe('prepare stage table', () => {
         ]);
     });
 
-    it('selects all 22 stages in table order for a full run with every kind', () => {
+    it('selects all 21 stages in table order for a full run with every kind', () => {
         const ctx = context('full', { unitTestCoverage: 'coverage.json', includes: 'docs' });
         expect(keys(ctx, EVERY_KIND)).toEqual(ALL_KEYS);
         expect(PREPARE_STAGES.map(stage => stage.key)).toEqual(ALL_KEYS);
@@ -113,11 +109,10 @@ describe('prepare stage table', () => {
         expect(selected).toHaveLength(ALL_KEYS.length - 2);
     });
 
-    it('selects the component and module stages in diff mode only for changed kinds', () => {
+    it('selects the component stage in diff mode only for changed components', () => {
         expect(keys(context('diff'), EMPTY)).not.toContain('component');
-        expect(keys(context('diff'), EMPTY)).not.toContain('module');
         expect(keys(context('diff'), { ...EMPTY, components: 2 })).toContain('component');
-        expect(keys(context('diff'), { ...EMPTY, modules: 1 })).toContain('module');
+        expect(PREPARE_STAGES.map(stage => stage.key)).not.toContain('module');
     });
 
     it('gates routes on the routes tree in full mode but not in diff mode', () => {

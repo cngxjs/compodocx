@@ -43,8 +43,6 @@ These file names correspond to page contexts. Place them in `partials/` inside y
 | File name | Overrides |
 |-|-|
 | `overview.js` | Overview page |
-| `modules.js` | Modules list page |
-| `module.js` | Single module detail |
 | `component.js` | Component detail page |
 | `directive.js` | Directive detail page |
 | `injectable.js` | Injectable/service detail |

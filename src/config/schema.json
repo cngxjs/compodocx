@@ -129,7 +129,7 @@
             "items": {
                 "$id": "/properties/toggleMenuItems/items",
                 "type": "string",
-                "title": "Close by default items in the menu values : ['all'] or one of these ['modules','components','directives','entities','classes','injectables','tokens','guards','interfaces','interceptors','pipes','miscellaneous','additionalPages','features'] (features applies under menuLayout: 'feature')",
+                "title": "Close by default items in the menu values : ['all'] or one of these ['components','directives','entities','classes','injectables','tokens','guards','interfaces','interceptors','pipes','miscellaneous','additionalPages','features'] (features applies under menuLayout: 'feature')",
                 "default": "",
                 "examples": ["all"]
             }
@@ -459,13 +459,6 @@
             "$id": "/properties/disableStyleTab",
             "type": "boolean",
             "title": "Do not add style tab",
-            "default": false,
-            "examples": [false]
-        },
-        "disableMainGraph": {
-            "$id": "/properties/disableMainGraph",
-            "type": "boolean",
-            "title": "Do not add the main overview dependency graph",
             "default": false,
             "examples": [false]
         },

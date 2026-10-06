@@ -14,8 +14,6 @@ describe('DependenciesEngine — Referenced-by reverse-index', () => {
     });
 
     const makeParsed = (overrides: Partial<any> = {}): any => ({
-        modules: [],
-        modulesForGraph: [],
         components: [],
         directives: [],
         injectables: [],

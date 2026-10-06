@@ -182,7 +182,6 @@ export interface Deps {
     animations?: string[]; // TODO
     changeDetection?: string;
     encapsulation?: string;
-    entryComponents?: string; // TODO
     exportAs?: string;
     host?: any;
     hostDirectives?: HostDirectiveEntry[];

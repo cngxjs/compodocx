@@ -333,7 +333,7 @@ export class SymbolHelper {
             (ts.isShorthandPropertyAssignment(matching) ||
                 (initializer && ts.isIdentifier(initializer)))
         ) {
-            // Object-Literal-Shorthand resolution: `@NgModule({ providers })`
+            // Object-Literal-Shorthand resolution: `@Component({ providers })`
             // resolves to a local `const providers = [Foo]` declaration.
             // Mirrors the shorthand-aware branch in `parseSymbols` but
             // returns the underlying array literal so the typed

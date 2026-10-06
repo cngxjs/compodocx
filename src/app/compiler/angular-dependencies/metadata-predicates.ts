@@ -1,3 +1,5 @@
+import { LEGACY_CLASS_DECORATORS } from '../legacy-scan';
+
 export class MetadataPredicates {
     public parseDecorators(decorators, type: string): boolean {
         let result = false;
@@ -47,27 +49,13 @@ export class MetadataPredicates {
         return this.parseDecorator(metadata, 'Injectable');
     }
 
-    public isModule(metadata) {
-        return this.parseDecorator(metadata, 'NgModule');
-    }
-
     public hasInternalDecorator(metadatas) {
         return (
             this.parseDecorators(metadatas, 'Component') ||
             this.parseDecorators(metadatas, 'Pipe') ||
             this.parseDecorators(metadatas, 'Directive') ||
             this.parseDecorators(metadatas, 'Injectable') ||
-            this.parseDecorators(metadatas, 'NgModule')
-        );
-    }
-
-    public isGuard(ioImplements: string[]): boolean {
-        return (
-            ioImplements.includes('CanActivate') ||
-            ioImplements.includes('CanActivateChild') ||
-            ioImplements.includes('CanDeactivate') ||
-            ioImplements.includes('Resolve') ||
-            ioImplements.includes('CanLoad')
+            LEGACY_CLASS_DECORATORS.some(name => this.parseDecorators(metadatas, name))
         );
     }
 }

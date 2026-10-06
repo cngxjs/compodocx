@@ -2,38 +2,6 @@ import { SyntaxKind, type ts } from 'ts-morph';
 import { getNodeDecorators } from '../../../../../../utils/node.util';
 
 export class DecoratorInspector {
-    public getDecoratorOfType(node, decoratorType) {
-        const decorators = getNodeDecorators(node) || [];
-        const result = [];
-        const len = decorators.length;
-
-        if (len > 1) {
-            for (let i = 0; i < decorators.length; i++) {
-                const expr = decorators[i].expression as any;
-                if (expr.expression) {
-                    if (expr.expression.text === decoratorType) {
-                        result.push(decorators[i]);
-                    }
-                }
-            }
-            if (result.length > 0) {
-                return result;
-            }
-        } else {
-            if (len === 1) {
-                const expr = decorators[0].expression as any;
-                if (expr?.expression) {
-                    if (expr.expression.text === decoratorType) {
-                        result.push(decorators[0]);
-                        return result;
-                    }
-                }
-            }
-        }
-
-        return undefined;
-    }
-
     public hasDecoratorType(decorator: ts.Decorator, ...types: string[]): boolean {
         if ((decorator.expression as any).expression) {
             const decoratorText = (decorator.expression as any).expression.text;
@@ -50,12 +18,18 @@ export class DecoratorInspector {
         return this.hasDecoratorType(decorator, 'Injectable');
     }
 
-    public isPipeDecorator(decorator) {
-        return this.hasDecoratorType(decorator, 'Pipe');
+    /** A class decorated with @Component, @Directive, @Pipe or @Injectable. */
+    public isAngularClass(node): boolean {
+        return (
+            !!node &&
+            getNodeDecorators(node).some((decorator: ts.Decorator) =>
+                this.hasDecoratorType(decorator, 'Component', 'Directive', 'Pipe', 'Injectable')
+            )
+        );
     }
 
-    public isModuleDecorator(decorator) {
-        return this.hasDecoratorType(decorator, 'NgModule');
+    public isPipeDecorator(decorator) {
+        return this.hasDecoratorType(decorator, 'Pipe');
     }
 
     public isPrivate(member): boolean {

@@ -96,8 +96,8 @@ describe('CLI public-api-only option', () => {
         it('should have generated main pages', () => {
             const isIndexExists = exists(`${distFolder}/index.html`);
             expect(isIndexExists).to.be.true;
-            const isModulesExists = exists(`${distFolder}/modules.html`);
-            expect(isModulesExists).to.be.true;
+            const isCoverageExists = exists(`${distFolder}/coverage.html`);
+            expect(isCoverageExists).to.be.true;
         });
 
         it('should document getDefaultApiRoot from core utils', () => {
@@ -153,8 +153,8 @@ describe('CLI public-api-only option', () => {
         it('should have generated main pages', () => {
             const isIndexExists = exists(`${distFolder}/index.html`);
             expect(isIndexExists).to.be.true;
-            const isModulesExists = exists(`${distFolder}/modules.html`);
-            expect(isModulesExists).to.be.true;
+            const isCoverageExists = exists(`${distFolder}/coverage.html`);
+            expect(isCoverageExists).to.be.true;
         });
 
         it('should NOT document getDefaultApiRoot when using public API filter', () => {

@@ -469,28 +469,6 @@ describe('ComponentHelper', () => {
         });
     });
 
-    describe('getComponentEntryComponents', () => {
-        it('should extract and parse entryComponents from props', () => {
-            const props = createMockProps({ entryComponents: ['Component1', 'Component2'] });
-            symbolHelperStub.getSymbolDeps.mockReturnValue(['Component1', 'Component2']);
-            symbolHelperStub.parseDeepIndentifier.mockImplementation(name => ({
-                name,
-                type: 'component'
-            }));
-
-            const result = componentHelper.getComponentEntryComponents(props, sourceFile);
-
-            expect(symbolHelperStub.getSymbolDeps).toHaveBeenCalledWith(
-                props,
-                'entryComponents',
-                sourceFile
-            );
-            expect(symbolHelperStub.parseDeepIndentifier).toHaveBeenCalledTimes(2);
-            expect(result).to.have.lengthOf(2);
-            expect(result[0]).to.deep.equal({ name: 'Component1', type: 'component' });
-        });
-    });
-
     describe('getComponentViewProviders', () => {
         it('should delegate to symbolHelper.getProviderEntries with viewProviders key', () => {
             const props = createMockProps({ viewProviders: ['Service1', 'Service2'] });

@@ -201,6 +201,10 @@ export function applyConfigToMainData(
     ) {
         mainData.toggleMenuItems = programOptions.toggleMenuItems;
     }
+    if (mainData.toggleMenuItems.includes('modules')) {
+        logger.warn('toggleMenuItems: "modules" has no effect');
+        mainData.toggleMenuItems = mainData.toggleMenuItems.filter(item => item !== 'modules');
+    }
 
     if (configFile.templates) {
         mainData.templates = configFile.templates;

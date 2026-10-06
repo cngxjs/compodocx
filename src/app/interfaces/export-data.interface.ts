@@ -26,7 +26,7 @@ export type ExportRoute = RouteInterface;
  * other place in `src/` writes a numeric literal as the schema version
  * instead of importing this constant.
  */
-export const EXPORT_SCHEMA_VERSION = 2 as const;
+export const EXPORT_SCHEMA_VERSION = 3 as const;
 
 export type ExportSchemaVersion = typeof EXPORT_SCHEMA_VERSION;
 
@@ -121,16 +121,6 @@ export interface ExportIndexSignature {
     returnType?: string;
 }
 
-/**
- * Single entry in the `children` array of an `ExportModule` —
- * the engine groups providers / declarations / imports / exports / bootstrap /
- * classes into typed buckets.
- */
-export interface ExportModuleChildGroup {
-    type: 'providers' | 'declarations' | 'imports' | 'exports' | 'bootstrap' | 'classes';
-    elements: Array<{ name: string }>;
-}
-
 export interface ExportEntityCommon {
     id?: string;
     name: string;
@@ -166,7 +156,6 @@ export interface ExportComponent extends ExportEntityCommon {
     styleUrlsData?: string;
     stylesData?: string;
     assetsDirs?: string[];
-    entryComponents?: string;
     exportAs?: string;
     inputs?: string[];
     outputs?: string[];
@@ -184,7 +173,8 @@ export interface ExportComponent extends ExportEntityCommon {
     accessors?: Record<string, ExportAccessor>;
     slots?: ExportSlot[];
     themeTokens?: ThemeToken[];
-    themeStyleSources?: ReadonlyArray<unknown>;
+    /** Keys into the top-level `styleSources` map, in collection order. */
+    themeStyleSources?: string[];
     themeOverview?: string[];
     jsdoctags?: JsdocTagInterface[];
     route?: string;
@@ -362,19 +352,6 @@ export interface ExportMiscellaneous {
     groupedTypeAliases?: ExportMiscellaneousGroup<ExportTypeAlias>[];
 }
 
-export interface ExportModule {
-    id?: string;
-    name: string;
-    file?: string;
-    description?: string;
-    rawDescription?: string;
-    deprecated?: boolean;
-    deprecationMessage?: string;
-    methods?: ExportMethod[];
-    sourceCode?: string;
-    children: ExportModuleChildGroup[];
-}
-
 export interface ExportCoverageFile {
     filePath: string;
     type: string;
@@ -425,7 +402,6 @@ export interface ExportData {
      */
     compodocxVersion: string;
     pipes?: ExportPipe[];
-    modules?: ExportModule[];
     interfaces?: ExportInterface[];
     injectables?: ExportInjectable[];
     guards?: ExportGuard[];
@@ -438,4 +414,15 @@ export interface ExportData {
     components?: ExportComponent[];
     /** InjectionToken / HttpContextToken declarations (v0.6.0+). */
     tokens?: ExportInjectable[];
+    /**
+     * Style sources of the documented components, keyed by project-relative
+     * file path, or `<component file>#inline-<n>` for inline styles. Each
+     * component lists its keys in `themeStyleSources`.
+     */
+    styleSources?: Record<string, ExportStyleSource>;
+}
+
+export interface ExportStyleSource {
+    content: string;
+    language: string;
 }

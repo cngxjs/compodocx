@@ -11,7 +11,6 @@ import { type Halt, halt } from './halt';
  */
 export interface SourceCounts {
     readonly components: number;
-    readonly modules: number;
     readonly directives: number;
     readonly entities: number;
     readonly injectables: number;
@@ -73,11 +72,6 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
         key: 'component',
         when: alwaysUnlessDiffWithout(c => c.components),
         run: step(ctx => ctx.generators.component.prepare())
-    },
-    {
-        key: 'module',
-        when: alwaysUnlessDiffWithout(c => c.modules),
-        run: step(ctx => ctx.generators.module.prepare())
     },
     {
         key: 'directive',
@@ -183,7 +177,6 @@ export const selectPrepareStages = (ctx: RunContext, counts: SourceCounts): Prep
 /** Counts of the whole project, read after `DependenciesEngine.init`. */
 export const countsFromEngine = (): SourceCounts => ({
     components: DependenciesEngine.components.length,
-    modules: DependenciesEngine.modules.length,
     directives: DependenciesEngine.directives.length,
     entities: DependenciesEngine.entities.length,
     injectables: DependenciesEngine.injectables.length,
@@ -204,7 +197,6 @@ export const countsFromEngine = (): SourceCounts => ({
 /** Counts of the changed files of a watch rebuild. */
 export const countsFromDiff = (diff: DependenciesData): SourceCounts => ({
     components: diff.components.length,
-    modules: diff.modules.length,
     directives: diff.directives.length,
     entities: diff.entities.length,
     injectables: diff.injectables.length,

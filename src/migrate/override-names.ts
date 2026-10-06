@@ -37,8 +37,6 @@ export const PAGE_LEVEL_OVERRIDES: readonly string[] = [
     'miscellaneous-typealiases',
     'miscellaneous-variable',
     'miscellaneous-variables',
-    'module',
-    'modules',
     'overview',
     'package-dependencies',
     'package-properties',

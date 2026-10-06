@@ -58,7 +58,6 @@ export const DirectivePage = (data: any): string =>
         showMethods: true,
         showProperties: true,
         showAccessors: true,
-        showStandaloneBadge: true,
         showJsdocBadges: true,
         relationships: data.relationships,
         playgrounds: data.directive?.playgrounds,

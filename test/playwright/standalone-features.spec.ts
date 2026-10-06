@@ -471,7 +471,8 @@ test.describe('Dependency Graph — Overview', () => {
         const legend = page.locator('.cdx-graph-legend');
         await expect(legend).toBeVisible();
         const items = legend.locator('.cdx-graph-legend-item');
-        expect(await items.count()).toBeGreaterThanOrEqual(5);
+        // component, directive, pipe, injectable
+        expect(await items.count()).toBeGreaterThanOrEqual(4);
     });
 
     test('a11y: screen reader text alternative lists dependencies', async ({ page }) => {

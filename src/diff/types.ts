@@ -19,7 +19,7 @@ export type Severity = 'breaking' | 'additive' | 'docs-only';
 
 /**
  * Coarse kind identifier on every change record. The first segment is the
- * entity kind (component, module, pipe, …); the second is what happened
+ * entity kind (component, pipe, …); the second is what happened
  * (added, removed, changed, member-added, …). Output formatters can render
  * a human label without re-classifying.
  */
@@ -47,10 +47,7 @@ export type ChangeKind =
     | 'class-changed'
     | 'interface-added'
     | 'interface-removed'
-    | 'interface-changed'
-    | 'module-added'
-    | 'module-removed'
-    | 'module-changed';
+    | 'interface-changed';
 
 /** Coarse entity kind — drives both diff dispatch and output formatting. */
 export type EntityKind =
@@ -61,8 +58,7 @@ export type EntityKind =
     | 'guard'
     | 'interceptor'
     | 'class'
-    | 'interface'
-    | 'module';
+    | 'interface';
 
 /**
  * A single field-level change inside an entity. The compare engine emits

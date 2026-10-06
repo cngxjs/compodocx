@@ -5,6 +5,7 @@ import AngularVersionUtil from '../../utils/angular-version.util';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import RouterParserUtil from '../../utils/router-parser.util';
+import { formatLegacyNotice } from '../compiler/legacy-scan';
 import DependenciesEngine from '../engines/dependencies.engine';
 import ExportEngine from '../engines/export.engine';
 import FileEngine from '../engines/file.engine';
@@ -154,12 +155,6 @@ const markdowns: Stage = ctx =>
 const printStatistics = (ctx: RunContext): void => {
     logger.info('-------------------');
     logger.info('Project statistics ');
-    if (DependenciesEngine.modules.length > 0) {
-        logger.info(`- files        : ${ctx.files.length}`);
-    }
-    if (DependenciesEngine.modules.length > 0) {
-        logger.info(`- module       : ${DependenciesEngine.modules.length}`);
-    }
     if (DependenciesEngine.components.length > 0) {
         logger.info(`- component    : ${DependenciesEngine.components.length}`);
     }
@@ -206,11 +201,12 @@ const crawl: Stage = async ctx => {
         tsconfigDirectory: path.dirname(mainData.tsconfig)
     });
 
-    // Auto-detect groupBy if not explicitly set by user
+    for (const line of formatLegacyNotice(dependenciesData.legacyFindings)) {
+        logger.warn(line);
+    }
+
     if (!mainData.groupBy) {
-        const hasModules = dependenciesData.modules && dependenciesData.modules.length > 0;
-        mainData.hasNgModules = hasModules;
-        mainData.groupBy = hasModules ? 'none' : 'folder';
+        mainData.groupBy = 'folder';
     }
 
     DependenciesEngine.init(dependenciesData);
@@ -312,21 +308,16 @@ const exportFormat: Stage = async ctx => {
     return proceed(ctx);
 };
 
-const emit: Stage = async ctx => {
-    if (ctx.config.mainData.exportFormat !== COMPODOC_DEFAULTS.exportFormat) {
-        return exportFormat(ctx);
-    }
-    const graphs = ctx.generators.graph.processGraphs();
-    ctx.onEmitStart?.();
-    await graphs;
-    return writeOutput(ctx);
-};
-
 const emitPages: Stage = ctx => {
     const written = writeOutput(ctx);
     ctx.onEmitStart?.();
     return written;
 };
+
+const emit: Stage = async ctx =>
+    ctx.config.mainData.exportFormat === COMPODOC_DEFAULTS.exportFormat
+        ? emitPages(ctx)
+        : exportFormat(ctx);
 
 const resetRootMarkdownPages: Stage = async ctx => {
     logger.info('Regenerating README.md, CHANGELOG.md, CONTRIBUTING.md, LICENSE.md, TODO.md pages');

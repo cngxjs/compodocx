@@ -6,7 +6,6 @@ import { CapitalizeHelper } from './html-engine-helpers/capitalize.helper';
 import { CleanParagraphHelper } from './html-engine-helpers/clean-paragraph.helper';
 import { CompareHelper } from './html-engine-helpers/compare.helper';
 import { DebugHelper } from './html-engine-helpers/debug.helper';
-import { ElementAloneHelper } from './html-engine-helpers/element-alone.helper';
 import { EscapeSimpleQuoteHelper } from './html-engine-helpers/escape-simple-quote.helper';
 import { FilterAngular2ModulesHelper } from './html-engine-helpers/filter-angular2-modules.helper';
 import { FunctionSignatureHelper } from './html-engine-helpers/function-signature.helper';
@@ -74,7 +73,6 @@ export class HtmlEngineHelpers {
         this.registerHelper(bars, 'objectLength', new ObjectLengthHelper());
         this.registerHelper(bars, 'parseDescription', new ParseDescriptionHelper());
         this.registerHelper(bars, 'one-parameter-has', new OneParameterHasHelper());
-        this.registerHelper(bars, 'element-alone', new ElementAloneHelper());
         this.registerHelper(bars, 'hasOwn', new HasOwnHelper());
         this.registerHelper(bars, 'short-url', new ShortURLHelper());
         this.registerHelper(bars, 'strip-url', new StripURLHelper());

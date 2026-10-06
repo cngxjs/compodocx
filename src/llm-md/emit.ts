@@ -24,7 +24,6 @@ import type {
     ExportInterceptor,
     ExportInterface,
     ExportMethod,
-    ExportModule,
     ExportPipe,
     ExportProperty,
     ExportTypeAlias,
@@ -291,28 +290,6 @@ export const emitInterface = (entity: ExportInterface): string => {
         }
     }
     return emitClassLike(entity, extras);
-};
-
-export const emitModule = (entity: ExportModule): string => {
-    const extras: string[] = [];
-    const groups = entity.children ?? [];
-    for (const group of groups) {
-        const names = group.elements.map(e => e.name).filter(n => typeof n === 'string');
-        if (names.length === 0) {
-            continue;
-        }
-        const inlined = names.map(n => inlineCode(n)).join(', ');
-        extras.push(`${group.type}: ${inlined}`);
-    }
-    const dep = deprecatedTail(entity.deprecated, entity.deprecationMessage);
-    if (dep) {
-        extras.push(`Deprecated:${dep}`);
-    }
-    return joinSections([
-        heroLines(entity.name, entity.file, extras),
-        descriptionLine(entity.description),
-        renderMethods('Methods', entity.methods ?? [])
-    ]);
 };
 
 export const emitFunction = (entity: ExportFunction): string => {

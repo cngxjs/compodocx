@@ -87,13 +87,28 @@ describe('export-json typed snapshot — todomvc fixture', () => {
 
     it('produces non-empty components, pipes, injectables, interfaces and no modules', () => {
         expect(Array.isArray(snapshot.components) && snapshot.components.length).toBeGreaterThan(0);
-        // All-standalone fixture: the modules bucket is present but empty.
-        expect(snapshot.modules).toEqual([]);
+        // Schema 3 has no modules bucket.
+        expect(snapshot).not.toHaveProperty('modules');
         expect(Array.isArray(snapshot.pipes) && snapshot.pipes.length).toBeGreaterThan(0);
         expect(Array.isArray(snapshot.injectables) && snapshot.injectables.length).toBeGreaterThan(
             0
         );
         expect(Array.isArray(snapshot.interfaces) && snapshot.interfaces.length).toBeGreaterThan(0);
+    });
+
+    it('components reference shared style sources by key', () => {
+        const styleSources = snapshot.styleSources ?? {};
+        const keyed = (snapshot.components ?? []).filter(c => c.themeStyleSources?.length);
+        expect(keyed.length).toBeGreaterThan(0);
+        for (const component of keyed) {
+            for (const key of component.themeStyleSources ?? []) {
+                expect(typeof key).toBe('string');
+                expect(styleSources[key]?.content).toEqual(expect.any(String));
+                if (key.includes('#inline-')) {
+                    expect(key.startsWith(`${component.file}#inline-`)).toBe(true);
+                }
+            }
+        }
     });
 
     it('first component has the ExportComponent core fields', () => {

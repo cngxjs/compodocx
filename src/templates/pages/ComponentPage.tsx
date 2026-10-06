@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
+import AngularApiUtil from '../../utils/angular-api.util';
 import { BlockAccessors } from '../blocks/BlockAccessors';
 import { BlockDerivedState } from '../blocks/BlockDerivedState';
 import { BlockHostBindings } from '../blocks/BlockHostBindings';
@@ -114,7 +115,6 @@ const ComponentMetadata = (c: any): string => {
     rows.push(MetadataChipsRow('extends', (c.extends as string[]) ?? []));
     rows.push(MetadataChipsRow('implements', (c.implements as string[]) ?? []));
     rows.push(MetadataChipsRow('imports', c.imports ?? []));
-    rows.push(MetadataChipsRow('entryComponents', c.entryComponents ?? []));
 
     // Host directives stay in core metadata (they're component config, not runtime host bindings)
     if (c.hostDirectives?.length > 0) {
@@ -219,12 +219,10 @@ const InfoContent = (data: any): string => {
                     const injectProps = (c.propertiesClass ?? []).filter(
                         (p: any) => p.signalKind === 'inject'
                     );
-                    const ctorArgs = c.constructorObj?.args ?? [];
-                    return injectProps.length > 0 || ctorArgs.length > 0
+                    return injectProps.length > 0
                         ? DependenciesSection({
                               injectProps,
-                              constructorArgs: ctorArgs,
-                              constructorDescription: c.constructorObj?.description,
+                              constructorArgs: [],
                               depth: depth ?? 0
                           })
                         : '';
@@ -343,6 +341,25 @@ const ApiContent = (data: any): string => {
     ) as string;
 };
 
+const DECLARABLE_KINDS = new Set(['component', 'directive', 'pipe']);
+
+/**
+ * Graph node for one standalone import: a documented component, directive or
+ * pipe links to its page, an Angular API symbol to angular.dev, anything else
+ * stays unlinked.
+ */
+const importGraphNode = (
+    name: string,
+    base: string
+): { name: string; type: string; url: string | undefined } => {
+    const entry = Configuration.mainData.entityIndex?.[name];
+    if (entry && DECLARABLE_KINDS.has(entry.kind)) {
+        return { name, type: entry.kind, url: `${base}${entry.href}` };
+    }
+    const api = AngularApiUtil.findApi(name).data;
+    return { name, type: 'external', url: api ? `https://angular.dev/${api.path}` : undefined };
+};
+
 export const ComponentPage = (data: any): string => {
     const c = data.component;
     const depth = data.depth;
@@ -353,48 +370,14 @@ export const ComponentPage = (data: any): string => {
 
     const componentDepGraph = hasStandaloneImports
         ? (() => {
-              const allComponents = (data.components as any[]) ?? [];
-              const allDirectives = (data.directives as any[]) ?? [];
-              const allPipes = (data.pipes as any[]) ?? [];
-              const allModules = (data.modules as any[]) ?? [];
-              const allInjectables = (data.injectables as any[]) ?? [];
-              const entityMap = new Map<string, { type: string; url?: string }>();
-              for (const x of allComponents) {
-                  entityMap.set(x.name, {
-                      type: 'component',
-                      url: `${base}components/${x.name}.html`
-                  });
-              }
-              for (const x of allDirectives) {
-                  entityMap.set(x.name, {
-                      type: 'directive',
-                      url: `${base}directives/${x.name}.html`
-                  });
-              }
-              for (const x of allPipes) {
-                  entityMap.set(x.name, { type: 'pipe', url: `${base}pipes/${x.name}.html` });
-              }
-              for (const x of allModules) {
-                  entityMap.set(x.name, { type: 'module', url: `${base}modules/${x.name}.html` });
-              }
-              for (const x of allInjectables) {
-                  entityMap.set(x.name, {
-                      type: 'injectable',
-                      url: `${base}injectables/${x.name}.html`
-                  });
-              }
+              const names: string[] = c.imports.map((imp: any) =>
+                  typeof imp === 'string' ? imp : imp.name
+              );
               const nodes = [
                   { name: c.name, type: 'component', url: undefined },
-                  ...c.imports.map((imp: any) => {
-                      const n = typeof imp === 'string' ? imp : imp.name;
-                      const info = entityMap.get(n);
-                      return { name: n, type: info?.type ?? 'module', url: info?.url };
-                  })
+                  ...names.map(name => importGraphNode(name, base))
               ];
-              const edges = c.imports.map((imp: any) => ({
-                  source: c.name,
-                  target: typeof imp === 'string' ? imp : imp.name
-              }));
+              const edges = names.map(target => ({ source: c.name, target }));
               return { nodes, edges };
           })()
         : null;
@@ -447,11 +430,6 @@ export const ComponentPage = (data: any): string => {
                 <div class="cdx-entity-hero-badges">
                     <span class="cdx-badge cdx-badge--entity-component">Component</span>
                     {PrimaryBadge({ docsKind: c.docsKind })}
-                    {c.standalone && Configuration.mainData.hasNgModules ? (
-                        <span class="cdx-badge cdx-badge--standalone">Standalone</span>
-                    ) : (
-                        ''
-                    )}
                     {c.zoneless ? <span class="cdx-badge cdx-badge--zoneless">Zoneless</span> : ''}
                     {(() => {
                         const cd = String(c.changeDetection ?? '');

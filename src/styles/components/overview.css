@@ -6,7 +6,6 @@
     @apply max-w-[860px];
 }
 
-.module-graph-container,
 .cdx-overview-stats .cdx-graph-container {
     @apply mt-6 mb-2;
 }

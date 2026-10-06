@@ -5,7 +5,6 @@ import {
     registerCustomTemplate,
     renderCustomTemplate
 } from '../../../../src/app/engines/custom-template.engine';
-import DependenciesEngine from '../../../../src/app/engines/dependencies.engine';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import { Menu } from '../../../../src/templates/components/Menu';
 
@@ -66,20 +65,15 @@ const baseData = (overrides: Partial<MenuDataFixture>): MenuDataFixture => ({
 describe('Menu — feature layout', () => {
     const originalToggle = Configuration.mainData.toggleMenuItems;
     const originalCollapsedAll = Configuration.mainData.collapsedAll;
-    const originalModules = DependenciesEngine.modules;
 
     beforeEach(() => {
         Configuration.mainData.toggleMenuItems = ['features', 'references'];
         Configuration.mainData.collapsedAll = false;
-        // getAloneElements consults DependenciesEngine.modules; keep it empty so
-        // every component/directive in the fixture is treated as standalone.
-        DependenciesEngine.modules = [];
     });
 
     afterEach(() => {
         Configuration.mainData.toggleMenuItems = originalToggle;
         Configuration.mainData.collapsedAll = originalCollapsedAll;
-        DependenciesEngine.modules = originalModules;
         clearCustomTemplates();
     });
 
@@ -282,11 +276,10 @@ describe('Menu — feature layout', () => {
         expect(html).to.not.include('id="references-links"');
     });
 
-    it('still emits Modules / Additional Pages chapters in feature mode, hides Miscellaneous', () => {
+    it('emits the Additional Pages chapter but no Modules chapter in feature mode, hides Miscellaneous', () => {
         const html = Menu({
             data: baseData({
                 menuLayout: 'feature',
-                modules: [{ name: 'AppModule', id: 'm1' }],
                 miscellaneous: { variables: [{ name: 'X' }] },
                 additionalPages: [
                     {
@@ -310,7 +303,7 @@ describe('Menu — feature layout', () => {
                 }
             })
         });
-        expect(html).to.include('id="modules-links"');
+        expect(html).not.to.include('id="modules-links"');
         expect(html).to.include('id="additional-pages"');
         // Miscellaneous redundant in feature mode — everything moved into References.
         expect(html).to.not.include('id="miscellaneous-links"');
@@ -318,17 +311,11 @@ describe('Menu — feature layout', () => {
     });
 
     it('collapsedAll: true forces every chapter AND every nested folder closed', () => {
-        Configuration.mainData.toggleMenuItems = [
-            'features',
-            'references',
-            'modules',
-            'miscellaneous'
-        ];
+        Configuration.mainData.toggleMenuItems = ['features', 'references', 'miscellaneous'];
         Configuration.mainData.collapsedAll = true;
         const html = Menu({
             data: baseData({
                 menuLayout: 'feature',
-                modules: [{ name: 'AppModule', id: 'm1' }],
                 groupDepth: 4,
                 categorizedByFeaturePrimary: {
                     'features/admin-settings': [

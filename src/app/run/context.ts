@@ -10,13 +10,11 @@ import {
     CoveragePageGenerator,
     DirectivePageGenerator,
     EntityPageGenerator,
-    GraphGenerator,
     GuardPageGenerator,
     InjectablePageGenerator,
     InterceptorPageGenerator,
     InterfacePageGenerator,
     MiscellaneousPageGenerator,
-    ModulePageGenerator,
     NavTabsResolver,
     OverviewPageGenerator,
     PackageDependenciesPageGenerator,
@@ -42,7 +40,6 @@ export type RunMode = 'full' | 'coverage' | 'diff' | 'markdown' | 'includes';
 /** The page generators, created once per process and shared by every run. */
 export interface Generators {
     readonly component: ComponentPageGenerator;
-    readonly module: ModulePageGenerator;
     readonly directive: DirectivePageGenerator;
     readonly entity: EntityPageGenerator;
     readonly injectable: InjectablePageGenerator;
@@ -65,14 +62,12 @@ export interface Generators {
     readonly playgroundVendor: PlaygroundVendorResolver;
     readonly playgroundValidator: PlaygroundValidator;
     readonly pageWriter: PageWriter;
-    readonly graph: GraphGenerator;
 }
 
 export const createGenerators = (): Generators => {
     const navTabs = new NavTabsResolver();
     return {
         component: new ComponentPageGenerator(navTabs),
-        module: new ModulePageGenerator(navTabs),
         directive: new DirectivePageGenerator(navTabs),
         entity: new EntityPageGenerator(navTabs),
         injectable: new InjectablePageGenerator(navTabs),
@@ -94,8 +89,7 @@ export const createGenerators = (): Generators => {
         playgroundFiles: new PlaygroundFileResolver(),
         playgroundVendor: new PlaygroundVendorResolver(),
         playgroundValidator: new PlaygroundValidator(),
-        pageWriter: new PageWriter(),
-        graph: new GraphGenerator()
+        pageWriter: new PageWriter()
     };
 };
 

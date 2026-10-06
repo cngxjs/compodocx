@@ -182,7 +182,7 @@ export function detectFoldRegions(code: string): FoldRegion[] {
         });
     }
 
-    const decoratorPattern = /^@(Component|Directive|NgModule|Injectable|Pipe)\s*\(\s*\{/;
+    const decoratorPattern = /^@(Component|Directive|Injectable|Pipe)\s*\(\s*\{/;
     for (let i = 0; i < lines.length; i++) {
         const trimmed = lines[i].trim();
         const match = trimmed.match(decoratorPattern);

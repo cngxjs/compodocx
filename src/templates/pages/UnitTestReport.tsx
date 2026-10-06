@@ -41,7 +41,6 @@ const GROUP_META: Record<string, GroupMeta> = {
     interface: { label: 'Interfaces', badge: 'cdx-badge--entity-interface', order: 5 },
     guard: { label: 'Guards', badge: 'cdx-badge--entity-guard', order: 6 },
     interceptor: { label: 'Interceptors', badge: 'cdx-badge--entity-interceptor', order: 7 },
-    module: { label: 'Modules', badge: 'cdx-badge--entity-module', order: 8 },
     function: { label: 'Functions', badge: 'cdx-badge--entity-function', order: 9 },
     variable: { label: 'Variables', badge: 'cdx-badge--entity-variable', order: 10 },
     typealias: { label: 'Type Aliases', badge: 'cdx-badge--entity-typealias', order: 11 },

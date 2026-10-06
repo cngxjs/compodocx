@@ -1,12 +1,7 @@
 import * as crypto from 'node:crypto';
 import * as path from 'node:path';
 import { Project, SyntaxKind, ts } from 'ts-morph';
-import {
-    getModuleWithProviders,
-    isIgnore,
-    isModuleWithProviders,
-    JsdocParserUtil
-} from '../../../utils';
+import { isIgnore, JsdocParserUtil } from '../../../utils';
 import ExtendsMerger from '../../../utils/extends-merger.util';
 import { logger } from '../../../utils/logger';
 import { markedAcl } from '../../../utils/marked.acl';
@@ -29,10 +24,8 @@ import { DirectiveDepFactory } from '../angular/deps/directive-dep.factory';
 import { EntityDepFactory } from '../angular/deps/entity-dep.factory';
 import { ComponentCache } from '../angular/deps/helpers/component-helper';
 import { JsDocHelper } from '../angular/deps/helpers/js-doc-helper';
-import { ModuleHelper } from '../angular/deps/helpers/module-helper';
-import { SymbolHelper } from '../angular/deps/helpers/symbol-helper';
-import { ModuleDepFactory } from '../angular/deps/module-dep.factory';
 import { FrameworkDependencies } from '../framework-dependencies';
+import { type LegacyFinding, scanLegacy, sortLegacyFindings } from '../legacy-scan';
 import { EntityVisitor } from './entity-visitor';
 import { ExpressionFinder } from './expression-finder';
 import { IoExtractor } from './io-extractor';
@@ -47,9 +40,7 @@ const project = new Project();
 
 export class AngularDependencies extends FrameworkDependencies {
     private cache: ComponentCache = new ComponentCache();
-    private moduleHelper = new ModuleHelper(this.cache);
     private jsDocHelper = new JsDocHelper();
-    private symbolHelper = new SymbolHelper();
     private jsdocParserUtil = new JsdocParserUtil();
     private metadataPredicates = new MetadataPredicates();
     private jsdocTags = new JsdocTags(this.jsdocParserUtil);
@@ -73,8 +64,6 @@ export class AngularDependencies extends FrameworkDependencies {
     public getDependencies() {
         let deps = {
             aliases: {},
-            modules: [],
-            modulesForGraph: [],
             components: [],
             entities: [],
             injectables: [],
@@ -94,7 +83,8 @@ export class AngularDependencies extends FrameworkDependencies {
                 enumerations: []
             },
             routesTree: undefined,
-            appConfig: []
+            appConfig: [],
+            legacyFindings: [] as readonly LegacyFinding[]
         };
 
         const sourceFiles = this.program.getSourceFiles() || [];
@@ -113,95 +103,12 @@ export class AngularDependencies extends FrameworkDependencies {
                     this.getTypescriptExportsAliases(file, deps);
                     this.getTypescriptImportsAliases(file, deps);
                     this.getSourceFileDecorators(file, deps);
+                    deps.legacyFindings = [...deps.legacyFindings, ...scanLegacy(file)];
                 }
             }
 
             return deps;
         });
-
-        // End of file scanning
-        // Try merging inside the same file declarated variables & modules with imports | exports | declarations | providers
-
-        if (deps.miscellaneous.variables.length > 0) {
-            deps.miscellaneous.variables.forEach(_variable => {
-                const newVar = [];
-
-                // link ...VAR to VAR values, recursively
-                ((_var, _newVar) => {
-                    // getType pr reconstruire....
-                    const elementsMatcher = variabelToReplace => {
-                        if (variabelToReplace.initializer) {
-                            if (variabelToReplace.initializer.elements) {
-                                if (variabelToReplace.initializer.elements.length > 0) {
-                                    variabelToReplace.initializer.elements.forEach(element => {
-                                        // Direct value -> Kind 79
-                                        if (
-                                            element.text &&
-                                            element.kind === SyntaxKind.Identifier
-                                        ) {
-                                            newVar.push({
-                                                name: element.text,
-                                                type: this.symbolHelper.getType(element.text)
-                                            });
-                                        }
-                                        // if _variable is ArrayLiteralExpression 203
-                                        // and has SpreadElements in his elements
-                                        // merge them
-                                        if (
-                                            element.kind === SyntaxKind.SpreadElement &&
-                                            element.expression
-                                        ) {
-                                            const el = deps.miscellaneous.variables.find(
-                                                variable =>
-                                                    variable.name === element.expression.text
-                                            );
-                                            if (el) {
-                                                elementsMatcher(el);
-                                            }
-                                        }
-                                    });
-                                }
-                            }
-                        }
-                    };
-                    elementsMatcher(_var);
-                })(_variable, newVar);
-
-                const onLink = mod => {
-                    const process = (initialArray, _var) => {
-                        let indexToClean = 0;
-                        let found = false;
-                        const findVariableInArray = (el, index) => {
-                            if (el.name === _var.name) {
-                                indexToClean = index;
-                                found = true;
-                            }
-                        };
-                        initialArray.forEach(findVariableInArray);
-                        // Clean indexes to replace
-                        if (found) {
-                            initialArray.splice(indexToClean, 1);
-                            // Add variable
-                            newVar.forEach(newEle => {
-                                if (
-                                    typeof initialArray.find(el => el.name === newEle.name) ===
-                                    'undefined'
-                                ) {
-                                    initialArray.push(newEle);
-                                }
-                            });
-                        }
-                    };
-                    process(mod.imports, _variable);
-                    process(mod.exports, _variable);
-                    process(mod.declarations, _variable);
-                    process(mod.providers, _variable);
-                };
-
-                deps.modules.forEach(onLink);
-                deps.modulesForGraph.forEach(onLink);
-            });
-        }
 
         /**
          * If one thing extends another, merge them, only for internal sources
@@ -216,14 +123,12 @@ export class AngularDependencies extends FrameworkDependencies {
          * - methods
          */
         deps = ExtendsMerger.merge(deps);
+        deps.legacyFindings = sortLegacyFindings(deps.legacyFindings);
 
         // RouterParserUtil.printModulesRoutes();
         // RouterParserUtil.printRoutes();
 
         if (!Configuration.mainData.disableRoutesGraph) {
-            RouterParserUtil.linkModulesAndRoutes();
-            RouterParserUtil.constructModulesTree();
-
             deps.routesTree = RouterParserUtil.constructRoutesTree();
         }
 
@@ -257,7 +162,6 @@ export class AngularDependencies extends FrameworkDependencies {
             ...(IO.taggedSelector && { taggedSelector: IO.taggedSelector }),
             ...(IO.relatedTo && IO.relatedTo.length > 0 && { relatedTo: IO.relatedTo })
         };
-        let excludeFromClassArray = false;
 
         if (IO.constructor && !Configuration.mainData.disableConstructors) {
             deps.constructorObj = IO.constructor;
@@ -305,21 +209,11 @@ export class AngularDependencies extends FrameworkDependencies {
         }
         if (IO.implements && IO.implements.length > 0) {
             deps.implements = IO.implements;
-
-            if (this.metadataPredicates.isGuard(IO.implements)) {
-                // We don't want the Guard to show up in the Classes menu
-                excludeFromClassArray = true;
-                deps.type = 'guard';
-
-                outputSymbols.guards.push(deps);
-            }
         }
         if (typeof IO.ignore === 'undefined') {
             this.debug(deps);
 
-            if (!excludeFromClassArray) {
-                outputSymbols.classes.push(deps);
-            }
+            outputSymbols.classes.push(deps);
         } else {
             this.ignore(deps);
         }
@@ -477,28 +371,7 @@ export class AngularDependencies extends FrameworkDependencies {
                             astFile
                         );
 
-                        if (this.metadataPredicates.isModule(visitedDecorator)) {
-                            const moduleDep = new ModuleDepFactory(this.moduleHelper).create(
-                                file,
-                                srcFile,
-                                name,
-                                props,
-                                IO
-                            );
-                            if (RouterParserUtil.hasRouterModuleInImports(moduleDep.imports)) {
-                                RouterParserUtil.addModuleWithRoutes(
-                                    name,
-                                    this.moduleHelper.getModuleImportsRaw(props, srcFile),
-                                    file
-                                );
-                            }
-                            deps = moduleDep;
-                            if (typeof IO.ignore === 'undefined') {
-                                RouterParserUtil.addModule(name, moduleDep.imports);
-                                outputSymbols.modules.push(moduleDep);
-                                outputSymbols.modulesForGraph.push(moduleDep);
-                            }
-                        } else if (this.metadataPredicates.isComponent(visitedDecorator)) {
+                        if (this.metadataPredicates.isComponent(visitedDecorator)) {
                             if (props.length === 0) {
                                 return;
                             }
@@ -580,19 +453,8 @@ export class AngularDependencies extends FrameworkDependencies {
                             }
                             deps = injectableDeps;
                             if (typeof IO.ignore === 'undefined') {
-                                if (IO.implements.includes('HttpInterceptor')) {
-                                    injectableDeps.type = 'interceptor';
-                                    outputSymbols.interceptors.push(injectableDeps);
-                                } else if (this.metadataPredicates.isGuard(IO.implements)) {
-                                    injectableDeps.type = 'guard';
-                                    outputSymbols.guards.push(injectableDeps);
-                                } else {
-                                    injectableDeps.type = 'injectable';
-                                    this.addNewEntityInStore(
-                                        injectableDeps,
-                                        outputSymbols.injectables
-                                    );
-                                }
+                                injectableDeps.type = 'injectable';
+                                this.addNewEntityInStore(injectableDeps, outputSymbols.injectables);
                             }
                         } else if (this.metadataPredicates.isPipe(visitedDecorator)) {
                             const pipeDeps: IPipeDep = {
@@ -675,7 +537,7 @@ export class AngularDependencies extends FrameworkDependencies {
 
                     const filterByDecorators = filteredNode => {
                         if (filteredNode.expression?.expression) {
-                            let _test = /(NgModule|Component|Injectable|Pipe|Directive)/.test(
+                            let _test = /(Component|Injectable|Pipe|Directive)/.test(
                                 filteredNode.expression.expression.text
                             );
                             if (!_test && ts.isClassDeclaration(node)) {
@@ -955,68 +817,6 @@ export class AngularDependencies extends FrameworkDependencies {
                     if (ts.isClassDeclaration(node)) {
                         this.processClass(node, file, srcFile, outputSymbols, fileBody, astFile);
                     }
-                    if (ts.isExpressionStatement(node) || ts.isIfStatement(node)) {
-                        const bootstrapModuleReference = 'bootstrapModule';
-                        // Find the root module with bootstrapModule call
-                        // 1. find a simple call : platformBrowserDynamic().bootstrapModule(AppModule);
-                        // 2. or inside a call :
-                        // () => {
-                        //     platformBrowserDynamic().bootstrapModule(AppModule);
-                        // });
-                        // 3. with a catch : platformBrowserDynamic().bootstrapModule(AppModule).catch(error => console.error(error));
-                        // 4. with parameters : platformBrowserDynamic().bootstrapModule(AppModule, {}).catch(error => console.error(error));
-                        // Find recusively in expression nodes one with name 'bootstrapModule'
-                        let rootModule;
-                        let resultNode;
-                        if (srcFile.text.indexOf(bootstrapModuleReference) !== -1) {
-                            if (node.expression) {
-                                resultNode =
-                                    this.expressionFinder.findExpressionByNameInExpressions(
-                                        node.expression,
-                                        'bootstrapModule'
-                                    );
-                            }
-                            if (typeof (node as any).thenStatement !== 'undefined') {
-                                if (
-                                    (node as any).thenStatement.statements &&
-                                    (node as any).thenStatement.statements.length > 0
-                                ) {
-                                    const firstStatement = (node as any).thenStatement
-                                        .statements[0];
-                                    resultNode =
-                                        this.expressionFinder.findExpressionByNameInExpressions(
-                                            firstStatement.expression,
-                                            'bootstrapModule'
-                                        );
-                                }
-                            }
-                            if (!resultNode) {
-                                if (
-                                    node.expression &&
-                                    (node.expression as any).arguments &&
-                                    (node.expression as any).arguments.length > 0
-                                ) {
-                                    resultNode =
-                                        this.expressionFinder.findExpressionByNameInExpressionArguments(
-                                            (node.expression as any).arguments,
-                                            'bootstrapModule'
-                                        );
-                                }
-                            }
-                            if (resultNode) {
-                                if (resultNode.arguments.length > 0) {
-                                    resultNode.arguments.forEach((argument: any) => {
-                                        if (argument.text) {
-                                            rootModule = argument.text;
-                                        }
-                                    });
-                                }
-                                if (rootModule) {
-                                    RouterParserUtil.setRootModule(rootModule);
-                                }
-                            }
-                        }
-                    }
                     if (ts.isVariableStatement(node)) {
                         const isRoutesVariable = RouterParserUtil.isVariableRoutes(node);
                         // Process all variables, including exported routes variables for miscellaneous
@@ -1257,16 +1057,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                         deps.functionalKind = functionalKind;
                                     }
 
-                                    if (isModuleWithProviders(variableNode)) {
-                                        const routingInitializer =
-                                            getModuleWithProviders(variableNode);
-                                        RouterParserUtil.addModuleWithRoutes(
-                                            name,
-                                            [routingInitializer],
-                                            file
-                                        );
-                                        RouterParserUtil.addModule(name, [routingInitializer]);
-                                    }
                                     if (!isIgnore(variableNode)) {
                                         // Check if variable is allowed by public API filter
                                         if (!this.publicApiFilter.isSymbolAllowed(name, file)) {

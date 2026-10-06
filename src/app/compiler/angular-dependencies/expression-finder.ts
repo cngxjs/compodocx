@@ -3,48 +3,6 @@ import ImportsUtil from '../../../utils/imports.util';
 import { logger } from '../../../utils/logger';
 
 export class ExpressionFinder {
-    public findExpressionByNameInExpressions(entryNode, name) {
-        let result;
-        const loop = (node, z) => {
-            if (node) {
-                if (node.expression && !node.expression.name) {
-                    loop(node.expression, z);
-                }
-                if (node.expression?.name) {
-                    if (node.expression.name.text === z) {
-                        result = node;
-                    } else {
-                        loop(node.expression, z);
-                    }
-                }
-            }
-        };
-        loop(entryNode, name);
-        return result;
-    }
-
-    public findExpressionByNameInExpressionArguments(arg, name) {
-        let result;
-
-        let i = 0;
-        const len = arg.length;
-        const loop = (node, z) => {
-            if (node.body) {
-                if (node.body.statements && node.body.statements.length > 0) {
-                    let j = 0;
-                    const leng = node.body.statements.length;
-                    for (j; j < leng; j++) {
-                        result = this.findExpressionByNameInExpressions(node.body.statements[j], z);
-                    }
-                }
-            }
-        };
-        for (i; i < len; i++) {
-            loop(arg[i], name);
-        }
-        return result;
-    }
-
     public getSymboleName(node): string {
         return node.name.text;
     }

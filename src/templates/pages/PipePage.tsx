@@ -32,7 +32,6 @@ export const PipePage = (data: any): string =>
         showMethods: true,
         showProperties: true,
         contextLine: data.pipe?.name ? `{{ value | ${data.pipe.name} }}` : undefined,
-        showStandaloneBadge: true,
         showJsdocBadges: true,
         relationships: data.relationships
     });

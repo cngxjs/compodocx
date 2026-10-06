@@ -25,7 +25,7 @@ A fork of [compodoc](https://github.com/compodoc/compodoc) focused on modern Ang
 ## Requirements
 
 - Node.js 22 or newer
-- An Angular project with a `tsconfig.json` (Angular 17+; tested against 20 / 21)
+- An Angular project with a `tsconfig.json` (Angular 21+, standalone code; tested against 21)
 
 ## Install
 
@@ -105,7 +105,7 @@ The dev watcher rebuilds the docs site for one of the bundled fixtures whenever 
 
 ```bash
 npm run dev          # standalone fixture, port 8081
-npm run dev:module   # NgModule fixture, port 8080
+npm run dev:module   # legacy NgModule fixture (legacy notice only), port 8080
 ```
 
 Issues and pull requests welcome at [github.com/cngxjs/compodocx](https://github.com/cngxjs/compodocx).
