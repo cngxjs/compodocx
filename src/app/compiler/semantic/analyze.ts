@@ -4,6 +4,7 @@ import type { ts } from 'ts-morph';
 
 import { mapResult, type Result } from '../../../lib';
 import { collectDeclarations, type Declaration } from './declarations';
+import { analyzeDi, type DiAnalysis } from './di-facts';
 import {
     barrelExports,
     type ExportFacts,
@@ -49,13 +50,22 @@ const rootSourceFiles = (program: ts.Program): readonly ts.SourceFile[] =>
         .map(file => program.getSourceFile(file))
         .filter((sf): sf is ts.SourceFile => sf !== undefined);
 
-const symbolFacts = (declaration: Declaration, exportFacts: ExportFacts): SymbolFacts => ({
-    key: declaration.key,
-    entryPoint: exportFacts.entryPoint,
-    exportedBy: exportFacts.exportedBy,
-    notExported: exportFacts.notExported,
-    usedBy: []
-});
+const symbolFacts = (
+    declaration: Declaration,
+    exportFacts: ExportFacts,
+    di: DiAnalysis
+): SymbolFacts => {
+    const key = factKey(declaration.key);
+    return {
+        key: declaration.key,
+        entryPoint: exportFacts.entryPoint,
+        exportedBy: exportFacts.exportedBy,
+        notExported: exportFacts.notExported,
+        di: di.di.get(key),
+        token: di.tokens.get(key),
+        usedBy: []
+    };
+};
 
 /** Derive the facts of every top-level declaration of the root files. */
 export const buildSemanticModel = (
@@ -72,8 +82,11 @@ export const buildSemanticModel = (
         cwd
     );
     const exported = barrelExports(program, checker, entryPoints);
+    const declarations = collectDeclarations(sourceFiles, checker, cwd);
+    const rootFiles = new Set(sourceFiles);
+    const di = analyzeDi(declarations, checker, sourceFile => rootFiles.has(sourceFile));
     const facts = new Map<string, SymbolFacts>();
-    for (const declaration of collectDeclarations(sourceFiles, checker, cwd)) {
+    for (const declaration of declarations) {
         const key = factKey(declaration.key);
         if (facts.has(key)) {
             continue;
@@ -81,7 +94,11 @@ export const buildSemanticModel = (
         const fileName = declaration.node.getSourceFile().fileName;
         facts.set(
             key,
-            symbolFacts(declaration, exportFactsOf(declaration, fileName, entryPoints, exported))
+            symbolFacts(
+                declaration,
+                exportFactsOf(declaration, fileName, entryPoints, exported),
+                di
+            )
         );
     }
     const notExported = [...facts.values()].filter(f => f.notExported).length;
@@ -90,9 +107,13 @@ export const buildSemanticModel = (
         facts,
         summary: {
             entryPoints: entryPoints.length,
-            providers: 0,
-            features: 0,
-            injectionContext: { direct: 0, viaCall: 0, unresolved: 0 },
+            providers: di.counts.providers,
+            features: di.counts.features,
+            injectionContext: {
+                direct: di.counts.direct,
+                viaCall: di.counts.viaCall,
+                unresolved: di.counts.unresolved
+            },
             notExported
         }
     };

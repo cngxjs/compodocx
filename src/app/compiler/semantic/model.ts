@@ -70,6 +70,16 @@ export interface SemanticModel {
     readonly summary: SemanticSummary;
 }
 
+/** The one-line build log summary of the semantic stage. */
+export const formatSemanticSummary = (summary: SemanticSummary): string => {
+    const { direct, viaCall, unresolved } = summary.injectionContext;
+    return (
+        `Semantic analysis: ${summary.entryPoints} entry points, ${summary.providers} providers, ` +
+        `${summary.features} feature functions, ${direct}+${viaCall} use the injection context ` +
+        `(${unresolved} unresolved), ${summary.notExported} exported symbols reach no entry point`
+    );
+};
+
 export const factKey = (key: SymbolKey): string => `${key.file}#${key.name}`;
 
 export const compareKeys = (a: SymbolKey, b: SymbolKey): number =>

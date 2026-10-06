@@ -6,7 +6,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import RouterParserUtil from '../../utils/router-parser.util';
 import { formatLegacyNotice } from '../compiler/legacy-scan';
-import { analyzeProject } from '../compiler/semantic';
+import { analyzeProject, formatSemanticSummary } from '../compiler/semantic';
 import DependenciesEngine from '../engines/dependencies.engine';
 import ExportEngine from '../engines/export.engine';
 import FileEngine from '../engines/file.engine';
@@ -214,6 +214,9 @@ const withSemantic = (ctx: RunContext): RunContext => {
         return { ...ctx, semantic: undefined };
     }
     mainData.semantic = analyzed.value.model;
+    if (ctx.mode !== 'diff') {
+        logger.info(formatSemanticSummary(analyzed.value.model.summary));
+    }
     return { ...ctx, semantic: analyzed.value };
 };
 
