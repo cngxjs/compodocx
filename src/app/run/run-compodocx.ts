@@ -64,7 +64,12 @@ export const runSession = async (
     mode: 'full' | 'coverage'
 ): Promise<RunOutcome> => {
     const ctx = createRunContext(
-        { config: session.config, files: session.files ?? [], generators: session.generators },
+        {
+            config: session.config,
+            files: session.files ?? [],
+            generators: session.generators,
+            semantic: session.semantic
+        },
         mode
     );
     const result = await generateAndServe(session, ctx);

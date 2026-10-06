@@ -6,6 +6,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import RouterParserUtil from '../../utils/router-parser.util';
 import { formatLegacyNotice } from '../compiler/legacy-scan';
+import { analyzeProject } from '../compiler/semantic';
 import DependenciesEngine from '../engines/dependencies.engine';
 import ExportEngine from '../engines/export.engine';
 import FileEngine from '../engines/file.engine';
@@ -191,7 +192,33 @@ const printStatistics = (ctx: RunContext): void => {
     logger.info('-------------------');
 };
 
-const crawl: Stage = async ctx => {
+/**
+ * Build the project-wide program and its facts. A failure is logged once and
+ * leaves the run without semantic facts; it never stops the generation.
+ */
+const withSemantic = (ctx: RunContext): RunContext => {
+    const { mainData } = ctx.config;
+    if (!mainData.tsconfig) {
+        mainData.semantic = undefined;
+        return { ...ctx, semantic: undefined };
+    }
+    const analyzed = analyzeProject({
+        tsconfigPath: path.resolve(cwd, mainData.tsconfig),
+        files: ctx.files,
+        cwd,
+        previous: ctx.semantic
+    });
+    if (!analyzed.ok) {
+        logger.warn(`Semantic analysis skipped: ${analyzed.message}`);
+        mainData.semantic = undefined;
+        return { ...ctx, semantic: undefined };
+    }
+    mainData.semantic = analyzed.value.model;
+    return { ...ctx, semantic: analyzed.value };
+};
+
+const crawl: Stage = async current => {
+    const ctx = withSemantic(current);
     const { mainData } = ctx.config;
     logger.info('Get dependencies data');
 
@@ -232,7 +259,8 @@ const crawl: Stage = async ctx => {
     return proceed(ctx);
 };
 
-const microCrawl: Stage = async ctx => {
+const microCrawl: Stage = async current => {
+    const ctx = withSemantic(current);
     logger.info('Get diff dependencies data');
 
     ctx.config.mainData.angularProject = true;

@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { err, isErr, ok, type Result } from '../../lib';
 import { logger } from '../../utils/logger';
 import { cleanSourcesForWatch, findMainSourceFolder } from '../../utils/utils';
+import type { SemanticState } from '../compiler/semantic';
 import MarkdownEngine from '../engines/markdown.engine';
 import { startWebServer } from '../services/serve';
 import { createRunContext, type RunBase, type RunContext, type RunMode } from './context';
@@ -15,10 +16,12 @@ const cwd = process.cwd();
  * Process-wide state of one compodocx invocation: what every run shares,
  * whether chokidar is running, and who decides on a halt during watch mode.
  */
-export interface Session extends Omit<RunBase, 'files'> {
+export interface Session extends Omit<RunBase, 'files' | 'semantic'> {
     /** Undefined when only serving an existing folder (`-s` without `-p`). */
     readonly files: readonly string[] | undefined;
     isWatching: boolean;
+    /** Semantic state of the last finished run; the next rebuild reuses its program. */
+    semantic?: SemanticState;
     /** Called when a halt during watch mode ends the process. */
     readonly onWatchHalt: (stopped: Halt) => void;
 }
@@ -45,7 +48,8 @@ export const haltEndsWatch = (mode: RunMode, stopped: Halt): boolean => {
 const runBase = (session: Session): RunBase => ({
     config: session.config,
     files: session.files ?? [],
-    generators: session.generators
+    generators: session.generators,
+    semantic: session.semantic
 });
 
 /**
@@ -60,6 +64,7 @@ export const generateAndServe = async (
     if (isErr(result)) {
         return err(result.message);
     }
+    session.semantic = result.value.semantic;
     const { mainData } = ctx.config;
     if (!mainData.serve) {
         return ok('generated');
