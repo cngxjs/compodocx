@@ -64,6 +64,26 @@ Controls where and how the documentation is generated.
 | versionsRoot | `--versionsRoot <path>` | string | the `-d` folder | Where `versions.json` is read from / written to. Override when CI builds each version separately and stitches the deploys together later. |
 | maxVersionsShown | `--maxVersionsShown <n>` | number | `10` | Cap on how many entries the switcher dropdown shows. `0` is unlimited. The manifest is always written in full — this is presentation-only. Range 0–1000. |
 
+### Semantic fields in the JSON export
+
+With `-e json`, every symbol entry (components, directives, classes, injectables, tokens, interfaces, pipes, guards, interceptors and the miscellaneous functions, variables, type aliases and enumerations) can carry facts from a project-wide analysis of the `-p` tsconfig (its `extends`, `paths` and `baseUrl` included). All fields are optional; an empty list or a `false` flag is never written, so a symbol without facts looks exactly as before. The HTML output does not show them.
+
+| Field | Type | Meaning |
+|-|-|-|
+| `entryPoint` | string | Import path of the nearest entry point that exports the symbol |
+| `exportedBy` | string[] | Import paths of every entry point that exports the symbol, sorted |
+| `notExported` | `true` | Exported from its file, inside an entry point, but reachable from no entry point. Symbols tagged `@internal` are never flagged |
+| `usedBy` | `{ name, file }[]` | Top-level declarations of the same project that reference the symbol |
+| `di.role` | `'provider'` \| `'feature'` | Provider: annotated return type `Provider`, `EnvironmentProviders`, an array or a union of them. Feature: returns the type a provider accepts as its rest parameter (`...features: T[]`), matched by name |
+| `di.featureType` | `{ name, file }` | The feature type of a provider or feature function; providers sharing it belong together |
+| `di.providesTokens` | `{ name, file }[]` | Tokens in `provide:` entries of a provider, plus those of providers it calls |
+| `di.readsTokens` | `{ name, file }[]` | Tokens read with `inject()`, directly or through one called helper |
+| `di.usesInjectionContext` | `'direct'` \| `'call'` | Calls `inject()` or an Angular API that needs an injection context (`effect`, `toSignal`, `takeUntilDestroyed`, ... without an injector), directly or through exactly one called function, method or constructor |
+| `token.shape` | string | Type argument of an `InjectionToken`/`HttpContextToken`: `interface`, `signal`, `function`, `primitive`, `union` or `other` |
+| `token.providedBy` / `token.injectedBy` | `{ name, file }[]` | Providers that provide the token / symbols that read it |
+
+Entry points are the `ng-package.json` entry files below the workspace, plus tsconfig `paths` targets without a wildcard that re-export from other files (`export ... from`). The top-level `semantic` object lists them (`importPath`, `file`, `source`) with the counts of the analysis, which the build log also prints as one `Semantic analysis:` line. Every `file` is relative to the working directory. `schemaVersion` stays `3`.
+
 ## Serving
 
 Compodocx includes a built-in dev server for previewing documentation locally.

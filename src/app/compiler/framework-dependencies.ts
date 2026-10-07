@@ -23,7 +23,7 @@ export class FrameworkDependencies {
         this.program = ts.createProgram(
             this.files,
             transpileOptions,
-            compilerHost(transpileOptions)
+            compilerHost(transpileOptions, options.sharedSourceFile)
         );
         this.typeChecker = this.program.getTypeChecker();
         this.classHelper = new ClassHelper(this.typeChecker);

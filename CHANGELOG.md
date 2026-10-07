@@ -11,6 +11,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 ### Added
 
 - **Legacy notice.** compodocx documents Angular 21+ standalone code only. A full run now warns with the number of legacy constructs it skipped (NgModules, `@Input`/`@Output`/`@HostBinding`/`@HostListener` members, constructor injection, class guards/interceptors/resolvers, `standalone: false`, `RouterModule.forRoot/forChild`, string `loadChildren` and similar) and lists their locations per kind. The exit code is unchanged.
+- **Semantic facts in the JSON export.** compodocx now analyses the whole project through the `-p` tsconfig (`extends`, `paths` and `baseUrl` included) and adds optional fields to every symbol in `documentation.json`: the entry point that exports it (`entryPoint`, `exportedBy`), whether an exported symbol is reachable from no entry point (`notExported`), who uses it (`usedBy`), its dependency injection role (`di`: provider or feature function, feature type, tokens provided and read, whether it needs an injection context) and, for injection tokens, the shape of the token type (`token`). A top-level `semantic` object lists the entry points (`ng-package.json` entry files and barrel-shaped tsconfig `paths` targets) and the counts, which the build log prints as one `Semantic analysis:` line. Symbols without facts are written as before, the HTML output is unchanged and the schema version stays 3. See the export section in [docs/configuration.md](docs/configuration.md).
 
 ### Changed
 
@@ -31,6 +32,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ### Fixed
 
+- **Injected fields with a type argument.** A class field initialised with `inject<T>(X)` (for example `inject<TemplateRef<Ctx>>(TemplateRef)`) was not recognised as injected, so it showed no `inject()` badge, an `unknown` type and no entry in the Dependencies section. `inject()` is now detected from the syntax tree, including type arguments, chained calls and aliased or namespace imports of `inject`.
 - **Functional resolvers are no longer dropped.** An exported const typed as `ResolveFn<T>` was recognised as a functional resolver but then stored nowhere, so it was missing from the docs and the JSON export. It is now listed under miscellaneous variables with `functionalKind: 'resolver'`.
 - **`@Injectable({ providedIn })` is extracted.** The value was never read from the decorator, so every service was labelled `Service` and the `providedIn` context line never rendered. Services provided in `'root'` or `'platform'` now show as singleton services. String values are stored without quotes for both services and injection tokens (tokens previously kept the source quotes, e.g. `"'root'"` in the JSON export); pages still render the literal in single quotes.
 - **Type links on miscellaneous detail pages.** Links in signatures, parameter lists, return types and type definitions on `miscellaneous/<collection>/<name>.html` pages pointed one directory too shallow and were broken. They now resolve at the page's depth; links on all other pages are unchanged.

@@ -121,7 +121,69 @@ export interface ExportIndexSignature {
     returnType?: string;
 }
 
-export interface ExportEntityCommon {
+/** A top-level declaration of the same run; `file` is relative to the working directory. */
+export interface ExportSymbolRef {
+    name: string;
+    file: string;
+}
+
+export interface ExportDiFacts {
+    role?: 'provider' | 'feature';
+    /** Feature type a provider accepts or a feature function returns. */
+    featureType?: ExportSymbolRef;
+    providesTokens?: ExportSymbolRef[];
+    readsTokens?: ExportSymbolRef[];
+    usesInjectionContext?: 'direct' | 'call';
+}
+
+export type ExportTokenShape =
+    | 'interface'
+    | 'signal'
+    | 'function'
+    | 'primitive'
+    | 'union'
+    | 'other';
+
+export interface ExportTokenFacts {
+    shape: ExportTokenShape;
+    providedBy?: ExportSymbolRef[];
+    injectedBy?: ExportSymbolRef[];
+}
+
+/**
+ * Facts from the project-wide semantic analysis, on every symbol entry.
+ * Absent fields mean "no fact": empty lists and `false` are never written.
+ */
+export interface ExportSemanticFacts {
+    /** Import path of the nearest barrel that exports the symbol. */
+    entryPoint?: string;
+    /** Import paths of every barrel that exports the symbol, sorted. */
+    exportedBy?: string[];
+    /** Exported from its file, inside an entry point, but in no barrel. */
+    notExported?: true;
+    usedBy?: ExportSymbolRef[];
+    di?: ExportDiFacts;
+    token?: ExportTokenFacts;
+}
+
+export interface ExportSemanticSummary {
+    entryPoints: number;
+    providers: number;
+    features: number;
+    injectionContext: { direct: number; viaCall: number; unresolved: number };
+    notExported: number;
+}
+
+export interface ExportSemantic {
+    entryPoints: {
+        importPath: string;
+        file: string;
+        source: 'ng-package' | 'tsconfig-paths';
+    }[];
+    summary: ExportSemanticSummary;
+}
+
+export interface ExportEntityCommon extends ExportSemanticFacts {
     id?: string;
     name: string;
     file?: string;
@@ -272,7 +334,7 @@ export interface ExportInterface extends ExportEntityCommon {
     jsdoctags?: JsdocTagInterface[];
 }
 
-export interface ExportFunction {
+export interface ExportFunction extends ExportSemanticFacts {
     name: string;
     file?: string;
     ctype?: string;
@@ -294,7 +356,7 @@ export interface ExportEnumMember {
     deprecationMessage?: string;
 }
 
-export interface ExportEnumeration {
+export interface ExportEnumeration extends ExportSemanticFacts {
     name: string;
     file?: string;
     ctype?: string;
@@ -306,7 +368,7 @@ export interface ExportEnumeration {
     childs?: ExportEnumMember[];
 }
 
-export interface ExportTypeAlias {
+export interface ExportTypeAlias extends ExportSemanticFacts {
     name: string;
     file?: string;
     ctype?: string;
@@ -319,7 +381,7 @@ export interface ExportTypeAlias {
     kind?: number;
 }
 
-export interface ExportVariable {
+export interface ExportVariable extends ExportSemanticFacts {
     name: string;
     file?: string;
     ctype?: string;
@@ -420,6 +482,11 @@ export interface ExportData {
      * component lists its keys in `themeStyleSources`.
      */
     styleSources?: Record<string, ExportStyleSource>;
+    /**
+     * Entry points and counts of the semantic analysis. Absent when the
+     * analysis did not run (no tsconfig, or the tsconfig could not be read).
+     */
+    semantic?: ExportSemantic;
 }
 
 export interface ExportStyleSource {

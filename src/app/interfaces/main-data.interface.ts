@@ -1,3 +1,4 @@
+import type { SemanticModel } from '../compiler/semantic/model';
 import type { FileRefBundle, VendorPackage } from '../engines/stackblitz';
 import type { CoverageData } from './coverageData.interface';
 
@@ -259,4 +260,6 @@ export interface MainDataInterface {
     referencesName: string;
     collapsedAll: boolean;
     generatedAt: string;
+    /** Facts of the semantic stage; absent when the stage did not run or failed. */
+    semantic?: SemanticModel;
 }

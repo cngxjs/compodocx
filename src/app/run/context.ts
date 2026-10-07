@@ -1,4 +1,5 @@
 import type { Result } from '../../lib';
+import type { SemanticState } from '../compiler/semantic';
 import type Configuration from '../configuration';
 import {
     AdditionalPageGenerator,
@@ -107,6 +108,11 @@ export interface RunContext {
     /** Crawl result of the changed files, set by the micro-crawl phase. */
     readonly diff?: DependenciesData;
     /**
+     * Project-wide program and semantic facts. Set by the crawl phases; holds
+     * the previous run's state until then, so a rebuild can reuse its program.
+     */
+    readonly semantic?: SemanticState;
+    /**
      * Watch rebuilds only: called once the output phase has started writing
      * HTML, so the watcher can reset its changed-file buffer.
      */
@@ -118,6 +124,8 @@ export interface RunBase {
     readonly config: typeof Configuration;
     readonly files: readonly string[];
     readonly generators: Generators;
+    /** Semantic state of the previous run, if any. */
+    readonly semantic?: SemanticState;
 }
 
 export const createRunContext = (
@@ -132,6 +140,7 @@ export const createRunContext = (
     updatedFiles,
     startTime: Date.now(),
     generators: base.generators,
+    semantic: base.semantic,
     onEmitStart
 });
 
