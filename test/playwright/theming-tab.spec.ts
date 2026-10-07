@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test';
+import { pageUrl } from './pages';
 
 // E2E coverage for the Theming tab. Standalone fixture (port 4002), target:
 // LoadingSpinnerComponent — annotated with @overview + five @property tokens
 // across two @groups, plus one deprecated entry.
 
-const COMPONENT_PAGE = '/components/LoadingSpinnerComponent.html';
-const PLAIN_PAGE = '/components/AppComponent.html';
+const COMPONENT_PAGE = pageUrl('component', 'LoadingSpinnerComponent');
+const PLAIN_PAGE = pageUrl('component', 'AppComponent');
 
 test.describe('Theming tab — visibility', () => {
     test('appears in the tab bar when a component has documented tokens', async ({ page }) => {

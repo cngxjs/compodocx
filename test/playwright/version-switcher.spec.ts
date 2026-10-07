@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pageUrl } from './pages';
 
 // Multi-version fixture — port 4003.
 //   v1.0.0 = sample-files/tsconfig.entry.json (no Bar*)
@@ -53,7 +54,7 @@ test.describe('VersionSwitcher — navigation', () => {
         // BarComponent exists in v2.0.0 (full tsconfig) but NOT in v1.0.0
         // (entry tsconfig only ships foo.*). The HEAD fetch returns 404 in
         // v1.0.0 and the switcher falls back to /v1.0.0/.
-        await page.goto('/v2.0.0/components/BarComponent.html');
+        await page.goto(`/v2.0.0${pageUrl('component', 'BarComponent')}`);
         await page.locator('.cdx-content-actions .cdx-version-switcher-trigger').click();
         await page.locator('[data-cdx-target-label="v1.0.0"]').first().click();
         await page.waitForURL(/\/v1\.0\.0\//);

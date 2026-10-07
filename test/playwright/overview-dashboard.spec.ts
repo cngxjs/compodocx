@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pageUrl } from './pages';
 
 test.describe('Overview Dashboard', () => {
     test.describe('Hero', () => {
@@ -289,7 +290,7 @@ test.describe('Overview Dashboard', () => {
 
     test.describe('DOM Tree Styling', () => {
         test('DOM tree nodes use entity-color tokens', async ({ page }) => {
-            await page.goto('/components/TodoComponent.html');
+            await page.goto(pageUrl('component', 'TodoComponent'));
             await page.getByRole('tab', { name: 'DOM Tree' }).click();
             // Wait for D3 render
             await page.waitForSelector('#tree-container svg', { timeout: 5000 });
@@ -298,7 +299,7 @@ test.describe('Overview Dashboard', () => {
         });
 
         test('tree legend uses entity-color classes', async ({ page }) => {
-            await page.goto('/components/TodoComponent.html');
+            await page.goto(pageUrl('component', 'TodoComponent'));
             await page.getByRole('tab', { name: 'DOM Tree' }).click();
             // Scope to DOM Tree tab panel to avoid matching other .cdx-graph-legend instances
             const treePanel = page.locator('#tree');
