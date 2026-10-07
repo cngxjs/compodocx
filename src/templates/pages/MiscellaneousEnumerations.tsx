@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { MISC_COLLECTION } from '../../app/links/layout';
 import { BlockEnum } from '../blocks/BlockEnum';
 import { IndexMisc } from '../blocks/IndexMisc';
 import { MiscHero } from '../blocks/MiscHero';
@@ -23,7 +24,10 @@ export const MiscellaneousEnumerations = (props: MiscEnumerationsProps): string 
                     <h3 class="cdx-section-heading" title={key}>
                         {shortPath(key)}
                     </h3>
-                    {TaggedDetailLinks({ items: enums as any[], plural: 'enumerations' })}
+                    {TaggedDetailLinks({
+                        items: enums as any[],
+                        plural: MISC_COLLECTION.enumeration
+                    })}
                     {BlockEnum({ enums, depth: props.depth })}
                 </div>
             ))}

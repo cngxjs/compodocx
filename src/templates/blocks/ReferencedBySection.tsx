@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import { pageFile, relativePrefix } from '../../app/links/layout';
 import { t } from '../helpers';
 
 /** Entry rendered as a chip in the Referenced by list. */
@@ -16,8 +17,7 @@ export interface ReferencedByEntry {
  * (`miscellaneous/functions/foo.html`); depth is supplied by the page.
  */
 function referencedByHref(entry: ReferencedByEntry, depth: number): string {
-    const prefix = depth > 0 ? '../'.repeat(depth) : '';
-    return `${prefix}${entry.hrefPrefix}/${entry.name}.html`;
+    return `${relativePrefix(Math.max(depth, 0), 'bare')}${pageFile(entry.hrefPrefix, entry.name)}`;
 }
 
 /**

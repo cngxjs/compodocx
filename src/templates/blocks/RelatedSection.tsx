@@ -1,8 +1,10 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import DependenciesEngine from '../../app/engines/dependencies.engine';
+import { hrefFor, hrefText, isMiscKind } from '../../app/links/layout';
+import { targetOfData } from '../../app/links/resolve';
 import { logger } from '../../utils/logger';
-import { relativeUrl, t } from '../helpers';
+import { t } from '../helpers';
 
 /**
  * Renders the `@relatedTo` JSDoc tag as a Related section: chip-list of
@@ -17,47 +19,24 @@ import { relativeUrl, t } from '../helpers';
 
 type RelatedEntry = { name: string; href?: string };
 
-const KIND_HREF_PREFIX: Record<string, string> = {
-    component: 'components',
-    directive: 'directives',
-    pipe: 'pipes',
-    injectable: 'injectables',
-    token: 'tokens',
-    class: 'classes',
-    interface: 'interfaces',
-    guard: 'guards',
-    interceptor: 'interceptors',
-    entity: 'entities'
-};
+const isTagged = (data: { category?: unknown }): boolean =>
+    typeof data.category === 'string' && data.category.trim() !== '';
 
-const MISC_PLURAL: Record<string, string> = {
-    function: 'functions',
-    variable: 'variables',
-    typealias: 'typealiases',
-    enum: 'enumerations',
-    enumeration: 'enumerations'
-};
-
-const resolveEntry = (name: string, base: string): RelatedEntry => {
+const resolveEntry = (name: string, depth: number): RelatedEntry => {
     const hit = DependenciesEngine.findInCompodoc(name);
     if (hit && typeof hit !== 'boolean') {
-        const e = hit as any;
-        if (e.ctype === 'miscellaneous') {
-            const plural = MISC_PLURAL[e.subtype] ?? `${e.subtype}s`;
-            const tagged = typeof e.category === 'string' && e.category.trim() !== '';
-            if (tagged) {
-                return { name, href: `${base}miscellaneous/${plural}/${name}.html` };
-            }
-            return { name, href: `${base}miscellaneous/${plural}.html#${name}` };
+        const target = targetOfData(hit);
+        if (target?.type !== 'symbol') {
+            return { name };
         }
-        const prefix = KIND_HREF_PREFIX[e.type as string] ?? `${e.type}s`;
-        return { name, href: `${base}${prefix}/${name}.html` };
+        const detail = isMiscKind(target.kind) && isTagged(hit as { category?: unknown });
+        return { name, href: hrefText(hrefFor({ ...target, name, detail }, depth)) };
     }
     // Tokens aren't included in findInCompodoc's merged-data list.
     const tokens = (DependenciesEngine as any).tokens as any[] | undefined;
     const token = tokens?.find((tk: any) => tk.name === name);
     if (token) {
-        return { name, href: `${base}tokens/${name}.html` };
+        return { name, href: hrefText(hrefFor({ type: 'symbol', kind: 'token', name }, depth)) };
     }
     return { name };
 };
@@ -76,8 +55,7 @@ export const RelatedSection = (props: RelatedSectionProps): string => {
     if (!props.relatedTo || props.relatedTo.length === 0) {
         return '';
     }
-    const base = relativeUrl(props.depth);
-    const entries = props.relatedTo.map(n => resolveEntry(n, base));
+    const entries = props.relatedTo.map(n => resolveEntry(n, props.depth));
     for (const e of entries) {
         if (!e.href) {
             logger.warn(

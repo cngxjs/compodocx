@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { kindOfPath } from '../../app/links/layout';
 import { t } from '../helpers';
 import { resolveType } from '../helpers/link-type';
 
@@ -69,28 +70,15 @@ function resolveChip(name: string): { href?: string; target?: string; type?: str
     if (resolved.href.startsWith('https://angular.dev')) {
         return { href: resolved.href, target: resolved.target, type: 'module' };
     }
-    // Extract entity type from the href path: "../{typePath}s/Name.html"
-    // where typePath is 'component', 'directive', ..., or 'classe' (for class → classes/)
+    // Extract the entity folder from the href path: "../<folder>/Name.html"
     const m = resolved.href.match(/\.\.\/([a-z]+)\//);
     if (!m) {
         return { href: resolved.href, target: resolved.target };
     }
     const raw = m[1];
-    // compodoc's URL conventions. 'miscellaneous' is the only folder that
-    // doesn't follow the `{type}s/` plural rule.
-    const URL_TYPE_MAP: Record<string, string> = {
-        components: 'component',
-        directives: 'directive',
-        pipes: 'pipe',
-        classes: 'class',
-        interfaces: 'interface',
-        guards: 'guard',
-        interceptors: 'interceptor',
-        injectables: 'injectable',
-        entities: 'entity',
-        miscellaneous: 'miscellaneous'
-    };
-    const type = URL_TYPE_MAP[raw] ?? raw;
+    // The kind whose folder the link points into; 'miscellaneous' (no kind
+    // folder) passes through as is.
+    const type = kindOfPath(raw) ?? raw;
     return { href: resolved.href, target: resolved.target, type };
 }
 

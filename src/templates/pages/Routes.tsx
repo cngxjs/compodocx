@@ -1,12 +1,15 @@
 import Html from '@kitajs/html';
-import { relativeUrl, t } from '../helpers';
+import { hrefFor, hrefText } from '../../app/links/layout';
+import { t } from '../helpers';
 
 type RoutesProps = {
     readonly depth: number;
 };
 
 export const Routes = (props: RoutesProps): string => {
-    const base = relativeUrl(props.depth);
+    const routesIndex = hrefText(
+        hrefFor({ type: 'asset', path: 'js/routes/routes_index.js' }, props.depth)
+    );
     return (
         <>
             <ol class="cdx-breadcrumb">
@@ -15,7 +18,7 @@ export const Routes = (props: RoutesProps): string => {
 
             <div id="body-routes"></div>
 
-            <script src={`${base}js/routes/routes_index.js`}></script>
+            <script src={routesIndex}></script>
         </>
     ) as string;
 };

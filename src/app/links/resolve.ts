@@ -64,3 +64,17 @@ export const targetOfData = (data: unknown): PageTarget | undefined => {
     const kind = item.type ?? '';
     return isPageKind(kind) ? { type: 'symbol', kind, name: item.name } : undefined;
 };
+
+/** A coverage row's page, from its `linktype` (`classe` for classes) and misc `linksubtype`. */
+export const targetOfCoverage = (row: {
+    readonly name: string;
+    readonly linktype?: string;
+    readonly linksubtype?: string;
+}): PageTarget | undefined => {
+    if (row.linksubtype) {
+        const kind = MISC_SUBTYPE[row.linksubtype];
+        return kind ? { type: 'symbol', kind, name: row.name } : undefined;
+    }
+    const kind = row.linktype === 'classe' ? 'class' : (row.linktype ?? '');
+    return isPageKind(kind) ? { type: 'symbol', kind, name: row.name } : undefined;
+};

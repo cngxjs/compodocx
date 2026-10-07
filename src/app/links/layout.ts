@@ -175,9 +175,13 @@ export const pageLocation = (target: PageTarget): PageLocation => {
     }
 };
 
+/** File path of page `filename` in `folder` (`''` for none). */
+export const pageFile = (folder: string, filename: string): string =>
+    joinPath(folder, `${filename}.html`);
+
 /** Root-relative file path of a page location. */
 export const pagePath = (location: PageLocation): string =>
-    joinPath(location.path, `${location.filename}.html`);
+    pageFile(location.path, location.filename);
 
 export const hrefFor = (target: PageTarget, fromDepth: number, anchor?: string): Href => {
     if (target.type === 'asset') {
