@@ -1,6 +1,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { pageOf } from '../helpers/pages';
+import { collectionPage } from './paths';
 
 const tmp = temporaryDir();
 
@@ -106,10 +108,10 @@ describe('CLI miscellaneous detail-page generation (@category opt-in)', () => {
             throw new Error('error');
         }
 
-        collectionFunctions = read(`${distFolder}/miscellaneous/functions.html`);
-        collectionVariables = read(`${distFolder}/miscellaneous/variables.html`);
-        collectionTypealiases = read(`${distFolder}/miscellaneous/typealiases.html`);
-        collectionEnumerations = read(`${distFolder}/miscellaneous/enumerations.html`);
+        collectionFunctions = read(`${distFolder}/${collectionPage('function')}`);
+        collectionVariables = read(`${distFolder}/${collectionPage('variable')}`);
+        collectionTypealiases = read(`${distFolder}/${collectionPage('typealias')}`);
+        collectionEnumerations = read(`${distFolder}/${collectionPage('enumeration')}`);
     });
 
     afterAll(() => {
@@ -118,17 +120,25 @@ describe('CLI miscellaneous detail-page generation (@category opt-in)', () => {
     });
 
     it('generates a detail page for every @category-tagged miscellaneous symbol', () => {
-        expect(exists(`${distFolder}/miscellaneous/functions/provideToaster.html`)).to.be.true;
-        expect(exists(`${distFolder}/miscellaneous/variables/TOAST_TOKEN.html`)).to.be.true;
-        expect(exists(`${distFolder}/miscellaneous/typealiases/ToastConfig.html`)).to.be.true;
-        expect(exists(`${distFolder}/miscellaneous/enumerations/ToastPosition.html`)).to.be.true;
+        expect(exists(`${distFolder}/${pageOf('function', 'provideToaster', { detail: true })}`)).to
+            .be.true;
+        expect(exists(`${distFolder}/${pageOf('variable', 'TOAST_TOKEN', { detail: true })}`)).to.be
+            .true;
+        expect(exists(`${distFolder}/${pageOf('typealias', 'ToastConfig', { detail: true })}`)).to
+            .be.true;
+        expect(exists(`${distFolder}/${pageOf('enumeration', 'ToastPosition', { detail: true })}`))
+            .to.be.true;
     });
 
     it('does NOT generate detail pages for untagged miscellaneous symbols', () => {
-        expect(exists(`${distFolder}/miscellaneous/functions/helperFn.html`)).to.be.false;
-        expect(exists(`${distFolder}/miscellaneous/variables/VERSION.html`)).to.be.false;
-        expect(exists(`${distFolder}/miscellaneous/typealiases/Maybe.html`)).to.be.false;
-        expect(exists(`${distFolder}/miscellaneous/enumerations/Theme.html`)).to.be.false;
+        expect(exists(`${distFolder}/${pageOf('function', 'helperFn', { detail: true })}`)).to.be
+            .false;
+        expect(exists(`${distFolder}/${pageOf('variable', 'VERSION', { detail: true })}`)).to.be
+            .false;
+        expect(exists(`${distFolder}/${pageOf('typealias', 'Maybe', { detail: true })}`)).to.be
+            .false;
+        expect(exists(`${distFolder}/${pageOf('enumeration', 'Theme', { detail: true })}`)).to.be
+            .false;
     });
 
     it('keeps untagged entries inline on the shared collection page (anchors still resolve)', () => {
@@ -147,7 +157,9 @@ describe('CLI miscellaneous detail-page generation (@category opt-in)', () => {
     });
 
     it('detail pages render the entity name in the hero and surface the description', () => {
-        const detail = read(`${distFolder}/miscellaneous/functions/provideToaster.html`);
+        const detail = read(
+            `${distFolder}/${pageOf('function', 'provideToaster', { detail: true })}`
+        );
         expect(detail).to.match(/<h1[^>]*class="cdx-entity-hero-name">[\s\S]*?provideToaster/);
         expect(detail).to.contain('Provides the toaster feature');
         // Category badge surfaced on the hero
@@ -157,7 +169,9 @@ describe('CLI miscellaneous detail-page generation (@category opt-in)', () => {
     });
 
     it('detail pages use the singular template context (override hook stable)', () => {
-        const detail = read(`${distFolder}/miscellaneous/functions/provideToaster.html`);
+        const detail = read(
+            `${distFolder}/${pageOf('function', 'provideToaster', { detail: true })}`
+        );
         // The entity hero is shared with EntityPage; assert it's a per-entity
         // shell (single-row), not the collection shell that includes IndexMisc.
         expect(detail).to.not.contain('data-compodoc="block-theming-index"');
@@ -169,7 +183,7 @@ describe('CLI miscellaneous detail-page generation (@category opt-in)', () => {
         const index = read(`${distFolder}/index.html`);
         const chapterMatch = index.match(/id="miscellaneous-links"[\s\S]*?<\/ul>/);
         const chapter = chapterMatch?.[0] ?? '';
-        expect(chapter).to.contain('href="miscellaneous/functions.html"');
+        expect(chapter).to.contain(`href="${collectionPage('function')}"`);
         expect(chapter).to.not.contain('miscellaneous/functions/');
     });
 });

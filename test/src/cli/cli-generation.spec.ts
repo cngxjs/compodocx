@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import path from 'node:path';
 
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { hrefTo, pageOf } from '../helpers/pages';
 
 const BIN = path.resolve('./bin/index-cli.js');
 const TSCONFIG_SIMPLE = path.resolve('./test/fixtures/sample-files/tsconfig.simple.json');
@@ -30,10 +31,10 @@ describe('CLI simple generation', () => {
                 throw new Error('error');
             }
             stdoutString = ls.stdout.toString();
-            fooComponentFile = read(`${distFolder}/components/FooComponent.html`);
-            fooServiceFile = read(`${distFolder}/injectables/FooService.html`);
+            fooComponentFile = read(`${distFolder}/${pageOf('component', 'FooComponent')}`);
+            fooServiceFile = read(`${distFolder}/${pageOf('injectable', 'FooService')}`);
             appConfigFile = read(`${distFolder}/app-config.html`);
-            componentFile = read(`${distFolder}/components/BarComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -82,19 +83,19 @@ describe('CLI simple generation', () => {
 
         it('it should have a link with this syntax {@link BarComponent}', () => {
             expect(appConfigFile).to.contain(
-                'See <a href="./components/BarComponent.html">BarComponent'
+                `See <a href="${hrefTo('component', 'BarComponent', 0)}">BarComponent`
             );
         });
 
         it('it should have a link with this syntax [The BarComponent]{@link BarComponent}', () => {
             expect(componentFile).to.contain(
-                'Watch <a href="../components/BarComponent.html">The BarComponent'
+                `Watch <a href="${hrefTo('component', 'BarComponent', 1)}">The BarComponent`
             );
         });
 
         it('it should have a link with this syntax {@link BarComponent|BarComponent3}', () => {
             expect(fooComponentFile).to.contain(
-                '<a href="../components/BarComponent.html">BarComponent3'
+                `<a href="${hrefTo('component', 'BarComponent', 1)}">BarComponent3`
             );
         });
 
@@ -289,10 +290,10 @@ describe('CLI simple generation', () => {
                 throw new Error('error');
             }
             stdoutString = ls.stdout.toString();
-            fooComponentFile = read(`/tmp/${distFolder}/components/FooComponent.html`);
-            fooServiceFile = read(`/tmp/${distFolder}/injectables/FooService.html`);
+            fooComponentFile = read(`/tmp/${distFolder}/${pageOf('component', 'FooComponent')}`);
+            fooServiceFile = read(`/tmp/${distFolder}/${pageOf('injectable', 'FooService')}`);
             appConfigFile = read(`/tmp/${distFolder}/app-config.html`);
-            componentFile = read(`/tmp/${distFolder}/components/BarComponent.html`);
+            componentFile = read(`/tmp/${distFolder}/${pageOf('component', 'BarComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -355,10 +356,10 @@ describe('CLI simple generation', () => {
                 throw new Error('error');
             }
             stdoutString = ls.stdout.toString();
-            fooComponentFile = read(`/tmp/${distFolder}/components/FooComponent.html`);
-            fooServiceFile = read(`/tmp/${distFolder}/injectables/FooService.html`);
+            fooComponentFile = read(`/tmp/${distFolder}/${pageOf('component', 'FooComponent')}`);
+            fooServiceFile = read(`/tmp/${distFolder}/${pageOf('injectable', 'FooService')}`);
             moduleFile  = read(`/tmp/${distFolder}/modules/AppModule.html`);
-            componentFile = read(`/tmp/${distFolder}/components/BarComponent.html`);
+            componentFile = read(`/tmp/${distFolder}/${pageOf('component', 'BarComponent')}`);
         });
         afterAll(() => tmp.clean(actualDir + '/' + distFolder));
 
@@ -722,7 +723,7 @@ describe('CLI simple generation', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not contain sourceCode tab', () => {
-            index = read(`${distFolder}/components/FooComponent.html`);
+            index = read(`${distFolder}/${pageOf('component', 'FooComponent')}`);
             expect(index).to.not.contain('id="source-tab"');
         });
     });
@@ -750,7 +751,7 @@ describe('CLI simple generation', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not contain domTree tab', () => {
-            index = read(`${distFolder}/components/BarComponent.html`);
+            index = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
             expect(index).to.not.contain('id="tree-tab"');
         });
     });
@@ -778,7 +779,7 @@ describe('CLI simple generation', () => {
                 throw new Error('error');
             }
             stdoutString = ls.stdout.toString();
-            index = read(`${distFolder}/components/BarComponent.html`);
+            index = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
             index = index.replace(/\r?\n|\r/g, '');
         });
         afterAll(() => tmp.clean(distFolder));
@@ -829,7 +830,7 @@ describe('CLI simple generation', () => {
                 throw new Error('error');
             }
             stdoutString = ls.stdout.toString();
-            index = read(`${distFolder}/directives/BarDirective.html`);
+            index = read(`${distFolder}/${pageOf('directive', 'BarDirective')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -861,7 +862,7 @@ describe('CLI simple generation', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not contain template tab', () => {
-            index = read(`${distFolder}/components/BarComponent.html`);
+            index = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
             expect(index).to.not.contain('id="templateData-tab"');
         });
     });
@@ -889,7 +890,7 @@ describe('CLI simple generation', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not contain style tab', () => {
-            index = read(`${distFolder}/components/BarComponent.html`);
+            index = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
             expect(index).to.not.contain('id="styleData-tab"');
         });
     });
@@ -956,7 +957,7 @@ describe('CLI simple generation', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not contain file path in component documentation', () => {
-            componentFile = read(`${distFolder}/components/BarComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
             expect(componentFile).to.not.contain('<h3>File</h3>');
             expect(componentFile).to.not.contain('<code>bar.component.ts</code>');
         });
@@ -968,19 +969,19 @@ describe('CLI simple generation', () => {
         });
 
         it('should not contain file path in directive documentation', () => {
-            directiveFile = read(`${distFolder}/directives/BarDirective.html`);
+            directiveFile = read(`${distFolder}/${pageOf('directive', 'BarDirective')}`);
             expect(directiveFile).to.not.contain('<h3>File</h3>');
             expect(directiveFile).to.not.contain('<code>bar.directive.ts</code>');
         });
 
         it('should not contain file path in pipe documentation', () => {
-            pipeFile = read(`${distFolder}/pipes/BarPipe.html`);
+            pipeFile = read(`${distFolder}/${pageOf('pipe', 'BarPipe')}`);
             expect(pipeFile).to.not.contain('<h3>File</h3>');
             expect(pipeFile).to.not.contain('<code>bar.pipe.ts</code>');
         });
 
         it('should not contain file path in service documentation', () => {
-            serviceFile = read(`${distFolder}/injectables/BarService.html`);
+            serviceFile = read(`${distFolder}/${pageOf('injectable', 'BarService')}`);
             expect(serviceFile).to.not.contain('<h3>File</h3>');
             expect(serviceFile).to.not.contain('<code>bar.service.ts</code>');
         });

@@ -2,6 +2,7 @@ import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { pageOf } from '../helpers/pages';
 
 // Characterises watch-mode rebuilds end to end: a real `-s -w` process on a
 // temp copy of the kitchen-sink fixture, driven by file edits. Every wait is
@@ -15,7 +16,7 @@ const WAIT_TIMEOUT = 30000;
 const IT_TIMEOUT = 60000;
 
 const COMPONENT_FILE = 'src/app/features/dashboard/dashboard.component.ts';
-const COMPONENT_PAGE = 'components/DashboardComponent.html';
+const COMPONENT_PAGE = `${pageOf('component', 'DashboardComponent')}`;
 const TS_MARKER = 'Watch spec marker sentence for the dashboard.';
 const README_MARKER = 'Watch spec marker line for the readme.';
 

@@ -1,4 +1,5 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { pageOf } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -36,7 +37,7 @@ describe('CLI generation - JSDoc @example language specifications', () => {
     });
 
     it('should have generated directive documentation', () => {
-        const isDirectiveExists = exists(`${distFolder}/directives/TestClass.html`);
+        const isDirectiveExists = exists(`${distFolder}/${pageOf('directive', 'TestClass')}`);
         expect(isDirectiveExists).to.be.true;
     });
 
@@ -44,7 +45,7 @@ describe('CLI generation - JSDoc @example language specifications', () => {
         let directiveFile: string;
 
         beforeAll(() => {
-            directiveFile = read(`${distFolder}/directives/TestClass.html`);
+            directiveFile = read(`${distFolder}/${pageOf('directive', 'TestClass')}`);
         });
 
         // Note on the current rendering pipeline (matches actual output of
@@ -134,7 +135,7 @@ describe('CLI generation - JSDoc @example language specifications', () => {
         let directiveFile: string;
 
         beforeAll(() => {
-            directiveFile = read(`${distFolder}/directives/TestClass.html`);
+            directiveFile = read(`${distFolder}/${pageOf('directive', 'TestClass')}`);
         });
 
         it('should use proper HTML structure for code blocks', () => {
@@ -163,7 +164,7 @@ describe('CLI generation - JSDoc @example language specifications', () => {
         let directiveFile: string;
 
         beforeAll(() => {
-            directiveFile = read(`${distFolder}/directives/TestClass.html`);
+            directiveFile = read(`${distFolder}/${pageOf('directive', 'TestClass')}`);
         });
 
         it('should emit a language- chip on every example block', () => {

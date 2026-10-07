@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { pageOf } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -101,8 +102,8 @@ describe('CLI Theming tab generation', () => {
                 throw new Error('error');
             }
             stdoutString = ls.stdout.toString();
-            componentHtml = read(`${distFolder}/components/ButtonComponent.html`);
-            plainComponentHtml = read(`${distFolder}/components/PlainComponent.html`);
+            componentHtml = read(`${distFolder}/${pageOf('component', 'ButtonComponent')}`);
+            plainComponentHtml = read(`${distFolder}/${pageOf('component', 'PlainComponent')}`);
         });
 
         afterAll(() => {
@@ -180,7 +181,7 @@ describe('CLI Theming tab generation', () => {
         });
 
         it('does NOT render the theming tab on components without theme tokens', () => {
-            expect(exists(`${distFolder}/components/PlainComponent.html`)).to.be.true;
+            expect(exists(`${distFolder}/${pageOf('component', 'PlainComponent')}`)).to.be.true;
             expect(plainComponentHtml).to.not.contain('id="theming"');
             expect(plainComponentHtml).to.not.contain('data-compodoc="block-theming"');
         });
@@ -252,7 +253,7 @@ describe('CLI Theming tab generation', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            componentHtml = read(`${singularDistFolder}/components/CardComponent.html`);
+            componentHtml = read(`${singularDistFolder}/${pageOf('component', 'CardComponent')}`);
         });
 
         afterAll(() => {

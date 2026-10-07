@@ -2,6 +2,7 @@ import path from 'node:path';
 import fs from 'fs-extra';
 
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { collectionPage } from './paths';
 
 const tmp = temporaryDir();
 
@@ -101,13 +102,13 @@ describe('CLI public-api-only option', () => {
         });
 
         it('should document getDefaultApiRoot from core utils', () => {
-            const functionsFile = read(`${distFolder}/miscellaneous/functions.html`);
+            const functionsFile = read(`${distFolder}/${collectionPage('function')}`);
             expect(functionsFile).to.contain('libs/my-lib/core/src/utils');
             expect(functionsFile).to.contain('getDefaultApiRoot');
         });
 
         it('should document getDefaultApiRoot from data utils', () => {
-            const functionsFile = read(`${distFolder}/miscellaneous/functions.html`);
+            const functionsFile = read(`${distFolder}/${collectionPage('function')}`);
             expect(functionsFile).to.contain('libs/my-lib/data/src/utils');
             expect(functionsFile).to.contain('getDefaultApiRoot');
         });
@@ -160,11 +161,11 @@ describe('CLI public-api-only option', () => {
         it('should NOT document getDefaultApiRoot when using public API filter', () => {
             // When --publicApiOnly is set, the miscellaneous/functions.html file may not exist
             // because getDefaultApiRoot is the only function and it's not exported from public API
-            const functionsFileExists = exists(`${distFolder}/miscellaneous/functions.html`);
+            const functionsFileExists = exists(`${distFolder}/${collectionPage('function')}`);
 
             if (functionsFileExists) {
                 // If the file exists, it should not contain getDefaultApiRoot
-                const functionsFile = read(`${distFolder}/miscellaneous/functions.html`);
+                const functionsFile = read(`${distFolder}/${collectionPage('function')}`);
                 expect(functionsFile).to.not.contain('getDefaultApiRoot');
             } else {
                 // If the file doesn't exist, that's also correct (no public functions to document)
@@ -175,11 +176,11 @@ describe('CLI public-api-only option', () => {
         it('should NOT document variables not in public API', () => {
             // When --publicApiOnly is set, variables like API_ROOT and DATA_CONFIG should not be documented
             // because they are not exported in the *.api.md or index.d.ts files
-            const variablesFileExists = exists(`${distFolder}/miscellaneous/variables.html`);
+            const variablesFileExists = exists(`${distFolder}/${collectionPage('variable')}`);
 
             if (variablesFileExists) {
                 // If the file exists, it should not contain the non-exported variables
-                const variablesFile = read(`${distFolder}/miscellaneous/variables.html`);
+                const variablesFile = read(`${distFolder}/${collectionPage('variable')}`);
                 expect(variablesFile).to.not.contain('API_ROOT');
                 expect(variablesFile).to.not.contain('DATA_CONFIG');
             } else {

@@ -1,4 +1,5 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { miscAnchor, pageOf } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -413,17 +414,17 @@ describe('CLI coverage report', () => {
             expect(coverageFile).to.contain('cdx-badge--entity-pipe');
             expect(coverageFile).to.contain('cdx-badge--entity-variable');
 
-            expect(coverageFile).to.contain('components/CompodocComponent.html');
-            expect(coverageFile).to.contain('interfaces/ClockInterface.html');
-            expect(coverageFile).to.contain('miscellaneous/functions.html#foo');
-            expect(coverageFile).to.contain('miscellaneous/typealiases.html#ChartChange');
+            expect(coverageFile).to.contain(`${pageOf('component', 'CompodocComponent')}`);
+            expect(coverageFile).to.contain(`${pageOf('interface', 'ClockInterface')}`);
+            expect(coverageFile).to.contain(`${miscAnchor('function', 'foo')}`);
+            expect(coverageFile).to.contain(`${miscAnchor('typealias', 'ChartChange')}`);
             expect(coverageFile).to.contain('variables.html#PI');
-            expect(coverageFile).to.contain('pipes/FirstUpperPipe.html');
-            expect(coverageFile).to.contain('directives/DoNothingDirective2.html');
-            expect(coverageFile).to.contain('injectables/TodoStore2.html');
-            expect(coverageFile).to.contain('classes/Todo2.html');
-            expect(coverageFile).to.contain('guards/AuthGuard.html');
-            expect(coverageFile).to.contain('interceptors/NoopInterceptor.html');
+            expect(coverageFile).to.contain(`${pageOf('pipe', 'FirstUpperPipe')}`);
+            expect(coverageFile).to.contain(`${pageOf('directive', 'DoNothingDirective2')}`);
+            expect(coverageFile).to.contain(`${pageOf('injectable', 'TodoStore2')}`);
+            expect(coverageFile).to.contain(`${pageOf('class', 'Todo2')}`);
+            expect(coverageFile).to.contain(`${pageOf('guard', 'AuthGuard')}`);
+            expect(coverageFile).to.contain(`${pageOf('interceptor', 'NoopInterceptor')}`);
         });
     });
 

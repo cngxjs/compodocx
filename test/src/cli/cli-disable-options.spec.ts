@@ -1,4 +1,6 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { pageOf } from '../helpers/pages';
+import { collectionPage } from './paths';
 
 const tmp = temporaryDir();
 
@@ -23,7 +25,7 @@ describe('CLI disable flags', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            componentFile = read(`${distFolder}/components/BarComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -44,7 +46,7 @@ describe('CLI disable flags', () => {
         });
 
         it('should exclude miscellaneous function marked as @private', () => {
-            const file = read(`${distFolder}/miscellaneous/functions.html`);
+            const file = read(`${distFolder}/${collectionPage('function')}`);
             expect(file).not.to.contain('private function');
         });
     });
@@ -67,7 +69,7 @@ describe('CLI disable flags', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            componentFile = read(`${distFolder}/components/BarComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -106,7 +108,7 @@ describe('CLI disable flags', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            componentFile = read(`${distFolder}/components/BarComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -135,7 +137,7 @@ describe('CLI disable flags', () => {
         });
 
         it('correct supports @internal + link', () => {
-            const file = read(`${distFolder}/directives/QueryParamNameDirective.html`);
+            const file = read(`${distFolder}/${pageOf('directive', 'QueryParamNameDirective')}`);
             // Dependencies are rendered by the `DependenciesSection` block.
             // The groupService `inject()` field survives --disableInternal
             // even though QueryParamGroupService itself is @internal (its
@@ -163,17 +165,17 @@ describe('CLI disable flags', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            componentFile = read(`${distFolder}/components/BarComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
         it('should exclude lifecyle hooks', () => {
             expect(componentFile).not.to.contain('cdx-io-member-name">ngOnInit');
-            const directiveFile = read(`${distFolder}/directives/BarDirective.html`);
+            const directiveFile = read(`${distFolder}/${pageOf('directive', 'BarDirective')}`);
             expect(directiveFile).not.to.contain('cdx-io-member-name">ngOnInit');
-            const pipeFile = read(`${distFolder}/pipes/BarPipe.html`);
+            const pipeFile = read(`${distFolder}/${pageOf('pipe', 'BarPipe')}`);
             expect(pipeFile).not.to.contain('cdx-io-member-name">ngOnDestroy');
-            const serviceFile = read(`${distFolder}/injectables/BarService.html`);
+            const serviceFile = read(`${distFolder}/${pageOf('injectable', 'BarService')}`);
             expect(serviceFile).not.to.contain('cdx-io-member-name">ngOnDestroy');
         });
 
@@ -208,7 +210,7 @@ describe('CLI disable flags', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            componentFile = read(`${distFolder}/components/AppComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'AppComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -238,7 +240,7 @@ describe('CLI disable flags', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            componentFile = read(`${distFolder}/components/BarComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -277,17 +279,17 @@ describe('CLI disable flags', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            componentFile = read(`${distFolder}/components/BarComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
         it('should exclude constructors', () => {
             expect(componentFile).not.to.contain('cdx-badge--constructor');
-            const directiveFile = read(`${distFolder}/directives/BarDirective.html`);
+            const directiveFile = read(`${distFolder}/${pageOf('directive', 'BarDirective')}`);
             expect(directiveFile).not.to.contain('cdx-badge--constructor');
-            const pipeFile = read(`${distFolder}/pipes/BarPipe.html`);
+            const pipeFile = read(`${distFolder}/${pageOf('pipe', 'BarPipe')}`);
             expect(pipeFile).not.to.contain('cdx-badge--constructor');
-            const serviceFile = read(`${distFolder}/injectables/BarService.html`);
+            const serviceFile = read(`${distFolder}/${pageOf('injectable', 'BarService')}`);
             expect(serviceFile).not.to.contain('cdx-badge--constructor');
         });
     });
@@ -310,7 +312,7 @@ describe('CLI disable flags', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            componentFile = read(`${distFolder}/components/AppComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'AppComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -487,7 +489,7 @@ describe('CLI disable flags', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not display file path in component documentation', () => {
-            componentFile = read(`${distFolder}/components/BarComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
             expect(componentFile).not.to.contain('<h3>File</h3>');
             expect(componentFile).not.to.contain('<code>bar.component.ts</code>');
         });
@@ -499,31 +501,31 @@ describe('CLI disable flags', () => {
         });
 
         it('should not display file path in directive documentation', () => {
-            directiveFile = read(`${distFolder}/directives/BarDirective.html`);
+            directiveFile = read(`${distFolder}/${pageOf('directive', 'BarDirective')}`);
             expect(directiveFile).not.to.contain('<h3>File</h3>');
             expect(directiveFile).not.to.contain('<code>bar.directive.ts</code>');
         });
 
         it('should not display file path in pipe documentation', () => {
-            pipeFile = read(`${distFolder}/pipes/BarPipe.html`);
+            pipeFile = read(`${distFolder}/${pageOf('pipe', 'BarPipe')}`);
             expect(pipeFile).not.to.contain('<h3>File</h3>');
             expect(pipeFile).not.to.contain('<code>bar.pipe.ts</code>');
         });
 
         it('should not display file path in service documentation', () => {
-            serviceFile = read(`${distFolder}/injectables/BarService.html`);
+            serviceFile = read(`${distFolder}/${pageOf('injectable', 'BarService')}`);
             expect(serviceFile).not.to.contain('<h3>File</h3>');
             expect(serviceFile).not.to.contain('<code>bar.service.ts</code>');
         });
 
         it('should not display file path in class documentation', () => {
-            classFile = read(`${distFolder}/classes/NavigationData.html`);
+            classFile = read(`${distFolder}/${pageOf('class', 'NavigationData')}`);
             expect(classFile).not.to.contain('<h3>File</h3>');
             expect(classFile).not.to.contain('<code>query-param-group.service.ts</code>');
         });
 
         it('should still display other content sections', () => {
-            componentFile = read(`${distFolder}/components/BarComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
             // Metadata is a section heading; Implements moved into the
             // metadata card as a `<dt class="cdx-metadata-label">`.
             expect(componentFile).to.contain(
@@ -534,7 +536,7 @@ describe('CLI disable flags', () => {
 
         it('should work with file paths that have dependencies', () => {
             // Test that the file path is disabled but other file references in "defined-in" remain
-            componentFile = read(`${distFolder}/components/BarComponent.html`);
+            componentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
             expect(componentFile).not.to.contain('<h3>File</h3>');
             // But should still contain source code references if --disableSourceCode is not used
             expect(componentFile).to.contain('bar.component.ts');

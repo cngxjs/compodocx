@@ -1,4 +1,5 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { pageOf } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -12,7 +13,7 @@ const tmp = temporaryDir();
  * The fixture mirrors the cngx-style multi-entry-point library layout
  * (`libs/<name>/<feature>/src/...`). `ApiStatusComponent` carries class-
  * level `@example`, `@since`, and `@category` tags; the generated
- * `components/ApiStatusComponent.html` MUST surface all three. Pre-fix
+ * `${pageOf('component', 'ApiStatusComponent')}` MUST surface all three. Pre-fix
  * the page rendered without an Examples section at all.
  *
  * Runs without `--publicApiOnly` so we don't depend on the library's
@@ -39,13 +40,13 @@ describe('CLI class-level JSDoc tags on library Components', () => {
             throw new Error('error');
         }
 
-        apiStatusFile = read(`${distFolder}/components/ApiStatusComponent.html`);
+        apiStatusFile = read(`${distFolder}/${pageOf('component', 'ApiStatusComponent')}`);
     });
 
     afterAll(() => tmp.clean(distFolder));
 
     it('renders the ApiStatusComponent page', () => {
-        expect(exists(`${distFolder}/components/ApiStatusComponent.html`)).to.be.true;
+        expect(exists(`${distFolder}/${pageOf('component', 'ApiStatusComponent')}`)).to.be.true;
     });
 
     it('renders an Examples section on the Info tab from the class-level @example', () => {

@@ -1,4 +1,6 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { hrefTo, pageOf } from '../helpers/pages';
+import { collectionHref, collectionPage } from './paths';
 
 const tmp = temporaryDir();
 
@@ -49,31 +51,31 @@ describe('CLI simple generation - big app', () => {
             throw new Error('error');
         }
         stdoutString = ls.stdout.toString();
-        interfaceIDATAFile = read(`${distFolder}/interfaces/IDATA.html`);
-        searchFuncFile = read(`${distFolder}/interfaces/SearchFunc.html`);
+        interfaceIDATAFile = read(`${distFolder}/${pageOf('interface', 'IDATA')}`);
+        searchFuncFile = read(`${distFolder}/${pageOf('interface', 'SearchFunc')}`);
 
         routesIndex = read(`${distFolder}/js/routes/routes_index.js`);
-        todoComponentFile = read(`${distFolder}/components/TodoComponent.html`);
-        todoMVCComponentFile = read(`${distFolder}/components/TodoMVCComponent.html`);
-        footerComponentFile = read(`${distFolder}/components/FooterComponent.html`);
-        homeComponentFile = read(`${distFolder}/components/HomeComponent.html`);
-        aboutComponentFile = read(`${distFolder}/components/AboutComponent.html`);
-        appComponentFile = read(`${distFolder}/components/AppComponent.html`);
-        listComponentFile = read(`${distFolder}/components/ListComponent.html`);
+        todoComponentFile = read(`${distFolder}/${pageOf('component', 'TodoComponent')}`);
+        todoMVCComponentFile = read(`${distFolder}/${pageOf('component', 'TodoMVCComponent')}`);
+        footerComponentFile = read(`${distFolder}/${pageOf('component', 'FooterComponent')}`);
+        homeComponentFile = read(`${distFolder}/${pageOf('component', 'HomeComponent')}`);
+        aboutComponentFile = read(`${distFolder}/${pageOf('component', 'AboutComponent')}`);
+        appComponentFile = read(`${distFolder}/${pageOf('component', 'AppComponent')}`);
+        listComponentFile = read(`${distFolder}/${pageOf('component', 'ListComponent')}`);
 
-        doNothingDirectiveFile = read(`${distFolder}/directives/DoNothingDirective.html`);
+        doNothingDirectiveFile = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
 
-        todoClassFile = read(`${distFolder}/classes/Todo.html`);
-        tidiClassFile = read(`${distFolder}/classes/Tidi.html`);
+        todoClassFile = read(`${distFolder}/${pageOf('class', 'Todo')}`);
+        tidiClassFile = read(`${distFolder}/${pageOf('class', 'Tidi')}`);
 
         appConfigFile = read(`${distFolder}/app-config.html`);
 
-        todoStoreFile = read(`${distFolder}/injectables/TodoStore.html`);
+        todoStoreFile = read(`${distFolder}/${pageOf('injectable', 'TodoStore')}`);
 
-        typeAliasesFile = read(`${distFolder}/miscellaneous/typealiases.html`);
-        functionsFile = read(`${distFolder}/miscellaneous/functions.html`);
+        typeAliasesFile = read(`${distFolder}/${collectionPage('typealias')}`);
+        functionsFile = read(`${distFolder}/${collectionPage('function')}`);
 
-        contactInfoInterfaceFile = read(`${distFolder}/interfaces/ContactInfo.html`);
+        contactInfoInterfaceFile = read(`${distFolder}/${pageOf('interface', 'ContactInfo')}`);
     });
     afterAll(() => {
         tmp.clean(tmpFolder);
@@ -121,11 +123,11 @@ describe('CLI simple generation - big app', () => {
         expect(footerComponentFile).to.contain('footer.component.html');
     });
     it('should have metadatas - component with aliased import', () => {
-        const file = read(`${distFolder}/components/HeaderComponent.html`);
+        const file = read(`${distFolder}/${pageOf('component', 'HeaderComponent')}`);
         expect(file).to.contain('header.component.html');
     });
     it('should have metadatas - directive', () => {
-        const file = read(`${distFolder}/directives/DoNothingDirective.html`);
+        const file = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
         expect(file).to.contain('[donothing]');
     });
 
@@ -190,52 +192,52 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should have generated implements information for clock class', () => {
-        const classFile = read(`${distFolder}/classes/Clock.html`);
+        const classFile = read(`${distFolder}/${pageOf('class', 'Clock')}`);
         expect(classFile).to.contain('cdx-metadata-label">implements</dt>');
     });
 
     it('should have generated interfaces', () => {
-        const isInterfaceExists = exists(`${distFolder}/interfaces/ClockInterface.html`);
+        const isInterfaceExists = exists(`${distFolder}/${pageOf('interface', 'ClockInterface')}`);
         expect(isInterfaceExists).to.be.true;
     });
 
     it('should have generated classes', () => {
-        const clockFile = exists(`${distFolder}/classes/Clock.html`);
+        const clockFile = exists(`${distFolder}/${pageOf('class', 'Clock')}`);
         expect(clockFile).to.be.true;
     });
 
     it('should have generated components', () => {
-        const file = exists(`${distFolder}/components/AboutComponent.html`);
+        const file = exists(`${distFolder}/${pageOf('component', 'AboutComponent')}`);
         expect(file).to.be.true;
     });
 
     it('should have generated directives', () => {
-        const file = exists(`${distFolder}/directives/DoNothingDirective.html`);
+        const file = exists(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
         expect(file).to.be.true;
     });
 
     it('should have generated injectables', () => {
-        const file = exists(`${distFolder}/injectables/TodoStore.html`);
+        const file = exists(`${distFolder}/${pageOf('injectable', 'TodoStore')}`);
         expect(file).to.be.true;
     });
 
     it('should have generated the not-injectable guards', () => {
-        const file = exists(`${distFolder}/guards/AuthGuard.html`);
+        const file = exists(`${distFolder}/${pageOf('guard', 'AuthGuard')}`);
         expect(file).to.be.true;
     });
 
     it('should have generated the injectable guards', () => {
-        const file = exists(`${distFolder}/guards/NotAuthGuard.html`);
+        const file = exists(`${distFolder}/${pageOf('guard', 'NotAuthGuard')}`);
         expect(file).to.be.true;
     });
 
     it(`shouldn't have generated classes for the corresponding guards`, () => {
-        const file = exists(`${distFolder}/classes/AuthGuard.html`);
+        const file = exists(`${distFolder}/${pageOf('class', 'AuthGuard')}`);
         expect(file).to.be.false;
     });
 
     it(`shouldn't have generated injectables for the corresponding guards`, () => {
-        const file = exists(`${distFolder}/injectables/NotAuthGuard.html`);
+        const file = exists(`${distFolder}/${pageOf('injectable', 'NotAuthGuard')}`);
         expect(file).to.be.false;
     });
 
@@ -245,10 +247,10 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should have generated pipes', () => {
-        const file = exists(`${distFolder}/pipes/FirstUpperPipe.html`);
+        const file = exists(`${distFolder}/${pageOf('pipe', 'FirstUpperPipe')}`);
         expect(file).to.be.true;
 
-        const pipeFile = read(`${distFolder}/pipes/FirstUpperPipe.html`);
+        const pipeFile = read(`${distFolder}/${pageOf('pipe', 'FirstUpperPipe')}`);
         expect(pipeFile).to.contain('<h3 class="cdx-section-heading" id="metadata">Metadata');
         expect(pipeFile).to.contain('Example property');
         expect(pipeFile).to.contain('the transform function');
@@ -258,12 +260,12 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should have miscellaneous page', () => {
-        const file = exists(`${distFolder}/miscellaneous/enumerations.html`);
+        const file = exists(`${distFolder}/${collectionPage('enumeration')}`);
         expect(file).to.be.true;
     });
 
     it('miscellaneous page should contain some things', () => {
-        const miscFile = read(`${distFolder}/miscellaneous/enumerations.html`);
+        const miscFile = read(`${distFolder}/${collectionPage('enumeration')}`);
         expect(miscFile).to.contain('Directions of the app');
     });
 
@@ -272,7 +274,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should have infos about ClockInterface interface', () => {
-        const file = read(`${distFolder}/interfaces/ClockInterface.html`);
+        const file = read(`${distFolder}/${pageOf('interface', 'ClockInterface')}`);
         expect(file).to.contain('A simple reset method');
     });
 
@@ -282,7 +284,7 @@ describe('CLI simple generation - big app', () => {
         expect(todoStoreFile).to.contain('number[]');
         expect(todoStoreFile).to.contain('cdx-io-member-name">stopMonitoring');
         expect(todoStoreFile).to.contain(
-            'href="../interfaces/LabelledTodo.html" target="_self">LabelledTodo'
+            `href="${hrefTo('interface', 'LabelledTodo', 1)}" target="_self">LabelledTodo`
         );
         expect(todoStoreFile).to.contain('service is a todo store');
         expect(todoStoreFile).to.contain('all todos status (completed');
@@ -310,21 +312,21 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should have managed array declaration in component imports', () => {
-        expect(todoComponentFile).to.contain('href="../pipes/FirstUpperPipe.html"');
-        expect(listComponentFile).to.contain('href="../components/TodoComponent.html"');
+        expect(todoComponentFile).to.contain(`href="${hrefTo('pipe', 'FirstUpperPipe', 1)}"`);
+        expect(listComponentFile).to.contain(`href="${hrefTo('component', 'TodoComponent', 1)}"`);
     });
 
     it('should have README tabs for each types', () => {
         expect(todoComponentFile).to.contain('id="readme-tab"');
-        let file = read(`${distFolder}/directives/DoNothingDirective.html`);
+        let file = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
         expect(file).to.contain('id="readme-tab"');
         expect(todoStoreFile).to.contain('id="readme-tab"');
-        file = read(`${distFolder}/pipes/FirstUpperPipe.html`);
+        file = read(`${distFolder}/${pageOf('pipe', 'FirstUpperPipe')}`);
         expect(file).to.contain('id="readme-tab"');
 
         expect(todoClassFile).to.contain('id="readme-tab"');
 
-        file = read(`${distFolder}/interfaces/ClockInterface.html`);
+        file = read(`${distFolder}/${pageOf('interface', 'ClockInterface')}`);
         expect(file).to.contain('id="readme-tab"');
     });
 
@@ -334,15 +336,15 @@ describe('CLI simple generation - big app', () => {
 
     it('should have correct links for {@link into main description and constructor}', () => {
         // Class-level `See {@link TodoStore}` resolves to a real anchor.
-        expect(todoClassFile).to.contain('See <a href="../injectables/TodoStore');
+        expect(todoClassFile).to.contain(`See <a href="${hrefTo('injectable', 'TodoStore', 1)}`);
         // Constructor-level `Watch {@link TodoStore}` flows through
         // `DependenciesSection.constructorDescription` and gets the
         // same `parseDescription` treatment.
-        expect(todoClassFile).to.contain('Watch <a href="../injectables/TodoStore');
+        expect(todoClassFile).to.contain(`Watch <a href="${hrefTo('injectable', 'TodoStore', 1)}`);
     });
 
     it('should support misc links', () => {
-        expect(todoClassFile).to.contain('../miscellaneous/enumerations.html');
+        expect(todoClassFile).to.contain(`${collectionHref('enumeration', 1)}`);
     });
 
     it('should have public function for component', () => {
@@ -351,7 +353,9 @@ describe('CLI simple generation - big app', () => {
 
     it('should have override types for arguments of function', () => {
         // Override-type chip on a method param links to the type page.
-        expect(todoStoreFile).to.contain('href="../classes/Todo.html" target="_self">Todo');
+        expect(todoStoreFile).to.contain(
+            `href="${hrefTo('class', 'Todo', 1)}" target="_self">Todo`
+        );
     });
 
     it('should have inherit return type', () => {
@@ -371,7 +375,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support simple class with custom decorator()', () => {
-        const file = read(`${distFolder}/classes/DoNothing.html`);
+        const file = read(`${distFolder}/${pageOf('class', 'DoNothing')}`);
         expect(file).to.contain('cdx-io-member-name">aname');
     });
 
@@ -386,7 +390,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support @HostBindings', () => {
-        const file = read(`${distFolder}/directives/DoNothingDirective.html`);
+        const file = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
         // Host bindings render as `[style.color]` chip-style table cells
         // inside the HostSection rather than `<b>style.color</b>`.
         expect(file).to.contain('<code>[style.color]</code>');
@@ -406,7 +410,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support extends for interface', () => {
-        const file = read(`${distFolder}/interfaces/ClockInterface.html`);
+        const file = read(`${distFolder}/${pageOf('interface', 'ClockInterface')}`);
         // Interface metadata-label uses lowercase keyword.
         expect(file).to.contain('cdx-metadata-label">extends</dt>');
     });
@@ -422,11 +426,11 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support @link with anchor', () => {
-        expect(todoStoreFile).to.contain('../classes/Todo.html#completed');
+        expect(todoStoreFile).to.contain(`${hrefTo('class', 'Todo', 1)}#completed`);
     });
 
     it('should support self-defined type', () => {
-        expect(todoClassFile).to.contain('../miscellaneous/typealiases.html#PopupPosition');
+        expect(todoClassFile).to.contain(`${hrefTo('typealias', 'PopupPosition', 1)}`);
         expect(typeAliasesFile).to.contain('<code>ElementRef | HTMLElement</code>');
     });
 
@@ -445,21 +449,21 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support accessors for directives', () => {
-        const file = read(`${distFolder}/directives/DoNothingDirective.html`);
+        const file = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
         expect(file).to.contain('Accessors');
         expect(file).to.contain('Getter of _fullName');
         expect(file).to.contain('Setter of _fullName');
     });
 
     it('should support accessors for components with input', () => {
-        let file = read(`${distFolder}/components/HeaderComponent.html`);
+        let file = read(`${distFolder}/${pageOf('component', 'HeaderComponent')}`);
         expect(file).to.contain('Accessors');
         expect(file).to.contain('Getter of _fullName');
         expect(file).to.contain('Setter of _fullName');
 
-        file = read(`${distFolder}/components/DumbComponent.html`);
+        file = read(`${distFolder}/${pageOf('component', 'DumbComponent')}`);
         expect(file).to.contain('cdx-io-member-name">visibleTodos');
-        expect(file).to.contain('href="../classes/Todo.html"');
+        expect(file).to.contain(`href="${hrefTo('class', 'Todo', 1)}"`);
     });
 
     it('should support QualifiedName for type', () => {
@@ -467,35 +471,35 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support namespace', () => {
-        let file = read(`${distFolder}/classes/AboutModule2.html`);
+        let file = read(`${distFolder}/${pageOf('class', 'AboutModule2')}`);
         expect(file).to.contain('The about module');
 
-        file = read(`${distFolder}/components/AboutComponent2.html`);
+        file = read(`${distFolder}/${pageOf('component', 'AboutComponent2')}`);
         expect(file).to.contain('The about component');
 
-        file = read(`${distFolder}/directives/DoNothingDirective2.html`);
+        file = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective2')}`);
         expect(file).to.contain('This directive does nothing !');
 
-        file = read(`${distFolder}/classes/Todo2.html`);
+        file = read(`${distFolder}/${pageOf('class', 'Todo2')}`);
         expect(file).to.contain('The todo class');
 
-        file = read(`${distFolder}/injectables/TodoStore2.html`);
+        file = read(`${distFolder}/${pageOf('injectable', 'TodoStore2')}`);
         expect(file).to.contain('This service is a todo store');
 
-        file = read(`${distFolder}/interfaces/TimeInterface2.html`);
+        file = read(`${distFolder}/${pageOf('interface', 'TimeInterface2')}`);
         expect(file).to.contain('A time interface just for documentation purpose');
 
-        file = read(`${distFolder}/pipes/FirstUpperPipe2.html`);
+        file = read(`${distFolder}/${pageOf('pipe', 'FirstUpperPipe2')}`);
         expect(file).to.contain('Uppercase the first letter of the string');
 
-        file = read(`${distFolder}/miscellaneous/enumerations.html`);
+        file = read(`${distFolder}/${collectionPage('enumeration')}`);
         expect(file).to.contain('PopupEffect2');
 
         expect(functionsFile).to.contain('foo2');
 
         expect(typeAliasesFile).to.contain('Name2');
 
-        file = read(`${distFolder}/miscellaneous/variables.html`);
+        file = read(`${distFolder}/${collectionPage('variable')}`);
         expect(file).to.contain('PI2');
     });
 
@@ -503,9 +507,9 @@ describe('CLI simple generation - big app', () => {
         // The functional interceptor is registered through
         // `provideHttpClient(withInterceptors([...]))` in the app config.
         expect(appConfigFile).to.contain('withInterceptors()');
-        const fileTest = exists(`${distFolder}/interceptors/NoopInterceptor.html`);
+        const fileTest = exists(`${distFolder}/${pageOf('interceptor', 'NoopInterceptor')}`);
         expect(fileTest).to.be.true;
-        const file = read(`${distFolder}/interceptors/NoopInterceptor.html`);
+        const file = read(`${distFolder}/${pageOf('interceptor', 'NoopInterceptor')}`);
         expect(file).to.contain('Functional interceptor');
     });
 
@@ -551,22 +555,18 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support @link to miscellaneous', () => {
+        expect(aboutComponentFile).to.contain(`<a href="${hrefTo('variable', 'PIT', 1)}">PIT</a>`);
         expect(aboutComponentFile).to.contain(
-            '<a href="../miscellaneous/variables.html#PIT">PIT</a>'
+            `<a href="${hrefTo('enumeration', 'Direction', 1)}">Direction</a>`
         );
         expect(aboutComponentFile).to.contain(
-            '<a href="../miscellaneous/enumerations.html#Direction">Direction</a>'
+            `<a href="${hrefTo('typealias', 'ChartChange', 1)}">ChartChange</a>`
         );
-        expect(aboutComponentFile).to.contain(
-            '<a href="../miscellaneous/typealiases.html#ChartChange">ChartChange</a>'
-        );
-        expect(aboutComponentFile).to.contain(
-            '<a href="../miscellaneous/functions.html#foo">foo</a>'
-        );
+        expect(aboutComponentFile).to.contain(`<a href="${hrefTo('function', 'foo', 1)}">foo</a>`);
     });
 
     it('should support default type on default value', () => {
-        const file = read(`${distFolder}/classes/TODO_STATUS.html`);
+        const file = read(`${distFolder}/${pageOf('class', 'TODO_STATUS')}`);
         expect(file).to.contain(
             'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/string"'
         );
@@ -605,17 +605,17 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support optional for interfaces', () => {
-        const file = read(`${distFolder}/interfaces/LabelledTodo.html`);
+        const file = read(`${distFolder}/${pageOf('interface', 'LabelledTodo')}`);
         expect(file).to.contain('Optional');
     });
 
     it('should support optional for interfaces / methods', () => {
-        const file = read(`${distFolder}/interfaces/TimeInterface.html`);
+        const file = read(`${distFolder}/${pageOf('interface', 'TimeInterface')}`);
         expect(file).to.contain('Optional');
     });
 
     it('should support private for constructor', () => {
-        const file = read(`${distFolder}/classes/PrivateConstructor.html`);
+        const file = read(`${distFolder}/${pageOf('class', 'PrivateConstructor')}`);
         // Constructors with explicit modifiers but no inject/ctor args
         // fall back to `BlockConstructor` so the modifier still surfaces;
         // the badge class adds a `--{slug}` suffix (e.g. `--private`).
@@ -652,13 +652,13 @@ describe('CLI simple generation - big app', () => {
         // Inline menu lives in every page now; assert the entity-link
         // landmarks instead of reading the obsolete `js/menu-wc.js`.
         const file = read(`${distFolder}/index.html`);
-        expect(file).to.contain('href="components/JigsawTab.html"');
+        expect(file).to.contain(`href="${pageOf('component', 'JigsawTab')}"`);
         expect(file).to.contain('>JigsawTab');
-        expect(file).to.contain('href="directives/DoNothingDirective2.html"');
+        expect(file).to.contain(`href="${pageOf('directive', 'DoNothingDirective2')}"`);
         expect(file).to.contain('>DoNothingDirective2');
-        expect(file).to.contain('href="injectables/EmitterService.html"');
+        expect(file).to.contain(`href="${pageOf('injectable', 'EmitterService')}"`);
         expect(file).to.contain('>EmitterService');
-        expect(file).to.contain('href="pipes/FirstUpperPipe2.html"');
+        expect(file).to.contain(`href="${pageOf('pipe', 'FirstUpperPipe2')}"`);
         expect(file).to.contain('>FirstUpperPipe2');
     });
 
@@ -671,18 +671,18 @@ describe('CLI simple generation - big app', () => {
 
     it('should support component metadata providers', () => {
         expect(aboutComponentFile).to.contain(
-            '<code><a href="../injectables/EmitterService.html" target="_self" >EmitterService</a></code>'
+            `<code><a href="${hrefTo('injectable', 'EmitterService', 1)}" target="_self" >EmitterService</a></code>`
         );
     });
 
     it('should support component inheritance with base class without @component decorator', () => {
-        const file = read(`${distFolder}/components/DumbComponent.html`);
+        const file = read(`${distFolder}/${pageOf('component', 'DumbComponent')}`);
         expect(file).to.contain('cdx-io-member-name">parentInput');
         expect(file).to.contain('cdx-io-member-name">parentoutput');
     });
 
     it('should display short filename + long filename in title for index of miscellaneous', () => {
-        const file = read(`${distFolder}/miscellaneous/variables.html`);
+        const file = read(`${distFolder}/${collectionPage('variable')}`);
         // Short and long file paths still surface together; assert both
         // substrings present (markup around them is now cdx-* and not
         // a fixed wrapper).
@@ -703,7 +703,7 @@ describe('CLI simple generation - big app', () => {
     it('should support Generic array types', () => {
         // Generic array types render with raw chevrons inside the link
         // (the legacy `&lt;`/`&gt;` entities are gone).
-        expect(appComponentFile).to.contain('href="../classes/Todo.html"');
+        expect(appComponentFile).to.contain(`href="${hrefTo('class', 'Todo', 1)}"`);
         expect(appComponentFile).to.contain('Observable<Todo[]>');
     });
 
@@ -715,7 +715,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support interfaces with custom variables names', () => {
-        const file = read(`${distFolder}/interfaces/ValueInRes.html`);
+        const file = read(`${distFolder}/${pageOf('interface', 'ValueInRes')}`);
         expect(file).to.contain('href="#__allAnd"');
     });
 
@@ -738,14 +738,14 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('correct display styles tab', () => {
-        let file = read(`${distFolder}/components/HeaderComponent.html`);
+        let file = read(`${distFolder}/${pageOf('component', 'HeaderComponent')}`);
         expect(file).to.contain('styleData-tab');
         // SCSS is rendered via Shiki (no `language-scss` class on `<code>`
         // — the syntax theme owns the colouring).
         expect(file).to.contain('shiki shiki-themes');
         expect(appComponentFile).to.contain('styleData-tab');
         expect(appComponentFile).to.contain('font-size');
-        file = read(`${distFolder}/components/TodoMVCComponent.html`);
+        file = read(`${distFolder}/${pageOf('component', 'TodoMVCComponent')}`);
         expect(file).to.contain('styleData-tab');
         expect(file).to.contain('pointer-events');
     });
@@ -763,7 +763,7 @@ describe('CLI simple generation - big app', () => {
 
     it('correct http reference for other classes using @link in description of a miscellaneous function', () => {
         expect(functionsFile).to.contain(
-            '<a href="../components/ListComponent.html">ListComponent</a>'
+            `<a href="${hrefTo('component', 'ListComponent', 1)}">ListComponent</a>`
         );
     });
 
@@ -782,7 +782,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('correct supports 1000 as PollingSpeed for decorator arguments', () => {
-        const file = read(`${distFolder}/classes/SomeFeature.html`);
+        const file = read(`${distFolder}/${pageOf('class', 'SomeFeature')}`);
         // Custom method decorators get the same `cdx-member-decorators`
         // treatment as property decorators, with `stringifiedArguments`
         // preserved verbatim (including the `as PollingSpeed` cast).
@@ -802,58 +802,58 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support inheritance with abstract class', () => {
-        const file = read(`${distFolder}/components/SonComponent.html`);
+        const file = read(`${distFolder}/${pageOf('component', 'SonComponent')}`);
         // Inheritance edge surfaces as a metadata-card chip linking to the
         // parent component; the legacy `ClassName:linenumber` source-link
         // labels are gone (line numbers now live in the source-code panel).
-        expect(file).to.contain('href="../components/MotherComponent.html"');
+        expect(file).to.contain(`href="${hrefTo('component', 'MotherComponent', 1)}"`);
         expect(file).to.contain('>MotherComponent');
         expect(file).to.contain('cdx-metadata-label">Extends');
     });
 
     it('should support generic in function arguments', () => {
-        const file = read(`${distFolder}/components/GenericComponent.html`);
+        const file = read(`${distFolder}/${pageOf('component', 'GenericComponent')}`);
         expect(file).to.contain('cdx-io-member-name">getData');
-        expect(file).to.contain('foo: <a href="../interfaces/Foo.html"');
+        expect(file).to.contain(`foo: <a href="${hrefTo('interface', 'Foo', 1)}"`);
         expect(file).to.contain('Foo&lt;object&gt;');
     });
 
     it('should support inheritance between component and directive', () => {
-        const file = read(`${distFolder}/components/InheritDirComponent.html`);
-        expect(file).to.contain('href="../directives/BaseDirective.html"');
+        const file = read(`${distFolder}/${pageOf('component', 'InheritDirComponent')}`);
+        expect(file).to.contain(`href="${hrefTo('directive', 'BaseDirective', 1)}"`);
         expect(file).to.contain('>BaseDirective');
         expect(file).to.contain('cdx-io-member-name">testPropertyInBase');
     });
 
     it('should support ECMAScript Private Fields and methods', () => {
-        const file = read(`${distFolder}/classes/Todo.html`);
+        const file = read(`${distFolder}/${pageOf('class', 'Todo')}`);
         expect(file).to.contain('id="#newprivateproperty"');
         expect(file).to.contain('Another private property');
     });
 
     it('should support type alias and template literal', () => {
-        const file = read(`${distFolder}/miscellaneous/typealiases.html`);
+        const file = read(`${distFolder}/${collectionPage('typealias')}`);
         // Template literal renders the placeholder verbatim; backtick is
         // no longer escaped via `&#x60;`.
         expect(file).to.contain('(min-width: ${Foo}px)');
     });
 
     it('should support destructuring for functions', () => {
-        const file = read(`${distFolder}/miscellaneous/functions.html`);
+        const file = read(`${distFolder}/${collectionPage('function')}`);
         expect(file).to.contain('cdx-io-member-name">sumFunction');
         expect(file).to.contain('__namedParameters');
         expect(file).to.contain('<code>2</code>');
     });
 
     it('should support default value for functions parameters', () => {
-        const file = read(`${distFolder}/miscellaneous/functions.html`);
+        const file = read(`${distFolder}/${collectionPage('function')}`);
         // Default values render with raw single quotes; legacy `&#x27;`
         // entity escapes are gone.
         expect(file).to.contain("<code>'toto'</code>");
     });
 
     it('should support destructuring for variables / array', () => {
-        const file = read(`${distFolder}/miscellaneous/variables.html`);
+        const file = read(`${distFolder}/${collectionPage('variable')}`);
         // Variable initializer renders inside Shiki source-style spans.
         expect(file).to.contain("'Gabriel'");
     });
@@ -861,43 +861,43 @@ describe('CLI simple generation - big app', () => {
     it('should support JSDoc @link in JSDoc @param tag', () => {
         // Method-level @param descriptions (TodoStore.addTodo) still
         // render with @link resolution.
-        const todoStore = read(`${distFolder}/injectables/TodoStore.html`);
+        const todoStore = read(`${distFolder}/${pageOf('injectable', 'TodoStore')}`);
         expect(todoStore).to.contain(
-            'all todos -&gt; see <a href="../components/FooterComponent.html">FooterComponent'
+            `all todos -&gt; see <a href="${hrefTo('component', 'FooterComponent', 1)}">FooterComponent`
         );
         // FooterComponent's `todoStore = inject(TodoStore)` field JSDoc
         // flows through `DependenciesSection` with the same @link
         // resolution the former constructor @param had.
-        const footer = read(`${distFolder}/components/FooterComponent.html`);
+        const footer = read(`${distFolder}/${pageOf('component', 'FooterComponent')}`);
         expect(footer).to.contain(
-            'TodoStore -&gt; see <a href="../injectables/TodoStore.html">TodoStore'
+            `TodoStore -&gt; see <a href="${hrefTo('injectable', 'TodoStore', 1)}">TodoStore`
         );
     });
 
     it('should support JSDoc @link in JSDoc @see tag', () => {
-        const file = read(`${distFolder}/injectables/TodoStore.html`);
-        expect(file).to.contain('See <a href="../classes/Todo.html">Todo</a> for details');
+        const file = read(`${distFolder}/${pageOf('injectable', 'TodoStore')}`);
+        expect(file).to.contain(`See <a href="${hrefTo('class', 'Todo', 1)}">Todo</a> for details`);
     });
 
     it('should support JSDoc @link for setters and getters', () => {
-        const file = read(`${distFolder}/injectables/TodoStore.html`);
-        expect(file).to.contain('or link to <a href="../classes/Todo.html">Todo');
-        expect(file).to.contain('ore link to <a href="../classes/Todo.html">Todo');
+        const file = read(`${distFolder}/${pageOf('injectable', 'TodoStore')}`);
+        expect(file).to.contain(`or link to <a href="${hrefTo('class', 'Todo', 1)}">Todo`);
+        expect(file).to.contain(`ore link to <a href="${hrefTo('class', 'Todo', 1)}">Todo`);
     });
 
     it('should support JSDoc @link for inputs', () => {
-        const file = read(`${distFolder}/components/HeaderComponent.html`);
+        const file = read(`${distFolder}/${pageOf('component', 'HeaderComponent')}`);
         expect(file).to.contain('_fullName <a href="https://compodoc.app/">https://compodoc.app/');
     });
 
     it('should not crash with invalid JSDoc @link tags', () => {
-        const file = read(`${distFolder}/components/AboutComponent.html`);
+        const file = read(`${distFolder}/${pageOf('component', 'AboutComponent')}`);
         expect(file).to.contain('if this {@link AboutComponent.fullName} does not crash');
         expect(file).to.contain('if this {@link undefined} does not crash');
     });
 
     it('should support multiple decorators for component for example', () => {
-        const file = read(`${distFolder}/components/AboutComponent.html`);
+        const file = read(`${distFolder}/${pageOf('component', 'AboutComponent')}`);
         // File path now lives inside the entity-hero/source-viewer
         // header as `<span>` text, not as a `<code>` block.
         expect(file).to.contain('<span>src/app/about/about.component.ts</span>');
@@ -909,7 +909,7 @@ describe('CLI simple generation - big app', () => {
         // sidebar group; the app config gets its own chapter link.
         const file = read(`${distFolder}/index.html`);
         expect(file).to.contain(
-            'href="components/AppComponent.html" data-type="entity-link" class="" data-cdx-entity-type="component"'
+            `href="${pageOf('component', 'AppComponent')}" data-type="entity-link" class="" data-cdx-entity-type="component"`
         );
         expect(file).to.contain('href="app-config.html"');
     });
@@ -922,51 +922,51 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support class name includes an interface name', () => {
-        const file = read(`${distFolder}/classes/Container.html`);
-        expect(file).to.contain('href="../classes/AaBb.html" target="_self" >AaBb');
+        const file = read(`${distFolder}/${pageOf('class', 'Container')}`);
+        expect(file).to.contain(`href="${hrefTo('class', 'AaBb', 1)}" target="_self" >AaBb`);
     });
 
     it('should support exportAs for directives', () => {
-        const file = read(`${distFolder}/directives/DoNothingDirective.html`);
+        const file = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
         expect(file).to.contain('<code>donothing</code>');
     });
 
     it('should support standalone for components, directives and pipes', () => {
-        let file = read(`${distFolder}/components/TodoComponent.html`);
+        let file = read(`${distFolder}/${pageOf('component', 'TodoComponent')}`);
         // The `cdx-badge--standalone` chip only distinguishes standalone
         // declarations in projects that still have NgModules; in an
         // all-standalone project it is intentionally not rendered.
         expect(file).to.not.contain('cdx-badge cdx-badge--standalone');
         // Imports list is a metadata card row with chips for each entry.
         expect(file).to.contain('cdx-metadata-label">Imports');
-        expect(file).to.contain('href="../directives/DoNothingDirective.html"');
+        expect(file).to.contain(`href="${hrefTo('directive', 'DoNothingDirective', 1)}"`);
         expect(file).to.contain('>DoNothingDirective');
-        expect(file).to.contain('href="../pipes/FirstUpperPipe.html"');
+        expect(file).to.contain(`href="${hrefTo('pipe', 'FirstUpperPipe', 1)}"`);
         expect(file).to.contain('>FirstUpperPipe');
 
-        file = read(`${distFolder}/directives/DoNothingDirective.html`);
+        file = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
         expect(file).to.contain('<code>donothing</code>');
         expect(file).to.not.contain('cdx-badge cdx-badge--standalone');
 
-        file = read(`${distFolder}/pipes/StandAlonePipe.html`);
+        file = read(`${distFolder}/${pageOf('pipe', 'StandAlonePipe')}`);
         expect(file).to.contain('cdx-metadata-label">Standalone');
     });
 
     it('should support required for inputs', () => {
-        const file = read(`${distFolder}/components/TodoComponent.html`);
+        const file = read(`${distFolder}/${pageOf('component', 'TodoComponent')}`);
         // Required-flag rendering moved into the input member-row badge area.
         expect(file).to.contain('Required');
     });
 
     it('should support Host Directives for directives and components', () => {
-        let file = read(`${distFolder}/components/AboutComponent.html`);
+        let file = read(`${distFolder}/${pageOf('component', 'AboutComponent')}`);
         expect(file).to.contain('cdx-metadata-label">Host directives');
-        expect(file).to.contain('href="../directives/DoNothingDirective.html"');
+        expect(file).to.contain(`href="${hrefTo('directive', 'DoNothingDirective', 1)}"`);
         expect(file).to.contain('>DoNothingDirective');
 
-        file = read(`${distFolder}/directives/DoNothingDirective.html`);
+        file = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
         expect(file).to.contain('cdx-metadata-label">Host directives');
-        expect(file).to.contain('href="../directives/BorderDirective.html"');
+        expect(file).to.contain(`href="${hrefTo('directive', 'BorderDirective', 1)}"`);
         expect(file).to.contain('>BorderDirective');
 
         // TODO(bug): HighlightAndBorderDirective renders no metadata card
@@ -974,12 +974,12 @@ describe('CLI simple generation - big app', () => {
         // configuration reaches the source-code panel only. Other
         // directives with simpler `hostDirectives: [DirRef]` shorthand DO
         // render via `MetadataHostDirectivesRow`. Tracked separately.
-        // file = read(`${distFolder}/directives/HighlightAndBorderDirective.html`);
+        // file = read(`${distFolder}/${pageOf('directive', 'HighlightAndBorderDirective')}`);
         // expect(file).to.contain('cdx-metadata-label">Host directives');
     });
 
     it('should support inputs and outputs signals and model', () => {
-        const file = read(`${distFolder}/classes/DumbParentComponent.html`);
+        const file = read(`${distFolder}/${pageOf('class', 'DumbParentComponent')}`);
         expect(file).to.contain('href="#label"');
         expect(file).to.contain('cdx-io-member-name">label');
         expect(file).to.contain('href="#currentChange"');
@@ -987,24 +987,24 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support component styles url/urls', () => {
-        let file = read(`${distFolder}/components/CompodocComponent.html`);
+        let file = read(`${distFolder}/${pageOf('component', 'CompodocComponent')}`);
         // styleUrls reaches the metadata card.
         expect(file).to.contain('cdx-metadata-label">Style URL');
         expect(file).to.contain('<code>./compodoc.component.css</code>');
         // Inline `styles: ['…']` block now renders only inside the
         // source-code panel via Shiki — assert the raw token landmark.
-        file = read(`${distFolder}/components/AboutComponent.html`);
+        file = read(`${distFolder}/${pageOf('component', 'AboutComponent')}`);
         expect(file).to.contain('#03a9f4');
     });
 
     it('should support aliases', () => {
-        let file = read(`${distFolder}/components/DumbImportComponent.html`);
+        let file = read(`${distFolder}/${pageOf('component', 'DumbImportComponent')}`);
         // The aliased import (`PapaComponent`) still links back to the
         // resolved declaration (DumbParentComponent) — chip-style anchor.
-        expect(file).to.contain('href="../classes/DumbParentComponent.html"');
+        expect(file).to.contain(`href="${hrefTo('class', 'DumbParentComponent', 1)}"`);
         expect(file).to.contain('>PapaComponent');
-        file = read(`${distFolder}/components/DumbWithExportComponent.html`);
-        expect(file).to.contain('href="../classes/DumbParentComponent.html"');
+        file = read(`${distFolder}/${pageOf('component', 'DumbWithExportComponent')}`);
+        expect(file).to.contain(`href="${hrefTo('class', 'DumbParentComponent', 1)}"`);
         expect(file).to.contain('>LegacyPapaComponent');
     });
 
@@ -1012,7 +1012,7 @@ describe('CLI simple generation - big app', () => {
         // Indexed-access types (`Person['age']`) currently link to the
         // bare interface page rather than the per-property anchor;
         // assert at the link landmark only.
-        expect(contactInfoInterfaceFile).to.contain('href="../interfaces/Person.html"');
+        expect(contactInfoInterfaceFile).to.contain(`href="${hrefTo('interface', 'Person', 1)}"`);
         expect(contactInfoInterfaceFile).to.contain('>Person');
     });
 
@@ -1039,7 +1039,7 @@ describe('CLI simple generation - big app', () => {
         ];
         for (const name of inputNames) {
             it(`should render input signal \`${name}\` as an io-member row`, () => {
-                const file = read(`${distFolder}/components/CompodocComponent.html`);
+                const file = read(`${distFolder}/${pageOf('component', 'CompodocComponent')}`);
                 expect(file).to.contain(`cdx-io-member-name">${name}`);
                 expect(file).to.contain(`id="${name}"`);
             });
@@ -1057,7 +1057,7 @@ describe('CLI simple generation - big app', () => {
         ];
         for (const name of outputNames) {
             it(`should render output signal \`${name}\` as an io-member row`, () => {
-                const file = read(`${distFolder}/components/CompodocComponent.html`);
+                const file = read(`${distFolder}/${pageOf('component', 'CompodocComponent')}`);
                 expect(file).to.contain(`cdx-io-member-name">${name}`);
                 expect(file).to.contain(`id="${name}"`);
             });
@@ -1079,7 +1079,7 @@ describe('CLI simple generation - big app', () => {
         ];
         for (const name of modelNames) {
             it(`should render model signal \`${name}\` as an io-member row`, () => {
-                const file = read(`${distFolder}/components/CompodocComponent.html`);
+                const file = read(`${distFolder}/${pageOf('component', 'CompodocComponent')}`);
                 expect(file).to.contain(`cdx-io-member-name">${name}`);
                 expect(file).to.contain(`id="${name}"`);
             });
@@ -1087,7 +1087,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support type <unknown>', () => {
-        const file = read(`${distFolder}/components/AboutComponent.html`);
+        const file = read(`${distFolder}/${pageOf('component', 'AboutComponent')}`);
         // Generic chevrons in member types render raw inside `<code>`.
         expect(file).to.contain('<code>Signal<TemplateRef<unknown>></code>');
     });
