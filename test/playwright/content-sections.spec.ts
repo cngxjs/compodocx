@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { pageUrl } from './pages';
 
 test.describe('Content Sections', () => {
     test.describe('File path in hero', () => {
         test('component page shows file path in hero', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const filePath = page.locator('.cdx-entity-hero-file');
             await expect(filePath).toBeVisible();
@@ -11,7 +12,7 @@ test.describe('Content Sections', () => {
         });
 
         test('directive page shows file path in hero', async ({ page }) => {
-            await page.goto('/directives/HighlightDirective.html');
+            await page.goto(pageUrl('directive', 'HighlightDirective'));
 
             const filePath = page.locator('.cdx-entity-hero-file');
             await expect(filePath).toBeVisible();
@@ -19,7 +20,7 @@ test.describe('Content Sections', () => {
         });
 
         test('injectable page shows file path in hero', async ({ page }) => {
-            await page.goto('/injectables/TodoStore.html');
+            await page.goto(pageUrl('injectable', 'TodoStore'));
 
             const filePath = page.locator('.cdx-entity-hero-file');
             await expect(filePath).toBeVisible();
@@ -27,7 +28,7 @@ test.describe('Content Sections', () => {
         });
 
         test('file path has source-file title tooltip', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const filePath = page.locator('.cdx-entity-hero-file');
             // `<p>` does not support `aria-label` (Biome
@@ -38,7 +39,7 @@ test.describe('Content Sections', () => {
         });
 
         test('no File section in Info tab body', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             // The old pattern had <h3>File</h3> inside the info tab
             const infoPanel = page.locator('.cdx-tab-panel#info');
@@ -49,7 +50,7 @@ test.describe('Content Sections', () => {
 
     test.describe('Deprecation banner', () => {
         test('deprecated entity shows deprecation banner', async ({ page }) => {
-            await page.goto('/injectables/TodoStore.html');
+            await page.goto(pageUrl('injectable', 'TodoStore'));
             await page.locator('[role="tab"]', { hasText: 'Info' }).click();
 
             const banner = page.locator('.cdx-deprecation-banner');
@@ -58,14 +59,14 @@ test.describe('Content Sections', () => {
         });
 
         test('deprecation banner has alert role', async ({ page }) => {
-            await page.goto('/injectables/TodoStore.html');
+            await page.goto(pageUrl('injectable', 'TodoStore'));
 
             const banner = page.locator('.cdx-deprecation-banner');
             await expect(banner).toHaveAttribute('role', 'alert');
         });
 
         test('non-deprecated entity has no deprecation banner', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             await expect(page.locator('.cdx-deprecation-banner')).toHaveCount(0);
         });
@@ -73,7 +74,7 @@ test.describe('Content Sections', () => {
 
     test.describe('Description prose', () => {
         test('description wrapped in cdx-prose', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const prose = page.locator('.cdx-prose');
             await expect(prose).toBeVisible();
@@ -83,7 +84,7 @@ test.describe('Content Sections', () => {
 
     test.describe('Section headings', () => {
         test('section headings use cdx-section-heading class', async ({ page }) => {
-            await page.goto('/injectables/TodoStore.html');
+            await page.goto(pageUrl('injectable', 'TodoStore'));
 
             const headings = page.locator('.cdx-section-heading');
             expect(await headings.count()).toBeGreaterThan(0);
@@ -91,7 +92,7 @@ test.describe('Content Sections', () => {
 
         test('first section heading has no border-top', async ({ page }) => {
             // Use a non-deprecated entity so the first child is a content section
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const firstSection = page.locator('.cdx-content-section').first();
             const heading = firstSection.locator('.cdx-section-heading');
@@ -102,7 +103,7 @@ test.describe('Content Sections', () => {
 
     test.describe('Metadata card', () => {
         test('component metadata renders as cdx-metadata-card', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             // `host: {}` metadata renders a second card (host listeners);
             // the decorator metadata card is the first one.
@@ -118,21 +119,21 @@ test.describe('Content Sections', () => {
             // BorderDirective has a selector, so the metadata card is non-empty
             // and renders. BaseDirective (abstract base, no metadata) would
             // correctly render nothing and was unsuitable for this assertion.
-            await page.goto('/directives/BorderDirective.html');
+            await page.goto(pageUrl('directive', 'BorderDirective'));
 
             const card = page.locator('.cdx-metadata-card').first();
             await expect(card).toBeVisible();
         });
 
         test('metadata card uses dl element', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const dl = page.locator('dl.cdx-metadata-card').first();
             await expect(dl).toBeVisible();
         });
 
         test('no Bootstrap table.metadata remains', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             await expect(page.locator('table.metadata')).toHaveCount(0);
         });
@@ -140,49 +141,49 @@ test.describe('Content Sections', () => {
 
     test.describe('Index type indicators', () => {
         test('index shows colored letter indicators', async ({ page }) => {
-            await page.goto('/injectables/TodoStore.html');
+            await page.goto(pageUrl('injectable', 'TodoStore'));
 
             const indicators = page.locator('.cdx-index-indicator');
             expect(await indicators.count()).toBeGreaterThan(0);
         });
 
         test('property indicator shows P', async ({ page }) => {
-            await page.goto('/injectables/TodoStore.html');
+            await page.goto(pageUrl('injectable', 'TodoStore'));
 
             const propIndicator = page.locator('.cdx-index-indicator--property').first();
             await expect(propIndicator).toHaveText('P');
         });
 
         test('method indicator shows M', async ({ page }) => {
-            await page.goto('/injectables/TodoStore.html');
+            await page.goto(pageUrl('injectable', 'TodoStore'));
 
             const methodIndicator = page.locator('.cdx-index-indicator--method').first();
             await expect(methodIndicator).toHaveText('M');
         });
 
         test('input indicator shows I on directive page', async ({ page }) => {
-            await page.goto('/directives/BaseDirective.html');
+            await page.goto(pageUrl('directive', 'BaseDirective'));
 
             const inputIndicator = page.locator('.cdx-index-indicator--input').first();
             await expect(inputIndicator).toHaveText('I');
         });
 
         test('output indicator shows O on directive page', async ({ page }) => {
-            await page.goto('/directives/BaseDirective.html');
+            await page.goto(pageUrl('directive', 'BaseDirective'));
 
             const outputIndicator = page.locator('.cdx-index-indicator--output').first();
             await expect(outputIndicator).toHaveText('O');
         });
 
         test('index indicators have aria-hidden', async ({ page }) => {
-            await page.goto('/injectables/TodoStore.html');
+            await page.goto(pageUrl('injectable', 'TodoStore'));
 
             const indicator = page.locator('.cdx-index-indicator').first();
             await expect(indicator).toHaveAttribute('aria-hidden', 'true');
         });
 
         test('index entries are clickable links', async ({ page }) => {
-            await page.goto('/injectables/TodoStore.html');
+            await page.goto(pageUrl('injectable', 'TodoStore'));
 
             const entry = page.locator('.cdx-index-entry').first();
             const href = await entry.getAttribute('href');
@@ -190,7 +191,7 @@ test.describe('Content Sections', () => {
         });
 
         test('index uses flex column layout', async ({ page }) => {
-            await page.goto('/injectables/TodoStore.html');
+            await page.goto(pageUrl('injectable', 'TodoStore'));
 
             const entries = page.locator('.cdx-index-entries').first();
             const display = await entries.evaluate(el => getComputedStyle(el).display);
@@ -199,7 +200,7 @@ test.describe('Content Sections', () => {
         });
 
         test('deprecated members have line-through in index', async ({ page }) => {
-            await page.goto('/classes/Todo.html');
+            await page.goto(pageUrl('class', 'Todo'));
 
             const deprecated = page.locator('.cdx-index-entry--deprecated');
             if ((await deprecated.count()) > 0) {
@@ -215,7 +216,7 @@ test.describe('Content Sections', () => {
     test.describe('Index overflow and responsive', () => {
         test('index entries do not overflow the index container', async ({ page }) => {
             // CompodocComponent has many long signal names
-            await page.goto('/components/CompodocComponent.html');
+            await page.goto(pageUrl('component', 'CompodocComponent'));
             await page.locator('[role="tab"]', { hasText: 'API' }).click();
 
             const indexBox = page.locator('.cdx-index');
@@ -237,7 +238,7 @@ test.describe('Content Sections', () => {
         });
 
         test('long names are truncated with ellipsis', async ({ page }) => {
-            await page.goto('/components/CompodocComponent.html');
+            await page.goto(pageUrl('component', 'CompodocComponent'));
 
             // Find an entry with a long name that gets truncated
             const names = page.locator('.cdx-index-name');
@@ -259,7 +260,7 @@ test.describe('Content Sections', () => {
 
         test('index collapses to single column on narrow viewport', async ({ page }) => {
             await page.setViewportSize({ width: 400, height: 800 });
-            await page.goto('/injectables/TodoStore.html');
+            await page.goto(pageUrl('injectable', 'TodoStore'));
             await page.locator('[role="tab"]', { hasText: 'API' }).click();
 
             const entries = page.locator('.cdx-index-entries').first();
@@ -271,7 +272,7 @@ test.describe('Content Sections', () => {
         });
 
         test('index indicators do not shrink', async ({ page }) => {
-            await page.goto('/components/CompodocComponent.html');
+            await page.goto(pageUrl('component', 'CompodocComponent'));
             await page.locator('[role="tab"]', { hasText: 'API' }).click();
 
             const indicator = page.locator('.cdx-index-indicator').first();
@@ -283,7 +284,7 @@ test.describe('Content Sections', () => {
 
     test.describe('Extends in metadata', () => {
         test('class with extends shows extends row in metadata card', async ({ page }) => {
-            await page.goto('/classes/Todo.html');
+            await page.goto(pageUrl('class', 'Todo'));
             await page.locator('[role="tab"]', { hasText: 'Info' }).click();
 
             const card = page.locator('.cdx-metadata-card');

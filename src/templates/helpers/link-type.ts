@@ -1,20 +1,14 @@
 import DependenciesEngine from '../../app/engines/dependencies.engine';
+import { hrefFor, hrefText, isMiscKind } from '../../app/links/layout';
+import { targetOfData } from '../../app/links/resolve';
 import BasicTypeUtil from '../../utils/basic-type.util';
 import ExtendsMerger from '../../utils/extends-merger.util';
-import { relativeUrl } from './relative-url';
 
 export type ResolvedType = {
     readonly raw: string;
     readonly href: string;
     readonly target: string;
     readonly indexKey: string;
-};
-
-const miscSubtypeToPage: Record<string, string> = {
-    enum: 'enumerations',
-    function: 'functions',
-    typealias: 'typealiases',
-    variable: 'variables'
 };
 
 /**
@@ -35,22 +29,14 @@ export const resolveType = (name: string, indexKey?: string, depth = 1): Resolve
         const resolved: ResolvedType = { raw: name, indexKey: '', href: '', target: '_self' };
 
         if (result.source === 'internal') {
-            const data = result.data;
-            if (data.type === 'miscellaneous' || (data.ctype && data.ctype === 'miscellaneous')) {
-                const page = miscSubtypeToPage[data.subtype] ?? '';
-                let href = relativeUrl(depth, `${data.ctype || data.type}/${page}.html`);
-                if (data.name) {
-                    href += `#${data.name}`;
-                }
-                return { ...resolved, href };
+            const target = targetOfData(result.data, { detail: true });
+            if (!target) {
+                return null;
             }
-
-            const typePath = data.type === 'class' ? 'classe' : data.type;
-            let href = relativeUrl(depth, `${typePath}s/${data.name}.html`);
-            if (indexKey) {
-                href += `#${indexKey}`;
-            }
-            return { ...resolved, href, indexKey: indexKey ?? '' };
+            const anchor =
+                target.type === 'symbol' && isMiscKind(target.kind) ? undefined : indexKey;
+            const href = hrefText(hrefFor(target, depth, anchor || undefined));
+            return { ...resolved, href, indexKey: anchor ?? '' };
         }
 
         return {
@@ -83,7 +69,8 @@ export const linkTypeHtml = (
     }
 
     if (options?.withLine && options.line) {
-        return `<code><a href="${resolved.href}#source" target="${resolved.target}" >${resolved.raw}:${options.line}</a></code>`;
+        const sourceHref = resolved.href.includes('#') ? resolved.href : `${resolved.href}#source`;
+        return `<code><a href="${sourceHref}" target="${resolved.target}" >${resolved.raw}:${options.line}</a></code>`;
     }
 
     const suffix = resolved.indexKey ? `['${resolved.indexKey}']` : '';

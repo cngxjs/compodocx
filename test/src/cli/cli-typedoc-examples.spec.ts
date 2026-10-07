@@ -1,4 +1,5 @@
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { hrefTo, pageOf } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -30,7 +31,7 @@ describe('CLI generation - TypeDoc examples', () => {
     });
 
     it('interfaces - INameInterface', () => {
-        const file = read(`${distFolder}/interfaces/INameInterface.html`);
+        const file = read(`${distFolder}/${pageOf('interface', 'INameInterface')}`);
         expect(file, 'Did not contain class comment').to.contain('This is a simple interface.');
         expect(file, 'Did not contain function commment').to.contain(
             'This is a interface function of INameInterface.'
@@ -41,16 +42,16 @@ describe('CLI generation - TypeDoc examples', () => {
     });
 
     it('interfaces - IPrintNameInterface', () => {
-        const file = read(`${distFolder}/interfaces/IPrintNameInterface.html`);
+        const file = read(`${distFolder}/${pageOf('interface', 'IPrintNameInterface')}`);
         expect(file).to.contain('This is a interface inheriting from two other interfaces.');
         expect(file).to.contain('This is a interface function of IPrintNameInterface');
         // Interface metadata-label uses lowercase 'extends' (matches the TS keyword).
         expect(file).to.contain('cdx-metadata-label">extends</dt>');
-        expect(file).to.contain('href="../interfaces/INameInterface.html"');
+        expect(file).to.contain(`href="${hrefTo('interface', 'INameInterface', 1)}"`);
     });
 
     it('classes - BaseClass', () => {
-        const file = read(`${distFolder}/classes/BaseClass.html`);
+        const file = read(`${distFolder}/${pageOf('class', 'BaseClass')}`);
         expect(file).to.contain('This is a simple base class.');
         // Class metadata-label uses lowercase 'implements' (matches the TS keyword).
         expect(file).to.contain('cdx-metadata-label">implements</dt>');

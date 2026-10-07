@@ -1,5 +1,6 @@
 import type { SemanticModel } from '../compiler/semantic/model';
 import type { FileRefBundle, VendorPackage } from '../engines/stackblitz';
+import type { SymbolTable } from '../links/symbol-table';
 import type { CoverageData } from './coverageData.interface';
 
 export interface MainDataInterface {
@@ -262,4 +263,6 @@ export interface MainDataInterface {
     generatedAt: string;
     /** Facts of the semantic stage; absent when the stage did not run or failed. */
     semantic?: SemanticModel;
+    /** Every documented symbol by id; absent before the first crawl. */
+    symbols?: SymbolTable;
 }

@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import { hrefFor, hrefText, isMiscKind, isPageKind } from '../../app/links/layout';
 import { IconFolder, IconSearch } from '../components/Icons';
 import { WcagBadge } from '../components/WcagBadge';
 import {
@@ -59,45 +60,18 @@ interface BucketLandingData {
     readonly aiGenerated?: string | true;
 }
 
-/** Map an entity kind to the URL-path prefix where its detail page lives.
- *  Mirrors the `path:` field on `Configuration.addPage()` calls in the
- *  per-kind page generators. */
-const KIND_HREF_PREFIX: Record<string, string> = {
-    component: 'components',
-    directive: 'directives',
-    pipe: 'pipes',
-    injectable: 'injectables',
-    token: 'tokens',
-    class: 'classes',
-    guard: 'guards',
-    interceptor: 'interceptors',
-    entity: 'entities',
-    interface: 'interfaces'
-};
-
-/** Anchor-kinds use a two-stage href: `@category`-tagged entries land on
- *  their dedicated detail page, untagged stay as inline anchors on the
- *  shared collection page. Buckets only render the tagged path (untagged
- *  items don't belong to any bucket by definition). */
-const MISC_PLURAL: Record<string, string> = {
-    function: 'functions',
-    variable: 'variables',
-    typealias: 'typealiases',
-    enumeration: 'enumerations'
-};
-
 const buildHref = (item: BucketItem, depth: number): string => {
-    const base = relativeUrl(depth);
     const kind = item.kind;
-    if (kind in KIND_HREF_PREFIX) {
-        return `${base}${KIND_HREF_PREFIX[kind]}/${item.name}.html`;
+    const name = item.name;
+    if (isPageKind(kind)) {
+        return hrefText(hrefFor({ type: 'symbol', kind, name }, depth));
     }
-    if (kind in MISC_PLURAL) {
+    if (isMiscKind(kind)) {
         // Bucket landings only ever include `@category`-tagged misc items,
         // so the dedicated detail-page form is always correct.
-        return `${base}miscellaneous/${MISC_PLURAL[kind]}/${item.name}.html`;
+        return hrefText(hrefFor({ type: 'symbol', kind, name, detail: true }, depth));
     }
-    return `${base}${item.name}.html`;
+    return hrefText(hrefFor({ type: 'root', page: name }, depth));
 };
 
 const KindCard = (item: BucketItem, depth: number): string => {

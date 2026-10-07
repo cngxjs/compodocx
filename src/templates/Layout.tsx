@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { hrefFor, hrefText, pageFile, ROOT_DEPTH } from '../app/links/layout';
 import { VersionSwitcher } from './blocks/VersionSwitcher';
 import { IconMoon, IconPalette, IconSearch, IconSun } from './components/Icons';
 import { relativeUrl } from './helpers';
@@ -44,9 +45,12 @@ window.addEventListener('popstate', sendCurrentUrlToParent, false);
 window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
 `;
 
+/** Root-relative link to the index page; the client router adds the depth prefix. */
+const INDEX_HREF = hrefText(hrefFor({ type: 'root', page: 'index' }, ROOT_DEPTH), 'bare');
+
 const PageGlobals = (props: { data: PageData }) => {
     const { data } = props;
-    const pageUrl = data.filename ? `${data.filename}.html` : `${data.name}.html`;
+    const pageUrl = pageFile('', data.filename || data.name);
     return (
         <script>
             {`
@@ -175,11 +179,11 @@ const SidebarHeader = (props: {
         <div class="cdx-sidebar-header">
             <div class="cdx-sidebar-header-row">
                 {props.logo ? (
-                    <a href="index.html" data-type="index-link" class="cdx-sidebar-logo">
+                    <a href={INDEX_HREF} data-type="index-link" class="cdx-sidebar-logo">
                         <img src={props.r(`images/${props.logo}`)} alt={props.name} />
                     </a>
                 ) : (
-                    <a href="index.html" data-type="index-link" class="cdx-sidebar-brand">
+                    <a href={INDEX_HREF} data-type="index-link" class="cdx-sidebar-brand">
                         {props.name}
                     </a>
                 )}

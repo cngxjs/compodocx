@@ -2,6 +2,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
+import { ROOT_DEPTH } from '../links/layout';
 
 export class AppConfigPageGenerator {
     public prepare(): Promise<any> {
@@ -13,7 +14,7 @@ export class AppConfigPageGenerator {
                 name: 'app-config',
                 id: 'app-config',
                 context: 'app-config',
-                depth: 0,
+                depth: ROOT_DEPTH,
                 pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
             });
         }

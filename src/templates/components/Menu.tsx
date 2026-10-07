@@ -6,6 +6,16 @@ import {
     type EntityWithKind,
     type GroupNode
 } from '../../app/engines/dependencies.engine';
+import {
+    hrefFor,
+    hrefText,
+    KIND_FOLDER,
+    type MiscKind,
+    pageFile,
+    pageLocation,
+    pagePath,
+    ROOT_DEPTH
+} from '../../app/links/layout';
 import { t } from '../helpers';
 import { isToggled } from '../helpers/menu-helpers';
 import {
@@ -67,11 +77,22 @@ const ANCHOR_KINDS = new Set<EntityKind>(['variable', 'function', 'typealias', '
 /** Entity link href with duplicateName fallback. */
 const entityHref = (prefix: string, item: any): string => {
     const name = item.duplicateName ?? item.name;
-    if (ANCHOR_KINDS.has(item.kind)) {
-        return item.category ? `${prefix}/${name}.html` : `${prefix}.html#${name}`;
+    if (ANCHOR_KINDS.has(item.kind) && !item.category) {
+        return hrefText(
+            { path: pageFile('', prefix), anchor: name, fromDepth: ROOT_DEPTH },
+            'bare'
+        );
     }
-    return `${prefix}/${name}.html`;
+    return pageFile(prefix, name);
 };
+
+/** Root-relative link to a top-level page; the client router adds the depth prefix. */
+const rootHref = (page: string): string =>
+    hrefText(hrefFor({ type: 'root', page }, ROOT_DEPTH), 'bare');
+
+/** Root-relative link to a miscellaneous collection page. */
+const collectionHref = (kind: MiscKind): string =>
+    hrefText(hrefFor({ type: 'misc-collection', kind }, ROOT_DEPTH), 'bare');
 
 /**
  * Kinds whose detail page renders an API tab. Used to gate the
@@ -332,7 +353,9 @@ const FeatureGroupTree = (props: {
     }
     const id = `${props.idPrefix}${props.node.fullPath}`;
     const startExpanded = !isCollapsedAll() && props.depth < props.groupDepth;
-    const labelHref = `categories/${props.node.fullPath}.html`;
+    const labelHref = pagePath(
+        pageLocation({ type: 'bucket', segments: props.node.fullPath.split('/').filter(Boolean) })
+    );
     const labelText = props.node.name.charAt(0).toUpperCase() + props.node.name.slice(1);
     return (
         <li
@@ -542,7 +565,7 @@ export const Menu = (props: MenuProps): string => {
             <ul class="list">
                 {/* Getting Started */}
                 <li class="chapter">
-                    <a data-type="chapter-link" href="index.html">
+                    <a data-type="chapter-link" href={rootHref('index')}>
                         {IconHome()}
                         {t('getting-started')}
                     </a>
@@ -550,7 +573,7 @@ export const Menu = (props: MenuProps): string => {
                         {!d.disableOverview && (
                             <li class="link">
                                 <a
-                                    href={d.readme ? 'overview.html' : 'index.html'}
+                                    href={rootHref(d.readme ? 'overview' : 'index')}
                                     data-type="chapter-link"
                                 >
                                     {IconGrid()}
@@ -560,7 +583,7 @@ export const Menu = (props: MenuProps): string => {
                         )}
                         {d.readme && (
                             <li class="link">
-                                <a href="index.html" data-type="chapter-link">
+                                <a href={rootHref('index')} data-type="chapter-link">
                                     {IconClass()}
                                     {d.disableOverview ? t('overview') : t('readme')}
                                 </a>
@@ -569,7 +592,7 @@ export const Menu = (props: MenuProps): string => {
                         {(d.markdowns ?? []).map((md: any) => (
                             <li class="link">
                                 <a
-                                    href={md.name !== 'readme' ? `${md.name}.html` : 'index.html'}
+                                    href={rootHref(md.name !== 'readme' ? md.name : 'index')}
                                     data-type="chapter-link"
                                 >
                                     {IconClass()}
@@ -580,7 +603,7 @@ export const Menu = (props: MenuProps): string => {
                         {!d.disableDependencies &&
                             (d.packageDependencies || d.packagePeerDependencies) && (
                                 <li class="link">
-                                    <a href="dependencies.html" data-type="chapter-link">
+                                    <a href={rootHref('dependencies')} data-type="chapter-link">
                                         {IconList()}
                                         {t('dependencies')}
                                     </a>
@@ -588,7 +611,7 @@ export const Menu = (props: MenuProps): string => {
                             )}
                         {!d.disableProperties && d.packageProperties && (
                             <li class="link">
-                                <a href="properties.html" data-type="chapter-link">
+                                <a href={rootHref('properties')} data-type="chapter-link">
                                     {IconEntity()}
                                     {t('properties')}
                                 </a>
@@ -600,7 +623,7 @@ export const Menu = (props: MenuProps): string => {
                 {/* App Configuration */}
                 {d.appConfig?.length > 0 && (
                     <li class="chapter">
-                        <a data-type="chapter-link" href="app-config.html">
+                        <a data-type="chapter-link" href={rootHref('app-config')}>
                             {IconSettings()}App Configuration
                         </a>
                     </li>
@@ -630,7 +653,7 @@ export const Menu = (props: MenuProps): string => {
                                     <li class="chapter inner">
                                         <a
                                             data-type="chapter-link"
-                                            href={`${page.path}/${page.filename}.html`}
+                                            href={pageFile(page.path, page.filename)}
                                             data-context-id="additional"
                                         >
                                             {/* biome-ignore lint/a11y/useFocusableInteractive: Bootstrap collapse toggle wired to data-cdx-toggle */}
@@ -656,7 +679,7 @@ export const Menu = (props: MenuProps): string => {
                                                     class={`link${child.depth > 1 ? ` for-chapter${child.depth}` : ''}`}
                                                 >
                                                     <a
-                                                        href={`${child.path}/${child.filename}.html`}
+                                                        href={pageFile(child.path, child.filename)}
                                                         data-type="entity-link"
                                                         data-context="sub-entity"
                                                         data-context-id="additional"
@@ -672,7 +695,7 @@ export const Menu = (props: MenuProps): string => {
                                         class={`link${page.depth > 1 ? ` for-chapter${page.depth}` : ''}`}
                                     >
                                         <a
-                                            href={`${page.path}/${page.filename}.html`}
+                                            href={pageFile(page.path, page.filename)}
                                             data-type="entity-link"
                                             data-context-id="additional"
                                         >
@@ -703,7 +726,7 @@ export const Menu = (props: MenuProps): string => {
                             <li class="chapter references">
                                 <a
                                     data-type="chapter-link"
-                                    href="references.html"
+                                    href={rootHref('references')}
                                     aria-label={t('api-reference')}
                                 >
                                     {IconList()}
@@ -722,7 +745,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'components',
                                 iconHtml: IconComponent(),
                                 labelKey: 'components',
-                                hrefPrefix: 'components',
+                                hrefPrefix: KIND_FOLDER.component,
                                 groupDepth: d.groupDepth
                             })}
                         {entities.length > 0 &&
@@ -731,7 +754,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'entities',
                                 iconHtml: IconEntity(),
                                 labelKey: 'entities',
-                                hrefPrefix: 'entities',
+                                hrefPrefix: KIND_FOLDER.entity,
                                 groupDepth: d.groupDepth
                             })}
                         {directives.length > 0 &&
@@ -741,7 +764,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'directives',
                                 iconHtml: IconDirective(),
                                 labelKey: 'directives',
-                                hrefPrefix: 'directives',
+                                hrefPrefix: KIND_FOLDER.directive,
                                 groupDepth: d.groupDepth
                             })}
                         {d.classes?.length > 0 &&
@@ -751,7 +774,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'classes',
                                 iconHtml: IconClass(),
                                 labelKey: 'classes',
-                                hrefPrefix: 'classes',
+                                hrefPrefix: KIND_FOLDER.class,
                                 groupDepth: d.groupDepth
                             })}
                         {injectables.length > 0 &&
@@ -761,7 +784,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'injectables',
                                 iconHtml: IconInjectable(),
                                 labelKey: 'injectables',
-                                hrefPrefix: 'injectables',
+                                hrefPrefix: KIND_FOLDER.injectable,
                                 groupDepth: d.groupDepth
                             })}
                         {d.tokens?.length > 0 &&
@@ -771,7 +794,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'tokens',
                                 iconHtml: IconToken(),
                                 labelKey: 'tokens',
-                                hrefPrefix: 'tokens',
+                                hrefPrefix: KIND_FOLDER.token,
                                 groupDepth: d.groupDepth
                             })}
                         {d.interceptors?.length > 0 &&
@@ -781,7 +804,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'interceptors',
                                 iconHtml: IconInterceptor(),
                                 labelKey: 'interceptors',
-                                hrefPrefix: 'interceptors',
+                                hrefPrefix: KIND_FOLDER.interceptor,
                                 groupDepth: d.groupDepth
                             })}
                         {d.guards?.length > 0 &&
@@ -791,7 +814,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'guards',
                                 iconHtml: IconGuard(),
                                 labelKey: 'guards',
-                                hrefPrefix: 'guards',
+                                hrefPrefix: KIND_FOLDER.guard,
                                 groupDepth: d.groupDepth
                             })}
                         {d.interfaces?.length > 0 &&
@@ -801,7 +824,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'interfaces',
                                 iconHtml: IconInterface(),
                                 labelKey: 'interfaces',
-                                hrefPrefix: 'interfaces',
+                                hrefPrefix: KIND_FOLDER.interface,
                                 groupDepth: d.groupDepth
                             })}
                         {pipes.length > 0 &&
@@ -811,7 +834,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'pipes',
                                 iconHtml: IconPipe(),
                                 labelKey: 'pipes',
-                                hrefPrefix: 'pipes',
+                                hrefPrefix: KIND_FOLDER.pipe,
                                 groupDepth: d.groupDepth
                             })}
                     </>
@@ -838,34 +861,28 @@ export const Menu = (props: MenuProps): string => {
                         >
                             {d.miscellaneous.enumerations?.length > 0 && (
                                 <li class="link">
-                                    <a
-                                        href="miscellaneous/enumerations.html"
-                                        data-type="entity-link"
-                                    >
+                                    <a href={collectionHref('enumeration')} data-type="entity-link">
                                         {t('enums')}
                                     </a>
                                 </li>
                             )}
                             {d.miscellaneous.functions?.length > 0 && (
                                 <li class="link">
-                                    <a href="miscellaneous/functions.html" data-type="entity-link">
+                                    <a href={collectionHref('function')} data-type="entity-link">
                                         {t('functions')}
                                     </a>
                                 </li>
                             )}
                             {d.miscellaneous.typealiases?.length > 0 && (
                                 <li class="link">
-                                    <a
-                                        href="miscellaneous/typealiases.html"
-                                        data-type="entity-link"
-                                    >
+                                    <a href={collectionHref('typealias')} data-type="entity-link">
                                         {t('type-aliases')}
                                     </a>
                                 </li>
                             )}
                             {d.miscellaneous.variables?.length > 0 && (
                                 <li class="link">
-                                    <a href="miscellaneous/variables.html" data-type="entity-link">
+                                    <a href={collectionHref('variable')} data-type="entity-link">
                                         {t('variables')}
                                     </a>
                                 </li>
@@ -877,7 +894,7 @@ export const Menu = (props: MenuProps): string => {
                 {/* Routes */}
                 {!d.disableRoutesGraph && d.routes && (
                     <li class="chapter">
-                        <a data-type="chapter-link" href="routes.html">
+                        <a data-type="chapter-link" href={rootHref('routes')}>
                             {IconGitBranch()}
                             {t('routes')}
                         </a>
@@ -887,7 +904,7 @@ export const Menu = (props: MenuProps): string => {
                 {/* Coverage */}
                 {!d.disableCoverage && (
                     <li class="chapter">
-                        <a data-type="chapter-link" href="coverage.html">
+                        <a data-type="chapter-link" href={rootHref('coverage')}>
                             {IconBarChart()}
                             {t('coverage-page-title')}
                         </a>
@@ -897,7 +914,7 @@ export const Menu = (props: MenuProps): string => {
                 {/* Unit Test */}
                 {d.unitTestData && (
                     <li class="chapter">
-                        <a data-type="chapter-link" href="unit-test.html">
+                        <a data-type="chapter-link" href={rootHref('unit-test')}>
                             {IconPodium()}
                             {t('unit-test-coverage')}
                         </a>

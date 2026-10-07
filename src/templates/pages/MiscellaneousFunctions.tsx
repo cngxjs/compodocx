@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { MISC_COLLECTION } from '../../app/links/layout';
 import { BlockMethod } from '../blocks/BlockMethod';
 import { IndexMisc } from '../blocks/IndexMisc';
 import { MiscHero } from '../blocks/MiscHero';
@@ -68,7 +69,10 @@ export const MiscellaneousFunctions = (props: MiscFunctionsProps): string =>
                     <h3 class="cdx-section-heading" title={key}>
                         {shortPath(key)}
                     </h3>
-                    {TaggedDetailLinks({ items: methods as any[], plural: 'functions' })}
+                    {TaggedDetailLinks({
+                        items: methods as any[],
+                        plural: MISC_COLLECTION.function
+                    })}
                     {(methods as any[]).map(fn => FunctionBadges(fn)).join('') ? (
                         <div class="cdx-function-badges">
                             {(methods as any[])

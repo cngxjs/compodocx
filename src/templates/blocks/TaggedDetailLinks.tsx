@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { pageFile } from '../../app/links/layout';
 import { t } from '../helpers';
 
 interface TaggedItem {
@@ -26,7 +27,7 @@ export const TaggedDetailLinks = (props: TaggedDetailLinksProps): string => {
             {tagged.map(item => (
                 <li>
                     <a
-                        href={`${props.plural}/${item.name}.html`}
+                        href={pageFile(props.plural, item.name)}
                         data-cdx-tagged-detail-link
                         aria-label={`${t('open-detail-page')}: ${item.name}`}
                     >

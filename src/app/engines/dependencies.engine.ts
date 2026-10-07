@@ -19,6 +19,14 @@ import Configuration from '../configuration';
 import type { MiscellaneousData } from '../interfaces/miscellaneous-data.interface';
 import type { ParsedData } from '../interfaces/parsed-data.interface';
 import type { RouteInterface } from '../interfaces/routes.interface';
+import { kindHrefPrefix } from '../links/layout';
+import type { SymbolId } from '../links/symbol-id';
+import {
+    buildSymbolTable,
+    lookupEntry,
+    type SymbolEntry,
+    type SymbolTable
+} from '../links/symbol-table';
 
 export interface GroupNode {
     name: string; // segment name (single folder)
@@ -348,78 +356,6 @@ export class DependenciesEngine {
         this.prepareReferencedByIndex();
     }
 
-    private findInCompodocDependencies(name, data, file?): IApiSourceResult<any> {
-        let _result = {
-            source: 'internal',
-            data: undefined,
-            score: 0
-        };
-        let nameFoundCounter = 0;
-        if (data && data.length > 0) {
-            for (const element of data) {
-                if (name !== undefined) {
-                    if (typeof file !== 'undefined') {
-                        if (
-                            name === element.name &&
-                            file.replaceAll('\\', '/').includes(element.file)
-                        ) {
-                            nameFoundCounter += 1;
-                            _result.data = element;
-                            _result.score = 2;
-                        } else if (
-                            name.indexOf(element.name) !== -1 &&
-                            file.replace(/\\/g, '/').indexOf(element.file) !== -1
-                        ) {
-                            nameFoundCounter += 1;
-                            _result.data = element;
-                            _result.score = 1;
-                        }
-                    } else {
-                        if (name === element.name) {
-                            nameFoundCounter += 1;
-                            _result.data = element;
-                            _result.score = 2;
-                        } else if (name.indexOf(element.name) !== -1) {
-                            nameFoundCounter += 1;
-                            _result.data = element;
-                            _result.score = 1;
-                        }
-                    }
-                }
-            }
-
-            // Prevent wrong matching like MultiSelectOptionDirective with SelectOptionDirective, or QueryParamGroupService with QueryParamGroup
-            if (nameFoundCounter > 1) {
-                let found = false;
-                for (let i = 0; i < data.length; i++) {
-                    if (typeof name !== 'undefined') {
-                        if (typeof file !== 'undefined') {
-                            if (name === data[i].name) {
-                                found = true;
-                                _result.data = data[i];
-                                _result.score = 2;
-                            }
-                        } else {
-                            if (name === data[i].name) {
-                                found = true;
-                                _result.data = data[i];
-                                _result.score = 2;
-                            }
-                        }
-                    }
-                }
-                if (!found) {
-                    _result = {
-                        source: 'internal',
-                        data: undefined,
-                        score: 0
-                    };
-                }
-            }
-        }
-        return _result;
-    }
-
     private manageDuplicatesName() {
         const processDuplicates = (element, _index, array) => {
             const elementsWithSameName = array.filter(
@@ -450,37 +386,23 @@ export class DependenciesEngine {
         this.directives = this.directives.map(processDuplicates);
     }
 
+    /**
+     * The symbol table of the current engine data. Crawl-time callers run
+     * before the crawl phase publishes the table and see the engine as it is
+     * (empty on a first run, the previous run in watch mode).
+     */
+    private symbolTable(): SymbolTable {
+        return Configuration.mainData.symbols ?? buildSymbolTable(this);
+    }
+
+    /** Resolve a type name: documented symbols first (`type-link` policy), then the Angular API. */
     public find(name: string): IApiSourceResult<any> | undefined {
-        const searchFunctions: Array<() => IApiSourceResult<any>> = [
-            () => this.findInCompodocDependencies(name, this.injectables),
-            () => this.findInCompodocDependencies(name, this.interceptors),
-            () => this.findInCompodocDependencies(name, this.guards),
-            () => this.findInCompodocDependencies(name, this.interfaces),
-            () => this.findInCompodocDependencies(name, this.classes),
-            () => this.findInCompodocDependencies(name, this.components),
-            () => this.findInCompodocDependencies(name, this.entities),
-            () => this.findInCompodocDependencies(name, this.directives),
-            () => this.findInCompodocDependencies(name, this.pipes),
-            () => this.findInCompodocDependencies(name, this.miscellaneous.variables),
-            () => this.findInCompodocDependencies(name, this.miscellaneous.functions),
-            () => this.findInCompodocDependencies(name, this.miscellaneous.typealiases),
-            () => this.findInCompodocDependencies(name, this.miscellaneous.enumerations),
-            () => AngularApiUtil.findApi(name)
-        ];
-
-        let bestScore = 0;
-        let bestResult;
-
-        for (const searchFunction of searchFunctions) {
-            const result = searchFunction();
-
-            if (result.data && result.score > bestScore) {
-                bestScore = result.score;
-                bestResult = result;
-            }
+        const entry = lookupEntry(this.symbolTable(), name, 'type-link');
+        if (entry) {
+            return { source: 'internal', data: entry.data, score: entry.ref.name === name ? 2 : 1 };
         }
-
-        return bestResult;
+        const external = AngularApiUtil.findApi(name);
+        return external.data && external.score > 0 ? external : undefined;
     }
 
     public update(updatedData): void {
@@ -578,24 +500,9 @@ export class DependenciesEngine {
         this.prepareMiscellaneous();
     }
 
+    /** Resolve a `{@link}` target (`doc-link` policy); `false` when unknown. */
     public findInCompodoc(name: string) {
-        const mergedData = [
-            ...this.components,
-            ...this.entities,
-            ...this.directives,
-            ...this.injectables,
-            ...this.interceptors,
-            ...this.guards,
-            ...this.interfaces,
-            ...this.pipes,
-            ...this.classes,
-            ...this.miscellaneous.enumerations,
-            ...this.miscellaneous.typealiases,
-            ...this.miscellaneous.variables,
-            ...this.miscellaneous.functions
-        ];
-        const result = mergedData.find(el => (el as any).name === name);
-        return result || false;
+        return (lookupEntry(this.symbolTable(), name, 'doc-link')?.data as any) || false;
     }
 
     private prepareMiscellaneous() {
@@ -714,39 +621,24 @@ export class DependenciesEngine {
     private prepareFeatureGroups(): void {
         const groups: Record<string, EntityWithKind[]> = {};
         const depth = Configuration.mainData.groupDepth;
-        const kinds: Array<{ list: any[]; kind: EntityKind; hrefPrefix: string }> = [
-            { list: this.components, kind: 'component', hrefPrefix: 'components' },
-            { list: this.directives, kind: 'directive', hrefPrefix: 'directives' },
-            { list: this.injectables, kind: 'injectable', hrefPrefix: 'injectables' },
-            { list: this.tokens, kind: 'token', hrefPrefix: 'tokens' },
-            { list: this.pipes, kind: 'pipe', hrefPrefix: 'pipes' },
-            { list: this.classes, kind: 'class', hrefPrefix: 'classes' },
-            { list: this.interfaces, kind: 'interface', hrefPrefix: 'interfaces' },
-            { list: this.guards, kind: 'guard', hrefPrefix: 'guards' },
-            { list: this.interceptors, kind: 'interceptor', hrefPrefix: 'interceptors' },
-            { list: this.entities, kind: 'entity', hrefPrefix: 'entities' },
-            {
-                list: this.miscellaneous?.functions ?? [],
-                kind: 'function',
-                hrefPrefix: 'miscellaneous/functions'
-            },
-            {
-                list: this.miscellaneous?.variables ?? [],
-                kind: 'variable',
-                hrefPrefix: 'miscellaneous/variables'
-            },
-            {
-                list: this.miscellaneous?.typealiases ?? [],
-                kind: 'typealias',
-                hrefPrefix: 'miscellaneous/typealiases'
-            },
-            {
-                list: this.miscellaneous?.enumerations ?? [],
-                kind: 'enumeration',
-                hrefPrefix: 'miscellaneous/enumerations'
-            }
+        const kinds: Array<{ list: any[]; kind: EntityKind }> = [
+            { list: this.components, kind: 'component' },
+            { list: this.directives, kind: 'directive' },
+            { list: this.injectables, kind: 'injectable' },
+            { list: this.tokens, kind: 'token' },
+            { list: this.pipes, kind: 'pipe' },
+            { list: this.classes, kind: 'class' },
+            { list: this.interfaces, kind: 'interface' },
+            { list: this.guards, kind: 'guard' },
+            { list: this.interceptors, kind: 'interceptor' },
+            { list: this.entities, kind: 'entity' },
+            { list: this.miscellaneous?.functions ?? [], kind: 'function' },
+            { list: this.miscellaneous?.variables ?? [], kind: 'variable' },
+            { list: this.miscellaneous?.typealiases ?? [], kind: 'typealias' },
+            { list: this.miscellaneous?.enumerations ?? [], kind: 'enumeration' }
         ];
-        for (const { list, kind, hrefPrefix } of kinds) {
+        for (const { list, kind } of kinds) {
+            const hrefPrefix = kindHrefPrefix(kind);
             for (const item of list ?? []) {
                 const explicit = (item as any).category;
                 const key =
@@ -835,43 +727,35 @@ export class DependenciesEngine {
             hrefPrefix: string;
             file?: string;
         };
-        const primaryGroups: Array<{ list: any[]; kind: EntityKind; hrefPrefix: string }> = [
-            { list: this.components, kind: 'component', hrefPrefix: 'components' },
-            { list: this.directives, kind: 'directive', hrefPrefix: 'directives' },
-            { list: this.injectables, kind: 'injectable', hrefPrefix: 'injectables' },
-            { list: this.tokens, kind: 'token', hrefPrefix: 'tokens' },
-            { list: this.pipes, kind: 'pipe', hrefPrefix: 'pipes' },
-            { list: this.classes, kind: 'class', hrefPrefix: 'classes' },
-            { list: this.guards, kind: 'guard', hrefPrefix: 'guards' },
-            { list: this.interceptors, kind: 'interceptor', hrefPrefix: 'interceptors' },
-            { list: this.entities, kind: 'entity', hrefPrefix: 'entities' }
+        const primaryGroups: Array<{ list: any[]; kind: EntityKind }> = [
+            { list: this.components, kind: 'component' },
+            { list: this.directives, kind: 'directive' },
+            { list: this.injectables, kind: 'injectable' },
+            { list: this.tokens, kind: 'token' },
+            { list: this.pipes, kind: 'pipe' },
+            { list: this.classes, kind: 'class' },
+            { list: this.guards, kind: 'guard' },
+            { list: this.interceptors, kind: 'interceptor' },
+            { list: this.entities, kind: 'entity' }
         ];
 
-        // Set of reference-kind names — we only record backlinks for symbols
-        // that actually exist as documented reference entities.
-        const referenceNames = new Set<string>();
-        const referenceLookup = new Map<string, any>();
-        const registerRef = (item: any) => {
-            if (item?.name) {
-                referenceNames.add(item.name);
-                referenceLookup.set(item.name, item);
+        // Reference-kind targets by name: interfaces, tokens and misc symbols,
+        // the last registered one winning (`referenced-by` lookup policy).
+        // Built from the current arrays, the published table is not up yet.
+        const table = buildSymbolTable(this);
+        const targets = new Map<string, SymbolEntry | undefined>();
+        const targetOf = (name: string): SymbolEntry | undefined => {
+            if (!targets.has(name)) {
+                targets.set(name, name ? lookupEntry(table, name, 'referenced-by') : undefined);
             }
+            return targets.get(name);
         };
-        this.interfaces.forEach(registerRef);
-        this.tokens?.forEach(registerRef);
-        this.miscellaneous?.functions?.forEach(registerRef);
-        this.miscellaneous?.variables?.forEach(registerRef);
-        this.miscellaneous?.typealiases?.forEach(registerRef);
-        this.miscellaneous?.enumerations?.forEach(registerRef);
 
-        if (referenceNames.size === 0) {
-            return;
-        }
+        // Build inverse index: target id → Map<dedupKey, PrimaryRef>
+        const index = new Map<SymbolId, { target: SymbolEntry; refs: Map<string, PrimaryRef> }>();
 
-        // Build inverse index: typeName → Map<dedupKey, PrimaryRef>
-        const index = new Map<string, Map<string, PrimaryRef>>();
-
-        for (const { list, kind, hrefPrefix } of primaryGroups) {
+        for (const { list, kind } of primaryGroups) {
+            const hrefPrefix = kindHrefPrefix(kind);
             for (const entity of list ?? []) {
                 const tokens = collectReferencedTypeNames(entity);
                 if (tokens.size === 0) {
@@ -881,17 +765,18 @@ export class DependenciesEngine {
                     if (typeName === entity.name) {
                         continue; // self-reference
                     }
-                    if (!referenceNames.has(typeName)) {
+                    const target = targetOf(typeName);
+                    if (!target) {
                         continue;
                     }
-                    let bucket = index.get(typeName);
+                    let bucket = index.get(target.id);
                     if (!bucket) {
-                        bucket = new Map();
-                        index.set(typeName, bucket);
+                        bucket = { target, refs: new Map() };
+                        index.set(target.id, bucket);
                     }
                     const dedupKey = `${kind}:${entity.name}`;
-                    if (!bucket.has(dedupKey)) {
-                        bucket.set(dedupKey, {
+                    if (!bucket.refs.has(dedupKey)) {
+                        bucket.refs.set(dedupKey, {
                             name: entity.name,
                             kind,
                             hrefPrefix,
@@ -903,13 +788,10 @@ export class DependenciesEngine {
         }
 
         // Attach sorted list onto each reference-kind entity.
-        for (const [typeName, bucket] of index.entries()) {
-            const entries = Array.from(bucket.values()).sort((a, b) =>
-                a.name.localeCompare(b.name)
-            );
-            const ref = referenceLookup.get(typeName);
-            if (ref && entries.length > 0) {
-                ref.referencedBy = entries;
+        for (const { target, refs } of index.values()) {
+            const entries = Array.from(refs.values()).sort((a, b) => a.name.localeCompare(b.name));
+            if (entries.length > 0) {
+                (target.data as any).referencedBy = entries;
             }
         }
     }

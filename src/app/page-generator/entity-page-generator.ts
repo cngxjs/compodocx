@@ -2,6 +2,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
+import { pageLocation } from '../links/layout';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class EntityPageGenerator {
@@ -19,14 +20,19 @@ export class EntityPageGenerator {
             const loop = () => {
                 if (i < len) {
                     const entity = Configuration.mainData.entities[i];
+                    const location = pageLocation({
+                        type: 'symbol',
+                        kind: 'entity',
+                        name: entity.name
+                    });
                     const page = {
-                        path: 'entities',
+                        path: location.path,
                         name: entity.name,
                         id: entity.id,
                         navTabs: this.navTabs.resolve(entity),
                         context: 'entity',
                         entity: entity,
-                        depth: 1,
+                        depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
                     if (entity.isDuplicate) {

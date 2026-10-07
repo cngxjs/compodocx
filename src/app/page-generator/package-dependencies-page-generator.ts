@@ -1,6 +1,7 @@
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
+import { ROOT_DEPTH } from '../links/layout';
 
 export class PackageDependenciesPageGenerator {
     public processPeerDependencies(dependencies): void {
@@ -11,7 +12,7 @@ export class PackageDependenciesPageGenerator {
                 name: 'dependencies',
                 id: 'packageDependencies',
                 context: 'package-dependencies',
-                depth: 0,
+                depth: ROOT_DEPTH,
                 pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
             });
         }
@@ -24,7 +25,7 @@ export class PackageDependenciesPageGenerator {
             name: 'dependencies',
             id: 'packageDependencies',
             context: 'package-dependencies',
-            depth: 0,
+            depth: ROOT_DEPTH,
             pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
         });
     }

@@ -128,4 +128,42 @@ describe('diff/compare — engine', () => {
         expect(oldData).toEqual(oldCopy);
         expect(newData).toEqual(newCopy);
     });
+
+    it('reports a symbol whose file moved as unchanged', () => {
+        const oldData = baseExport({ classes: [{ name: 'Store', file: 'src/a/store.ts' }] });
+        const newData = baseExport({ classes: [{ name: 'Store', file: 'src/b/store.ts' }] });
+        const result = compare(oldData, newData);
+        expect(result.changes).toHaveLength(0);
+        expect(result.unchanged).toBe(1);
+    });
+
+    it('pairs same-name symbols of one kind by file', () => {
+        const oldData = baseExport({
+            classes: [
+                { name: 'Todo', file: 'src/a/todo.ts', description: 'a' },
+                { name: 'Todo', file: 'src/b/todo.ts', description: 'b' }
+            ]
+        });
+        const newData = baseExport({
+            classes: [
+                { name: 'Todo', file: 'src/a/todo.ts', description: 'a' },
+                { name: 'Todo', file: 'src/b/todo.ts', description: 'b2' }
+            ]
+        });
+        const result = compare(oldData, newData);
+        expect(result.changes).toEqual([
+            expect.objectContaining({ kind: 'class-changed', name: 'Todo', file: 'src/b/todo.ts' })
+        ]);
+        expect(result.unchanged).toBe(1);
+    });
+
+    it('reports a symbol that changed kind as removed and added', () => {
+        const oldData = baseExport({ classes: [{ name: 'Shape', file: 'src/shape.ts' }] });
+        const newData = baseExport({ interfaces: [{ name: 'Shape', file: 'src/shape.ts' }] });
+        const result = compare(oldData, newData);
+        expect(result.changes).toEqual([
+            expect.objectContaining({ kind: 'class-removed', name: 'Shape' }),
+            expect.objectContaining({ kind: 'interface-added', name: 'Shape' })
+        ]);
+    });
 });

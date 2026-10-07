@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { pageUrl } from './pages';
 
 test.describe('Entity Page Hero', () => {
     test.describe('Hero structure', () => {
         test('component page has hero with gradient and watermark', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const hero = page.locator('.cdx-entity-hero');
             await expect(hero).toBeVisible();
@@ -13,7 +14,7 @@ test.describe('Entity Page Hero', () => {
         });
 
         test('hero sets entity color CSS variable', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const hero = page.locator('.cdx-entity-hero');
             const style = await hero.getAttribute('style');
@@ -22,7 +23,7 @@ test.describe('Entity Page Hero', () => {
         });
 
         test('class page hero uses class entity color', async ({ page }) => {
-            await page.goto('/classes/Clock.html');
+            await page.goto(pageUrl('class', 'Clock'));
 
             const style = await page.locator('.cdx-entity-hero').getAttribute('style');
             expect(style).toContain('entity-class');
@@ -31,7 +32,7 @@ test.describe('Entity Page Hero', () => {
 
     test.describe('Entity type badges', () => {
         test('component shows filled COMPONENT badge', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const badge = page.locator('.cdx-entity-hero-badges .cdx-badge--entity-component');
             await expect(badge).toBeVisible();
@@ -39,7 +40,7 @@ test.describe('Entity Page Hero', () => {
         });
 
         test('class shows filled CLASS badge', async ({ page }) => {
-            await page.goto('/classes/Clock.html');
+            await page.goto(pageUrl('class', 'Clock'));
 
             const badge = page.locator('.cdx-entity-hero-badges .cdx-badge--entity-class');
             await expect(badge).toBeVisible();
@@ -47,7 +48,7 @@ test.describe('Entity Page Hero', () => {
         });
 
         test('directive shows filled DIRECTIVE badge', async ({ page }) => {
-            await page.goto('/directives/HighlightDirective.html');
+            await page.goto(pageUrl('directive', 'HighlightDirective'));
 
             const badge = page.locator('.cdx-entity-hero-badges .cdx-badge--entity-directive');
             await expect(badge).toBeVisible();
@@ -57,7 +58,7 @@ test.describe('Entity Page Hero', () => {
         test('status badges render alongside entity badge', async ({ page }) => {
             // The standalone badge only shows in projects that still have
             // NgModules; the all-standalone fixture uses the @beta status badge.
-            await page.goto('/directives/BaseDirective.html');
+            await page.goto(pageUrl('directive', 'BaseDirective'));
 
             const badges = page.locator('.cdx-entity-hero-badges');
             await expect(badges.locator('.cdx-badge--entity-directive')).toBeVisible();
@@ -67,7 +68,7 @@ test.describe('Entity Page Hero', () => {
 
     test.describe('Context lines', () => {
         test('component shows selector in metadata table', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
             await page.locator('[role="tab"]', { hasText: 'Info' }).click();
 
             // Selector moved from hero context line to metadata table
@@ -76,7 +77,7 @@ test.describe('Entity Page Hero', () => {
         });
 
         test('class with implements shows context line', async ({ page }) => {
-            await page.goto('/classes/Clock.html');
+            await page.goto(pageUrl('class', 'Clock'));
 
             const context = page.locator('.cdx-entity-hero-context');
             await expect(context).toBeVisible();
@@ -84,7 +85,7 @@ test.describe('Entity Page Hero', () => {
         });
 
         test('entity without context data has no context line', async ({ page }) => {
-            await page.goto('/classes/Tada.html');
+            await page.goto(pageUrl('class', 'Tada'));
 
             await expect(page.locator('.cdx-entity-hero-context')).not.toBeVisible();
         });
@@ -92,7 +93,7 @@ test.describe('Entity Page Hero', () => {
 
     test.describe('Pill tab bar', () => {
         test('tabs render as pill bar below hero', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const tabBar = page.locator('.cdx-tab-bar');
             await expect(tabBar).toBeVisible();
@@ -104,7 +105,7 @@ test.describe('Entity Page Hero', () => {
         });
 
         test('active tab has active class', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const activeTab = page.locator('.cdx-tab-bar a.active');
             await expect(activeTab).toHaveCount(1);
@@ -112,7 +113,7 @@ test.describe('Entity Page Hero', () => {
         });
 
         test('clicking tab switches content', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const sourceTab = page.locator('.cdx-tab-bar a', { hasText: 'Source' });
             await sourceTab.click();

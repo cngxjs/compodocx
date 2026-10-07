@@ -1,6 +1,7 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import type { EntityKind, EntityWithKind } from '../../app/engines/dependencies.engine';
+import { hrefFor, hrefText, isMiscKind, isPageKind } from '../../app/links/layout';
 import { IconSearch, IconX } from '../components/Icons';
 import {
     deriveLibFromBucket,
@@ -25,53 +26,29 @@ import {
  * targets, only a new entry point.
  */
 
-const KIND_HREF_PREFIX: Record<string, string> = {
-    component: 'components',
-    directive: 'directives',
-    pipe: 'pipes',
-    injectable: 'injectables',
-    token: 'tokens',
-    class: 'classes',
-    guard: 'guards',
-    interceptor: 'interceptors',
-    entity: 'entities',
-    interface: 'interfaces'
-};
-
-const MISC_PLURAL: Record<string, string> = {
-    function: 'functions',
-    variable: 'variables',
-    typealias: 'typealiases',
-    enumeration: 'enumerations'
-};
-
 interface BucketItem extends EntityWithKind {
     readonly docsKind?: 'primary';
     readonly wcagLevel?: 'A' | 'AA' | 'AAA';
 }
 
 const buildHref = (item: BucketItem, depth: number): string => {
-    const base = relativeUrl(depth);
     const name = (item.duplicateName as string | undefined) ?? item.name;
     const kind = item.kind;
-    if (kind in KIND_HREF_PREFIX) {
-        return `${base}${KIND_HREF_PREFIX[kind]}/${name}.html`;
+    if (isPageKind(kind)) {
+        return hrefText(hrefFor({ type: 'symbol', kind, name }, depth));
     }
-    if (kind in MISC_PLURAL) {
+    if (isMiscKind(kind)) {
         // The portal only ever shows items that already live in a bucket
         // (`@category`-tagged or folder-derived). Misc symbols in a bucket
         // always have a dedicated detail page — never the collection
         // anchor form.
         const category = (item.category as string | undefined)?.trim();
-        if (category) {
-            return `${base}miscellaneous/${MISC_PLURAL[kind]}/${name}.html`;
-        }
         // Folder-fallback misc (no `@category` but bucketed by file path):
         // fall back to the shared collection anchor so the link still
         // resolves to *something*.
-        return `${base}miscellaneous/${MISC_PLURAL[kind]}.html#${name}`;
+        return hrefText(hrefFor({ type: 'symbol', kind, name, detail: Boolean(category) }, depth));
     }
-    return `${base}${name}.html`;
+    return hrefText(hrefFor({ type: 'root', page: name }, depth));
 };
 
 const stabilityOf = (item: BucketItem): 'stable' | 'experimental' | 'deprecated' => {

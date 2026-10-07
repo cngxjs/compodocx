@@ -1,4 +1,5 @@
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { hrefTo, pageOf } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -25,8 +26,8 @@ describe('CLI simple generation - extends app', () => {
             throw new Error('error');
         }
         stdoutString = ls.stdout.toString();
-        appComponentFile = read(`${distFolder}/components/AppComponent.html`);
-        myInitialClassFile = read(`${distFolder}/classes/MyInitialClass.html`);
+        appComponentFile = read(`${distFolder}/${pageOf('component', 'AppComponent')}`);
+        myInitialClassFile = read(`${distFolder}/${pageOf('class', 'MyInitialClass')}`);
     });
     afterAll(() => tmp.clean(distFolder));
 
@@ -38,10 +39,10 @@ describe('CLI simple generation - extends app', () => {
     });
 
     it('DoNothingDirective extends ADirective', () => {
-        const file = read(`${distFolder}/directives/DoNothingDirective.html`);
+        const file = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
         expect(file).to.contain('Extends');
         expect(file).to.contain('cdx-chip cdx-chip--directive');
-        expect(file).to.contain('href="../directives/ADirective.html"');
+        expect(file).to.contain(`href="${hrefTo('directive', 'ADirective', 1)}"`);
         expect(file).to.contain('>ADirective</a>');
     });
 
@@ -51,7 +52,7 @@ describe('CLI simple generation - extends app', () => {
     });
 
     it('FirstClass extends BSecondClass extends AThirdClass', () => {
-        const FirstClassFile = read(`${distFolder}/classes/FirstClass.html`);
+        const FirstClassFile = read(`${distFolder}/${pageOf('class', 'FirstClass')}`);
         // Direct parent shown in entity hero context line.
         expect(FirstClassFile).to.contain('extends BSecondClass');
         // Inherited members are merged into the FirstClass page:
@@ -67,19 +68,19 @@ describe('CLI simple generation - extends app', () => {
     });
 
     it('CharactersService extends AbstractService', () => {
-        const file = read(`${distFolder}/injectables/CharactersService.html`);
+        const file = read(`${distFolder}/${pageOf('injectable', 'CharactersService')}`);
         expect(file).to.contain(
-            'code><a href="../injectables/AbstractService.html" target="_self" >AbstractService'
+            `code><a href="${hrefTo('injectable', 'AbstractService', 1)}" target="_self" >AbstractService`
         );
     });
 
     it('ClockInterface multiple extends', () => {
-        const file = read(`${distFolder}/interfaces/ClockInterface.html`);
+        const file = read(`${distFolder}/${pageOf('interface', 'ClockInterface')}`);
         expect(file).to.contain(
-            'code><a href="../interfaces/TimeInterface.html" target="_self" >TimeInterface'
+            `code><a href="${hrefTo('interface', 'TimeInterface', 1)}" target="_self" >TimeInterface`
         );
         expect(file).to.contain(
-            'code><a href="../interfaces/BooInterface.html" target="_self" >BooInterface'
+            `code><a href="${hrefTo('interface', 'BooInterface', 1)}" target="_self" >BooInterface`
         );
     });
 });

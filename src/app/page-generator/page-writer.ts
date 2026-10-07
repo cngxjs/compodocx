@@ -3,6 +3,7 @@ import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
+import { hrefFor, hrefText, pagePath, ROOT_DEPTH } from '../links/layout';
 
 export class PageWriter {
     public processPage(page): Promise<void> {
@@ -14,15 +15,11 @@ export class PageWriter {
         if (Configuration.mainData.output.lastIndexOf('/') === -1) {
             finalPath += '/';
         }
-        if (page.path) {
-            finalPath += `${page.path}/`;
-        }
-
-        if (page.filename) {
-            finalPath += `${page.filename}.html`;
-        } else {
-            finalPath += `${page.name}.html`;
-        }
+        finalPath += pagePath({
+            path: page.path ?? '',
+            filename: page.filename || page.name,
+            depth: page.depth
+        });
 
         FileEngine.writeSync(finalPath, htmlData);
         return Promise.resolve();
@@ -50,17 +47,19 @@ export class PageWriter {
 
         // Build a name→type+url lookup for all known entities
         const entityMap = new Map<string, { type: string; url?: string }>();
-        for (const c of components) {
-            entityMap.set(c.name, { type: 'component', url: `./components/${c.name}.html` });
-        }
-        for (const d of directives) {
-            entityMap.set(d.name, { type: 'directive', url: `./directives/${d.name}.html` });
-        }
-        for (const p of pipes) {
-            entityMap.set(p.name, { type: 'pipe', url: `./pipes/${p.name}.html` });
-        }
-        for (const s of injectables) {
-            entityMap.set(s.name, { type: 'injectable', url: `./injectables/${s.name}.html` });
+        const graphKinds = [
+            ['component', components],
+            ['directive', directives],
+            ['pipe', pipes],
+            ['injectable', injectables]
+        ] as const;
+        for (const [kind, list] of graphKinds) {
+            for (const item of list) {
+                const url = hrefText(
+                    hrefFor({ type: 'symbol', kind, name: item.name }, ROOT_DEPTH)
+                );
+                entityMap.set(item.name, { type: kind, url });
+            }
         }
 
         const nodeSet = new Set<string>();

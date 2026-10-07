@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { pageOf } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -155,7 +156,9 @@ describe('CLI simple flags', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            componentFile = read(`${distFolder}/documentation/components/FooComponent.html`);
+            componentFile = read(
+                `${distFolder}/documentation/${pageOf('component', 'FooComponent')}`
+            );
         });
         afterAll(() => tmp.clean(distFolder));
 

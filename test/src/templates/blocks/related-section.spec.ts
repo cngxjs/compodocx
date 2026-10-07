@@ -7,6 +7,7 @@ import DependenciesEngine from '../../../../src/app/engines/dependencies.engine'
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import { RelatedSection } from '../../../../src/templates/blocks/RelatedSection';
 import { logger } from '../../../../src/utils/logger';
+import { hrefTo } from '../../helpers/pages';
 
 /**
  * RelatedSection resolves @relatedTo targets via DependenciesEngine.findInCompodoc
@@ -91,7 +92,7 @@ describe('RelatedSection', () => {
         expect(html).toContain('cdx-related-section');
         expect(html).toContain('id="related"');
         expect(html).toContain('class="cdx-related-pill"');
-        expect(html).toContain('href="../components/CngxToast.html"');
+        expect(html).toContain(`href="${hrefTo('component', 'CngxToast', 1)}"`);
         expect(html).toContain('>CngxToast<');
     });
 
@@ -102,7 +103,7 @@ describe('RelatedSection', () => {
             relatedTo: ['CNGX_KEY'],
             depth: 1
         });
-        expect(html).toContain('href="../tokens/CNGX_KEY.html"');
+        expect(html).toContain(`href="${hrefTo('token', 'CNGX_KEY', 1)}"`);
     });
 
     it('renders unresolved targets as a dashed pill + emits a build-time warn', () => {
@@ -130,7 +131,7 @@ describe('RelatedSection', () => {
             relatedTo: ['TAGGED_CONST'],
             depth: 1
         });
-        expect(html).toContain('href="../miscellaneous/variables/TAGGED_CONST.html"');
+        expect(html).toContain(`href="${hrefTo('variable', 'TAGGED_CONST', 1, { detail: true })}"`);
     });
 
     it('routes untagged misc entries to the inline collection anchor', () => {
@@ -142,7 +143,7 @@ describe('RelatedSection', () => {
             relatedTo: ['untaggedFn'],
             depth: 1
         });
-        expect(html).toContain('href="../miscellaneous/functions.html#untaggedFn"');
+        expect(html).toContain(`href="${hrefTo('function', 'untaggedFn', 1)}"`);
     });
 
     it('honours the `related` custom-template override', () => {

@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { hrefFor, hrefText, ROOT_DEPTH } from '../../app/links/layout';
 import {
     IconClass,
     IconComponent,
@@ -157,6 +158,9 @@ const EntityChipEl = (chip: EntityChip): string => {
 
 /* ---- Main Component ---- */
 
+/** Link from the overview (a root page) to another root page. */
+const rootHref = (page: string): string => hrefText(hrefFor({ type: 'root', page }, ROOT_DEPTH));
+
 type ChipGroup = { label: string; chips: EntityChip[] };
 
 function buildChipGroups(props: OverviewStatsProps): ChipGroup[] {
@@ -169,7 +173,7 @@ function buildChipGroups(props: OverviewStatsProps): ChipGroup[] {
             icon: IconGitBranch,
             count: props.routesLength ?? 0,
             label: t('routes'),
-            href: './routes.html',
+            href: rootHref('routes'),
             colorVar: 'var(--color-cdx-primary)'
         });
     }
@@ -178,7 +182,7 @@ function buildChipGroups(props: OverviewStatsProps): ChipGroup[] {
             icon: IconSettings,
             count: props.appConfig.length,
             label: t('configurations'),
-            href: './app-config.html',
+            href: rootHref('app-config'),
             colorVar: 'var(--color-cdx-primary)'
         });
     }
@@ -304,7 +308,7 @@ export const OverviewStats = (props: OverviewStatsProps): string => {
                     {/* Coverage tile */}
                     {coverage.total > 0 && (
                         <a
-                            href="./coverage.html"
+                            href={rootHref('coverage')}
                             class="cdx-overview-kpi cdx-overview-kpi--coverage"
                         >
                             {DonutChart({

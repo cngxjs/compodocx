@@ -1,4 +1,6 @@
 import { exists, hasStderrError, shell, temporaryDir } from '../helpers';
+import { pageOf } from '../helpers/pages';
+import { collectionPage } from './paths';
 
 const tmp = temporaryDir();
 
@@ -26,11 +28,11 @@ describe('CLI exclude from tsconfig', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not create files excluded', () => {
-            let isFileExists = exists(`${distFolder}/components/BarComponent.html`);
+            let isFileExists = exists(`${distFolder}/${pageOf('component', 'BarComponent')}`);
             expect(isFileExists).to.be.false;
-            isFileExists = exists(`${distFolder}/components/FooComponent.html`);
+            isFileExists = exists(`${distFolder}/${pageOf('component', 'FooComponent')}`);
             expect(isFileExists).to.be.true;
-            isFileExists = exists(`${distFolder}/miscellaneous/variables.html`);
+            isFileExists = exists(`${distFolder}/${collectionPage('variable')}`);
             expect(isFileExists).to.be.false;
         });
     });

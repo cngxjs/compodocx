@@ -4,6 +4,7 @@ import { markedAcl } from '../../utils/marked.acl';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
+import { pageLocation } from '../links/layout';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class InterceptorPageGenerator {
@@ -27,14 +28,19 @@ export class InterceptorPageGenerator {
                         const readme = MarkdownEngine.readNeighbourReadmeFile(interceptor.file);
                         interceptor.readme = markedAcl(readme);
                     }
+                    const location = pageLocation({
+                        type: 'symbol',
+                        kind: 'interceptor',
+                        name: interceptor.name
+                    });
                     const page = {
-                        path: 'interceptors',
+                        path: location.path,
                         name: interceptor.name,
                         id: interceptor.id,
                         navTabs: this.navTabs.resolve(interceptor),
                         context: 'interceptor',
                         injectable: interceptor,
-                        depth: 1,
+                        depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
                     if (interceptor.isDuplicate) {

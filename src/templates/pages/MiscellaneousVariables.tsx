@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { MISC_COLLECTION } from '../../app/links/layout';
 import { BlockProperty } from '../blocks/BlockProperty';
 import { IndexMisc } from '../blocks/IndexMisc';
 import { MiscHero } from '../blocks/MiscHero';
@@ -23,7 +24,10 @@ export const MiscellaneousVariables = (props: MiscVariablesProps): string =>
                     <h3 class="cdx-section-heading" title={key}>
                         {shortPath(key)}
                     </h3>
-                    {TaggedDetailLinks({ items: properties as any[], plural: 'variables' })}
+                    {TaggedDetailLinks({
+                        items: properties as any[],
+                        plural: MISC_COLLECTION.variable
+                    })}
                     {BlockProperty({ properties, title: '', file: '', depth: props.depth })}
                 </div>
             ))}

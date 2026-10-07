@@ -8,6 +8,7 @@ import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import FileEngine from '../engines/file.engine';
 import MarkdownEngine from '../engines/markdown.engine';
+import { pageLocation } from '../links/layout';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class ComponentPageGenerator {
@@ -38,14 +39,19 @@ export class ComponentPageGenerator {
                     component.themeTokens = themeResult.tokens;
                     component.themeStyleSources = themeResult.sources;
                     component.themeOverview = themeResult.overview;
+                    const location = pageLocation({
+                        type: 'symbol',
+                        kind: 'component',
+                        name: component.name
+                    });
                     const page = {
-                        path: 'components',
+                        path: location.path,
                         name: component.name,
                         id: component.id,
                         navTabs: this.navTabs.resolve(component),
                         context: 'component',
                         component: component,
-                        depth: 1,
+                        depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
 

@@ -1,6 +1,6 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
-import { relativeUrl } from '../helpers';
+import { hrefFor, hrefText } from '../../app/links/layout';
 
 type VersionSwitcherProps = {
     /** The version label of the current build (e.g. `v0.3.0`). */
@@ -27,7 +27,9 @@ export const VersionSwitcher = (props: VersionSwitcherProps): string => {
     // The manifest sits at <versionsRoot>/versions.json — one folder ABOVE
     // <versionsRoot>/<label>/<page-path>. So every page needs one extra
     // parent traversal beyond `props.depth`.
-    const manifestUrl = relativeUrl(props.depth + 1, 'versions.json');
+    const manifestUrl = hrefText(
+        hrefFor({ type: 'asset', path: 'versions.json' }, props.depth + 1)
+    );
     const cap = Number.isFinite(props.maxVersionsShown) ? props.maxVersionsShown : 10;
     return (
         <div

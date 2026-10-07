@@ -1,11 +1,12 @@
 import { expect, test } from '@playwright/test';
+import { pageUrl } from './pages';
 
 // Hash-based tab routing: deep-links, tab switching, SPA navigation,
 // and the original bug where hash-only links to hidden panels did nothing.
 // Standalone fixture (port 4002), target: UserListComponent.
 
-const COMPONENT_PAGE = '/components/UserListComponent.html';
-const OTHER_PAGE = '/components/AppComponent.html';
+const COMPONENT_PAGE = pageUrl('component', 'UserListComponent');
+const OTHER_PAGE = pageUrl('component', 'AppComponent');
 
 test.describe('Full-page load deep-linking', () => {
     test('default URL loads with Info tab active', async ({ page }) => {

@@ -2,6 +2,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
+import { type MiscKind, pageLocation } from '../links/layout';
 
 interface DetailSpec {
     readonly collectionKey: 'functions' | 'variables' | 'typealiases' | 'enumerations';
@@ -24,6 +25,12 @@ const isTagged = (item: unknown): boolean => {
     return typeof category === 'string' && category.trim() !== '';
 };
 
+/** Path, name and depth of a collection page; its file name is its page name. */
+const collectionPage = (kind: MiscKind) => {
+    const { path, filename, depth } = pageLocation({ type: 'misc-collection', kind });
+    return { path, name: filename, depth };
+};
+
 export class MiscellaneousPageGenerator {
     public prepare(someMisc?): Promise<any> {
         logger.info('Prepare miscellaneous');
@@ -34,41 +41,33 @@ export class MiscellaneousPageGenerator {
         return new Promise((resolve, _reject) => {
             if (Configuration.mainData.miscellaneous.functions.length > 0) {
                 Configuration.addPage({
-                    path: 'miscellaneous',
-                    name: 'functions',
+                    ...collectionPage('function'),
                     id: 'miscellaneous-functions',
                     context: 'miscellaneous-functions',
-                    depth: 1,
                     pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                 });
             }
             if (Configuration.mainData.miscellaneous.variables.length > 0) {
                 Configuration.addPage({
-                    path: 'miscellaneous',
-                    name: 'variables',
+                    ...collectionPage('variable'),
                     id: 'miscellaneous-variables',
                     context: 'miscellaneous-variables',
-                    depth: 1,
                     pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                 });
             }
             if (Configuration.mainData.miscellaneous.typealiases.length > 0) {
                 Configuration.addPage({
-                    path: 'miscellaneous',
-                    name: 'typealiases',
+                    ...collectionPage('typealias'),
                     id: 'miscellaneous-typealiases',
                     context: 'miscellaneous-typealiases',
-                    depth: 1,
                     pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                 });
             }
             if (Configuration.mainData.miscellaneous.enumerations.length > 0) {
                 Configuration.addPage({
-                    path: 'miscellaneous',
-                    name: 'enumerations',
+                    ...collectionPage('enumeration'),
                     id: 'miscellaneous-enumerations',
                     context: 'miscellaneous-enumerations',
-                    depth: 1,
                     pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                 });
             }
@@ -87,14 +86,20 @@ export class MiscellaneousPageGenerator {
                 if (!isTagged(item)) {
                     continue;
                 }
+                const location = pageLocation({
+                    type: 'symbol',
+                    kind: spec.singularKind,
+                    name: item.name,
+                    detail: true
+                });
                 Configuration.addPage({
-                    path: `miscellaneous/${spec.collectionKey}`,
+                    path: location.path,
                     name: `miscellaneous-${spec.singularKind}-${item.name}`,
-                    filename: item.name,
+                    filename: location.filename,
                     id: `miscellaneous-${spec.singularKind}-${item.name}`,
                     context: `miscellaneous-${spec.singularKind}`,
                     [spec.dataKey]: item,
-                    depth: 2,
+                    depth: location.depth,
                     pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                 } as any);
             }

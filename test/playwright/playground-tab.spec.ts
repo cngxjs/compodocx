@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
+import { pageUrl } from './pages';
 
-const COMPONENT_URL = '/components/LoadingSpinnerComponent.html';
+const COMPONENT_URL = pageUrl('component', 'LoadingSpinnerComponent');
 
 test.describe('Playground tab', () => {
     test('renders the Playground tab on a component with @playground blocks', async ({ page }) => {
@@ -158,7 +159,7 @@ test.describe('Playground tab', () => {
     });
 
     test('hides the Playground tab on a component without @playground blocks', async ({ page }) => {
-        await page.goto('/components/UserCardComponent.html');
+        await page.goto(pageUrl('component', 'UserCardComponent'));
         const tabBar = page.locator('.cdx-tab-bar');
         await expect(tabBar).not.toContainText('Playground');
     });

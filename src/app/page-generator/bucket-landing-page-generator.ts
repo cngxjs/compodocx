@@ -2,6 +2,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import DependenciesEngine, { buildGroupTree } from '../engines/dependencies.engine';
+import { pageLocation } from '../links/layout';
 
 /**
  * Generates one landing page per `@category` bucket under
@@ -75,10 +76,7 @@ export class BucketLandingPageGenerator {
         if (segments.length === 0) {
             return aggregated;
         }
-        const parentSegments = segments.slice(0, -1);
-        const path =
-            parentSegments.length > 0 ? `categories/${parentSegments.join('/')}` : 'categories';
-        const filename = segments.at(-1);
+        const { path, filename, depth } = pageLocation({ type: 'bucket', segments });
         Configuration.addPage({
             path,
             name: `bucket-landing-${node.fullPath.replaceAll('/', '-')}`,
@@ -88,10 +86,10 @@ export class BucketLandingPageGenerator {
             bucketLanding: {
                 bucket: node.fullPath,
                 segments,
-                depth: segments.length,
+                depth,
                 items: aggregated
             },
-            depth: segments.length,
+            depth,
             pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
         } as any);
         return aggregated;

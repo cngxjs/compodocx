@@ -1,4 +1,5 @@
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { pageOf } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -29,16 +30,16 @@ describe('CLI tsconfig', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            fooComponentFile = read(`${distFolder}/components/FooComponent.html`);
+            fooComponentFile = read(`${distFolder}/${pageOf('component', 'FooComponent')}`);
         });
         afterAll(() => tmp.clean(tmpFolder));
 
         it('should only create links to files included via tsconfig', () => {
-            expect(fooComponentFile).to.contain('components/FooComponent.html');
+            expect(fooComponentFile).to.contain(`${pageOf('component', 'FooComponent')}`);
             expect(fooComponentFile).to.contain('app-config.html');
-            expect(fooComponentFile).not.to.contain('components/BarComponent.html');
-            expect(fooComponentFile).not.to.contain('injectables/FooService.html');
-            expect(fooComponentFile).not.to.contain('directives/BarDirective.html');
+            expect(fooComponentFile).not.to.contain(`${pageOf('component', 'BarComponent')}`);
+            expect(fooComponentFile).not.to.contain(`${pageOf('injectable', 'FooService')}`);
+            expect(fooComponentFile).not.to.contain(`${pageOf('directive', 'BarDirective')}`);
         });
     });
 
@@ -65,16 +66,16 @@ describe('CLI tsconfig', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            fooComponentFile = read(`${distFolder}/components/FooComponent.html`);
+            fooComponentFile = read(`${distFolder}/${pageOf('component', 'FooComponent')}`);
         });
         afterAll(() => tmp.clean(tmpFolder));
 
         it('should only create links to files included via tsconfig', () => {
-            expect(fooComponentFile).to.contain('components/FooComponent.html');
+            expect(fooComponentFile).to.contain(`${pageOf('component', 'FooComponent')}`);
             expect(fooComponentFile).to.contain('app-config.html');
-            expect(fooComponentFile).to.contain('components/BarComponent.html');
-            expect(fooComponentFile).not.to.contain('injectables/FooService.html');
-            expect(fooComponentFile).not.to.contain('directives/BarDirective.html');
+            expect(fooComponentFile).to.contain(`${pageOf('component', 'BarComponent')}`);
+            expect(fooComponentFile).not.to.contain(`${pageOf('injectable', 'FooService')}`);
+            expect(fooComponentFile).not.to.contain(`${pageOf('directive', 'BarDirective')}`);
         });
     });
 });

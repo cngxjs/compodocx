@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pageUrl } from './pages';
 
 /**
  * E2E coverage for the VS Code-style source viewer on component Source
@@ -14,7 +15,7 @@ import { expect, test } from '@playwright/test';
 // UserCardComponent in the standalone-app fixture has the right
 // shape for these tests: depth-0 class + six depth-1 members, 45
 // lines — long enough to scroll through without being a full page.
-const SOURCE_PAGE = '/components/UserCardComponent.html';
+const SOURCE_PAGE = pageUrl('component', 'UserCardComponent');
 
 test.describe('Source viewer — chrome', () => {
     test('source tab renders the VS Code-style viewer wrapper', async ({ page }) => {

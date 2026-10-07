@@ -1,4 +1,6 @@
 import Html from '@kitajs/html';
+import { hrefFor, hrefText, ROOT_DEPTH } from '../../app/links/layout';
+import { targetOfCoverage } from '../../app/links/resolve';
 import { CoverageSummary } from '../blocks/CoverageSummary';
 import { DonutChart } from '../blocks/DonutChart';
 import { shortPath, t } from '../helpers';
@@ -89,14 +91,8 @@ const fileLink = (f: UnitTestFile): string | null => {
     if (!f.linktype) {
         return null;
     }
-    if (f.linksubtype) {
-        const suffix = f.linksubtype === 'typealias' ? 'es' : 's';
-        return `./${f.linktype}/${f.linksubtype}${suffix}.html#${f.name}`;
-    }
-    if (f.linktype === 'entity') {
-        return `./entities/${f.name}.html`;
-    }
-    return `./${f.linktype}s/${f.name}.html`;
+    const target = targetOfCoverage({ ...f, name: String(f.name) });
+    return target ? hrefText(hrefFor(target, ROOT_DEPTH)) : null;
 };
 
 const fileGroupKey = (f: UnitTestFile): string => {

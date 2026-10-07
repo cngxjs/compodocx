@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pageUrl } from './pages';
 
 test.describe('Compodoc page', () => {
     test('should support dark mode', async ({ page }) => {
@@ -25,7 +26,7 @@ test.describe('Compodoc page', () => {
     });
 
     test('should open menu for specific page', async ({ page }) => {
-        await page.goto('/components/FooComponent.html');
+        await page.goto(pageUrl('component', 'FooComponent'));
 
         const menuComponentsItem = page.locator(
             '#sidebar .menu-toggler[data-cdx-target="#components-links"]'

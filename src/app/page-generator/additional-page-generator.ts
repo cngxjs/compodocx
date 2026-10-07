@@ -11,6 +11,7 @@ import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import type { AdditionalNode } from '../interfaces/additional-node.interface';
+import { pageLocation } from '../links/layout';
 import type { PageWriter } from './page-writer';
 
 export class AdditionalPageGenerator {
@@ -60,15 +61,13 @@ export class AdditionalPageGenerator {
                             const additionalNode: AdditionalNode = this.node;
                             const file = additionalNode.file;
                             const title = additionalNode.title;
-                            let finalPath = Configuration.mainData.includesFolder;
+                            const slugs: string[] = [];
 
                             const finalDepth = rawPath.filter(el => {
                                 return !Number.isNaN(parseInt(String(el), 10));
                             });
 
                             if (typeof file !== 'undefined' && typeof title !== 'undefined') {
-                                const url = cleanNameWithoutSpaceAndToLowerCase(title);
-
                                 /**
                                  * Id created with title + file path hash, seems to be hypothetically unique here
                                  */
@@ -91,13 +90,17 @@ export class AdditionalPageGenerator {
                                     } else {
                                         elementTree = elementTree[el];
                                     }
-                                    finalPath +=
-                                        '/' +
-                                        cleanNameWithoutSpaceAndToLowerCase(elementTree.title);
+                                    slugs.push(
+                                        cleanNameWithoutSpaceAndToLowerCase(elementTree.title)
+                                    );
                                     lastElementRootTree = elementTree;
                                 });
 
-                                finalPath = finalPath.replace(`/${url}`, '');
+                                const location = pageLocation({
+                                    type: 'additional',
+                                    folder: Configuration.mainData.includesFolder,
+                                    slugs
+                                });
                                 const { html: markdownFile, raw: markdownRaw } =
                                     MarkdownEngine.getTraditionalMarkdownSyncWithRaw(
                                         that.getIncludedPathForFile(file)
@@ -110,12 +113,12 @@ export class AdditionalPageGenerator {
                                     const _page = {
                                         name: title,
                                         id: id,
-                                        filename: url,
+                                        filename: location.filename,
                                         context: 'additional-page',
-                                        path: finalPath,
+                                        path: location.path,
                                         additionalPage: markdownFile,
                                         aiGenerated,
-                                        depth: finalDepth.length,
+                                        depth: location.depth,
                                         childrenLength: additionalNode.children
                                             ? additionalNode.children.length
                                             : 0,

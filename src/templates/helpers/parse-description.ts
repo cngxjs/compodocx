@@ -1,22 +1,12 @@
 import DependenciesEngine from '../../app/engines/dependencies.engine';
+import { hrefFor, hrefText } from '../../app/links/layout';
+import { targetOfData } from '../../app/links/resolve';
 import { extractLeadingText, splitLinkText } from '../../utils/link-parser';
 
-const miscSubtypeToPage: Record<string, string> = {
-    enum: 'enumerations',
-    function: 'functions',
-    typealias: 'typealiases',
-    variable: 'variables'
-};
-
-function rootPathForDepth(depth: number): string {
-    if (depth === 0) {
-        return './';
-    }
-    if (depth >= 1 && depth <= 5) {
-        return '../'.repeat(depth);
-    }
-    return '';
-}
+/** `Name`, `Name.member` or `Name#member`: a symbol, not a URL or a file. */
+const isSymbolReference = (target: string): boolean =>
+    /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)*(#[\w$.-]*)?$/.test(target) &&
+    !/\.(md|html?)$/i.test(target);
 
 /**
  * Process {@link ...} tags in a description string, resolving targets
@@ -83,23 +73,9 @@ export const parseDescription = (description: string, depth: number): string => 
             stringToReplace = completeTag;
         }
 
-        if (found) {
+        const foundTarget = found ? targetOfData(found, { detail: true }) : undefined;
+        if (found && foundTarget) {
             let label = found.name;
-            let pageName = found.name;
-            let typeSegment: string;
-
-            if (found.type === 'class') {
-                typeSegment = 'classes';
-            } else if (
-                found.type === 'miscellaneous' ||
-                (found.ctype && found.ctype === 'miscellaneous')
-            ) {
-                typeSegment = 'miscellaneous';
-                anchor = `#${found.name}`;
-                pageName = miscSubtypeToPage[found.subtype] ?? found.name;
-            } else {
-                typeSegment = `${found.type}s`;
-            }
 
             if (leading.leadingText !== undefined) {
                 label = leading.leadingText;
@@ -108,15 +84,16 @@ export const parseDescription = (description: string, depth: number): string => 
                 label = split.linkText;
             }
 
-            const rootPath = rootPathForDepth(depth);
-            const newLink = `<a href="${rootPath}${typeSegment}/${pageName}.html${anchor}">${label}</a>`;
+            const href = hrefFor(foundTarget, depth, anchor.slice(1) || undefined);
+            const newLink = `<a href="${hrefText(href, 'description')}">${label}</a>`;
             result = result.replace(stringToReplace, newLink);
         } else {
-            // External or unknown link
             const label = leading.leadingText ?? split.linkText ?? split.target;
-            const href = split.target;
-            const newLink = `<a href="${href}">${label}</a>`;
-            result = result.replace(stringToReplace, newLink);
+            // An undocumented symbol has no page to link to; a URL or file stays a link.
+            const replacement = isSymbolReference(split.target)
+                ? `<code>${label}</code>`
+                : `<a href="${split.target}">${label}</a>`;
+            result = result.replace(stringToReplace, replacement);
         }
     } while (matches && previousResult !== result);
 

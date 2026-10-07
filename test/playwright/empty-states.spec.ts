@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { pageUrl } from './pages';
 
 test.describe('Empty States', () => {
     test.describe('Page variant — bare entity with no members', () => {
         test('class with no members shows page empty state', async ({ page }) => {
-            await page.goto('/classes/Tada.html');
+            await page.goto(pageUrl('class', 'Tada'));
             await page.locator('[role="tab"]', { hasText: 'Info' }).click();
 
             const info = page.locator('#info');
@@ -21,7 +22,7 @@ test.describe('Empty States', () => {
         });
 
         test('page empty state shows file path in hero', async ({ page }) => {
-            await page.goto('/classes/Tada.html');
+            await page.goto(pageUrl('class', 'Tada'));
 
             const filePath = page.locator('.cdx-entity-hero-file');
             await expect(filePath).toBeVisible();
@@ -31,7 +32,7 @@ test.describe('Empty States', () => {
 
     test.describe('Full variant — empty tabs', () => {
         test('heading-only README shows heading + empty state', async ({ page }) => {
-            await page.goto('/classes/Todo.html');
+            await page.goto(pageUrl('class', 'Todo'));
 
             const readmeTab = page.locator('[role="tab"]', { hasText: 'README' });
             await readmeTab.click();
@@ -47,7 +48,7 @@ test.describe('Empty States', () => {
         });
 
         test('source tab with content does NOT show empty state', async ({ page }) => {
-            await page.goto('/classes/Todo.html');
+            await page.goto(pageUrl('class', 'Todo'));
 
             const sourceTab = page.locator('[role="tab"]', { hasText: 'Source' });
             await sourceTab.click();
@@ -60,7 +61,7 @@ test.describe('Empty States', () => {
 
     test.describe('No empty sections — component pages', () => {
         test('component without inputs does not render empty Inputs heading', async ({ page }) => {
-            await page.goto('/components/AppComponent.html');
+            await page.goto(pageUrl('component', 'AppComponent'));
 
             const info = page.locator('#info');
             const inputsHeading = info.locator('h3', { hasText: /^Inputs$/ });
@@ -70,7 +71,7 @@ test.describe('Empty States', () => {
         test('component without outputs does not render empty Outputs heading', async ({
             page
         }) => {
-            await page.goto('/components/AppComponent.html');
+            await page.goto(pageUrl('component', 'AppComponent'));
 
             const info = page.locator('#info');
             const outputsHeading = info.locator('h3', { hasText: /^Outputs$/ });
@@ -80,7 +81,7 @@ test.describe('Empty States', () => {
         test('component without host bindings does not render empty HostBindings heading', async ({
             page
         }) => {
-            await page.goto('/components/AppComponent.html');
+            await page.goto(pageUrl('component', 'AppComponent'));
 
             const info = page.locator('#info');
             const hbHeading = info.locator('h3', { hasText: /^HostBindings$/ });
@@ -88,7 +89,7 @@ test.describe('Empty States', () => {
         });
 
         test('component with inputs DOES render Inputs section', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
             await page.locator('[role="tab"]', { hasText: 'API' }).click();
 
             const api = page.locator('#api');
@@ -104,7 +105,7 @@ test.describe('Empty States', () => {
 
     test.describe('Entity page with content — no false empty states', () => {
         test('class with members does NOT show page empty state', async ({ page }) => {
-            await page.goto('/classes/Clock.html');
+            await page.goto(pageUrl('class', 'Clock'));
             await page.locator('[role="tab"]', { hasText: 'Info' }).click();
 
             const info = page.locator('#info');
@@ -117,7 +118,7 @@ test.describe('Empty States', () => {
         });
 
         test('component with full content has no empty states on info tab', async ({ page }) => {
-            await page.goto('/components/AboutComponent.html');
+            await page.goto(pageUrl('component', 'AboutComponent'));
 
             const info = page.locator('#info');
             await expect(info.locator('.cdx-empty-state')).not.toBeVisible();

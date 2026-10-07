@@ -4,6 +4,7 @@ import { markedAcl } from '../../utils/marked.acl';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
+import { pageLocation } from '../links/layout';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class PipePageGenerator {
@@ -24,14 +25,19 @@ export class PipePageGenerator {
                         const readme = MarkdownEngine.readNeighbourReadmeFile(pipe.file);
                         pipe.readme = markedAcl(readme);
                     }
+                    const location = pageLocation({
+                        type: 'symbol',
+                        kind: 'pipe',
+                        name: pipe.name
+                    });
                     const page = {
-                        path: 'pipes',
+                        path: location.path,
                         name: pipe.name,
                         id: pipe.id,
                         navTabs: this.navTabs.resolve(pipe),
                         context: 'pipe',
                         pipe: pipe,
-                        depth: 1,
+                        depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
                     if (pipe.isDuplicate) {

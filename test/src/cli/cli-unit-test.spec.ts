@@ -1,4 +1,5 @@
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { hrefTo } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -63,10 +64,10 @@ describe('CLI Unit Test Report', () => {
             // file path is rendered separately in a `<td>` and its
             // `title` attribute preserves the JSON input format.
             expect(unitTestFile).to.contain(
-                '<a href="./components/AppComponent.html">AppComponent</a>'
+                `<a href="${hrefTo('component', 'AppComponent', 0)}">AppComponent</a>`
             );
             expect(unitTestFile).to.contain(
-                '<a href="./components/AboutComponent.html">AboutComponent</a>'
+                `<a href="${hrefTo('component', 'AboutComponent', 0)}">AboutComponent</a>`
             );
             expect(unitTestFile).to.contain(
                 'title="test/fixtures/todomvc-ng2/src/app/app.component.ts"'
@@ -121,10 +122,10 @@ describe('CLI Unit Test Report', () => {
 
         it('should have partial file path links', () => {
             expect(unitTestFile).to.contain(
-                '<a href="./components/AppComponent.html">AppComponent</a>'
+                `<a href="${hrefTo('component', 'AppComponent', 0)}">AppComponent</a>`
             );
             expect(unitTestFile).to.contain(
-                '<a href="./components/AboutComponent.html">AboutComponent</a>'
+                `<a href="${hrefTo('component', 'AboutComponent', 0)}">AboutComponent</a>`
             );
             // Partial path JSON keeps the trimmed `src/app/...` form
             // verbatim in the `title` attribute.
@@ -177,10 +178,10 @@ describe('CLI Unit Test Report', () => {
 
         it('should have partial file path links', () => {
             expect(unitTestFile).to.contain(
-                '<a href="./components/AppComponent.html">AppComponent</a>'
+                `<a href="${hrefTo('component', 'AppComponent', 0)}">AppComponent</a>`
             );
             expect(unitTestFile).to.contain(
-                '<a href="./components/AboutComponent.html">AboutComponent</a>'
+                `<a href="${hrefTo('component', 'AboutComponent', 0)}">AboutComponent</a>`
             );
             // Windows-style backslash paths from the input JSON are
             // preserved verbatim in the `title` attribute (display text

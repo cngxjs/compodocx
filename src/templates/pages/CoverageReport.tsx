@@ -1,4 +1,7 @@
 import Html from '@kitajs/html';
+import Configuration from '../../app/configuration';
+import { hrefFor, hrefText, ROOT_DEPTH } from '../../app/links/layout';
+import { targetOfCoverage } from '../../app/links/resolve';
 import { CoverageSummary } from '../blocks/CoverageSummary';
 import { DonutChart } from '../blocks/DonutChart';
 import { EmptyState } from '../components/EmptyState';
@@ -101,14 +104,8 @@ const coverageFillClass = (pct: number): string => {
 /* ---- File link builder ---- */
 
 const fileLink = (f: CoverageFile): string => {
-    if (f.linksubtype) {
-        const suffix = f.type === 'type alias' ? 'es' : 's';
-        return `./${f.linktype}/${f.linksubtype}${suffix}.html#${f.name}`;
-    }
-    if (f.linktype === 'entity') {
-        return `./entities/${f.name}.html`;
-    }
-    return `./${f.linktype}s/${f.name}.html`;
+    const target = targetOfCoverage(f, { detail: true, table: Configuration.mainData.symbols });
+    return target ? hrefText(hrefFor(target, ROOT_DEPTH)) : '';
 };
 
 const ChevronIcon = (): string =>

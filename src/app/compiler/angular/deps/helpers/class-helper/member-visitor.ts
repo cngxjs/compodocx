@@ -11,10 +11,18 @@ import { StringifyObjectLiteralExpression } from '../../../../../../utils/object
 import { getNamesCompareFn, markedtags, mergeTagsAndArgs } from '../../../../../../utils/utils';
 import Configuration from '../../../../../configuration';
 import DependenciesEngine from '../../../../../engines/dependencies.engine';
+import { hrefFor, hrefText } from '../../../../../links/layout';
+import { targetOfData } from '../../../../../links/resolve';
 import { angularImports, rootInjectCall } from '../../../../semantic/inject-calls';
 import type { DecoratorInspector } from './decorator-inspector';
 import type { JsdocExtractor } from './jsdoc-extractor';
 import type { TypeRenderer } from './type-renderer';
+
+/** Crawl-time link to a documented symbol, from a symbol page (depth 1). */
+const internalHref = (data: unknown): string => {
+    const target = targetOfData(data);
+    return target ? hrefText(hrefFor(target, 1)) : '';
+};
 
 export class MemberVisitor {
     private jsdocParserUtil = new JsdocParserUtil();
@@ -216,13 +224,9 @@ export class MemberVisitor {
             const _result = DependenciesEngine.find(argu.type);
             if (_result) {
                 if (_result.source === 'internal') {
-                    let path = _result.data.type;
-                    if (_result.data.type === 'class') {
-                        path = 'classe';
-                    }
-                    return `${argu.name}${this.getOptionalString(arg)}: <a href="../${path}s/${
-                        _result.data.name
-                    }.html">${argu.type}</a>`;
+                    return `${argu.name}${this.getOptionalString(arg)}: <a href="${internalHref(
+                        _result.data
+                    )}">${argu.type}</a>`;
                 } else {
                     const path = AngularVersionUtil.getApiLink(
                         _result.data,
@@ -264,13 +268,9 @@ export class MemberVisitor {
                 const _result = DependenciesEngine.find(arg.type);
                 if (_result) {
                     if (_result.source === 'internal') {
-                        let path = _result.data.type;
-                        if (_result.data.type === 'class') {
-                            path = 'classe';
-                        }
-                        return `${arg.name}${this.getOptionalString(arg)}: <a href="../${path}s/${
-                            _result.data.name
-                        }.html">${arg.type}</a>`;
+                        return `${arg.name}${this.getOptionalString(arg)}: <a href="${internalHref(
+                            _result.data
+                        )}">${arg.type}</a>`;
                     } else {
                         const path = AngularVersionUtil.getApiLink(
                             _result.data,
