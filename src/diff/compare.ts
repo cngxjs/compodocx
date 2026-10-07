@@ -24,6 +24,7 @@ import type {
     ExportPipe,
     ExportProperty
 } from '../app/interfaces/export-data.interface';
+import { type SymbolId, symbolFile, symbolId } from '../app/links/symbol-id';
 import { stripVolatileFields } from './normalize';
 import type { ChangeKind, EntityChange, EntityKind, FieldChange } from './types';
 
@@ -254,28 +255,76 @@ const compareEntityByKind = (
     }
 };
 
+/** Entries keyed by symbol id; a repeated id keeps the last entry. */
+const indexById = <T extends ExportEntityCommon>(
+    kind: EntityKind,
+    items: ReadonlyArray<T>
+): Map<SymbolId, T> => {
+    const map = new Map<SymbolId, T>();
+    for (const item of items) {
+        if (typeof item?.name === 'string') {
+            const file = symbolFile(item.file ?? '', process.cwd());
+            map.set(symbolId({ kind, file, name: item.name }), item);
+        }
+    }
+    return map;
+};
+
+const countNames = <T extends { name: string }>(items: Iterable<T>): Map<string, number> => {
+    const counts = new Map<string, number>();
+    for (const item of items) {
+        counts.set(item.name, (counts.get(item.name) ?? 0) + 1);
+    }
+    return counts;
+};
+
+/**
+ * Pair old and new entries of one kind: by symbol id first, then entries
+ * left over on both sides by name when that name is unique among the
+ * leftovers of each side (a symbol whose file moved).
+ */
+const pairEntries = <T extends ExportEntityCommon>(
+    kind: EntityKind,
+    oldData: ReadonlyArray<T>,
+    newData: ReadonlyArray<T>
+): { removed: T[]; pairs: Map<T, T | undefined> } => {
+    const oldMap = indexById(kind, oldData);
+    const newMap = indexById(kind, newData);
+    const oldLeft = [...oldMap].filter(([id]) => !newMap.has(id)).map(([, item]) => item);
+    const newLeft = [...newMap].filter(([id]) => !oldMap.has(id)).map(([, item]) => item);
+    const oldCounts = countNames(oldLeft);
+    const newCounts = countNames(newLeft);
+    const isUnique = (name: string) => oldCounts.get(name) === 1 && newCounts.get(name) === 1;
+    const moved = new Map(oldLeft.filter(item => isUnique(item.name)).map(i => [i.name, i]));
+
+    const pairs = new Map<T, T | undefined>();
+    for (const [id, newItem] of newMap) {
+        pairs.set(newItem, oldMap.get(id) ?? moved.get(newItem.name));
+    }
+    const matched = new Set(pairs.values());
+    return { removed: [...oldMap.values()].filter(item => !matched.has(item)), pairs };
+};
+
 const compareBucket = <T extends ExportEntityCommon>(
     bucket: EntityBucket<T>,
     oldData: ReadonlyArray<T>,
     newData: ReadonlyArray<T>
 ): EntityChange[] => {
-    const oldMap = indexByName(oldData);
-    const newMap = indexByName(newData);
+    const { removed, pairs } = pairEntries(bucket.kind, oldData, newData);
     const out: EntityChange[] = [];
-    for (const [name, oldEntity] of oldMap) {
-        if (!newMap.has(name)) {
-            out.push(draftChange(bucket.kind, name, oldEntity.file, 'removed', []));
-        }
+    for (const oldEntity of removed) {
+        out.push(draftChange(bucket.kind, oldEntity.name, oldEntity.file, 'removed', []));
     }
-    for (const [name, newEntity] of newMap) {
-        if (!oldMap.has(name)) {
-            out.push(draftChange(bucket.kind, name, newEntity.file, 'added', []));
+    for (const [newEntity, oldEntity] of pairs) {
+        if (!oldEntity) {
+            out.push(draftChange(bucket.kind, newEntity.name, newEntity.file, 'added', []));
             continue;
         }
-        const oldEntity = oldMap.get(name) as T;
         const fieldChanges = compareEntityByKind(bucket.kind, oldEntity, newEntity);
         if (fieldChanges.length > 0) {
-            out.push(draftChange(bucket.kind, name, newEntity.file, 'changed', fieldChanges));
+            out.push(
+                draftChange(bucket.kind, newEntity.name, newEntity.file, 'changed', fieldChanges)
+            );
         }
     }
     return out;
