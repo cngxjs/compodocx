@@ -21,6 +21,8 @@ export interface SymbolTable {
     readonly byId: ReadonlyMap<SymbolId, SymbolEntry>;
     /** One id per engine entry, in engine order. An id repeats for each overload. */
     readonly byName: ReadonlyMap<string, readonly SymbolId[]>;
+    /** The engine object of each `byName` id, index for index. */
+    readonly dataByName: ReadonlyMap<string, readonly unknown[]>;
 }
 
 type Named = { readonly name?: unknown; readonly file?: unknown };
@@ -123,6 +125,7 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
     const cwd = options.cwd ?? process.cwd();
     const byId = new Map<SymbolId, SymbolEntry>();
     const byName = new Map<string, SymbolId[]>();
+    const dataByName = new Map<string, unknown[]>();
     for (const kind of TABLE_ORDER) {
         for (const item of listOf(data, kind) ?? []) {
             if (typeof item?.name !== 'string') {
@@ -148,15 +151,21 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
             const ids = byName.get(item.name);
             if (ids) {
                 ids.push(id);
+                dataByName.get(item.name)?.push(item);
             } else {
                 byName.set(item.name, [id]);
+                dataByName.set(item.name, [item]);
             }
         }
     }
-    return { byId, byName };
+    return { byId, byName, dataByName };
 };
 
-export const emptySymbolTable = (): SymbolTable => ({ byId: new Map(), byName: new Map() });
+export const emptySymbolTable = (): SymbolTable => ({
+    byId: new Map(),
+    byName: new Map(),
+    dataByName: new Map()
+});
 
 /**
  * How a bare name picks one symbol. Each policy reproduces the tie-break of
@@ -229,26 +238,28 @@ export const policyKinds = (policy: LookupPolicy): readonly EntityKind[] => POLI
 const kindOf = (table: SymbolTable, id: SymbolId): EntityKind | undefined =>
     table.byId.get(id)?.ref.kind;
 
-/** The ids of `name`, in the policy's kind order (engine order inside a kind). */
-const candidates = (
-    table: SymbolTable,
-    ids: readonly SymbolId[],
-    kinds: readonly EntityKind[]
-): SymbolId[] => {
-    const rank = (id: SymbolId) => kinds.indexOf(kindOf(table, id) as EntityKind);
-    return ids.filter(id => rank(id) !== -1).sort((a, b) => rank(a) - rank(b));
+/** One engine entry of a name. */
+interface Occurrence {
+    readonly id: SymbolId;
+    readonly data: unknown;
+    readonly kind: EntityKind;
+}
+
+const occurrencesOf = (table: SymbolTable, name: string): Occurrence[] => {
+    const ids = table.byName.get(name) ?? [];
+    const data = table.dataByName.get(name) ?? [];
+    return ids.map((id, i) => ({ id, data: data[i], kind: kindOf(table, id) as EntityKind }));
 };
 
-const lastOfFirstKind = (
-    table: SymbolTable,
-    ordered: readonly SymbolId[]
-): SymbolId | undefined => {
+/** The occurrences in the policy's kind order (engine order inside a kind). */
+const inKindOrder = (occurrences: readonly Occurrence[], kinds: readonly EntityKind[]) => {
+    const rank = (o: Occurrence) => kinds.indexOf(o.kind);
+    return occurrences.filter(o => rank(o) !== -1).sort((a, b) => rank(a) - rank(b));
+};
+
+const lastOfFirstKind = (ordered: readonly Occurrence[]): Occurrence | undefined => {
     const first = ordered[0];
-    if (first === undefined) {
-        return undefined;
-    }
-    const kind = kindOf(table, first);
-    return ordered.filter(id => kindOf(table, id) === kind).at(-1);
+    return first && ordered.filter(o => o.kind === first.kind).at(-1);
 };
 
 /** A kind with exactly one name contained in `name` matches with the lower score. */
@@ -256,19 +267,18 @@ const containedMatch = (
     table: SymbolTable,
     name: string,
     kinds: readonly EntityKind[]
-): SymbolId | undefined => {
-    const perKind = new Map<EntityKind, SymbolId[]>();
-    for (const [other, ids] of table.byName) {
+): Occurrence | undefined => {
+    const perKind = new Map<EntityKind, Occurrence[]>();
+    for (const other of table.byName.keys()) {
         if (name.indexOf(other) === -1) {
             continue;
         }
-        for (const id of ids) {
-            const kind = kindOf(table, id) as EntityKind;
-            const hits = perKind.get(kind);
+        for (const occurrence of occurrencesOf(table, other)) {
+            const hits = perKind.get(occurrence.kind);
             if (hits) {
-                hits.push(id);
+                hits.push(occurrence);
             } else {
-                perKind.set(kind, [id]);
+                perKind.set(occurrence.kind, [occurrence]);
             }
         }
     }
@@ -281,25 +291,56 @@ const containedMatch = (
     return undefined;
 };
 
-export const lookupName = (
+const lookupOccurrence = (
     table: SymbolTable,
     name: string,
     policy: LookupPolicy,
     kind?: EntityKind
-): SymbolId | undefined => {
+): Occurrence | undefined => {
     if (typeof name !== 'string') {
         return undefined;
     }
     const kinds = kind ? POLICY_KINDS[policy].filter(k => k === kind) : POLICY_KINDS[policy];
-    const exact = candidates(table, table.byName.get(name) ?? [], kinds);
+    const exact = inKindOrder(occurrencesOf(table, name), kinds);
     switch (policy) {
         case 'type-link':
-            return lastOfFirstKind(table, exact) ?? containedMatch(table, name, kinds);
+            return lastOfFirstKind(exact) ?? containedMatch(table, name, kinds);
         case 'doc-link':
             return exact[0];
         default:
             return exact.at(-1);
     }
+};
+
+export const lookupName = (
+    table: SymbolTable,
+    name: string,
+    policy: LookupPolicy,
+    kind?: EntityKind
+): SymbolId | undefined => lookupOccurrence(table, name, policy, kind)?.id;
+
+/**
+ * Like `lookupName`, but returns the entry as the chosen engine object sees
+ * it: overloads of one id keep their own data, `@category` and duplicate name.
+ */
+export const lookupEntry = (
+    table: SymbolTable,
+    name: string,
+    policy: LookupPolicy,
+    kind?: EntityKind
+): SymbolEntry | undefined => {
+    const occurrence = lookupOccurrence(table, name, policy, kind);
+    const entry = occurrence && table.byId.get(occurrence.id);
+    if (!occurrence || !entry) {
+        return undefined;
+    }
+    const data = occurrence.data as Named;
+    return {
+        ...entry,
+        data,
+        duplicateName: duplicateNameOf(data),
+        tagged: isTagged(entry.ref.kind, data)
+    };
 };
 
 /** Names that more than one symbol carries. */

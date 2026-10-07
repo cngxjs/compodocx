@@ -1,10 +1,9 @@
-import { hrefText } from '../app/links/layout';
-import { hrefForSymbol } from '../app/links/resolve';
-import { parseSymbolId } from '../app/links/symbol-id';
+import { hrefFor, hrefText } from '../app/links/layout';
+import { symbolTarget } from '../app/links/resolve';
 import {
     buildSymbolTable,
     type EngineData,
-    lookupName,
+    lookupEntry,
     policyKinds
 } from '../app/links/symbol-table';
 
@@ -35,16 +34,14 @@ export function buildEntityIndex(mainData: Record<string, unknown>): EntityIndex
 
     const index: EntityIndex = {};
     for (const name of names) {
-        const id = lookupName(table, name, 'entity-index');
-        const href = id && hrefForSymbol(table, id, 0, { duplicate: true, detail: true });
-        if (!id || !href) {
+        const entry = lookupEntry(table, name, 'entity-index');
+        if (!entry) {
             continue;
         }
-        const kind = parseSymbolId(id);
-        const symbolKind = kind.ok ? kind.value.kind : '';
+        const href = hrefFor(symbolTarget(entry, { duplicate: true, detail: true }), 0);
         index[name] = {
             href: hrefText(href, 'bare'),
-            kind: INDEX_KIND[symbolKind] ?? symbolKind
+            kind: INDEX_KIND[entry.ref.kind] ?? entry.ref.kind
         };
     }
     return index;

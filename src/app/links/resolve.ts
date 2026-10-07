@@ -1,6 +1,6 @@
-import { type Href, hrefFor, type PageTarget } from './layout';
+import { type Href, hrefFor, isPageKind, type MiscKind, type PageTarget } from './layout';
 import type { SymbolId } from './symbol-id';
-import { type LookupPolicy, lookupName, type SymbolEntry, type SymbolTable } from './symbol-table';
+import { type LookupPolicy, lookupEntry, type SymbolEntry, type SymbolTable } from './symbol-table';
 
 export interface SymbolLinkOptions {
     readonly anchor?: string;
@@ -36,6 +36,31 @@ export const hrefForName = (
     fromDepth: number,
     options: SymbolLinkOptions = {}
 ): Href | undefined => {
-    const id = lookupName(table, name, policy);
-    return id === undefined ? undefined : hrefForSymbol(table, id, fromDepth, options);
+    const entry = lookupEntry(table, name, policy);
+    return entry && hrefFor(symbolTarget(entry, options), fromDepth, options.anchor);
+};
+
+const MISC_SUBTYPE: Readonly<Record<string, MiscKind>> = {
+    function: 'function',
+    variable: 'variable',
+    typealias: 'typealias',
+    enum: 'enumeration'
+};
+
+/**
+ * The page of an engine object, read from its own `type` (or
+ * `ctype`/`subtype` for miscellaneous symbols). Undefined for an object the
+ * layout has no page for.
+ */
+export const targetOfData = (data: unknown): PageTarget | undefined => {
+    const item = data as { name?: string; type?: string; ctype?: string; subtype?: string };
+    if (typeof item?.name !== 'string') {
+        return undefined;
+    }
+    if (item.type === 'miscellaneous' || item.ctype === 'miscellaneous') {
+        const kind = MISC_SUBTYPE[item.subtype ?? ''];
+        return kind ? { type: 'symbol', kind, name: item.name } : undefined;
+    }
+    const kind = item.type ?? '';
+    return isPageKind(kind) ? { type: 'symbol', kind, name: item.name } : undefined;
 };

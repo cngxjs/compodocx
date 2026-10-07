@@ -50,6 +50,9 @@ export const ROOT_DEPTH = 0;
 
 const MISC_KINDS: ReadonlySet<string> = new Set(Object.keys(MISC_COLLECTION));
 
+export const isPageKind = (kind: string): kind is PageKind =>
+    Object.keys(KIND_FOLDER).includes(kind);
+
 export const isMiscKind = (kind: string): kind is MiscKind => MISC_KINDS.has(kind);
 
 const last = (items: readonly string[]): string => items[items.length - 1] ?? '';

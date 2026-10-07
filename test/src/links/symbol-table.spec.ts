@@ -5,6 +5,7 @@ import {
     ambiguousNames,
     buildSymbolTable,
     type EngineData,
+    lookupEntry,
     lookupName,
     type SymbolTable
 } from '../../../src/app/links/symbol-table';
@@ -46,7 +47,9 @@ const fixture = (): Required<Omit<EngineData, 'miscellaneous'>> & {
         functions: [
             item('foo', 'src/foo.fn.ts'),
             item('provideUser', 'src/user.ts', { category: 'users' }),
-            item('provideUser', 'src/user.ts', { category: 'users' })
+            item('provideUser', 'src/user.ts', { category: 'users' }),
+            item('fill', 'src/fill.ts', { category: 'defaults' }),
+            item('fill', 'src/fill.ts')
         ],
         variables: [item('DEFAULT_PAGE_SIZE', 'src/config.ts')],
         typealiases: [item('Foo', 'src/foo.type.ts')],
@@ -200,6 +203,16 @@ describe('symbol table', () => {
             '@lib/paging'
         );
         expect(table.byId.get('class:src/page.ts#Page' as never)?.entryPoint).toBeUndefined();
+    });
+
+    it('keeps the data of the overload each policy picks', () => {
+        const index = buildEntityIndex(data as unknown as Record<string, unknown>);
+        expect(index.fill.href).toBe('miscellaneous/functions.html#fill');
+        expect(lookupEntry(table, 'fill', 'entity-index')?.tagged).toBe(false);
+        expect(lookupEntry(table, 'fill', 'doc-link')?.tagged).toBe(true);
+        expect(lookupEntry(table, 'fill', 'type-link')?.data).toBe(
+            DependenciesEngine.find('fill')?.data
+        );
     });
 
     it('lists names that more than one symbol carries', () => {
