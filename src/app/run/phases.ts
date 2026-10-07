@@ -13,6 +13,7 @@ import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
 import I18nEngine from '../engines/i18n.engine';
 import { initHighlighter } from '../engines/syntax-highlight.engine';
+import { buildSymbolTable } from '../links';
 import { copyAssetsFolder, copyResources, finalizeOutput } from '../page-generator';
 import { crawlDependencies, crawlMicroDependencies } from '../services/dependencies';
 import type { RunContext, RunMode, Stage } from './context';
@@ -220,6 +221,13 @@ const withSemantic = (ctx: RunContext): RunContext => {
     return { ...ctx, semantic: analyzed.value };
 };
 
+/** Index the engine's symbols once it holds the current crawl. */
+const withSymbols = (ctx: RunContext): RunContext => {
+    const symbols = buildSymbolTable(DependenciesEngine, { semantic: ctx.semantic?.model, cwd });
+    ctx.config.mainData.symbols = symbols;
+    return { ...ctx, symbols };
+};
+
 /** The crawler parses nothing the semantic program already holds. */
 const sharedSourceFiles = (ctx: RunContext) => {
     const program = ctx.semantic?.program;
@@ -266,7 +274,7 @@ const crawl: Stage = async current => {
     mainData.routesLength = RouterParserUtil.routesLength();
 
     printStatistics(ctx);
-    return proceed(ctx);
+    return proceed(withSymbols(ctx));
 };
 
 const microCrawl: Stage = async current => {
@@ -281,7 +289,7 @@ const microCrawl: Stage = async current => {
     });
 
     DependenciesEngine.update(diff);
-    return proceed({ ...ctx, diff });
+    return proceed(withSymbols({ ...ctx, diff }));
 };
 
 const prepare: Stage = async ctx => {

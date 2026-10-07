@@ -1,6 +1,7 @@
 import type { Result } from '../../lib';
 import type { SemanticState } from '../compiler/semantic';
 import type Configuration from '../configuration';
+import type { SymbolTable } from '../links';
 import {
     AdditionalPageGenerator,
     ApiReferencePageGenerator,
@@ -112,6 +113,8 @@ export interface RunContext {
      * the previous run's state until then, so a rebuild can reuse its program.
      */
     readonly semantic?: SemanticState;
+    /** Every documented symbol by id. Built by the crawl phases. */
+    readonly symbols?: SymbolTable;
     /**
      * Watch rebuilds only: called once the output phase has started writing
      * HTML, so the watcher can reset its changed-file buffer.

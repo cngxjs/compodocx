@@ -27,7 +27,7 @@
         "*********TEST********": "*******************",
         "pretest": "npm run build",
         "test": "npm run test:unit && npm run test:cli",
-        "test:unit": "vitest run test/src/utils test/src/app test/src/templates test/src/client test/src/migrate test/src/diff test/src/llm-md test/src/playground-validate test/src/schematics test/src/lib",
+        "test:unit": "vitest run test/src/utils test/src/app test/src/templates test/src/client test/src/migrate test/src/diff test/src/llm-md test/src/playground-validate test/src/schematics test/src/lib test/src/links",
         "test:migrate": "vitest run test/src/migrate",
         "test:cli": "vitest run test/src/cli",
         "test:all": "vitest run",
