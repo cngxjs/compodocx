@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { ROOT_DEPTH } from '../../app/links/layout';
 import { EmptyState } from '../components/EmptyState';
 import { EmptyIconBolt } from '../components/EmptyStateIcons';
 import { IconFile, IconSettings, iconFor } from '../components/Icons';
@@ -38,9 +39,12 @@ const providerIcon = (name: string): string => {
     return 'ion-ios-settings';
 };
 
-/** Link a function name to Angular API docs or internal docs via DependenciesEngine. */
+/**
+ * Link a function name to Angular API docs or internal docs via DependenciesEngine.
+ * The app-config page sits at the output root.
+ */
 const linkedName = (name: string): string => {
-    const resolved = resolveType(name);
+    const resolved = resolveType(name, undefined, ROOT_DEPTH);
     if (resolved) {
         return `<a href="${resolved.href}" target="${resolved.target}">${name}()</a>`;
     }
