@@ -1,3 +1,5 @@
+import { relativePrefix } from '../app/links/layout';
+
 declare function gtag(...args: unknown[]): void;
 
 /**
@@ -27,7 +29,7 @@ const stripPrefix = (path: string): string => path.replace(/^(\.\/|\.\.\/)+/, ''
 /** Rewrite relative sidebar links based on current page depth */
 const fixMenuLinks = () => {
     const depth = (globalThis as any).COMPODOC_CURRENT_PAGE_DEPTH ?? 0;
-    const prefix = depth === 0 ? './' : '../'.repeat(depth);
+    const prefix = relativePrefix(depth);
 
     document.querySelectorAll<HTMLAnchorElement>('.menu a[data-type]').forEach(a => {
         const href = a.getAttribute('href');

@@ -4,7 +4,13 @@
  * lazy-load-graphs.js, and all associated libs.
  */
 
+import { hrefFor, hrefText, ROOT_DEPTH } from '../app/links/layout';
+
 declare const ROUTES_INDEX: any;
+
+/** Link from the routes page (at the output root) to a component page. */
+const componentHref = (name: string): string =>
+    hrefText(hrefFor({ type: 'symbol', kind: 'component', name }, ROOT_DEPTH));
 declare const COMPONENT_TEMPLATE: string;
 declare const COMPONENTS: Array<{ name: string; selector: string }>;
 declare const DIRECTIVES: Array<{ name: string; selector: string }>;
@@ -201,7 +207,7 @@ const buildNodeLabel = (d: any): string => {
     } else if (d.kind === 'component') {
         label += `<tspan x="0" dy="1.4em">${d.path || d.name}</tspan>`;
         if (d.component) {
-            label += `<tspan x="0" dy="1.4em"><a href="./components/${d.component}.html">${d.component}</a></tspan>`;
+            label += `<tspan x="0" dy="1.4em"><a href="${componentHref(d.component)}">${d.component}</a></tspan>`;
         } else if (d.name?.includes('Component')) {
             label += `<tspan x="0" dy="1.4em">${d.name}</tspan>`;
         }
@@ -211,7 +217,7 @@ const buildNodeLabel = (d: any): string => {
     } else {
         label += `<tspan x="0" dy="1.4em">/${d.path || d.name}</tspan>`;
         if (d.component) {
-            label += `<tspan x="0" dy="1.4em"><a href="./components/${d.component}.html">${d.component}</a></tspan>`;
+            label += `<tspan x="0" dy="1.4em"><a href="${componentHref(d.component)}">${d.component}</a></tspan>`;
         }
         if (d.canActivate) {
             label += '<tspan x="0" dy="1.4em">&#10003; canActivate</tspan>';

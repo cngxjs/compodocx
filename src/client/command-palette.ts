@@ -3,6 +3,8 @@
  * Pagefind-powered search with entity type badges and keyboard navigation.
  */
 
+import { hrefFor, hrefText } from '../app/links/layout';
+
 const DIALOG_ID = 'cdx-command-palette';
 const INPUT_SELECTOR = '.cdx-cp-input';
 const LIST_SELECTOR = '.cdx-cp-results';
@@ -376,8 +378,8 @@ const loadPagefind = async (): Promise<any> => {
 
     // Build absolute URL to pagefind based on page location (not module location)
     const depth = (window as any).COMPODOC_CURRENT_PAGE_DEPTH ?? 0;
-    const prefix = depth === 0 ? '' : '../'.repeat(depth);
-    const pagefindUrl = new URL(`${prefix}pagefind/pagefind.js`, window.location.href).href;
+    const pagefindHref = hrefFor({ type: 'asset', path: 'pagefind/pagefind.js' }, depth);
+    const pagefindUrl = new URL(hrefText(pagefindHref, 'bare'), window.location.href).href;
 
     const loading = getLoading();
     if (loading) {
