@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import Configuration from '../../app/configuration';
 import { hrefFor, hrefText, ROOT_DEPTH } from '../../app/links/layout';
 import { targetOfCoverage } from '../../app/links/resolve';
 import { CoverageSummary } from '../blocks/CoverageSummary';
@@ -103,7 +104,7 @@ const coverageFillClass = (pct: number): string => {
 /* ---- File link builder ---- */
 
 const fileLink = (f: CoverageFile): string => {
-    const target = targetOfCoverage(f);
+    const target = targetOfCoverage(f, { detail: true, table: Configuration.mainData.symbols });
     return target ? hrefText(hrefFor(target, ROOT_DEPTH)) : '';
 };
 

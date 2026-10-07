@@ -29,7 +29,7 @@ export const resolveType = (name: string, indexKey?: string, depth = 1): Resolve
         const resolved: ResolvedType = { raw: name, indexKey: '', href: '', target: '_self' };
 
         if (result.source === 'internal') {
-            const target = targetOfData(result.data);
+            const target = targetOfData(result.data, { detail: true });
             if (!target) {
                 return null;
             }

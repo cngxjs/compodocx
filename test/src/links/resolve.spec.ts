@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { hrefText } from '../../../src/app/links/layout';
-import { hrefForName, hrefForSymbol } from '../../../src/app/links/resolve';
+import { hrefFor, hrefText, pageLocation } from '../../../src/app/links/layout';
+import {
+    hrefForName,
+    hrefForSymbol,
+    targetOfCoverage,
+    targetOfData
+} from '../../../src/app/links/resolve';
 import type { SymbolId } from '../../../src/app/links/symbol-id';
 import { buildSymbolTable } from '../../../src/app/links/symbol-table';
-import { pageOf } from '../helpers/pages';
+import { hrefTo, miscAnchor, pageOf } from '../helpers/pages';
 
 const table = buildSymbolTable(
     {
@@ -66,5 +71,25 @@ describe('symbol hrefs', () => {
         expect(hrefForSymbol(table, id('class:src/none.ts#None'), 1)).toBeUndefined();
         expect(hrefForName(table, 'None', 'doc-link', 1)).toBeUndefined();
         expect(hrefForName(table, 'Todo', 'doc-link', 1)?.path).toBe(pageOf('class', 'Todo'));
+    });
+
+    it('sends tagged misc engine objects and coverage rows to their detail page', () => {
+        const tagged = {
+            name: 'provideTodos',
+            ctype: 'miscellaneous',
+            subtype: 'function',
+            category: 'todos'
+        };
+        expect(pageLocation(targetOfData(tagged, { detail: true })!).filename).toBe('provideTodos');
+        expect(hrefText(hrefFor(targetOfData(tagged)!, 1))).toBe(
+            hrefTo('function', 'provideTodos', 1)
+        );
+        const row = { name: 'provideTodos', filePath: 'src/todos.ts', linksubtype: 'function' };
+        expect(hrefText(hrefFor(targetOfCoverage(row, { detail: true, table })!, 0))).toBe(
+            hrefTo('function', 'provideTodos', 0, { detail: true })
+        );
+        expect(hrefText(hrefFor(targetOfCoverage(row)!, 0))).toBe(
+            `./${miscAnchor('function', 'provideTodos')}`
+        );
     });
 });

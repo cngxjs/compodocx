@@ -1,6 +1,12 @@
 import { type Href, hrefFor, isPageKind, type MiscKind, type PageTarget } from './layout';
 import type { SymbolId } from './symbol-id';
-import { type LookupPolicy, lookupEntry, type SymbolEntry, type SymbolTable } from './symbol-table';
+import {
+    entryInFile,
+    type LookupPolicy,
+    lookupEntry,
+    type SymbolEntry,
+    type SymbolTable
+} from './symbol-table';
 
 export interface SymbolLinkOptions {
     readonly anchor?: string;
@@ -52,28 +58,55 @@ const MISC_SUBTYPE: Readonly<Record<string, MiscKind>> = {
  * `ctype`/`subtype` for miscellaneous symbols). Undefined for an object the
  * layout has no page for.
  */
-export const targetOfData = (data: unknown): PageTarget | undefined => {
-    const item = data as { name?: string; type?: string; ctype?: string; subtype?: string };
+export const targetOfData = (
+    data: unknown,
+    options: Pick<SymbolLinkOptions, 'detail'> = {}
+): PageTarget | undefined => {
+    const item = data as {
+        name?: string;
+        type?: string;
+        ctype?: string;
+        subtype?: string;
+        category?: unknown;
+    };
     if (typeof item?.name !== 'string') {
         return undefined;
     }
     if (item.type === 'miscellaneous' || item.ctype === 'miscellaneous') {
         const kind = MISC_SUBTYPE[item.subtype ?? ''];
-        return kind ? { type: 'symbol', kind, name: item.name } : undefined;
+        const tagged = typeof item.category === 'string' && item.category.trim() !== '';
+        return kind
+            ? { type: 'symbol', kind, name: item.name, detail: Boolean(options.detail && tagged) }
+            : undefined;
     }
     const kind = item.type ?? '';
     return isPageKind(kind) ? { type: 'symbol', kind, name: item.name } : undefined;
 };
 
-/** A coverage row's page, from its `linktype` (`classe` for classes) and misc `linksubtype`. */
-export const targetOfCoverage = (row: {
-    readonly name: string;
-    readonly linktype?: string;
-    readonly linksubtype?: string;
-}): PageTarget | undefined => {
+/**
+ * A coverage row's page, from its `linktype` (`classe` for classes) and misc
+ * `linksubtype`. With `detail`, a misc row whose symbol the table marks as
+ * tagged links to its detail page.
+ */
+export const targetOfCoverage = (
+    row: {
+        readonly name: string;
+        readonly filePath?: string;
+        readonly linktype?: string;
+        readonly linksubtype?: string;
+    },
+    options: { readonly detail?: boolean; readonly table?: SymbolTable } = {}
+): PageTarget | undefined => {
     if (row.linksubtype) {
         const kind = MISC_SUBTYPE[row.linksubtype];
-        return kind ? { type: 'symbol', kind, name: row.name } : undefined;
+        if (!kind) {
+            return undefined;
+        }
+        const entry =
+            options.detail && options.table
+                ? entryInFile(options.table, kind, row.name, row.filePath)
+                : undefined;
+        return { type: 'symbol', kind, name: row.name, detail: Boolean(entry?.tagged) };
     }
     const kind = row.linktype === 'classe' ? 'class' : (row.linktype ?? '');
     return isPageKind(kind) ? { type: 'symbol', kind, name: row.name } : undefined;

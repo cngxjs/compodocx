@@ -343,6 +343,24 @@ export const lookupEntry = (
     };
 };
 
+/** The entry of `name` and `kind` whose engine object was read from `file`. */
+export const entryInFile = (
+    table: SymbolTable,
+    kind: EntityKind,
+    name: string,
+    file: string | undefined
+): SymbolEntry | undefined => {
+    const occurrence = occurrencesOf(table, name).find(
+        o => o.kind === kind && (o.data as Named).file === file
+    );
+    const entry = occurrence && table.byId.get(occurrence.id);
+    if (!occurrence || !entry) {
+        return undefined;
+    }
+    const data = occurrence.data as Named;
+    return { ...entry, data, duplicateName: duplicateNameOf(data), tagged: isTagged(kind, data) };
+};
+
 /** Names that more than one symbol carries. */
 export const ambiguousNames = (table: SymbolTable): readonly string[] =>
     [...table.byName]
