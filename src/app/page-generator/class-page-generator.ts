@@ -4,6 +4,7 @@ import { markedAcl } from '../../utils/marked.acl';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
+import { pageLocation } from '../links/layout';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class ClassPageGenerator {
@@ -26,14 +27,19 @@ export class ClassPageGenerator {
                         const readme = MarkdownEngine.readNeighbourReadmeFile(classe.file);
                         classe.readme = markedAcl(readme);
                     }
+                    const location = pageLocation({
+                        type: 'symbol',
+                        kind: 'class',
+                        name: classe.name
+                    });
                     const page = {
-                        path: 'classes',
+                        path: location.path,
                         name: classe.name,
                         id: classe.id,
                         navTabs: this.navTabs.resolve(classe),
                         context: 'class',
                         class: classe,
-                        depth: 1,
+                        depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
                     if (classe.isDuplicate) {

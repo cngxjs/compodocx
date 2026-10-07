@@ -3,6 +3,7 @@ import { logger } from '../../utils/logger';
 import RouterParserUtil from '../../utils/router-parser.util';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
+import { ROOT_DEPTH } from '../links/layout';
 
 export class RoutesPageGenerator {
     public prepare(): Promise<void> {
@@ -14,7 +15,7 @@ export class RoutesPageGenerator {
                 name: 'routes',
                 id: 'routes',
                 context: 'routes',
-                depth: 0,
+                depth: ROOT_DEPTH,
                 pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
             });
 

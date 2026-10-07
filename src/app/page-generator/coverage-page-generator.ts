@@ -4,6 +4,7 @@ import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
 import type { CoverageData } from '../interfaces/coverageData.interface';
+import { ROOT_DEPTH } from '../links/layout';
 import { type CoverageVerdict, evaluateCoverageGate } from '../run/coverage-gate';
 import {
     type CoverageFile,
@@ -50,7 +51,7 @@ export class CoveragePageGenerator {
                 context: 'coverage',
                 files: coverageData.files,
                 data: coverageData,
-                depth: 0,
+                depth: ROOT_DEPTH,
                 pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
             });
             Configuration.mainData.coverageData = coverageData;
@@ -104,7 +105,7 @@ export class CoveragePageGenerator {
                 context: 'unit-test',
                 files: report.files,
                 data: unitTestData,
-                depth: 0,
+                depth: ROOT_DEPTH,
                 pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
             });
 

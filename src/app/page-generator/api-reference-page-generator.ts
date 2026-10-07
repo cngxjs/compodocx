@@ -2,6 +2,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
+import { pageLocation } from '../links/layout';
 
 /**
  * Emits a single `references.html` page at the documentation root under
@@ -28,13 +29,14 @@ export class ApiReferencePageGenerator {
                 return;
             }
             logger.info('Prepare API reference page');
+            const location = pageLocation({ type: 'root', page: 'references' });
             Configuration.addPage({
-                path: '',
+                path: location.path,
                 name: 'references',
-                filename: 'references',
+                filename: location.filename,
                 id: 'references',
                 context: 'api-reference',
-                depth: 0,
+                depth: location.depth,
                 pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
             } as any);
             resolve(true);

@@ -3,6 +3,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import MarkdownEngine, { type markdownReadedDatas } from '../engines/markdown.engine';
+import { ROOT_DEPTH } from '../links/layout';
 
 export class OverviewPageGenerator {
     public processMarkdowns(): Promise<any> {
@@ -33,7 +34,7 @@ export class OverviewPageGenerator {
                                     markdown: readmeData.markdown,
                                     data: readmeData.rawData,
                                     aiGenerated,
-                                    depth: 0,
+                                    depth: ROOT_DEPTH,
                                     pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
                                 });
 
@@ -44,7 +45,7 @@ export class OverviewPageGenerator {
                                         context: 'overview',
                                         id: 'overview',
                                         aiGenerated,
-                                        depth: 0,
+                                        depth: ROOT_DEPTH,
                                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
                                     });
                                 }
@@ -57,13 +58,13 @@ export class OverviewPageGenerator {
                                     markdown: readmeData.markdown,
                                     data: readmeData.rawData,
                                     aiGenerated,
-                                    depth: 0,
+                                    depth: ROOT_DEPTH,
                                     pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
                                 });
                                 Configuration.mainData.markdowns.push({
                                     name: markdowns[i],
                                     uppername: markdowns[i].toUpperCase(),
-                                    depth: 0,
+                                    depth: ROOT_DEPTH,
                                     pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
                                 });
                             }
@@ -79,7 +80,7 @@ export class OverviewPageGenerator {
                                         name: 'index',
                                         id: 'index',
                                         context: 'overview',
-                                        depth: 0,
+                                        depth: ROOT_DEPTH,
                                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
                                     });
                                 } else {
@@ -95,7 +96,7 @@ export class OverviewPageGenerator {
                                         name: 'index',
                                         id: 'index',
                                         context: 'overview',
-                                        depth: 0,
+                                        depth: ROOT_DEPTH,
                                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
                                     });
                                 }
