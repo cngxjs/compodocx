@@ -128,8 +128,10 @@ export const findEntryPoints = (
     cwd: string
 ): readonly ResolvedEntryPoint[] => {
     const byFile = new Map<string, ResolvedEntryPoint>();
+    // TypeScript reports forward slashes; compare native paths only.
+    const files = rootFiles.map(file => path.resolve(file));
     const all = [
-        ...ngPackageEntryPoints(rootFiles, workspaceRoot, cwd),
+        ...ngPackageEntryPoints(files, path.resolve(workspaceRoot), cwd),
         ...pathsEntryPoints(program)
     ];
     for (const entry of all) {
@@ -190,8 +192,9 @@ export const exportFactsOf = (
     entryPoints: readonly ResolvedEntryPoint[],
     exported: ReadonlyMap<ts.Symbol, ReadonlySet<string>>
 ): ExportFacts => {
+    const file = path.resolve(fileName);
     const owner = entryPoints
-        .filter(entry => isInside(entry.root, fileName))
+        .filter(entry => isInside(entry.root, file))
         .reduce<ResolvedEntryPoint | undefined>(
             (best, entry) => (!best || entry.root.length > best.root.length ? entry : best),
             undefined
