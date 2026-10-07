@@ -3,6 +3,11 @@ import { hrefFor, hrefText } from '../../app/links/layout';
 import { targetOfData } from '../../app/links/resolve';
 import { extractLeadingText, splitLinkText } from '../../utils/link-parser';
 
+/** `Name`, `Name.member` or `Name#member`: a symbol, not a URL or a file. */
+const isSymbolReference = (target: string): boolean =>
+    /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)*(#[\w$.-]*)?$/.test(target) &&
+    !/\.(md|html?)$/i.test(target);
+
 /**
  * Process {@link ...} tags in a description string, resolving targets
  * via DependenciesEngine and building relative hrefs based on depth.
@@ -83,11 +88,12 @@ export const parseDescription = (description: string, depth: number): string => 
             const newLink = `<a href="${hrefText(href, 'description')}">${label}</a>`;
             result = result.replace(stringToReplace, newLink);
         } else {
-            // External or unknown link
             const label = leading.leadingText ?? split.linkText ?? split.target;
-            const href = split.target;
-            const newLink = `<a href="${href}">${label}</a>`;
-            result = result.replace(stringToReplace, newLink);
+            // An undocumented symbol has no page to link to; a URL or file stays a link.
+            const replacement = isSymbolReference(split.target)
+                ? `<code>${label}</code>`
+                : `<a href="${split.target}">${label}</a>`;
+            result = result.replace(stringToReplace, replacement);
         }
     } while (matches && previousResult !== result);
 
