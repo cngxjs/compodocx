@@ -10,6 +10,7 @@ import {
     type SymbolTable
 } from '../../../src/app/links/symbol-table';
 import { buildEntityIndex } from '../../../src/utils/entity-index.util';
+import { miscAnchor, pageOf } from '../helpers/pages';
 
 const item = (name: string, file: string, extra: Record<string, unknown> = {}) => ({
     name,
@@ -140,9 +141,11 @@ describe('symbol table', () => {
 
     it('entity-index reproduces buildEntityIndex: last write wins, misc last', () => {
         const index = buildEntityIndex(data as unknown as Record<string, unknown>);
-        expect(index.Foo.href).toBe('miscellaneous/typealiases.html#Foo');
+        expect(index.Foo.href).toBe(miscAnchor('typealias', 'Foo'));
         expect(lookupName(table, 'Foo', 'entity-index')).toBe('typealias:src/foo.type.ts#Foo');
-        expect(index.SettingsService.href).toBe('injectables/SettingsService-2.html');
+        expect(index.SettingsService.href).toBe(
+            pageOf('injectable', 'SettingsService', { duplicate: 'SettingsService-2' })
+        );
         expect(
             table.byId.get(lookupName(table, 'SettingsService', 'entity-index') as never)
                 ?.duplicateName
@@ -207,7 +210,7 @@ describe('symbol table', () => {
 
     it('keeps the data of the overload each policy picks', () => {
         const index = buildEntityIndex(data as unknown as Record<string, unknown>);
-        expect(index.fill.href).toBe('miscellaneous/functions.html#fill');
+        expect(index.fill.href).toBe(miscAnchor('function', 'fill'));
         expect(lookupEntry(table, 'fill', 'entity-index')?.tagged).toBe(false);
         expect(lookupEntry(table, 'fill', 'doc-link')?.tagged).toBe(true);
         expect(lookupEntry(table, 'fill', 'type-link')?.data).toBe(

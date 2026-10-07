@@ -5,6 +5,7 @@ import {
 } from '../../../../src/app/engines/custom-template.engine';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import { ReferencedBySection } from '../../../../src/templates/blocks/ReferencedBySection';
+import { hrefTo, pageOf } from '../../helpers/pages';
 
 beforeAll(() => {
     I18nEngine.init('en-US');
@@ -35,8 +36,8 @@ describe('ReferencedBySection', () => {
         expect(html).to.include('id="referenced-by"');
         expect(html).to.include('class="cdx-chip cdx-chip--component"');
         expect(html).to.include('class="cdx-chip cdx-chip--injectable"');
-        expect(html).to.include('href="../components/CngxToast.html"');
-        expect(html).to.include('href="../injectables/AuthService.html"');
+        expect(html).to.include(`href="${hrefTo('component', 'CngxToast', 1)}"`);
+        expect(html).to.include(`href="${hrefTo('injectable', 'AuthService', 1)}"`);
         expect(html).to.include('data-cdx-kind="component"');
     });
 
@@ -45,7 +46,7 @@ describe('ReferencedBySection', () => {
             entries: [{ name: 'CngxToast', kind: 'component', hrefPrefix: 'components' }],
             depth: 0
         });
-        expect(html).to.include('href="components/CngxToast.html"');
+        expect(html).to.include(`href="${pageOf('component', 'CngxToast')}"`);
         expect(html).to.not.include('../components/');
     });
 
@@ -54,7 +55,7 @@ describe('ReferencedBySection', () => {
             entries: [{ name: 'CngxToast', kind: 'component', hrefPrefix: 'components' }],
             depth: 2
         });
-        expect(html).to.include('href="../../components/CngxToast.html"');
+        expect(html).to.include(`href="${hrefTo('component', 'CngxToast', 2)}"`);
     });
 
     it('honours the `referenced-by` custom-template override', () => {

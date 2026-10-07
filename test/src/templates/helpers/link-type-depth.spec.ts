@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import DependenciesEngine from '../../../../src/app/engines/dependencies.engine';
 import { functionSignature } from '../../../../src/templates/helpers/function-signature';
 import { resolveType } from '../../../../src/templates/helpers/link-type';
+import { hrefTo } from '../../helpers/pages';
 
 /**
  * Miscellaneous detail pages live at `miscellaneous/<collection>/<name>.html`
@@ -33,26 +34,24 @@ describe('Type links at page depth', () => {
     });
 
     it('resolveType keeps the ../ prefix by default', () => {
-        expect(resolveType('User')?.href).toBe('../interfaces/User.html');
+        expect(resolveType('User')?.href).toBe(hrefTo('interface', 'User', 1));
     });
 
     it('resolveType climbs two levels at depth 2', () => {
-        expect(resolveType('User', undefined, 2)?.href).toBe('../../interfaces/User.html');
+        expect(resolveType('User', undefined, 2)?.href).toBe(hrefTo('interface', 'User', 2));
     });
 
     it('functionSignature links a known interface with ../../ at depth 2', () => {
         const html = functionSignature({ name: 'load', args: [{ name: 'user', type: 'User' }] }, 2);
-        expect(html).toContain('href="../../interfaces/User.html"');
+        expect(html).toContain(`href="${hrefTo('interface', 'User', 2)}"`);
     });
 
     it('links a miscellaneous target with ../../ at depth 2', () => {
-        expect(resolveType('Status', undefined, 2)?.href).toBe(
-            '../../miscellaneous/typealiases.html#Status'
-        );
+        expect(resolveType('Status', undefined, 2)?.href).toBe(hrefTo('typealias', 'Status', 2));
         const html = functionSignature(
             { name: 'setStatus', args: [{ name: 'status', type: 'Status' }] },
             2
         );
-        expect(html).toContain('href="../../miscellaneous/typealiases.html#Status"');
+        expect(html).toContain(`href="${hrefTo('typealias', 'Status', 2)}"`);
     });
 });

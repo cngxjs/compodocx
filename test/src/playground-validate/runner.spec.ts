@@ -7,10 +7,11 @@ import {
     validateAll,
     validateOne
 } from '../../../src/playground-validate/runner';
+import { pageOf } from '../helpers/pages';
 
 const entry = (id: string, title: string): ExtractedManifest => ({
     id,
-    sourceFile: `components/${title}.html`,
+    sourceFile: pageOf('component', title),
     manifest: {
         title,
         description: '',

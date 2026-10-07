@@ -1,4 +1,5 @@
 import { extractManifestsFromHtml } from '../../../src/playground-validate/extract';
+import { pageOf } from '../helpers/pages';
 
 const scriptTag = (id: string, json: string): string =>
     `<script type="application/json" data-cdx-stackblitz-manifest-data="${id}">${json}</script>`;
@@ -11,10 +12,10 @@ describe('extractManifestsFromHtml', () => {
             scriptTag('pg-button-1', '{"title":"Toggle","files":{"src/main.ts":"b"}}'),
             '</section>'
         ].join('\n');
-        const result = extractManifestsFromHtml(html, 'components/Button.html');
+        const result = extractManifestsFromHtml(html, pageOf('component', 'Button'));
         expect(result.map(r => r.id)).to.deep.equal(['pg-button-0', 'pg-button-1']);
         expect(result[0].manifest.title).to.equal('Default');
-        expect(result[0].sourceFile).to.equal('components/Button.html');
+        expect(result[0].sourceFile).to.equal(pageOf('component', 'Button'));
     });
 
     it('decodes the \\uXXXX escaping used for angle brackets in the payload', () => {

@@ -6,6 +6,7 @@ import {
     initVersionSwitcher,
     sliceForCap
 } from '../../../src/client/version-switcher';
+import { pageOf } from '../helpers/pages';
 
 describe('computeTargetUrl — path math', () => {
     it('depth 0: replaces the version segment in the URL', () => {
@@ -23,32 +24,32 @@ describe('computeTargetUrl — path math', () => {
     it('depth 2: preserves nested page paths', () => {
         const url = computeTargetUrl(
             {
-                pathname: '/v0.3.0/components/folder/Foo.html',
-                href: 'https://docs.example.com/v0.3.0/components/folder/Foo.html'
+                pathname: `/v0.3.0/${pageOf('component', 'folder/Foo')}`,
+                href: `https://docs.example.com/v0.3.0/${pageOf('component', 'folder/Foo')}`
             },
             'v0.3.0',
             'v0.2.0/'
         );
-        expect(url).toBe('https://docs.example.com/v0.2.0/components/folder/Foo.html');
+        expect(url).toBe(`https://docs.example.com/v0.2.0/${pageOf('component', 'folder/Foo')}`);
     });
 
     it('subdirectory deploy: only the matching label segment is rewritten', () => {
         const url = computeTargetUrl(
             {
-                pathname: '/myproject/v0.3.0/components/Foo.html',
-                href: 'https://example.com/myproject/v0.3.0/components/Foo.html'
+                pathname: `/myproject/v0.3.0/${pageOf('component', 'Foo')}`,
+                href: `https://example.com/myproject/v0.3.0/${pageOf('component', 'Foo')}`
             },
             'v0.3.0',
             'v0.2.0/'
         );
-        expect(url).toBe('https://example.com/myproject/v0.2.0/components/Foo.html');
+        expect(url).toBe(`https://example.com/myproject/v0.2.0/${pageOf('component', 'Foo')}`);
     });
 
     it('returns null when the current label is not in the URL', () => {
         const url = computeTargetUrl(
             {
-                pathname: '/components/Foo.html',
-                href: 'https://docs.example.com/components/Foo.html'
+                pathname: `/${pageOf('component', 'Foo')}`,
+                href: `https://docs.example.com/${pageOf('component', 'Foo')}`
             },
             'v0.3.0',
             'v0.2.0/'
@@ -75,8 +76,8 @@ describe('computeFallbackUrl', () => {
     it('returns the version root when the page tail is dropped', () => {
         const url = computeFallbackUrl(
             {
-                pathname: '/v0.3.0/components/Bar.html',
-                href: 'https://example.com/v0.3.0/components/Bar.html'
+                pathname: `/v0.3.0/${pageOf('component', 'Bar')}`,
+                href: `https://example.com/v0.3.0/${pageOf('component', 'Bar')}`
             },
             'v0.3.0',
             'v0.2.0/'

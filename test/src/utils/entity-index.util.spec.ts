@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildEntityIndex } from '../../../src/utils/entity-index.util';
+import { miscAnchor, pageOf } from '../helpers/pages';
 
 describe('buildEntityIndex — miscellaneous entries', () => {
     it('routes untagged misc entries to anchor on collection page', () => {
@@ -11,10 +12,10 @@ describe('buildEntityIndex — miscellaneous entries', () => {
                 enumerations: [{ name: 'Theme' }]
             }
         });
-        expect(index['helperFn'].href).to.equal('miscellaneous/functions.html#helperFn');
-        expect(index['VERSION'].href).to.equal('miscellaneous/variables.html#VERSION');
-        expect(index['Maybe'].href).to.equal('miscellaneous/typealiases.html#Maybe');
-        expect(index['Theme'].href).to.equal('miscellaneous/enumerations.html#Theme');
+        expect(index['helperFn'].href).to.equal(miscAnchor('function', 'helperFn'));
+        expect(index['VERSION'].href).to.equal(miscAnchor('variable', 'VERSION'));
+        expect(index['Maybe'].href).to.equal(miscAnchor('typealias', 'Maybe'));
+        expect(index['Theme'].href).to.equal(miscAnchor('enumeration', 'Theme'));
     });
 
     it('routes @category-tagged misc entries to a dedicated detail page', () => {
@@ -27,12 +28,16 @@ describe('buildEntityIndex — miscellaneous entries', () => {
             }
         });
         expect(index['provideToaster'].href).to.equal(
-            'miscellaneous/functions/provideToaster.html'
+            pageOf('function', 'provideToaster', { detail: true })
         );
-        expect(index['TOAST_TOKEN'].href).to.equal('miscellaneous/variables/TOAST_TOKEN.html');
-        expect(index['ToastConfig'].href).to.equal('miscellaneous/typealiases/ToastConfig.html');
+        expect(index['TOAST_TOKEN'].href).to.equal(
+            pageOf('variable', 'TOAST_TOKEN', { detail: true })
+        );
+        expect(index['ToastConfig'].href).to.equal(
+            pageOf('typealias', 'ToastConfig', { detail: true })
+        );
         expect(index['ToastPosition'].href).to.equal(
-            'miscellaneous/enumerations/ToastPosition.html'
+            pageOf('enumeration', 'ToastPosition', { detail: true })
         );
     });
 
@@ -42,7 +47,7 @@ describe('buildEntityIndex — miscellaneous entries', () => {
                 functions: [{ name: 'whitespaceCat', category: '   ' }]
             }
         });
-        expect(index['whitespaceCat'].href).to.equal('miscellaneous/functions.html#whitespaceCat');
+        expect(index['whitespaceCat'].href).to.equal(miscAnchor('function', 'whitespaceCat'));
     });
 
     it('keeps the kind discriminator on every misc entry', () => {

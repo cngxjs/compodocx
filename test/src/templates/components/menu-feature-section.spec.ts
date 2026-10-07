@@ -7,6 +7,7 @@ import {
 } from '../../../../src/app/engines/custom-template.engine';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import { Menu } from '../../../../src/templates/components/Menu';
+import { pageOf } from '../../helpers/pages';
 
 beforeAll(() => {
     I18nEngine.init('en-US');
@@ -108,8 +109,8 @@ describe('Menu — feature layout', () => {
                 }
             })
         });
-        expect(html).to.include('href="components/CngxToast.html"');
-        expect(html).to.not.include('href="components/CngxToast.html#api"');
+        expect(html).to.include(`href="${pageOf('component', 'CngxToast')}"`);
+        expect(html).to.not.include(`href="${pageOf('component', 'CngxToast')}#api"`);
     });
 
     it('renders a Features chapter mixing primary-kind entities in one folder', () => {
@@ -148,9 +149,9 @@ describe('Menu — feature layout', () => {
         expect(html).to.include('data-cdx-kind="component"');
         expect(html).to.include('data-cdx-kind="directive"');
         expect(html).to.include('data-cdx-kind="injectable"');
-        expect(html).to.include('href="components/ButtonComponent.html"');
-        expect(html).to.include('href="directives/RippleDirective.html"');
-        expect(html).to.include('href="injectables/ButtonService.html"');
+        expect(html).to.include(`href="${pageOf('component', 'ButtonComponent')}"`);
+        expect(html).to.include(`href="${pageOf('directive', 'RippleDirective')}"`);
+        expect(html).to.include(`href="${pageOf('injectable', 'ButtonService')}"`);
     });
 
     it('renders a top-level Reference link to references.html when categorizedByFeature has entries', () => {
