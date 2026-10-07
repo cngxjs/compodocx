@@ -39,6 +39,9 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **`HttpContextToken` on token pages.** Tokens created with `new HttpContextToken(...)` were rendered as `InjectionToken<T>` on the token page and in the llm-md export. The constructor is now kept in the new optional `tokenClass` export field and shown as `HttpContextToken<T>`.
 - **No local machine paths in theme data.** Theme style sources and theme tokens stored the absolute path of each style file, which leaked into the JSON export and made it differ between machines. Their `file` values are now relative to the working directory with forward slashes, like every other entity's `file`.
 - **Stable output between runs.** Source files were crawled in the order the file scanner returned them, which varies between runs. Symbols sharing a name could swap order, and duplicate-name suffixes (`Todo-1`, `Todo-2`) could point at a different declaration on each build. Files are now crawled in sorted path order.
+- **Links on the app-config page.** Links from the app-config page to documented provider functions pointed one directory above the docs root and were broken. They now resolve from the page's own location.
+- **Links to tagged miscellaneous symbols.** A function, variable, type alias or enumeration with an `@category` tag has its own page, but type links, function signatures, `{@link}` tags and the coverage report still pointed at its anchor on the shared collection page. They now link to the symbol's own page.
+- **Unresolved `{@link}` targets.** A `{@link Name}` whose target is not a documented symbol rendered as a link to a file named after the symbol, which does not exist. It now renders as inline code, like an unresolved type reference. URLs and file targets are still links.
 
 ## [0.8.0] - 2026-08-03
 
