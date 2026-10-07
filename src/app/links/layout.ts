@@ -55,6 +55,13 @@ export const isPageKind = (kind: string): kind is PageKind =>
 
 export const isMiscKind = (kind: string): kind is MiscKind => MISC_KINDS.has(kind);
 
+/**
+ * The `hrefPrefix` of a kind: its folder, or `miscellaneous/<collection>` for
+ * a miscellaneous kind (whose detail pages sit in that folder).
+ */
+export const kindHrefPrefix = (kind: SymbolKind): string =>
+    isMiscKind(kind) ? `${MISC_FOLDER}/${MISC_COLLECTION[kind]}` : KIND_FOLDER[kind];
+
 const last = (items: readonly string[]): string => items[items.length - 1] ?? '';
 
 export type PageTarget =
