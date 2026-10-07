@@ -12,10 +12,22 @@ const REGISTRATION_FILE = path.join(REPO_ROOT, 'src/app/engines/html.engine.help
  * new legacy helper added to compodoc's engine fails this spec until the
  * mapping is added.
  */
+/**
+ * Legacy link helpers that are no longer registered (the templates resolve
+ * links through the page layout now) but that users still write in `.hbs`
+ * templates, so `compodocx migrate` must keep mapping them.
+ */
+const UNREGISTERED_LEGACY_HELPERS = [
+    'functionSignature',
+    'linkType',
+    'parseDescription',
+    'relativeURL'
+] as const;
+
 const registeredHelpers = (): readonly string[] => {
     const source = fs.readFileSync(REGISTRATION_FILE, 'utf8');
     const matches = source.matchAll(/registerHelper\(\s*bars\s*,\s*['"]([^'"]+)['"]/g);
-    return Array.from(matches, m => m[1]);
+    return [...Array.from(matches, m => m[1]), ...UNREGISTERED_LEGACY_HELPERS];
 };
 
 describe('migrate/helper-map — forward coverage', () => {

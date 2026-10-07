@@ -3,7 +3,9 @@
  *
  * The keys are the names users wrote in `.hbs` templates — i.e. the strings
  * passed to `Handlebars.registerHelper`. Source of truth: the
- * `registerHelper(...)` calls in `src/app/engines/html.engine.helpers.ts`.
+ * `registerHelper(...)` calls in `src/app/engines/html.engine.helpers.ts`,
+ * plus the unregistered legacy link helpers listed in `helper-map.spec.ts`
+ * (`functionSignature`, `linkType`, `parseDescription`, `relativeURL`).
  *
  * Five mapping kinds:
  * - `rename`        — legacy → modern barrel name; emit `helpers.<to>(...args)`.
