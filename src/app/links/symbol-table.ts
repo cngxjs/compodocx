@@ -223,6 +223,9 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly EntityKind[]>> = {
     diff: TABLE_ORDER
 };
 
+/** The kinds a policy considers, in its order. */
+export const policyKinds = (policy: LookupPolicy): readonly EntityKind[] => POLICY_KINDS[policy];
+
 const kindOf = (table: SymbolTable, id: SymbolId): EntityKind | undefined =>
     table.byId.get(id)?.ref.kind;
 

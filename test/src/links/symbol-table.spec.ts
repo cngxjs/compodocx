@@ -147,7 +147,9 @@ describe('symbol table', () => {
     });
 
     it('referenced-by reproduces the reverse index: last registered target wins', () => {
-        data.components[0].inputsClass = [{ name: 'size', type: 'DEFAULT_PAGE_SIZE' }];
+        (data.components[0] as Record<string, unknown>).inputsClass = [
+            { name: 'size', type: 'DEFAULT_PAGE_SIZE' }
+        ];
         (DependenciesEngine as any).prepareReferencedByIndex();
         const legacy = data.miscellaneous.variables[0] as Record<string, unknown>;
         expect(legacy.referencedBy).toBeDefined();
