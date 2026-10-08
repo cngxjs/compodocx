@@ -5,12 +5,11 @@ import {
     type SymbolFacts,
     type SymbolKey
 } from '../compiler/semantic/model';
-import type { EntityKind } from '../engines/dependencies.engine';
-import { type SymbolId, toSymbolKey } from '../links/symbol-id';
+import { type SymbolId, type TableKind, toSymbolKey } from '../links/symbol-id';
 import type { SymbolEntry, SymbolTable } from '../links/symbol-table';
 import { type Cluster, type DiView, emptyDiView, type Placement } from './model';
 
-const FEATURE_TYPE_KINDS: ReadonlySet<EntityKind> = new Set<EntityKind>(['interface', 'typealias']);
+const FEATURE_TYPE_KINDS: ReadonlySet<TableKind> = new Set<TableKind>(['interface', 'typealias']);
 
 const byName =
     (table: SymbolTable) =>
@@ -39,11 +38,11 @@ const indexByKey = (entries: readonly SymbolEntry[]) => {
         const key = factKey(toSymbolKey(entry.ref));
         index.set(key, [...(index.get(key) ?? []), entry]);
     }
-    return (key: SymbolKey, kinds: ReadonlySet<EntityKind>): SymbolId | undefined =>
+    return (key: SymbolKey, kinds: ReadonlySet<TableKind>): SymbolId | undefined =>
         index.get(factKey(key))?.find(entry => kinds.has(entry.ref.kind))?.id;
 };
 
-const TOKEN_KINDS: ReadonlySet<EntityKind> = new Set<EntityKind>(['token']);
+const TOKEN_KINDS: ReadonlySet<TableKind> = new Set<TableKind>(['token']);
 
 /**
  * Who documents what: providers and feature functions grouped by the feature

@@ -26,6 +26,7 @@ import { Overview } from '../../templates/pages/Overview';
 import { PackageDependencies } from '../../templates/pages/PackageDependencies';
 import { PackageProperties } from '../../templates/pages/PackageProperties';
 import { PipePage } from '../../templates/pages/PipePage';
+import { ResolverPage } from '../../templates/pages/ResolverPage';
 import { Routes } from '../../templates/pages/Routes';
 import { TokenPage } from '../../templates/pages/TokenPage';
 import { UnitTestReport } from '../../templates/pages/UnitTestReport';
@@ -50,6 +51,7 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     token: 'token',
     interceptor: 'interceptor',
     guard: 'guard',
+    resolver: 'resolver',
     pipe: 'pipe',
     class: 'class',
     interface: 'interface',
@@ -139,6 +141,8 @@ export class HtmlEngine {
             case 'pipe':
                 data.relationships = DependenciesEngine.getRelationships(data.pipe?.name);
                 return PipePage(data);
+            case 'resolver':
+                return ResolverPage(data);
             case 'utilities':
                 return UtilitiesPage(data);
             case 'function':

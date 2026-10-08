@@ -206,6 +206,29 @@ describe('symbol table', () => {
         }
     });
 
+    it('documents a function or constant that is a guard, interceptor or resolver as one', () => {
+        const functional = buildSymbolTable(
+            {
+                guards: [item('authGuard', 'src/auth.ts')],
+                miscellaneous: {
+                    functions: [
+                        item('roleGuard', 'src/role.ts', { functionalKind: 'guard' }),
+                        item('format', 'src/format.ts')
+                    ],
+                    variables: [item('userResolver', 'src/user.ts', { functionalKind: 'resolver' })]
+                }
+            },
+            { cwd: '/repo' }
+        );
+        expect(functional.byId.has('guard:src/role.ts#roleGuard' as never)).toBe(true);
+        expect(functional.byId.has('function:src/role.ts#roleGuard' as never)).toBe(false);
+        expect(functional.byId.has('resolver:src/user.ts#userResolver' as never)).toBe(true);
+        expect(lookupName(functional, 'userResolver', 'doc-link')).toBe(
+            'resolver:src/user.ts#userResolver'
+        );
+        expect(functional.byId.has('function:src/format.ts#format' as never)).toBe(true);
+    });
+
     it('gives overloads of one function one page, no suffix', () => {
         const provide = table.byId.get('function:src/user.ts#provideUser' as never);
         expect(provide?.duplicateName).toBeUndefined();

@@ -17,6 +17,7 @@ import {
     ROOT_DEPTH,
     type UtilityKind
 } from '../../app/links/layout';
+import type { TableKind } from '../../app/links/symbol-id';
 import { entryInFile } from '../../app/links/symbol-table';
 import { t } from '../helpers';
 import { isToggled } from '../helpers/menu-helpers';
@@ -358,7 +359,7 @@ const GroupTree = (props: {
 };
 
 /** Per-kind Lucide icon for the feature-layout sidebar. */
-const kindIconHtml = (kind: EntityKind): string => {
+const kindIconHtml = (kind: TableKind): string => {
     switch (kind) {
         case 'component':
             return IconComponent();
@@ -375,11 +376,14 @@ const kindIconHtml = (kind: EntityKind): string => {
         case 'interface':
             return IconInterface();
         case 'guard':
+        case 'resolver':
             return IconGuard();
         case 'interceptor':
             return IconInterceptor();
         case 'entity':
             return IconEntity();
+        default:
+            return '';
     }
 };
 
@@ -644,7 +648,7 @@ const EntitySection = (props: {
     ) as string;
 };
 
-const MENU_LISTS: readonly (readonly [string, string, EntityKind])[] = [
+const MENU_LISTS: readonly (readonly [string, string, TableKind])[] = [
     ['components', 'categorizedComponents', 'component'],
     ['directives', 'categorizedDirectives', 'directive'],
     ['injectables', 'categorizedInjectables', 'injectable'],
@@ -654,6 +658,7 @@ const MENU_LISTS: readonly (readonly [string, string, EntityKind])[] = [
     ['interfaces', 'categorizedInterfaces', 'interface'],
     ['guards', 'categorizedGuards', 'guard'],
     ['interceptors', 'categorizedInterceptors', 'interceptor'],
+    ['resolvers', 'categorizedResolvers', 'resolver'],
     ['entities', 'categorizedEntities', 'entity']
 ];
 
@@ -664,13 +669,44 @@ const MISC_LISTS: readonly (readonly [string, EntityKind])[] = [
     ['enumerations', 'enumeration']
 ];
 
+const FUNCTIONAL_KINDS: ReadonlySet<string> = new Set(['guard', 'interceptor', 'resolver']);
+
+const functionalKindOf = (item: any): string | undefined =>
+    FUNCTIONAL_KINDS.has(item?.functionalKind) ? item.functionalKind : undefined;
+
+/**
+ * The menu's data with functions and constants that are guards,
+ * interceptors or resolvers moved to those sections, out of Utilities.
+ */
+const withFunctionalKinds = (d: any): any => {
+    const misc = d.miscellaneous;
+    if (!misc) {
+        return d;
+    }
+    const all = [...(misc.functions ?? []), ...(misc.variables ?? [])];
+    const ofKind = (kind: string) => all.filter(item => functionalKindOf(item) === kind);
+    const notFunctional = (items: any[] | undefined) =>
+        items?.filter(item => functionalKindOf(item) === undefined);
+    return {
+        ...d,
+        guards: [...(d.guards ?? []), ...ofKind('guard')],
+        interceptors: [...(d.interceptors ?? []), ...ofKind('interceptor')],
+        resolvers: ofKind('resolver'),
+        miscellaneous: {
+            ...misc,
+            functions: notFunctional(misc.functions),
+            variables: notFunctional(misc.variables)
+        }
+    };
+};
+
 /** The menu's data without the symbols that get no page. */
 const withoutHidden = (d: any): any => {
     const view: DiView | undefined = d.di;
     if (!view || view.hidden.length === 0) {
         return d;
     }
-    const keep = (kind: EntityKind) => (item: any) => !isHiddenItem(view, kind, item);
+    const keep = (kind: TableKind) => (item: any) => !isHiddenItem(view, kind as EntityKind, item);
     const keepOwnKind = (item: any) => !isHiddenItem(view, item.kind, item);
     const groups = (record: Record<string, any[]> | undefined, test: (item: any) => boolean) =>
         record &&
@@ -692,7 +728,7 @@ const withoutHidden = (d: any): any => {
 };
 
 export const Menu = (props: MenuProps): string => {
-    const d = withoutHidden(props.data);
+    const d = withoutHidden(withFunctionalKinds(props.data));
 
     const components = d.components ?? [];
     const directives = d.directives ?? [];
@@ -955,6 +991,15 @@ export const Menu = (props: MenuProps): string => {
                                 iconHtml: IconGuard(),
                                 labelKey: 'guards',
                                 hrefPrefix: KIND_FOLDER.guard,
+                                groupDepth: d.groupDepth
+                            })}
+                        {d.resolvers?.length > 0 &&
+                            EntitySection({
+                                items: d.resolvers,
+                                type: 'resolvers',
+                                iconHtml: IconGuard(),
+                                labelKey: 'resolvers',
+                                hrefPrefix: KIND_FOLDER.resolver,
                                 groupDepth: d.groupDepth
                             })}
                         {d.interfaces?.length > 0 &&

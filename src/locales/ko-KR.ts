@@ -173,6 +173,7 @@ export const TRANSLATION_KO_KR = {
     'results-matching': '개의 결과가 일치했습니다',
     returns: '반환',
     route: 'Route',
+    resolvers: '리졸버',
     routes: 'Routes',
     schemas: '스키마',
     'search-placeholder': '검색어 입력',

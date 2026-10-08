@@ -64,6 +64,8 @@ export interface MiscDetailProps {
     readonly kind: MiscDetailKind;
     readonly item: any;
     readonly depth?: number;
+    /** A line under the name, e.g. "Functional guard". */
+    readonly contextLine?: string;
 }
 
 interface SectionProps {
@@ -439,6 +441,7 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                     {item.signal && <span class="cdx-badge cdx-badge--signal">Signal</span>}
                     {WcagBadge({ wcagLevel: item.wcagLevel })}
                 </div>
+                {props.contextLine && <p class="cdx-entity-hero-context">{props.contextLine}</p>}
                 {item.deprecated && item.deprecationMessage && (
                     <p class="cdx-entity-hero-context">{item.deprecationMessage}</p>
                 )}
@@ -481,4 +484,17 @@ export const MiscEnumerationPage = (data: any): string =>
         kind: 'enumeration',
         item: data.enumeration,
         depth: data.depth
+    });
+
+/** Whether an engine object is a function or constant (not a class-like entity). */
+export const isMiscShaped = (item: unknown): boolean =>
+    (item as { ctype?: unknown } | undefined)?.ctype === 'miscellaneous';
+
+/** The page of a function or constant that is a guard, interceptor or resolver. */
+export const renderFunctionalPage = (item: any, depth: number | undefined): string =>
+    renderMiscDetailPage({
+        kind: item.subtype === 'variable' ? 'variable' : 'function',
+        item,
+        depth,
+        contextLine: `Functional ${item.functionalKind}`
     });

@@ -176,6 +176,7 @@ export const TRANSLATION_RU_RU = {
     'results-matching': 'результатов найдено',
     returns: 'Тип возвращаемого значения',
     route: 'Маршрут',
+    resolvers: 'Резолверы',
     routes: 'Маршруты',
     schemas: 'Схемы',
     'search-placeholder': 'Введите для поиска',

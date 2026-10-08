@@ -174,6 +174,7 @@ export const TRANSLATION_KA_GE = {
     'results-matching': 'შედეგები ემთხვევა',
     returns: 'ბრუნდება',
     route: 'მარშრუტი',
+    resolvers: 'რეზოლვერები',
     routes: 'მარშრუტები',
     schemas: 'სქემები',
     'search-placeholder': 'დაწერე მოსაძებნად',

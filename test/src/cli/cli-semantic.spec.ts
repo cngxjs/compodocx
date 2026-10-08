@@ -50,7 +50,7 @@ describe('CLI semantic analysis', () => {
     it('exits 0 and logs the semantic summary', () => {
         expect(status).to.equal(0);
         expect(stdout).to.contain(
-            'Semantic analysis: 4 entry points, 4 providers, 2 feature functions, 7+3 use the injection context (1 unresolved), 1 exported symbols reach no entry point'
+            'Semantic analysis: 4 entry points, 4 providers, 2 feature functions, 8+3 use the injection context (1 unresolved), 1 exported symbols reach no entry point'
         );
     });
 

@@ -5,6 +5,7 @@ import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
+import { enqueueFunctionalPages } from './functional-pages';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class InterceptorPageGenerator {
@@ -50,6 +51,7 @@ export class InterceptorPageGenerator {
                     i++;
                     loop();
                 } else {
+                    enqueueFunctionalPages('interceptor');
                     resolve();
                 }
             };

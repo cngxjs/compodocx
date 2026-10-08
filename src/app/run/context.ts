@@ -26,6 +26,7 @@ import {
     PlaygroundFileResolver,
     PlaygroundValidator,
     PlaygroundVendorResolver,
+    ResolverPageGenerator,
     RoutesPageGenerator,
     TokenPageGenerator
 } from '../page-generator';
@@ -49,6 +50,7 @@ export interface Generators {
     readonly token: TokenPageGenerator;
     readonly interceptor: InterceptorPageGenerator;
     readonly guard: GuardPageGenerator;
+    readonly resolver: ResolverPageGenerator;
     readonly routes: RoutesPageGenerator;
     readonly pipe: PipePageGenerator;
     readonly class: ClassPageGenerator;
@@ -77,6 +79,7 @@ export const createGenerators = (): Generators => {
         token: new TokenPageGenerator(navTabs),
         interceptor: new InterceptorPageGenerator(navTabs),
         guard: new GuardPageGenerator(navTabs),
+        resolver: new ResolverPageGenerator(),
         routes: new RoutesPageGenerator(),
         pipe: new PipePageGenerator(navTabs),
         class: new ClassPageGenerator(navTabs),

@@ -26,5 +26,6 @@ export { PipePageGenerator } from './pipe-page-generator';
 export { PlaygroundFileResolver } from './playground-file-resolver';
 export { PlaygroundValidator } from './playground-validator';
 export { PlaygroundVendorResolver } from './playground-vendor-resolver';
+export { ResolverPageGenerator } from './resolver-page-generator';
 export { RoutesPageGenerator } from './routes-page-generator';
 export { TokenPageGenerator } from './token-page-generator';

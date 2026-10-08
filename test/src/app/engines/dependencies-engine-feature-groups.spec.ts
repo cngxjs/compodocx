@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import Configuration from '../../../../src/app/configuration';
 import DependenciesEngine, {
-    type EntityKind,
     type EntityWithKind
 } from '../../../../src/app/engines/dependencies.engine';
 import { KIND_FOLDER } from '../../../../src/app/links/layout';
+import type { TableKind } from '../../../../src/app/links/symbol-id';
 
 /**
  * Snapshot of every singleton field prepareFeatureGroups reads from so a spec
@@ -147,7 +147,7 @@ describe('DependenciesEngine.prepareFeatureGroups — kinds list coverage', () =
 
         expect(bucket, 'every entity should land in the button bucket').toBeDefined();
 
-        const kindOf = (name: string): EntityKind | undefined =>
+        const kindOf = (name: string): TableKind | undefined =>
             bucket?.find(item => item.name === name)?.kind;
 
         expect(kindOf('ButtonComponent')).toBe('component');

@@ -15,6 +15,7 @@ export type SymbolKind =
     | 'guard'
     | 'interceptor'
     | 'entity'
+    | 'resolver'
     | UtilityKind;
 
 /** The kinds the Utilities chapter lists. */
@@ -34,6 +35,7 @@ export const KIND_FOLDER = {
     interceptor: 'interceptors',
     entity: 'entities',
     token: 'tokens',
+    resolver: 'resolvers',
     function: 'functions',
     variable: 'variables',
     typealias: 'typealiases',

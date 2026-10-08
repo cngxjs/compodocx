@@ -8,12 +8,29 @@ import type { EntityKind } from '../engines/dependencies.engine';
  * not part of the identity, a barrel edit must not rename a symbol.
  */
 export interface SymbolRef extends SymbolKey {
-    readonly kind: EntityKind;
+    readonly kind: TableKind;
 }
+
+/**
+ * The kind a symbol is documented as: the engine kind, or `guard`,
+ * `interceptor` or `resolver` for a function or constant that is one
+ * (`functionalKind`). The engine keeps those under miscellaneous.
+ */
+export type TableKind = EntityKind | 'resolver';
+
+const FUNCTIONAL_KINDS: ReadonlySet<string> = new Set(['guard', 'interceptor', 'resolver']);
+
+export const presentationKind = (kind: EntityKind, item: unknown): TableKind => {
+    const functional = (item as { functionalKind?: unknown } | undefined)?.functionalKind;
+    const isMisc = kind === 'function' || kind === 'variable';
+    return isMisc && typeof functional === 'string' && FUNCTIONAL_KINDS.has(functional)
+        ? (functional as TableKind)
+        : kind;
+};
 
 export type SymbolId = string & { readonly __symbolId: true };
 
-const SYMBOL_KINDS: ReadonlySet<string> = new Set<EntityKind>([
+const SYMBOL_KINDS: ReadonlySet<string> = new Set<TableKind>([
     'component',
     'directive',
     'injectable',
@@ -27,10 +44,11 @@ const SYMBOL_KINDS: ReadonlySet<string> = new Set<EntityKind>([
     'function',
     'variable',
     'typealias',
-    'enumeration'
+    'enumeration',
+    'resolver'
 ]);
 
-const isEntityKind = (value: string): value is EntityKind => SYMBOL_KINDS.has(value);
+const isTableKind = (value: string): value is TableKind => SYMBOL_KINDS.has(value);
 
 /** `kind:file#name`. Overloads share one id; a const and a type of one name do not. */
 export const symbolId = (ref: SymbolRef): SymbolId =>
@@ -43,13 +61,13 @@ export const parseSymbolId = (id: string): Result<SymbolRef> => {
         return err(`Malformed symbol id: ${id}`);
     }
     const kind = id.slice(0, colon);
-    if (!isEntityKind(kind)) {
+    if (!isTableKind(kind)) {
         return err(`Unknown symbol kind in id: ${id}`);
     }
     return ok({ kind, file: id.slice(colon + 1, hash), name: id.slice(hash + 1) });
 };
 
-const TYPE_SPACE_KINDS: ReadonlySet<EntityKind> = new Set<EntityKind>(['interface', 'typealias']);
+const TYPE_SPACE_KINDS: ReadonlySet<TableKind> = new Set<TableKind>(['interface', 'typealias']);
 
 /** The semantic stage's key (file, name, declaration space) for joining its facts. */
 export const toSymbolKey = (ref: SymbolRef): SymbolKey =>

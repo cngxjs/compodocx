@@ -175,6 +175,7 @@ export const TRANSLATION_NL_NL = {
     'results-matching': 'overeenkomende resultaten',
     returns: 'Returns',
     route: 'Route',
+    resolvers: 'Resolvers',
     routes: 'Routes',
     schemas: "Schema's",
     'search-placeholder': 'Type om te zoeken',

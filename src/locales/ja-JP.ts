@@ -174,6 +174,7 @@ export const TRANSLATION_JA_JP = {
     'results-matching': '件の結果が一致しました',
     returns: '戻り値',
     route: 'ルート',
+    resolvers: 'リゾルバー',
     routes: 'ルート',
     schemas: 'スキーマ',
     'search-placeholder': '入力して検索',

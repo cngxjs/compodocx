@@ -17,6 +17,8 @@ export interface SourceCounts {
     readonly tokens: number;
     readonly interceptors: number;
     readonly guards: number;
+    /** Functional resolvers (functions and constants). */
+    readonly resolvers: number;
     readonly pipes: number;
     readonly classes: number;
     readonly interfaces: number;
@@ -95,6 +97,11 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
         run: step(ctx => ctx.generators.interceptor.prepare())
     },
     { key: 'guard', when: hasAny(c => c.guards), run: step(ctx => ctx.generators.guard.prepare()) },
+    {
+        key: 'resolver',
+        when: hasAny(c => c.resolvers),
+        run: step(ctx => ctx.generators.resolver.prepare())
+    },
     {
         key: 'routes',
         when: (ctx, counts) =>
@@ -175,14 +182,30 @@ export const selectPrepareStages = (ctx: RunContext, counts: SourceCounts): Prep
     PREPARE_STAGES.filter(stage => stage.when(ctx, counts));
 
 /** Counts of the whole project, read after `DependenciesEngine.init`. */
+/** Functions and constants of the miscellaneous lists that are a guard, interceptor or resolver. */
+const functionalCount = (
+    misc:
+        | { readonly functions?: readonly unknown[]; readonly variables?: readonly unknown[] }
+        | undefined,
+    kind: string
+): number =>
+    [...(misc?.functions ?? []), ...(misc?.variables ?? [])].filter(
+        item => (item as { functionalKind?: unknown }).functionalKind === kind
+    ).length;
+
 export const countsFromEngine = (): SourceCounts => ({
     components: DependenciesEngine.components.length,
     directives: DependenciesEngine.directives.length,
     entities: DependenciesEngine.entities.length,
     injectables: DependenciesEngine.injectables.length,
     tokens: DependenciesEngine.tokens?.length ?? 0,
-    interceptors: DependenciesEngine.interceptors.length,
-    guards: DependenciesEngine.guards.length,
+    interceptors:
+        DependenciesEngine.interceptors.length +
+        functionalCount(DependenciesEngine.miscellaneous, 'interceptor'),
+    guards:
+        DependenciesEngine.guards.length +
+        functionalCount(DependenciesEngine.miscellaneous, 'guard'),
+    resolvers: functionalCount(DependenciesEngine.miscellaneous, 'resolver'),
     pipes: DependenciesEngine.pipes.length,
     classes: DependenciesEngine.classes.length,
     interfaces: DependenciesEngine.interfaces.length,
@@ -201,8 +224,9 @@ export const countsFromDiff = (diff: DependenciesData): SourceCounts => ({
     entities: diff.entities.length,
     injectables: diff.injectables.length,
     tokens: diff.tokens?.length ?? 0,
-    interceptors: diff.interceptors.length,
-    guards: diff.guards.length,
+    interceptors: diff.interceptors.length + functionalCount(diff.miscellaneous, 'interceptor'),
+    guards: diff.guards.length + functionalCount(diff.miscellaneous, 'guard'),
+    resolvers: functionalCount(diff.miscellaneous, 'resolver'),
     pipes: diff.pipes.length,
     classes: diff.classes.length,
     interfaces: diff.interfaces.length,

@@ -35,6 +35,7 @@ export const PAGE_LEVEL_OVERRIDES: readonly string[] = [
     'package-dependencies',
     'package-properties',
     'pipe',
+    'resolver',
     'routes',
     'token',
     'typealias',

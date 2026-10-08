@@ -18,6 +18,7 @@ const EMPTY: SourceCounts = {
     classes: 0,
     interfaces: 0,
     utilities: 0,
+    resolvers: 0,
     routes: false
 };
 
@@ -33,6 +34,7 @@ const EVERY_KIND: SourceCounts = {
     classes: 1,
     interfaces: 1,
     utilities: 1,
+    resolvers: 1,
     routes: true
 };
 
@@ -44,6 +46,7 @@ const ALL_KEYS = [
     'token',
     'interceptor',
     'guard',
+    'resolver',
     'routes',
     'pipe',
     'class',
@@ -95,7 +98,7 @@ describe('prepare stage table', () => {
         ]);
     });
 
-    it('selects all 21 stages in table order for a full run with every kind', () => {
+    it('selects all 22 stages in table order for a full run with every kind', () => {
         const ctx = context('full', { unitTestCoverage: 'coverage.json', includes: 'docs' });
         expect(keys(ctx, EVERY_KIND)).toEqual(ALL_KEYS);
         expect(PREPARE_STAGES.map(stage => stage.key)).toEqual(ALL_KEYS);

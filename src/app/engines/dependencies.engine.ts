@@ -22,6 +22,7 @@ import type { ParsedData } from '../interfaces/parsed-data.interface';
 import type { RouteInterface } from '../interfaces/routes.interface';
 import { kindHrefPrefix } from '../links/layout';
 import type { SymbolId } from '../links/symbol-id';
+import { presentationKind, type TableKind } from '../links/symbol-id';
 import {
     buildSymbolTable,
     lookupEntry,
@@ -123,7 +124,7 @@ function collectReferencedTypeNames(entity: any): Set<string> {
 }
 
 /** Kinds that default into the Features chapter under `menuLayout: 'feature'`. */
-export const PRIMARY_KINDS: ReadonlySet<EntityKind> = new Set<EntityKind>([
+export const PRIMARY_KINDS: ReadonlySet<TableKind> = new Set<TableKind>([
     'component',
     'directive',
     'pipe',
@@ -132,11 +133,12 @@ export const PRIMARY_KINDS: ReadonlySet<EntityKind> = new Set<EntityKind>([
     'class',
     'guard',
     'interceptor',
+    'resolver',
     'entity'
 ]);
 
 /** Kinds that default into the References chapter under `menuLayout: 'feature'`. */
-export const REFERENCE_KINDS: ReadonlySet<EntityKind> = new Set<EntityKind>([
+export const REFERENCE_KINDS: ReadonlySet<TableKind> = new Set<TableKind>([
     'interface',
     'function',
     'variable',
@@ -146,7 +148,7 @@ export const REFERENCE_KINDS: ReadonlySet<EntityKind> = new Set<EntityKind>([
 
 /** Entity decorated with its kind + href prefix for cross-kind sidebar rendering. */
 export interface EntityWithKind {
-    kind: EntityKind;
+    kind: TableKind;
     hrefPrefix: string;
     name: string;
     file?: string;
@@ -648,9 +650,12 @@ export class DependenciesEngine {
             { list: this.miscellaneous?.typealiases ?? [], kind: 'typealias' },
             { list: this.miscellaneous?.enumerations ?? [], kind: 'enumeration' }
         ];
-        for (const { list, kind } of kinds) {
-            const hrefPrefix = kindHrefPrefix(kind);
+        for (const { list, kind: engineKind } of kinds) {
             for (const item of list ?? []) {
+                // A function or constant that is a guard, interceptor or
+                // resolver is listed (and linked) as one.
+                const kind = presentationKind(engineKind, item);
+                const hrefPrefix = kindHrefPrefix(kind);
                 const explicit = (item as any).category;
                 const key =
                     explicit && explicit !== ''

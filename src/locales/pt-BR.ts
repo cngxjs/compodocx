@@ -175,6 +175,7 @@ export const TRANSLATION_PT_BR = {
     'results-matching': 'resultados correspondentes',
     returns: 'Retorna',
     route: 'Rota',
+    resolvers: 'Resolvers',
     routes: 'Rotas',
     schemas: 'Esquemas',
     'search-placeholder': 'Digite para pesquisar',

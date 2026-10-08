@@ -1,5 +1,5 @@
 import type { EntityKind } from '../engines/dependencies.engine';
-import { type SymbolId, symbolFile, symbolId } from '../links/symbol-id';
+import { presentationKind, type SymbolId, symbolFile, symbolId } from '../links/symbol-id';
 
 /**
  * Where a symbol is documented. A symbol without an entry in the placement
@@ -71,7 +71,7 @@ export const isHiddenItem = (
         return false;
     }
     const file = typeof item.file === 'string' ? symbolFile(item.file, process.cwd()) : '';
-    return isHidden(view, symbolId({ kind, file, name: item.name }));
+    return isHidden(view, symbolId({ kind: presentationKind(kind, item), file, name: item.name }));
 };
 
 const PAGE_KINDS: ReadonlySet<string> = new Set<EntityKind>([
@@ -100,7 +100,7 @@ export const isHiddenPage = (
     if (typeof kind !== 'string' || !PAGE_KINDS.has(kind)) {
         return false;
     }
-    const item = page[kind];
+    const item = page[kind] ?? page.injectable;
     return typeof item === 'object' && item !== null
         ? isHiddenItem(view, kind as EntityKind, item as { name?: unknown; file?: unknown })
         : false;

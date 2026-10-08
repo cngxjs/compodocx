@@ -173,6 +173,7 @@ export const TRANSLATION_ZH_TW = {
     'results-matching': '匹配的結果',
     returns: '回傳值',
     route: '路由',
+    resolvers: '解析器',
     routes: '路由列表',
     schemas: 'Schemas',
     'search-placeholder': '請輸入查詢關鍵字',

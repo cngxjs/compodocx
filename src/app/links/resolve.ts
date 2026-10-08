@@ -1,5 +1,5 @@
 import { type Href, hrefFor, isPageKind, type PageTarget, type UtilityKind } from './layout';
-import type { SymbolId } from './symbol-id';
+import { presentationKind, type SymbolId } from './symbol-id';
 import {
     entryInFile,
     type LookupPolicy,
@@ -43,6 +43,9 @@ export const hrefForName = (
     return entry && hrefFor(symbolTarget(entry, options), fromDepth, options.anchor);
 };
 
+/** Kinds a function or constant is documented as when it is a guard, interceptor or resolver. */
+const FUNCTIONAL_PAGE_KINDS = ['guard', 'interceptor', 'resolver'] as const;
+
 const MISC_SUBTYPE: Readonly<Record<string, UtilityKind>> = {
     function: 'function',
     variable: 'variable',
@@ -67,7 +70,9 @@ export const targetOfData = (data: unknown): PageTarget | undefined => {
     }
     if (item.type === 'miscellaneous' || item.ctype === 'miscellaneous') {
         const kind = MISC_SUBTYPE[item.subtype ?? ''];
-        return kind ? { type: 'symbol', kind, name: item.name } : undefined;
+        return kind
+            ? { type: 'symbol', kind: presentationKind(kind, item), name: item.name }
+            : undefined;
     }
     const kind = item.type ?? '';
     return isPageKind(kind) ? { type: 'symbol', kind, name: item.name } : undefined;
@@ -91,10 +96,18 @@ export const targetOfCoverage = (
         if (!kind) {
             return undefined;
         }
-        const entry = options.table
-            ? entryInFile(options.table, kind, row.name, row.filePath)
+        const table = options.table;
+        const entry = table
+            ? [kind, ...FUNCTIONAL_PAGE_KINDS]
+                  .map(k => entryInFile(table, k, row.name, row.filePath))
+                  .find(e => e !== undefined)
             : undefined;
-        return { type: 'symbol', kind, name: row.name, duplicateName: entry?.duplicateName };
+        return {
+            type: 'symbol',
+            kind: entry?.ref.kind ?? kind,
+            name: row.name,
+            duplicateName: entry?.duplicateName
+        };
     }
     const kind = row.linktype === 'classe' ? 'class' : (row.linktype ?? '');
     return isPageKind(kind) ? { type: 'symbol', kind, name: row.name } : undefined;

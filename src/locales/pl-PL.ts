@@ -174,6 +174,7 @@ export const TRANSLATION_PL_PL = {
     'results-matching': 'pasujących wyników',
     returns: 'Zwraca',
     route: 'Route',
+    resolvers: 'Resolvery',
     routes: "Route'y",
     schemas: 'Schematy',
     'search-placeholder': 'Wprowadź tekst wyszukiwania',

@@ -173,6 +173,7 @@ export const TRANSLATION_ZH_CN = {
     'results-matching': '匹配的结果',
     returns: '返回',
     route: '路由',
+    resolvers: '解析器',
     routes: '路由列表',
     schemas: '模式',
     'search-placeholder': '请输入查询关键字',

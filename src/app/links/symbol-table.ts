@@ -1,6 +1,14 @@
 import { factKey, type SemanticModel } from '../compiler/semantic/model';
 import type { EntityKind } from '../engines/dependencies.engine';
-import { type SymbolId, type SymbolRef, symbolFile, symbolId, toSymbolKey } from './symbol-id';
+import {
+    presentationKind,
+    type SymbolId,
+    type SymbolRef,
+    symbolFile,
+    symbolId,
+    type TableKind,
+    toSymbolKey
+} from './symbol-id';
 
 export interface SymbolEntry {
     readonly id: SymbolId;
@@ -102,13 +110,22 @@ const TABLE_ORDER: readonly EntityKind[] = [
  * engine order). The engine numbers the other kinds on its own objects; these
  * are left untouched because the export copies them.
  */
-const TABLE_SUFFIX_KINDS: ReadonlySet<EntityKind> = new Set<EntityKind>([
+const TABLE_SUFFIX_KINDS: ReadonlySet<TableKind> = new Set<TableKind>([
     'function',
     'variable',
     'typealias',
     'enumeration',
     'token'
 ]);
+
+/** The engine lists the table numbers. */
+const SUFFIX_LISTS: readonly EntityKind[] = [
+    'function',
+    'variable',
+    'typealias',
+    'enumeration',
+    'token'
+];
 
 const engineDuplicateName = (item: Named): string | undefined => {
     const name = (item as { duplicateName?: unknown }).duplicateName;
@@ -121,7 +138,7 @@ const tableDuplicateNames = (
     idOf: (kind: EntityKind, item: Named) => SymbolId
 ): ReadonlyMap<SymbolId, string> => {
     const names = new Map<SymbolId, string>();
-    for (const kind of TABLE_SUFFIX_KINDS) {
+    for (const kind of SUFFIX_LISTS) {
         const seen = new Map<string, SymbolId[]>();
         for (const item of listOf(data, kind) ?? []) {
             if (typeof item?.name !== 'string') {
@@ -151,7 +168,7 @@ export interface BuildOptions {
 export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): SymbolTable => {
     const cwd = options.cwd ?? process.cwd();
     const refOf = (kind: EntityKind, item: Named): SymbolRef => ({
-        kind,
+        kind: presentationKind(kind, item),
         file: typeof item.file === 'string' ? symbolFile(item.file, cwd) : '',
         name: item.name as string
     });
@@ -216,11 +233,12 @@ export const emptySymbolTable = (): SymbolTable => ({
  */
 export type LookupPolicy = 'type-link' | 'doc-link' | 'entity-index' | 'referenced-by' | 'diff';
 
-const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly EntityKind[]>> = {
+const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
     'type-link': [
         'injectable',
         'interceptor',
         'guard',
+        'resolver',
         'interface',
         'class',
         'component',
@@ -239,6 +257,7 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly EntityKind[]>> = {
         'injectable',
         'interceptor',
         'guard',
+        'resolver',
         'interface',
         'pipe',
         'class',
@@ -256,26 +275,35 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly EntityKind[]>> = {
         'interface',
         'guard',
         'interceptor',
+        'resolver',
         'function',
         'variable',
         'typealias',
         'enumeration'
     ],
-    'referenced-by': ['interface', 'token', 'function', 'variable', 'typealias', 'enumeration'],
-    diff: TABLE_ORDER
+    'referenced-by': [
+        'interface',
+        'token',
+        'resolver',
+        'function',
+        'variable',
+        'typealias',
+        'enumeration'
+    ],
+    diff: [...TABLE_ORDER, 'resolver']
 };
 
 /** The kinds a policy considers, in its order. */
-export const policyKinds = (policy: LookupPolicy): readonly EntityKind[] => POLICY_KINDS[policy];
+export const policyKinds = (policy: LookupPolicy): readonly TableKind[] => POLICY_KINDS[policy];
 
-const kindOf = (table: SymbolTable, id: SymbolId): EntityKind | undefined =>
+const kindOf = (table: SymbolTable, id: SymbolId): TableKind | undefined =>
     table.byId.get(id)?.ref.kind;
 
 /** One engine entry of a name. */
 interface Occurrence {
     readonly id: SymbolId;
     readonly data: unknown;
-    readonly kind: EntityKind;
+    readonly kind: TableKind;
 }
 
 /** Ids a lookup must skip, e.g. symbols that get no page. */
@@ -285,12 +313,12 @@ const occurrencesOf = (table: SymbolTable, name: string, exclude?: ExcludeId): O
     const ids = table.byName.get(name) ?? [];
     const data = table.dataByName.get(name) ?? [];
     return ids
-        .map((id, i) => ({ id, data: data[i], kind: kindOf(table, id) as EntityKind }))
+        .map((id, i) => ({ id, data: data[i], kind: kindOf(table, id) as TableKind }))
         .filter(o => !exclude?.(o.id));
 };
 
 /** The occurrences in the policy's kind order (engine order inside a kind). */
-const inKindOrder = (occurrences: readonly Occurrence[], kinds: readonly EntityKind[]) => {
+const inKindOrder = (occurrences: readonly Occurrence[], kinds: readonly TableKind[]) => {
     const rank = (o: Occurrence) => kinds.indexOf(o.kind);
     return occurrences.filter(o => rank(o) !== -1).sort((a, b) => rank(a) - rank(b));
 };
@@ -304,10 +332,10 @@ const lastOfFirstKind = (ordered: readonly Occurrence[]): Occurrence | undefined
 const containedMatch = (
     table: SymbolTable,
     name: string,
-    kinds: readonly EntityKind[],
+    kinds: readonly TableKind[],
     exclude?: ExcludeId
 ): Occurrence | undefined => {
-    const perKind = new Map<EntityKind, Occurrence[]>();
+    const perKind = new Map<TableKind, Occurrence[]>();
     for (const other of table.byName.keys()) {
         if (name.indexOf(other) === -1) {
             continue;
@@ -334,7 +362,7 @@ const lookupOccurrence = (
     table: SymbolTable,
     name: string,
     policy: LookupPolicy,
-    kind?: EntityKind,
+    kind?: TableKind,
     exclude?: ExcludeId
 ): Occurrence | undefined => {
     if (typeof name !== 'string') {
@@ -356,7 +384,7 @@ export const lookupName = (
     table: SymbolTable,
     name: string,
     policy: LookupPolicy,
-    kind?: EntityKind,
+    kind?: TableKind,
     exclude?: ExcludeId
 ): SymbolId | undefined => lookupOccurrence(table, name, policy, kind, exclude)?.id;
 
@@ -372,7 +400,7 @@ export const lookupEntry = (
     table: SymbolTable,
     name: string,
     policy: LookupPolicy,
-    kind?: EntityKind,
+    kind?: TableKind,
     exclude?: ExcludeId
 ): SymbolEntry | undefined => {
     const occurrence = lookupOccurrence(table, name, policy, kind, exclude);
@@ -387,7 +415,7 @@ export const lookupEntry = (
 /** The entry of `name` and `kind` whose engine object was read from `file`. */
 export const entryInFile = (
     table: SymbolTable,
-    kind: EntityKind,
+    kind: TableKind,
     name: string,
     file: string | undefined
 ): SymbolEntry | undefined => {

@@ -175,6 +175,7 @@ export const TRANSLATION_HU_HU = {
     'results-matching': 'találat',
     returns: 'Visszatérési érték',
     route: 'Útvonal',
+    resolvers: 'Feloldók',
     routes: 'Útvonalak',
     schemas: 'Sémák',
     'search-placeholder': 'Keresendő kifejezés',

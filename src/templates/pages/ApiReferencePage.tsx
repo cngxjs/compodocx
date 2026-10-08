@@ -3,6 +3,7 @@ import { withoutHiddenItems } from '../../app/di/model';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import type { EntityKind, EntityWithKind } from '../../app/engines/dependencies.engine';
 import { hrefFor, hrefText, isPageKind } from '../../app/links/layout';
+import type { TableKind } from '../../app/links/symbol-id';
 import { IconSearch, IconX } from '../components/Icons';
 import {
     deriveLibFromBucket,
@@ -51,7 +52,7 @@ const stabilityOf = (item: BucketItem): 'stable' | 'experimental' | 'deprecated'
     return 'stable';
 };
 
-const KindLetterIcon = (kind: EntityKind): string => {
+const KindLetterIcon = (kind: TableKind): string => {
     const letter = KIND_LETTER[kind] ?? '?';
     return (
         <span class={`cdx-ref-kind-icon cdx-ref-kind-icon--${kind}`} aria-hidden="true">
@@ -157,7 +158,7 @@ const BucketSection = (bucket: string, items: readonly BucketItem[], depth: numb
     ) as string;
 };
 
-const KindChip = (kind: EntityKind, count: number): string => {
+const KindChip = (kind: TableKind, count: number): string => {
     const letter = KIND_LETTER[kind] ?? '?';
     const label = KIND_LABELS[kind] ?? kind;
     return (
@@ -247,7 +248,7 @@ export const ApiReferencePage = (data: any): string => {
     // Per-kind and per-stability counts for the chip rail. Kinds with
     // zero items don't render a chip — empty dimensions stay invisible
     // (matches the search-palette facet UX).
-    const kindCounts = new Map<EntityKind, number>();
+    const kindCounts = new Map<TableKind, number>();
     const stabilityCounts: Record<'stable' | 'experimental' | 'deprecated', number> = {
         stable: 0,
         experimental: 0,

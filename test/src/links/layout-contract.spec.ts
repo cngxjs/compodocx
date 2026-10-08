@@ -27,7 +27,8 @@ describe('page layout contract', () => {
         ['guard', 'guards'],
         ['interceptor', 'interceptors'],
         ['entity', 'entities'],
-        ['token', 'tokens']
+        ['token', 'tokens'],
+        ['resolver', 'resolvers']
     ])('puts a %s page in %s/ at depth 1', (kind, folder) => {
         expect(pageLocation(symbol(kind, 'Foo'))).toEqual({
             path: folder,

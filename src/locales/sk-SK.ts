@@ -174,6 +174,7 @@ export const TRANSLATION_SK_SK = {
     'results-matching': 'výsledkov pre',
     returns: 'Návratová hodnota',
     route: 'Route',
+    resolvers: 'Resolvery',
     routes: 'Routes',
     schemas: 'Schémy',
     'search-placeholder': 'Zadajte hľadaný text',

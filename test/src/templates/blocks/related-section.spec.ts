@@ -131,7 +131,7 @@ describe('RelatedSection', () => {
             relatedTo: ['TAGGED_CONST'],
             depth: 1
         });
-        expect(html).toContain(`href="${hrefTo('variable', 'TAGGED_CONST', 1, { detail: true })}"`);
+        expect(html).toContain(`href="${hrefTo('variable', 'TAGGED_CONST', 1)}"`);
     });
 
     it('routes untagged misc entries to the inline collection anchor', () => {

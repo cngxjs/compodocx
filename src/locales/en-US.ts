@@ -173,6 +173,7 @@ export const TRANSLATION_EN_US = {
     'results-matching': 'results matching',
     returns: 'Returns',
     route: 'Route',
+    resolvers: 'Resolvers',
     routes: 'Routes',
     schemas: 'Schemas',
     'search-placeholder': 'Type to search',

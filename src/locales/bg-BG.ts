@@ -175,6 +175,7 @@ export const TRANSLATION_BG_BG = {
     'results-matching': 'намерени резултати',
     returns: 'Returns',
     route: 'Път',
+    resolvers: 'Резолвери',
     routes: 'Пътища',
     schemas: 'Схеми',
     'search-placeholder': 'Търсене',

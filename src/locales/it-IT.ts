@@ -175,6 +175,7 @@ export const TRANSLATION_IT_IT = {
     'results-matching': 'corrispondenza',
     returns: 'Returns',
     route: 'Route',
+    resolvers: 'Resolver',
     routes: 'Routes',
     schemas: 'Schemas',
     'search-placeholder': 'Digita per avviare la ricerca',

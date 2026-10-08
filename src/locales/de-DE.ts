@@ -176,6 +176,7 @@ export const TRANSLATION_DE_DE = {
     'results-matching': 'übereinstimmende Ergebnisse',
     returns: 'Returns',
     route: 'Route',
+    resolvers: 'Resolver',
     routes: 'Routen',
     schemas: 'Schemata',
     'search-placeholder': 'Eingeben zur Suche',
