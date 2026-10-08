@@ -923,6 +923,10 @@ export class AngularDependencies extends FrameworkDependencies {
                                     // `tokens/<name>.html` URL with a Token-specific page
                                     // template (no methods / inputs / outputs tab).
                                     if (this.providerDetector.isInjectionToken(infos.initializer)) {
+                                        const factory =
+                                            this.providerDetector.getInjectionTokenFactory(
+                                                infos.initializer
+                                            );
                                         const tokenDep: IInjectableDep = {
                                             name,
                                             id:
@@ -955,6 +959,7 @@ export class AngularDependencies extends FrameworkDependencies {
                                                 this.providerDetector.getInjectionTokenProvidedIn(
                                                     infos.initializer
                                                 ),
+                                            ...(factory && { factory }),
                                             since: infos.since || '',
                                             githubUrl: infos.githubUrl || '',
                                             ...(infos.docsKind === 'primary' && {

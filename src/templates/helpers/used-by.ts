@@ -1,4 +1,4 @@
-import { factKey } from '../../app/compiler/semantic/model';
+import { factKey, type SymbolKey } from '../../app/compiler/semantic/model';
 import { isHidden } from '../../app/di/model';
 import type { EntityKind } from '../../app/engines/dependencies.engine';
 import { pageLocation } from '../../app/links/layout';
@@ -30,25 +30,23 @@ const byFactKey = (table: SymbolTable): ReadonlyMap<string, SymbolEntry> => {
 export type UsedByContext = FactsContext;
 
 /**
- * The documented symbols that use an engine object, from the semantic
- * facts. Users without a page (not documented, or hidden) are left out.
- * Empty without the semantic stage.
+ * Chip entries for the documented symbols behind semantic fact keys, linked
+ * where each one is documented. Keys without a page (not documented, hidden)
+ * and `self` are left out; sorted by name.
  */
-export const usedByEntries = (
-    data: UsedByContext,
-    kind: EntityKind | TableKind,
-    item: { readonly name?: unknown; readonly file?: unknown } | undefined
+export const factKeyEntries = (
+    data: FactsContext,
+    keys: readonly SymbolKey[],
+    self?: SymbolEntry
 ): ReferencedByEntry[] => {
-    const own = ownEntry(data, kind, item);
-    const facts = entryFacts(data.semantic, own);
-    if (!data.symbols || !own || !facts) {
+    const table = data.symbols;
+    if (!table) {
         return [];
     }
-    const table = data.symbols;
     const index = byFactKey(table);
-    return facts.usedBy
+    return keys
         .map(key => index.get(factKey(key)))
-        .filter((user): user is SymbolEntry => user !== undefined && user.id !== own.id)
+        .filter((user): user is SymbolEntry => user !== undefined && user.id !== self?.id)
         .filter(user => !isHidden(data.di, user.id))
         .flatMap(user => {
             const link = placedLink(table, user, data.di);
@@ -67,4 +65,19 @@ export const usedByEntries = (
             ];
         })
         .sort((a, b) => a.name.localeCompare(b.name));
+};
+
+/**
+ * The documented symbols that use an engine object, from the semantic
+ * facts. Users without a page (not documented, or hidden) are left out.
+ * Empty without the semantic stage.
+ */
+export const usedByEntries = (
+    data: UsedByContext,
+    kind: EntityKind | TableKind,
+    item: { readonly name?: unknown; readonly file?: unknown } | undefined
+): ReferencedByEntry[] => {
+    const own = ownEntry(data, kind, item);
+    const facts = entryFacts(data.semantic, own);
+    return own && facts ? factKeyEntries(data, facts.usedBy, own) : [];
 };

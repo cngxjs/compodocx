@@ -30,6 +30,8 @@ export interface IInjectableDep extends IDep {
     tokenClass?: 'InjectionToken' | 'HttpContextToken';
     tokenType?: string;
     providedIn?: string;
+    /** Source text of the `factory` option of an `InjectionToken`; absent without one. */
+    factory?: string;
 
     accessors?: Object;
     constructorObj?: Object;

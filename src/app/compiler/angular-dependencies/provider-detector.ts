@@ -82,27 +82,36 @@ export class ProviderDetector {
         return '';
     }
 
-    public getInjectionTokenProvidedIn(initializer: any): string {
+    /** The value of option `name` in `new InjectionToken(desc, { ... })`. */
+    private injectionTokenOption(initializer: any, name: string): ts.Expression | undefined {
         if (!initializer || !ts.isNewExpression(initializer)) {
-            return '';
+            return undefined;
         }
         // Second argument to InjectionToken constructor is the options object
-        const args = initializer.arguments;
-        if (args && args.length >= 2 && ts.isObjectLiteralExpression(args[1])) {
-            const providedInProp = args[1].properties.find(
-                (p: any) =>
-                    ts.isPropertyAssignment(p) &&
-                    ts.isIdentifier(p.name) &&
-                    p.name.text === 'providedIn'
-            );
-            if (providedInProp && ts.isPropertyAssignment(providedInProp)) {
-                // Same convention as `@Injectable`: bare value for string
-                // literals, source text for class or module references.
-                const value = providedInProp.initializer;
-                return ts.isStringLiteralLike(value) ? value.text : value.getText();
-            }
+        const options = initializer.arguments?.[1];
+        if (!options || !ts.isObjectLiteralExpression(options)) {
+            return undefined;
         }
-        return '';
+        const property = options.properties.find(
+            (p): p is ts.PropertyAssignment =>
+                ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) && p.name.text === name
+        );
+        return property?.initializer;
+    }
+
+    public getInjectionTokenProvidedIn(initializer: any): string {
+        const value = this.injectionTokenOption(initializer, 'providedIn');
+        if (!value) {
+            return '';
+        }
+        // Same convention as `@Injectable`: bare value for string
+        // literals, source text for class or module references.
+        return ts.isStringLiteralLike(value) ? value.text : value.getText();
+    }
+
+    /** Source text of the token's `factory` option; empty without one. */
+    public getInjectionTokenFactory(initializer: any): string {
+        return this.injectionTokenOption(initializer, 'factory')?.getText() ?? '';
     }
 
     public detectFunctionalAngularKind(

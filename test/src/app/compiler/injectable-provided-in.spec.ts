@@ -36,6 +36,9 @@ export const API_URL = new InjectionToken<string>('API_URL', {
     providedIn: 'root',
     factory: () => '/api'
 });
+
+/** Set by the application. */
+export const APP_NAME = new InjectionToken<string>('APP_NAME');
 `
         );
         const deps = new AngularDependencies([path.join(tmpDir, 'services.ts')], {
@@ -67,5 +70,11 @@ export const API_URL = new InjectionToken<string>('API_URL', {
     it('stores a token providedIn without quotes', () => {
         const token = result.tokens.find((t: any) => t.name === 'API_URL');
         expect(token.providedIn).toBe('root');
+    });
+
+    it("stores a token's factory as source text and omits it without one", () => {
+        const token = (name: string) => result.tokens.find((t: any) => t.name === name);
+        expect(token('API_URL').factory).toBe("() => '/api'");
+        expect(token('APP_NAME')).not.toHaveProperty('factory');
     });
 });
