@@ -1,5 +1,4 @@
 import Html from '@kitajs/html';
-import { MISC_COLLECTION } from '../../app/links/layout';
 import { BlockTypealias } from '../blocks/BlockTypealias';
 import { IndexMisc } from '../blocks/IndexMisc';
 import { MiscHero } from '../blocks/MiscHero';
@@ -26,7 +25,8 @@ export const MiscellaneousTypealiases = (props: MiscTypealiasesProps): string =>
                     </h3>
                     {TaggedDetailLinks({
                         items: typealias as any[],
-                        plural: MISC_COLLECTION.typealias
+                        kind: 'typealias',
+                        depth: props.depth
                     })}
                     {BlockTypealias({ typealias, depth: props.depth })}
                 </div>

@@ -1,6 +1,6 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
 import { hrefTo, pageOf } from '../helpers/pages';
-import { collectionHref, collectionPage } from './paths';
+import { collectionPage } from './paths';
 
 const tmp = temporaryDir();
 
@@ -344,7 +344,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support misc links', () => {
-        expect(todoClassFile).to.contain(`${collectionHref('enumeration', 1)}`);
+        expect(todoClassFile).to.contain(`${hrefTo('enumeration', 'Direction', 1)}`);
     });
 
     it('should have public function for component', () => {

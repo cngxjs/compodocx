@@ -16,6 +16,7 @@ import {
     pagePath,
     ROOT_DEPTH
 } from '../../app/links/layout';
+import { entryInFile } from '../../app/links/symbol-table';
 import { t } from '../helpers';
 import { isToggled } from '../helpers/menu-helpers';
 import {
@@ -69,22 +70,26 @@ const isCollapsedAll = (): boolean => Configuration.mainData.collapsedAll === tr
 /** Whether a top-level chapter should render expanded on first load. */
 const chapterOpen = (type: string): boolean => !isCollapsedAll() && isToggled(type);
 
-/** Miscellaneous kinds render on a shared collection page (`miscellaneous/<plural>.html`).
- * Entries tagged with `@category` get a dedicated detail page; untagged entries
- * remain inline anchors on the collection page. */
-const ANCHOR_KINDS = new Set<EntityKind>(['variable', 'function', 'typealias', 'enumeration']);
+/** Kinds whose same-name copies the symbol table numbers (not the engine object). */
+const TABLE_NUMBERED_KINDS = new Set<EntityKind>([
+    'variable',
+    'function',
+    'typealias',
+    'enumeration',
+    'token'
+]);
+
+const duplicateNameOf = (item: any): string | undefined => {
+    if (!TABLE_NUMBERED_KINDS.has(item.kind)) {
+        return item.duplicateName;
+    }
+    const table = Configuration.mainData.symbols;
+    return table ? entryInFile(table, item.kind, item.name, item.file)?.duplicateName : undefined;
+};
 
 /** Entity link href with duplicateName fallback. */
-const entityHref = (prefix: string, item: any): string => {
-    const name = item.duplicateName ?? item.name;
-    if (ANCHOR_KINDS.has(item.kind) && !item.category) {
-        return hrefText(
-            { path: pageFile('', prefix), anchor: name, fromDepth: ROOT_DEPTH },
-            'bare'
-        );
-    }
-    return pageFile(prefix, name);
-};
+const entityHref = (prefix: string, item: any): string =>
+    pageFile(prefix, duplicateNameOf(item) ?? item.name);
 
 /** Root-relative link to a top-level page; the client router adds the depth prefix. */
 const rootHref = (page: string): string =>

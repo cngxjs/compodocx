@@ -38,7 +38,7 @@ export function buildEntityIndex(mainData: Record<string, unknown>): EntityIndex
         if (!entry) {
             continue;
         }
-        const href = hrefFor(symbolTarget(entry, { duplicate: true, detail: true }), 0);
+        const href = hrefFor(symbolTarget(entry, { duplicate: true }), 0);
         index[name] = {
             href: hrefText(href, 'bare'),
             kind: INDEX_KIND[entry.ref.kind] ?? entry.ref.kind

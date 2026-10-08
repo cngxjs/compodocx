@@ -418,7 +418,7 @@ describe('CLI coverage report', () => {
             expect(coverageFile).to.contain(`${pageOf('interface', 'ClockInterface')}`);
             expect(coverageFile).to.contain(`${miscAnchor('function', 'foo')}`);
             expect(coverageFile).to.contain(`${miscAnchor('typealias', 'ChartChange')}`);
-            expect(coverageFile).to.contain('variables.html#PI');
+            expect(coverageFile).to.contain(`${pageOf('variable', 'PI')}`);
             expect(coverageFile).to.contain(`${pageOf('pipe', 'FirstUpperPipe')}`);
             expect(coverageFile).to.contain(`${pageOf('directive', 'DoNothingDirective2')}`);
             expect(coverageFile).to.contain(`${pageOf('injectable', 'TodoStore2')}`);

@@ -19,7 +19,8 @@ export type SymbolKind =
 
 export type MiscKind = 'function' | 'variable' | 'typealias' | 'enumeration';
 
-export type PageKind = Exclude<SymbolKind, MiscKind>;
+/** Every symbol kind has a page of its own. */
+export type PageKind = SymbolKind;
 
 export const KIND_FOLDER = {
     component: 'components',
@@ -31,7 +32,11 @@ export const KIND_FOLDER = {
     guard: 'guards',
     interceptor: 'interceptors',
     entity: 'entities',
-    token: 'tokens'
+    token: 'tokens',
+    function: 'functions',
+    variable: 'variables',
+    typealias: 'typealiases',
+    enumeration: 'enumerations'
 } as const satisfies Record<PageKind, string>;
 
 export const MISC_FOLDER = 'miscellaneous';
@@ -55,12 +60,8 @@ export const isPageKind = (kind: string): kind is PageKind =>
 
 export const isMiscKind = (kind: string): kind is MiscKind => MISC_KINDS.has(kind);
 
-/**
- * The `hrefPrefix` of a kind: its folder, or `miscellaneous/<collection>` for
- * a miscellaneous kind (whose detail pages sit in that folder).
- */
-export const kindHrefPrefix = (kind: SymbolKind): string =>
-    isMiscKind(kind) ? `${MISC_FOLDER}/${MISC_COLLECTION[kind]}` : KIND_FOLDER[kind];
+/** The `hrefPrefix` of a kind: its folder. */
+export const kindHrefPrefix = (kind: SymbolKind): string => KIND_FOLDER[kind];
 
 const last = (items: readonly string[]): string => items[items.length - 1] ?? '';
 
@@ -71,8 +72,6 @@ export type PageTarget =
           readonly name: string;
           /** Page name of a same-name copy (`Todo-1`); used when set. */
           readonly duplicateName?: string;
-          /** A miscellaneous symbol linked to its own detail page instead of the collection anchor. */
-          readonly detail?: boolean;
       }
     | { readonly type: 'misc-collection'; readonly kind: MiscKind }
     /** A top-level page: index, overview, routes, coverage, app-config, references, ... */
@@ -124,32 +123,15 @@ export const relativePrefix = (depth: number, style: PrefixStyle = 'relative'): 
 
 const joinPath = (folder: string, file: string): string => (folder ? `${folder}/${file}` : file);
 
-const symbolLocation = (
-    target: Extract<PageTarget, { type: 'symbol' }>
-): PageLocation | undefined => {
-    const { kind } = target;
-    if (isMiscKind(kind)) {
-        return target.detail
-            ? {
-                  path: `${MISC_FOLDER}/${MISC_COLLECTION[kind]}`,
-                  filename: target.name,
-                  depth: 2
-              }
-            : undefined;
-    }
-    return { path: KIND_FOLDER[kind], filename: target.duplicateName ?? target.name, depth: 1 };
-};
-
-/** Where a page is written. A misc symbol without `detail` has no page of its own. */
+/** Where a page is written. */
 export const pageLocation = (target: PageTarget): PageLocation => {
     switch (target.type) {
-        case 'symbol': {
-            const location = symbolLocation(target);
-            if (location) {
-                return location;
-            }
-            return pageLocation({ type: 'misc-collection', kind: target.kind as MiscKind });
-        }
+        case 'symbol':
+            return {
+                path: KIND_FOLDER[target.kind],
+                filename: target.duplicateName ?? target.name,
+                depth: 1
+            };
         case 'misc-collection':
             return { path: MISC_FOLDER, filename: MISC_COLLECTION[target.kind], depth: 1 };
         case 'root':
@@ -194,12 +176,7 @@ export const hrefFor = (target: PageTarget, fromDepth: number, anchor?: string):
     if (target.type === 'asset') {
         return { path: target.path, anchor, fromDepth };
     }
-    const isAnchored = target.type === 'symbol' && !symbolLocation(target);
-    return {
-        path: pagePath(pageLocation(target)),
-        anchor: isAnchored ? memberAnchor(target.name) : anchor,
-        fromDepth
-    };
+    return { path: pagePath(pageLocation(target)), anchor, fromDepth };
 };
 
 const safeAnchorPart = (text: string): string =>

@@ -49,24 +49,24 @@ describe('page layout contract', () => {
         ['variable', 'variables'],
         ['typealias', 'typealiases'],
         ['enumeration', 'enumerations']
-    ])('links an untagged %s to the %s collection anchor', (kind, collection) => {
-        const href = hrefFor(symbol(kind, 'item'), 1);
-        expect(hrefText(href)).toBe(`../miscellaneous/${collection}.html#item`);
-        expect(pageLocation({ type: 'misc-collection', kind } as PageTarget)).toEqual({
-            path: 'miscellaneous',
-            filename: collection,
+    ])('puts every %s on its own page in %s/ at depth 1', (kind, folder) => {
+        expect(pageLocation(symbol(kind, 'item'))).toEqual({
+            path: folder,
+            filename: 'item',
             depth: 1
         });
+        expect(hrefText(hrefFor(symbol(kind, 'item'), 1))).toBe(`../${folder}/item.html`);
+        expect(pageLocation(symbol(kind, 'item', { duplicateName: 'item-1' })).filename).toBe(
+            'item-1'
+        );
     });
 
-    it('puts a tagged misc detail page in its collection folder at depth 2', () => {
-        const target = symbol('function', 'provideUser', { detail: true });
-        expect(pageLocation(target)).toEqual({
-            path: 'miscellaneous/functions',
-            filename: 'provideUser',
-            depth: 2
+    it('keeps the miscellaneous collection pages in miscellaneous/', () => {
+        expect(pageLocation({ type: 'misc-collection', kind: 'function' })).toEqual({
+            path: 'miscellaneous',
+            filename: 'functions',
+            depth: 1
         });
-        expect(hrefText(hrefFor(target, 2))).toBe('../../miscellaneous/functions/provideUser.html');
     });
 
     it('puts root pages at the output root', () => {
@@ -132,9 +132,7 @@ describe('page layout contract', () => {
         expect(hrefText(hrefFor(symbol('component', 'Foo'), 0), 'bare')).toBe(
             'components/Foo.html'
         );
-        expect(hrefText(hrefFor(symbol('variable', 'X'), 0), 'bare')).toBe(
-            'miscellaneous/variables.html#X'
-        );
+        expect(hrefText(hrefFor(symbol('variable', 'X'), 0), 'bare')).toBe('variables/X.html');
     });
 
     it('maps a path back to the kind of its folder', () => {

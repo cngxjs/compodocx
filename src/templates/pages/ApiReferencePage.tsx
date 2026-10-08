@@ -1,7 +1,7 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import type { EntityKind, EntityWithKind } from '../../app/engines/dependencies.engine';
-import { hrefFor, hrefText, isMiscKind, isPageKind } from '../../app/links/layout';
+import { hrefFor, hrefText, isPageKind } from '../../app/links/layout';
 import { IconSearch, IconX } from '../components/Icons';
 import {
     deriveLibFromBucket,
@@ -36,17 +36,6 @@ const buildHref = (item: BucketItem, depth: number): string => {
     const kind = item.kind;
     if (isPageKind(kind)) {
         return hrefText(hrefFor({ type: 'symbol', kind, name }, depth));
-    }
-    if (isMiscKind(kind)) {
-        // The portal only ever shows items that already live in a bucket
-        // (`@category`-tagged or folder-derived). Misc symbols in a bucket
-        // always have a dedicated detail page — never the collection
-        // anchor form.
-        const category = (item.category as string | undefined)?.trim();
-        // Folder-fallback misc (no `@category` but bucketed by file path):
-        // fall back to the shared collection anchor so the link still
-        // resolves to *something*.
-        return hrefText(hrefFor({ type: 'symbol', kind, name, detail: Boolean(category) }, depth));
     }
     return hrefText(hrefFor({ type: 'root', page: name }, depth));
 };

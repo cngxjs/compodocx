@@ -252,7 +252,7 @@ const EnumerationApi = (item: any): string => {
 };
 
 const ApiContent = (props: MiscDetailProps): string => {
-    const depth = props.depth ?? 2;
+    const depth = props.depth ?? 1;
     switch (props.kind) {
         case 'function':
             return FunctionApi(props.item, depth);
@@ -294,7 +294,7 @@ interface MiscTab {
 }
 
 const buildTabs = (props: MiscDetailProps): MiscTab[] => {
-    const depth = props.depth ?? 2;
+    const depth = props.depth ?? 1;
     const tabs: MiscTab[] = [];
 
     const info = InfoContent(props.item, depth);

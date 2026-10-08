@@ -73,7 +73,7 @@ export const parseDescription = (description: string, depth: number): string => 
             stringToReplace = completeTag;
         }
 
-        const foundTarget = found ? targetOfData(found, { detail: true }) : undefined;
+        const foundTarget = found ? targetOfData(found) : undefined;
         if (found && foundTarget) {
             let label = found.name;
 

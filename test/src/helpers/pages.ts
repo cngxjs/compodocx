@@ -14,16 +14,13 @@ import {
 export interface PageOptions {
     /** Page name of a same-name copy, e.g. `Todo-1`. */
     readonly duplicate?: string;
-    /** The detail page of a tagged miscellaneous symbol. */
-    readonly detail?: boolean;
 }
 
 const symbolTarget = (kind: SymbolKind, name: string, opts: PageOptions = {}): PageTarget => ({
     type: 'symbol',
     kind,
     name,
-    duplicateName: opts.duplicate,
-    detail: opts.detail
+    duplicateName: opts.duplicate
 });
 
 /** Root-relative page file of a symbol, e.g. `components/Foo.html`. */

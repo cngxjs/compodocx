@@ -172,16 +172,50 @@ describe('symbol table', () => {
         expect(lookupName(table, 'Foo', 'diff', 'component')).toBeUndefined();
     });
 
-    it('carries duplicate names, tagged misc symbols and overload counts', () => {
+    it('carries duplicate names and overload counts', () => {
         const second = table.byId.get(
             'injectable:src/b/settings.service.ts#SettingsService' as never
         );
         expect(second?.duplicateName).toBe('SettingsService-1');
         const provide = table.byId.get('function:src/user.ts#provideUser' as never);
-        expect(provide?.tagged).toBe(true);
         expect(provide?.overloads).toBe(1);
         expect(table.byName.get('provideUser')).toHaveLength(2);
-        expect(table.byId.get('function:src/foo.fn.ts#foo' as never)?.tagged).toBe(false);
+    });
+
+    it('numbers same-name misc symbols and tokens in the table, not on the engine objects', () => {
+        const data = {
+            tokens: [item('LIMIT', 'src/a.ts'), item('LIMIT', 'src/b.ts')],
+            miscellaneous: {
+                functions: [
+                    item('pick', 'src/a.ts'),
+                    item('pick', 'src/b.ts'),
+                    item('pick', 'src/c.ts')
+                ],
+                variables: [item('mode', 'src/a.ts')]
+            }
+        };
+        const numbered = buildSymbolTable(data, { cwd: '/repo' });
+        const dup = (id: string) => numbered.byId.get(id as never)?.duplicateName;
+        expect(dup('function:src/a.ts#pick')).toBeUndefined();
+        expect(dup('function:src/b.ts#pick')).toBe('pick-1');
+        expect(dup('function:src/c.ts#pick')).toBe('pick-2');
+        expect(dup('token:src/b.ts#LIMIT')).toBe('LIMIT-1');
+        for (const entry of [...data.tokens, ...data.miscellaneous.functions]) {
+            expect(entry).not.toHaveProperty('isDuplicate');
+            expect(entry).not.toHaveProperty('duplicateName');
+        }
+    });
+
+    it('gives overloads of one function one page, no suffix', () => {
+        const provide = table.byId.get('function:src/user.ts#provideUser' as never);
+        expect(provide?.duplicateName).toBeUndefined();
+        expect(lookupEntry(table, 'provideUser', 'doc-link')?.duplicateName).toBeUndefined();
+    });
+
+    it('keeps the engine duplicate name for the kinds the engine numbers', () => {
+        expect(lookupEntry(table, 'SettingsService', 'diff', 'injectable')?.duplicateName).toBe(
+            'SettingsService-2'
+        );
     });
 
     it('sets the entry point from semantic facts and leaves it undefined without them', () => {
@@ -210,9 +244,10 @@ describe('symbol table', () => {
 
     it('keeps the data of the overload each policy picks', () => {
         const index = buildEntityIndex(data as unknown as Record<string, unknown>);
-        expect(index.fill.href).toBe(miscAnchor('function', 'fill'));
-        expect(lookupEntry(table, 'fill', 'entity-index')?.tagged).toBe(false);
-        expect(lookupEntry(table, 'fill', 'doc-link')?.tagged).toBe(true);
+        expect(index.fill.href).toBe(pageOf('function', 'fill'));
+        expect(lookupEntry(table, 'fill', 'entity-index')?.data).not.toBe(
+            lookupEntry(table, 'fill', 'doc-link')?.data
+        );
         expect(lookupEntry(table, 'fill', 'type-link')?.data).toBe(
             DependenciesEngine.find('fill')?.data
         );

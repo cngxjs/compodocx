@@ -3,27 +3,10 @@ import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import { type MiscKind, pageLocation } from '../links/layout';
+import { symbolTarget } from '../links/resolve';
 
-interface DetailSpec {
-    readonly collectionKey: 'functions' | 'variables' | 'typealiases' | 'enumerations';
-    readonly singularKind: 'function' | 'variable' | 'typealias' | 'enumeration';
-    readonly dataKey: 'function' | 'variable' | 'typealias' | 'enumeration';
-}
-
-const DETAIL_SPECS: readonly DetailSpec[] = [
-    { collectionKey: 'functions', singularKind: 'function', dataKey: 'function' },
-    { collectionKey: 'variables', singularKind: 'variable', dataKey: 'variable' },
-    { collectionKey: 'typealiases', singularKind: 'typealias', dataKey: 'typealias' },
-    { collectionKey: 'enumerations', singularKind: 'enumeration', dataKey: 'enumeration' }
-] as const;
-
-/** Miscellaneous symbols with a non-empty `@category` tag get their own detail page
- * under `miscellaneous/<plural>/<name>.html`. Untagged entries remain inline anchors
- * on the shared collection page. */
-const isTagged = (item: unknown): boolean => {
-    const category = (item as { category?: unknown })?.category;
-    return typeof category === 'string' && category.trim() !== '';
-};
+/** Engine object key the single-symbol page template reads, per kind. */
+const PAGE_KINDS: readonly MiscKind[] = ['function', 'variable', 'typealias', 'enumeration'];
 
 /** Path, name and depth of a collection page; its file name is its page name. */
 const collectionPage = (kind: MiscKind) => {
@@ -72,37 +55,34 @@ export class MiscellaneousPageGenerator {
                 });
             }
 
-            this.enqueueTaggedDetailPages();
+            this.enqueueSymbolPages();
 
             resolve(true);
         });
     }
 
-    private enqueueTaggedDetailPages(): void {
-        const misc = Configuration.mainData.miscellaneous ?? {};
-        for (const spec of DETAIL_SPECS) {
-            const items = misc[spec.collectionKey] ?? [];
-            for (const item of items) {
-                if (!isTagged(item)) {
-                    continue;
-                }
-                const location = pageLocation({
-                    type: 'symbol',
-                    kind: spec.singularKind,
-                    name: item.name,
-                    detail: true
-                });
-                Configuration.addPage({
-                    path: location.path,
-                    name: `miscellaneous-${spec.singularKind}-${item.name}`,
-                    filename: location.filename,
-                    id: `miscellaneous-${spec.singularKind}-${item.name}`,
-                    context: `miscellaneous-${spec.singularKind}`,
-                    [spec.dataKey]: item,
-                    depth: location.depth,
-                    pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
-                } as any);
+    /** One page per symbol; overloads share one, same-name copies get their `-N` page. */
+    private enqueueSymbolPages(): void {
+        const table = Configuration.mainData.symbols;
+        if (!table) {
+            return;
+        }
+        for (const entry of table.byId.values()) {
+            const kind = entry.ref.kind;
+            if (!(PAGE_KINDS as readonly string[]).includes(kind)) {
+                continue;
             }
+            const location = pageLocation(symbolTarget(entry, { duplicate: true }));
+            Configuration.addPage({
+                path: location.path,
+                name: `${kind}-${location.filename}`,
+                filename: location.filename,
+                id: `${kind}-${location.filename}`,
+                context: `miscellaneous-${kind}`,
+                [kind]: entry.data,
+                depth: location.depth,
+                pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
+            } as any);
         }
     }
 }

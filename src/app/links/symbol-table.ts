@@ -9,8 +9,6 @@ export interface SymbolEntry {
     readonly data: unknown;
     /** Page name of a same-name copy, e.g. `Todo-1`. */
     readonly duplicateName?: string;
-    /** A miscellaneous symbol with its own detail page (non-empty `@category`). */
-    readonly tagged: boolean;
     /** Import path of the nearest exporting barrel; undefined without semantic facts. */
     readonly entryPoint?: string;
     /** Further engine entries that share the id (overloads, merged declarations). */
@@ -99,21 +97,50 @@ const TABLE_ORDER: readonly EntityKind[] = [
     'enumeration'
 ];
 
-const MISC_KINDS: ReadonlySet<EntityKind> = new Set([
+/**
+ * Kinds whose same-name copies the table numbers itself (`-1`, `-2`, ... in
+ * engine order). The engine numbers the other kinds on its own objects; these
+ * are left untouched because the export copies them.
+ */
+const TABLE_SUFFIX_KINDS: ReadonlySet<EntityKind> = new Set<EntityKind>([
     'function',
     'variable',
     'typealias',
-    'enumeration'
+    'enumeration',
+    'token'
 ]);
 
-const isTagged = (kind: EntityKind, item: Named): boolean => {
-    const category = (item as { category?: unknown }).category;
-    return MISC_KINDS.has(kind) && typeof category === 'string' && category.trim() !== '';
-};
-
-const duplicateNameOf = (item: Named): string | undefined => {
+const engineDuplicateName = (item: Named): string | undefined => {
     const name = (item as { duplicateName?: unknown }).duplicateName;
     return typeof name === 'string' ? name : undefined;
+};
+
+/** Duplicate names of the table-numbered kinds; overloads (one id) are one symbol. */
+const tableDuplicateNames = (
+    data: EngineData,
+    idOf: (kind: EntityKind, item: Named) => SymbolId
+): ReadonlyMap<SymbolId, string> => {
+    const names = new Map<SymbolId, string>();
+    for (const kind of TABLE_SUFFIX_KINDS) {
+        const seen = new Map<string, SymbolId[]>();
+        for (const item of listOf(data, kind) ?? []) {
+            if (typeof item?.name !== 'string') {
+                continue;
+            }
+            const id = idOf(kind, item);
+            const ids = seen.get(item.name) ?? [];
+            if (!ids.includes(id)) {
+                ids.push(id);
+                seen.set(item.name, ids);
+            }
+        }
+        for (const [name, ids] of seen) {
+            ids.slice(1).forEach((id, i) => {
+                names.set(id, `${name}-${i + 1}`);
+            });
+        }
+    }
+    return names;
 };
 
 export interface BuildOptions {
@@ -123,6 +150,12 @@ export interface BuildOptions {
 
 export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): SymbolTable => {
     const cwd = options.cwd ?? process.cwd();
+    const refOf = (kind: EntityKind, item: Named): SymbolRef => ({
+        kind,
+        file: typeof item.file === 'string' ? symbolFile(item.file, cwd) : '',
+        name: item.name as string
+    });
+    const suffixes = tableDuplicateNames(data, (kind, item) => symbolId(refOf(kind, item)));
     const byId = new Map<SymbolId, SymbolEntry>();
     const byName = new Map<string, SymbolId[]>();
     const dataByName = new Map<string, unknown[]>();
@@ -131,8 +164,7 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
             if (typeof item?.name !== 'string') {
                 continue;
             }
-            const file = typeof item.file === 'string' ? symbolFile(item.file, cwd) : '';
-            const ref: SymbolRef = { kind, file, name: item.name };
+            const ref = refOf(kind, item);
             const id = symbolId(ref);
             const known = byId.get(id);
             if (known) {
@@ -142,8 +174,9 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
                     id,
                     ref,
                     data: item,
-                    duplicateName: duplicateNameOf(item),
-                    tagged: isTagged(kind, item),
+                    duplicateName: TABLE_SUFFIX_KINDS.has(kind)
+                        ? suffixes.get(id)
+                        : engineDuplicateName(item),
                     entryPoint: options.semantic?.facts.get(factKey(toSymbolKey(ref)))?.entryPoint,
                     overloads: 0
                 });
@@ -319,9 +352,13 @@ export const lookupName = (
     kind?: EntityKind
 ): SymbolId | undefined => lookupOccurrence(table, name, policy, kind)?.id;
 
+/** The duplicate name of one engine object: the table's for the kinds it numbers. */
+const duplicateNameFor = (entry: SymbolEntry, data: Named): string | undefined =>
+    TABLE_SUFFIX_KINDS.has(entry.ref.kind) ? entry.duplicateName : engineDuplicateName(data);
+
 /**
  * Like `lookupName`, but returns the entry as the chosen engine object sees
- * it: overloads of one id keep their own data, `@category` and duplicate name.
+ * it: overloads of one id keep their own data and engine duplicate name.
  */
 export const lookupEntry = (
     table: SymbolTable,
@@ -335,12 +372,7 @@ export const lookupEntry = (
         return undefined;
     }
     const data = occurrence.data as Named;
-    return {
-        ...entry,
-        data,
-        duplicateName: duplicateNameOf(data),
-        tagged: isTagged(entry.ref.kind, data)
-    };
+    return { ...entry, data, duplicateName: duplicateNameFor(entry, data) };
 };
 
 /** The entry of `name` and `kind` whose engine object was read from `file`. */
@@ -358,7 +390,7 @@ export const entryInFile = (
         return undefined;
     }
     const data = occurrence.data as Named;
-    return { ...entry, data, duplicateName: duplicateNameOf(data), tagged: isTagged(kind, data) };
+    return { ...entry, data, duplicateName: duplicateNameFor(entry, data) };
 };
 
 /** Names that more than one symbol carries. */

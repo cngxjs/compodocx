@@ -10,8 +10,6 @@ import {
 
 export interface SymbolLinkOptions {
     readonly anchor?: string;
-    /** Link a tagged miscellaneous symbol to its detail page, not the collection anchor. */
-    readonly detail?: boolean;
     /** Link a same-name copy to its own `-N` page, not the first copy's. */
     readonly duplicate?: boolean;
 }
@@ -20,8 +18,7 @@ export const symbolTarget = (entry: SymbolEntry, options: SymbolLinkOptions = {}
     type: 'symbol',
     kind: entry.ref.kind,
     name: entry.ref.name,
-    duplicateName: options.duplicate ? entry.duplicateName : undefined,
-    detail: Boolean(options.detail && entry.tagged)
+    duplicateName: options.duplicate ? entry.duplicateName : undefined
 });
 
 export const hrefForSymbol = (
@@ -58,26 +55,19 @@ const MISC_SUBTYPE: Readonly<Record<string, MiscKind>> = {
  * `ctype`/`subtype` for miscellaneous symbols). Undefined for an object the
  * layout has no page for.
  */
-export const targetOfData = (
-    data: unknown,
-    options: Pick<SymbolLinkOptions, 'detail'> = {}
-): PageTarget | undefined => {
+export const targetOfData = (data: unknown): PageTarget | undefined => {
     const item = data as {
         name?: string;
         type?: string;
         ctype?: string;
         subtype?: string;
-        category?: unknown;
     };
     if (typeof item?.name !== 'string') {
         return undefined;
     }
     if (item.type === 'miscellaneous' || item.ctype === 'miscellaneous') {
         const kind = MISC_SUBTYPE[item.subtype ?? ''];
-        const tagged = typeof item.category === 'string' && item.category.trim() !== '';
-        return kind
-            ? { type: 'symbol', kind, name: item.name, detail: Boolean(options.detail && tagged) }
-            : undefined;
+        return kind ? { type: 'symbol', kind, name: item.name } : undefined;
     }
     const kind = item.type ?? '';
     return isPageKind(kind) ? { type: 'symbol', kind, name: item.name } : undefined;
@@ -85,8 +75,7 @@ export const targetOfData = (
 
 /**
  * A coverage row's page, from its `linktype` (`classe` for classes) and misc
- * `linksubtype`. With `detail`, a misc row whose symbol the table marks as
- * tagged links to its detail page.
+ * `linksubtype`. With a table, a misc row links to its own same-name copy.
  */
 export const targetOfCoverage = (
     row: {
@@ -95,18 +84,17 @@ export const targetOfCoverage = (
         readonly linktype?: string;
         readonly linksubtype?: string;
     },
-    options: { readonly detail?: boolean; readonly table?: SymbolTable } = {}
+    options: { readonly table?: SymbolTable } = {}
 ): PageTarget | undefined => {
     if (row.linksubtype) {
         const kind = MISC_SUBTYPE[row.linksubtype];
         if (!kind) {
             return undefined;
         }
-        const entry =
-            options.detail && options.table
-                ? entryInFile(options.table, kind, row.name, row.filePath)
-                : undefined;
-        return { type: 'symbol', kind, name: row.name, detail: Boolean(entry?.tagged) };
+        const entry = options.table
+            ? entryInFile(options.table, kind, row.name, row.filePath)
+            : undefined;
+        return { type: 'symbol', kind, name: row.name, duplicateName: entry?.duplicateName };
     }
     const kind = row.linktype === 'classe' ? 'class' : (row.linktype ?? '');
     return isPageKind(kind) ? { type: 'symbol', kind, name: row.name } : undefined;

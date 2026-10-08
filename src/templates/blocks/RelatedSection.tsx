@@ -1,7 +1,7 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import DependenciesEngine from '../../app/engines/dependencies.engine';
-import { hrefFor, hrefText, isMiscKind } from '../../app/links/layout';
+import { hrefFor, hrefText } from '../../app/links/layout';
 import { targetOfData } from '../../app/links/resolve';
 import { logger } from '../../utils/logger';
 import { t } from '../helpers';
@@ -19,9 +19,6 @@ import { t } from '../helpers';
 
 type RelatedEntry = { name: string; href?: string };
 
-const isTagged = (data: { category?: unknown }): boolean =>
-    typeof data.category === 'string' && data.category.trim() !== '';
-
 const resolveEntry = (name: string, depth: number): RelatedEntry => {
     const hit = DependenciesEngine.findInCompodoc(name);
     if (hit && typeof hit !== 'boolean') {
@@ -29,8 +26,7 @@ const resolveEntry = (name: string, depth: number): RelatedEntry => {
         if (target?.type !== 'symbol') {
             return { name };
         }
-        const detail = isMiscKind(target.kind) && isTagged(hit as { category?: unknown });
-        return { name, href: hrefText(hrefFor({ ...target, name, detail }, depth)) };
+        return { name, href: hrefText(hrefFor({ ...target, name }, depth)) };
     }
     // Tokens aren't included in findInCompodoc's merged-data list.
     const tokens = (DependenciesEngine as any).tokens as any[] | undefined;

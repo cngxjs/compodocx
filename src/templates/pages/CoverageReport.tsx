@@ -104,7 +104,7 @@ const coverageFillClass = (pct: number): string => {
 /* ---- File link builder ---- */
 
 const fileLink = (f: CoverageFile): string => {
-    const target = targetOfCoverage(f, { detail: true, table: Configuration.mainData.symbols });
+    const target = targetOfCoverage(f, { table: Configuration.mainData.symbols });
     return target ? hrefText(hrefFor(target, ROOT_DEPTH)) : '';
 };
 

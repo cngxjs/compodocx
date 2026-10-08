@@ -8,7 +8,7 @@ import {
 } from '../../../src/app/links/resolve';
 import type { SymbolId } from '../../../src/app/links/symbol-id';
 import { buildSymbolTable } from '../../../src/app/links/symbol-table';
-import { hrefTo, miscAnchor, pageOf } from '../helpers/pages';
+import { hrefTo, pageOf } from '../helpers/pages';
 
 const table = buildSymbolTable(
     {
@@ -46,18 +46,14 @@ describe('symbol hrefs', () => {
         );
     });
 
-    it('links a tagged misc symbol to its detail page only when asked', () => {
+    it('links every misc symbol to its own page, tagged or not', () => {
         const tagged = id('function:src/todos.ts#provideTodos');
         expect(hrefForSymbol(table, tagged, 1)).toMatchObject({
             path: pageOf('function', 'provideTodos'),
-            anchor: 'provideTodos'
-        });
-        expect(hrefForSymbol(table, tagged, 1, { detail: true })).toMatchObject({
-            path: pageOf('function', 'provideTodos', { detail: true }),
             anchor: undefined
         });
         const untagged = id('function:src/format.ts#formatTodo');
-        expect(hrefForSymbol(table, untagged, 1, { detail: true })?.anchor).toBe('formatTodo');
+        expect(hrefForSymbol(table, untagged, 1)?.path).toBe(pageOf('function', 'formatTodo'));
     });
 
     it('keeps a caller anchor on a page link', () => {
@@ -73,23 +69,23 @@ describe('symbol hrefs', () => {
         expect(hrefForName(table, 'Todo', 'doc-link', 1)?.path).toBe(pageOf('class', 'Todo'));
     });
 
-    it('sends tagged misc engine objects and coverage rows to their detail page', () => {
+    it('sends misc engine objects and coverage rows to their own page', () => {
         const tagged = {
             name: 'provideTodos',
             ctype: 'miscellaneous',
             subtype: 'function',
             category: 'todos'
         };
-        expect(pageLocation(targetOfData(tagged, { detail: true })!).filename).toBe('provideTodos');
+        expect(pageLocation(targetOfData(tagged)!).filename).toBe('provideTodos');
         expect(hrefText(hrefFor(targetOfData(tagged)!, 1))).toBe(
             hrefTo('function', 'provideTodos', 1)
         );
         const row = { name: 'provideTodos', filePath: 'src/todos.ts', linksubtype: 'function' };
-        expect(hrefText(hrefFor(targetOfCoverage(row, { detail: true, table })!, 0))).toBe(
-            hrefTo('function', 'provideTodos', 0, { detail: true })
+        expect(hrefText(hrefFor(targetOfCoverage(row, { table })!, 0))).toBe(
+            hrefTo('function', 'provideTodos', 0)
         );
         expect(hrefText(hrefFor(targetOfCoverage(row)!, 0))).toBe(
-            `./${miscAnchor('function', 'provideTodos')}`
+            hrefTo('function', 'provideTodos', 0)
         );
     });
 });
