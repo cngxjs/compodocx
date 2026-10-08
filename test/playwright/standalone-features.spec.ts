@@ -326,16 +326,20 @@ test.describe('Function pages', () => {
         await expect(page.locator('.cdx-entity-hero-badges .cdx-badge--signal')).toHaveCount(1);
     });
 
-    test('beta badge on withCaching', async ({ page }) => {
-        await page.goto(pageUrl('function', 'withCaching'));
+    test('beta badge on the withCaching provider page', async ({ page }) => {
+        await page.goto(pageUrl('provider', 'withCaching'));
         await expect(page.locator('.cdx-entity-hero-badges .cdx-badge--beta')).toHaveCount(1);
     });
 
-    test('the utilities page lists every function', async ({ page }) => {
+    test('the utilities page lists functions, providers go to the dependency injection page', async ({
+        page
+    }) => {
         await page.goto(rootUrl('utilities'));
         const functions = page.locator('#functions');
         await expect(functions).toContainText('injectUserCount');
-        await expect(functions).toContainText('withCaching');
+        await expect(functions).not.toContainText('withCaching');
+        await page.goto(rootUrl('dependency-injection'));
+        await expect(page.locator('main')).toContainText('withCaching');
     });
 });
 

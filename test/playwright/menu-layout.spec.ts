@@ -179,7 +179,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
         // form (`data-pagefind-meta-X="value"`) looks plausible but is NOT
         // discovered by Pagefind's static scan — kept as a regression guard
         // against accidentally reintroducing the broken form.
-        await page.goto(pageUrl('function', 'provideUserFeature'));
+        await page.goto(pageUrl('provider', 'provideUserFeature'));
         await page.waitForLoadState('domcontentloaded');
         const hero = page.locator('.cdx-entity-hero').first();
         await expect(hero.locator('span[data-pagefind-meta="kind:Function"]')).toHaveCount(1);
@@ -199,25 +199,21 @@ test.describe('menuLayout: "feature" sidebar', () => {
         ).toHaveCount(1);
     });
 
-    test('tagged miscellaneous symbols get dedicated detail pages, untagged stay as anchors', async ({
+    test('the references portal links providers and function guards to their own pages', async ({
         page
     }) => {
-        // standalone-app fixture: provideUserFeature + createDefaultUser are
-        // @category-tagged, roleGuard is untagged. The reference-kind
-        // surface is now catalogued on `references.html` — the portal
-        // emits the dedicated-detail-page link for tagged misc, and the
-        // anchor-style URL for untagged.
+        // standalone-app fixture: provideUserFeature is a provider without a
+        // feature type (providers/), roleGuard a function-declared guard
+        // (guards/).
         await page.goto('/references.html');
         await page.waitForLoadState('domcontentloaded');
 
         const tagged = page.locator(
-            `.cdx-ref-item-link[href*="${pageOf('function', 'provideUserFeature')}"]`
+            `.cdx-ref-item-link[href*="${pageOf('provider', 'provideUserFeature')}"]`
         );
         await expect(tagged).toHaveCount(1);
 
-        const anchor = page.locator(
-            `.cdx-ref-item-link[href*="${pageOf('function', 'roleGuard')}"]`
-        );
+        const anchor = page.locator(`.cdx-ref-item-link[href*="${pageOf('guard', 'roleGuard')}"]`);
         await expect(anchor).toHaveCount(1);
 
         // The dedicated detail page must actually exist and render the entity name.
@@ -229,7 +225,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
 
     test('hero breadcrumb mirrors the sidebar bucket path in feature layout', async ({ page }) => {
         // Tagged misc symbol — breadcrumb from @category.
-        await page.goto(pageUrl('function', 'provideUserFeature'));
+        await page.goto(pageUrl('provider', 'provideUserFeature'));
         await page.waitForLoadState('domcontentloaded');
         const taggedCrumbs = page.locator('.cdx-breadcrumb li').allInnerTexts();
         await expect(page.locator('.cdx-breadcrumb li').first()).toHaveText('Providers');
@@ -243,8 +239,8 @@ test.describe('menuLayout: "feature" sidebar', () => {
         await expect(page.locator('.cdx-breadcrumb li').first()).toHaveText('dashboard');
     });
 
-    test('an untagged function has its own page', async ({ page }) => {
-        await page.goto(pageUrl('function', 'roleGuard'));
+    test('a function guard has its own page', async ({ page }) => {
+        await page.goto(pageUrl('guard', 'roleGuard'));
         await page.waitForLoadState('domcontentloaded');
         await expect(page.locator('h1.cdx-entity-hero-name')).toContainText('roleGuard');
     });
@@ -383,7 +379,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
 
     test('cdx-chip[href] has hover + focus affordance', async ({ page }) => {
         // Any rendered chip with an href should have cursor:pointer per the v0.6.0 affordance.
-        await page.goto(pageUrl('function', 'provideUserFeature'));
+        await page.goto(pageUrl('provider', 'provideUserFeature'));
         await page.waitForLoadState('domcontentloaded');
         // The "Providers" category chip in the entity hero is a static badge
         // (no href). Look for a chip that IS a link — chips appearing in

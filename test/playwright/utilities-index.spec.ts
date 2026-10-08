@@ -94,7 +94,7 @@ test.describe('Utilities page', () => {
     test.describe('Symbol pages', () => {
         test('breadcrumb links back to the utilities page and group', async ({ page }) => {
             await page.goto(rootUrl('utilities'));
-            const href = await page.locator('#variables a').first().getAttribute('href');
+            const href = await page.locator('#variables table a').first().getAttribute('href');
             await page.goto(new URL(href as string, page.url()).pathname);
             const crumbs = page.locator('.cdx-breadcrumb a');
             await expect(crumbs).toHaveCount(2);
