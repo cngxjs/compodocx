@@ -222,6 +222,7 @@ export interface ExportComponent extends ExportEntityCommon {
     inputs?: string[];
     outputs?: string[];
     imports?: ReadonlyArray<unknown>;
+    /** A provider written as a call (`provideFoo(withBar())`) also carries `call`. */
     providers?: ProviderEntry[];
     viewProviders?: ProviderEntry[];
     hostBindings?: ExportHostBinding[];

@@ -46,7 +46,8 @@ export const resolveType = (name: string, indexKey?: string, depth = 1): Resolve
                 return null;
             }
             const href = hrefText(hrefFor(link.target, depth, link.anchor));
-            return { ...resolved, href, indexKey: link.anchor ?? '' };
+            // `indexKey` is the indexed access shown next to the name, not the section anchor.
+            return { ...resolved, href, indexKey: anchor ?? '' };
         }
 
         return {

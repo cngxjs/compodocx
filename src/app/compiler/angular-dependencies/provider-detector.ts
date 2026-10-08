@@ -1,6 +1,31 @@
 import { ts } from 'ts-morph';
 import type { IFunctionDecDep } from '../angular/dependencies.interfaces';
 
+/** A provider written as a call: `provideFoo(withBar())` or `...provideFoo()`. */
+export interface ProviderCall {
+    readonly callee: string;
+    /** Callee names of the arguments that are calls (feature functions); others are dropped. */
+    readonly args: readonly string[];
+}
+
+/**
+ * The call of a `providers` array element, or undefined when the element is
+ * not a call. A spread of a call keeps the callee and no arguments.
+ */
+export const providerCallOf = (element: ts.Node): ProviderCall | undefined => {
+    if (ts.isCallExpression(element)) {
+        return {
+            callee: element.expression.getText(),
+            // Feature functions from arguments (e.g. withComponentInputBinding())
+            args: element.arguments.filter(ts.isCallExpression).map(arg => arg.expression.getText())
+        };
+    }
+    if (ts.isSpreadElement(element) && ts.isCallExpression(element.expression)) {
+        return { callee: element.expression.expression.getText(), args: [] };
+    }
+    return undefined;
+};
+
 export class ProviderDetector {
     /**
      * Extract provider function calls from an ApplicationConfig initializer.
@@ -25,23 +50,9 @@ export class ProviderDetector {
         }
 
         for (const element of arr.elements) {
-            if (ts.isCallExpression(element)) {
-                const callName = element.expression.getText();
-                const features: string[] = [];
-
-                // Extract feature functions from arguments (e.g. withComponentInputBinding())
-                for (const arg of element.arguments) {
-                    if (ts.isCallExpression(arg)) {
-                        features.push(arg.expression.getText());
-                    }
-                }
-
-                providers.push({ name: callName, features });
-            } else if (ts.isSpreadElement(element) && ts.isCallExpression(element.expression)) {
-                providers.push({
-                    name: element.expression.expression.getText(),
-                    features: []
-                });
+            const call = providerCallOf(element);
+            if (call) {
+                providers.push({ name: call.callee, features: [...call.args] });
             }
         }
         return providers;

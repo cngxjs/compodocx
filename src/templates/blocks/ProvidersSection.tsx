@@ -18,11 +18,19 @@ export const ProvidersSection = (props: { title: string; entries: any[] }): stri
         return resolved || esc(name);
     };
 
+    /** `provideFoo(withBar(…))`: the callee and each feature function linked. */
+    const callHtml = (call: { callee: string; args: readonly string[] }): string => {
+        const args = call.args.map(arg => `${nameLink(arg)}(…)`).join(', ');
+        return `${nameLink(call.callee)}(${args})`;
+    };
+
     const rows = props.entries.map((entry: any) => {
-        const nameHtml = nameLink(entry.name);
+        const nameHtml = entry.call ? callHtml(entry.call) : nameLink(entry.name);
         const parts: string[] = [];
 
-        if (entry.kind === 'class') {
+        if (entry.call) {
+            // A provider function call: no DI strategy to label.
+        } else if (entry.kind === 'class') {
             parts.push('<span class="cdx-provider-strategy">useClass</span>');
         } else if (entry.kind === 'useClass' && entry.useClass) {
             parts.push(

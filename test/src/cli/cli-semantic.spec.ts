@@ -126,6 +126,28 @@ describe('CLI semantic analysis', () => {
         expect(provider).to.contain(`href="../${rootPage('dependency-injection')}"`);
     });
 
+    it('links provider calls in a component providers array', () => {
+        const panel = fs.readFileSync(
+            path.join(htmlFolder, pageOf('component', 'SemFooPanel')),
+            'utf8'
+        );
+        expect(panel).to.contain(
+            `<a href="../${clusterPage('FooFeature')}#FooFeature--provideFooAt" target="_self" >provideFooAt</a>`
+        );
+        expect(panel).to.contain(
+            `<a href="../${clusterPage('FooFeature')}#FooFeature--withMode" target="_self" >withMode</a>`
+        );
+        expect(panel).to.contain(
+            `<a href="../${pageOf('provider', 'provideFooLimit')}" target="_self" >provideFooLimit</a>`
+        );
+
+        const component = data.components.find((c: any) => c.name === 'SemFooPanel');
+        expect(component.providers.map((p: any) => p.call)).to.deep.equal([
+            { callee: 'provideFooAt', args: ['withMode'] },
+            { callee: 'provideFooLimit', args: [] }
+        ]);
+    });
+
     it('gives a symbol that reaches no entry point no page and lists it in the log', () => {
         expect(fs.existsSync(path.join(htmlFolder, pageOf('function', 'orphanFoo')))).to.equal(
             false
