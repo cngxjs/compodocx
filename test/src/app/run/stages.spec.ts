@@ -17,7 +17,7 @@ const EMPTY: SourceCounts = {
     pipes: 0,
     classes: 0,
     interfaces: 0,
-    miscellaneous: 0,
+    utilities: 0,
     routes: false
 };
 
@@ -32,7 +32,7 @@ const EVERY_KIND: SourceCounts = {
     pipes: 1,
     classes: 1,
     interfaces: 1,
-    miscellaneous: 1,
+    utilities: 1,
     routes: true
 };
 
@@ -49,7 +49,7 @@ const ALL_KEYS = [
     'class',
     'interface',
     'appConfig',
-    'miscellaneous',
+    'utilities',
     'bucketLanding',
     'apiReference',
     'documentationCoverage',

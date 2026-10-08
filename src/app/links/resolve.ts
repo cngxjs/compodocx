@@ -1,4 +1,4 @@
-import { type Href, hrefFor, isPageKind, type MiscKind, type PageTarget } from './layout';
+import { type Href, hrefFor, isPageKind, type PageTarget, type UtilityKind } from './layout';
 import type { SymbolId } from './symbol-id';
 import {
     entryInFile,
@@ -43,7 +43,7 @@ export const hrefForName = (
     return entry && hrefFor(symbolTarget(entry, options), fromDepth, options.anchor);
 };
 
-const MISC_SUBTYPE: Readonly<Record<string, MiscKind>> = {
+const MISC_SUBTYPE: Readonly<Record<string, UtilityKind>> = {
     function: 'function',
     variable: 'variable',
     typealias: 'typealias',

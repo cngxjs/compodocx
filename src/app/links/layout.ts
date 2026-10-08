@@ -15,9 +15,10 @@ export type SymbolKind =
     | 'guard'
     | 'interceptor'
     | 'entity'
-    | MiscKind;
+    | UtilityKind;
 
-export type MiscKind = 'function' | 'variable' | 'typealias' | 'enumeration';
+/** The kinds the Utilities chapter lists. */
+export type UtilityKind = 'function' | 'variable' | 'typealias' | 'enumeration';
 
 /** Every symbol kind has a page of its own. */
 export type PageKind = SymbolKind;
@@ -39,26 +40,22 @@ export const KIND_FOLDER = {
     enumeration: 'enumerations'
 } as const satisfies Record<PageKind, string>;
 
-export const MISC_FOLDER = 'miscellaneous';
-
-export const MISC_COLLECTION = {
-    function: 'functions',
-    variable: 'variables',
-    typealias: 'typealiases',
-    enumeration: 'enumerations'
-} as const satisfies Record<MiscKind, string>;
-
 export const BUCKET_FOLDER = 'categories';
 
 /** Depth of the pages at the output root. */
 export const ROOT_DEPTH = 0;
 
-const MISC_KINDS: ReadonlySet<string> = new Set(Object.keys(MISC_COLLECTION));
+const UTILITY_KINDS: ReadonlySet<string> = new Set<UtilityKind>([
+    'function',
+    'variable',
+    'typealias',
+    'enumeration'
+]);
 
 export const isPageKind = (kind: string): kind is PageKind =>
     Object.keys(KIND_FOLDER).includes(kind);
 
-export const isMiscKind = (kind: string): kind is MiscKind => MISC_KINDS.has(kind);
+export const isUtilityKind = (kind: string): kind is UtilityKind => UTILITY_KINDS.has(kind);
 
 /** The `hrefPrefix` of a kind: its folder. */
 export const kindHrefPrefix = (kind: SymbolKind): string => KIND_FOLDER[kind];
@@ -73,7 +70,6 @@ export type PageTarget =
           /** Page name of a same-name copy (`Todo-1`); used when set. */
           readonly duplicateName?: string;
       }
-    | { readonly type: 'misc-collection'; readonly kind: MiscKind }
     /** A top-level page: index, overview, routes, coverage, app-config, references, ... */
     | { readonly type: 'root'; readonly page: string }
     | { readonly type: 'bucket'; readonly segments: readonly string[] }
@@ -132,8 +128,6 @@ export const pageLocation = (target: PageTarget): PageLocation => {
                 filename: target.duplicateName ?? target.name,
                 depth: 1
             };
-        case 'misc-collection':
-            return { path: MISC_FOLDER, filename: MISC_COLLECTION[target.kind], depth: 1 };
         case 'root':
             return { path: '', filename: target.page, depth: ROOT_DEPTH };
         case 'bucket': {

@@ -1,8 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-
 import { shell, temporaryDir } from '../helpers';
-import { collectionPage } from './paths';
+import { readKindPages } from './paths';
 
 const tmp = temporaryDir();
 const TSCONFIG = './test/fixtures/semantic-library/tsconfig.json';
@@ -78,10 +77,7 @@ describe('CLI semantic analysis', () => {
     });
 
     it('renders no semantic facts into the HTML output', () => {
-        const page = fs.readFileSync(
-            path.join(htmlFolder, `${collectionPage('function')}`),
-            'utf8'
-        );
+        const page = readKindPages(htmlFolder, 'function');
         expect(page).to.contain('provideFoo');
         expect(page).not.to.contain('usesInjectionContext');
         expect(page).not.to.contain('@sem/core/tokens');

@@ -21,7 +21,7 @@ export interface SourceCounts {
     readonly classes: number;
     readonly interfaces: number;
     /** Sum of variables, functions, type aliases and enumerations. */
-    readonly miscellaneous: number;
+    readonly utilities: number;
     /** Whether the crawler found a routes tree. */
     readonly routes: boolean;
 }
@@ -114,9 +114,9 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
     },
     { key: 'appConfig', when: always, run: step(ctx => ctx.generators.appConfig.prepare()) },
     {
-        key: 'miscellaneous',
-        when: hasAny(c => c.miscellaneous),
-        run: step(ctx => ctx.generators.miscellaneous.prepare())
+        key: 'utilities',
+        when: hasAny(c => c.utilities),
+        run: step(ctx => ctx.generators.utilities.prepare())
     },
     {
         key: 'bucketLanding',
@@ -186,7 +186,7 @@ export const countsFromEngine = (): SourceCounts => ({
     pipes: DependenciesEngine.pipes.length,
     classes: DependenciesEngine.classes.length,
     interfaces: DependenciesEngine.interfaces.length,
-    miscellaneous:
+    utilities:
         DependenciesEngine.miscellaneous.variables.length +
         DependenciesEngine.miscellaneous.functions.length +
         DependenciesEngine.miscellaneous.typealiases.length +
@@ -206,7 +206,7 @@ export const countsFromDiff = (diff: DependenciesData): SourceCounts => ({
     pipes: diff.pipes.length,
     classes: diff.classes.length,
     interfaces: diff.interfaces.length,
-    miscellaneous:
+    utilities:
         diff.miscellaneous.variables.length +
         diff.miscellaneous.functions.length +
         diff.miscellaneous.typealiases.length +

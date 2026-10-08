@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { collectionUrl, pageUrl } from './pages';
+import { pageUrl, rootUrl } from './pages';
 
 // ─── Sidebar ─────────────────────────────────────────────
 
@@ -318,31 +318,24 @@ test.describe('Token page', () => {
     });
 });
 
-// ─── Miscellaneous functions ─────────────────────────────
+// ─── Functions ───────────────────────────────────────────
 
-test.describe('Functions page', () => {
-    test('factory function badges rendered', async ({ page }) => {
-        await page.goto(collectionUrl('function'));
-        const html = await page.content();
-        expect(html).toContain('cdx-badge--factory');
-        expect(html).toContain('Provider');
-        expect(html).toContain('Feature');
-        expect(html).toContain('Inject');
-        expect(html).toContain('Factory');
-    });
-
+test.describe('Function pages', () => {
     test('signal badge on injectUserCount', async ({ page }) => {
-        await page.goto(collectionUrl('function'));
-        const html = await page.content();
-        expect(html).toContain('cdx-badge--signal');
-        expect(html).toContain('injectUserCount');
+        await page.goto(pageUrl('function', 'injectUserCount'));
+        await expect(page.locator('.cdx-entity-hero-badges .cdx-badge--signal')).toHaveCount(1);
     });
 
     test('beta badge on withCaching', async ({ page }) => {
-        await page.goto(collectionUrl('function'));
-        const html = await page.content();
-        expect(html).toContain('cdx-badge--beta');
-        expect(html).toContain('withCaching');
+        await page.goto(pageUrl('function', 'withCaching'));
+        await expect(page.locator('.cdx-entity-hero-badges .cdx-badge--beta')).toHaveCount(1);
+    });
+
+    test('the utilities page lists every function', async ({ page }) => {
+        await page.goto(rootUrl('utilities'));
+        const functions = page.locator('#functions');
+        await expect(functions).toContainText('injectUserCount');
+        await expect(functions).toContainText('withCaching');
     });
 });
 

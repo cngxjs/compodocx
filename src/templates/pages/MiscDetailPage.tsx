@@ -1,5 +1,5 @@
 import Html from '@kitajs/html';
-import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import { hrefFor, hrefText } from '../../app/links/layout';
 import { ParamsTable } from '../blocks/ParamsTable';
 import { ReferencedBySection } from '../blocks/ReferencedBySection';
 import { IconEnum, IconFile, IconFunction, IconTypealias, IconVariable } from '../components/Icons';
@@ -17,6 +17,7 @@ import {
     resolveBucketSegments,
     t
 } from '../helpers';
+import { utilityGroupAnchor } from './UtilitiesPage';
 
 export type MiscDetailKind = 'function' | 'variable' | 'typealias' | 'enumeration';
 
@@ -26,7 +27,6 @@ interface MiscDetailMeta {
     readonly badge: string;
     readonly label: string;
     readonly breadcrumb: string;
-    readonly contextKey: string;
 }
 
 const META: Record<MiscDetailKind, MiscDetailMeta> = {
@@ -35,32 +35,28 @@ const META: Record<MiscDetailKind, MiscDetailMeta> = {
         icon: IconFunction,
         badge: 'cdx-badge--entity-function',
         label: 'Function',
-        breadcrumb: 'functions',
-        contextKey: 'miscellaneous-function'
+        breadcrumb: 'functions'
     },
     variable: {
         color: 'var(--color-cdx-entity-service)',
         icon: IconVariable,
         badge: 'cdx-badge--entity-variable',
         label: 'Variable',
-        breadcrumb: 'variables',
-        contextKey: 'miscellaneous-variable'
+        breadcrumb: 'variables'
     },
     typealias: {
         color: 'var(--color-cdx-entity-typealias)',
         icon: IconTypealias,
         badge: 'cdx-badge--entity-typealias',
         label: 'Type Alias',
-        breadcrumb: 'type-aliases',
-        contextKey: 'miscellaneous-typealias'
+        breadcrumb: 'type-aliases'
     },
     enumeration: {
         color: 'var(--color-cdx-entity-enum)',
         icon: IconEnum,
         badge: 'cdx-badge--entity-enum',
         label: 'Enumeration',
-        breadcrumb: 'enumerations',
-        contextKey: 'miscellaneous-enumeration'
+        breadcrumb: 'enumerations'
     }
 };
 
@@ -366,11 +362,11 @@ const TabPanels = (tabs: MiscTab[]): string =>
 
 //  Page entry
 
+/** Link to the Utilities landing page, optionally to one group. */
+const utilitiesHref = (depth: number, anchor?: string): string =>
+    hrefText(hrefFor({ type: 'root', page: 'utilities' }, depth, anchor));
+
 export const renderMiscDetailPage = (props: MiscDetailProps): string => {
-    const custom = renderCustomTemplate(META[props.kind].contextKey, props);
-    if (custom !== null) {
-        return custom;
-    }
     const meta = META[props.kind];
     const item = props.item;
     const tabs = buildTabs(props);
@@ -401,8 +397,25 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                             return segments
                                 ? segments.map(seg => <li>{seg}</li>)
                                 : [
-                                      (<li>{t('miscellaneous')}</li>) as string,
-                                      (<li>{t(meta.breadcrumb)}</li>) as string
+                                      (
+                                          <li>
+                                              <a href={utilitiesHref(props.depth ?? 1)}>
+                                                  {t('utilities')}
+                                              </a>
+                                          </li>
+                                      ) as string,
+                                      (
+                                          <li>
+                                              <a
+                                                  href={utilitiesHref(
+                                                      props.depth ?? 1,
+                                                      utilityGroupAnchor(props.kind)
+                                                  )}
+                                              >
+                                                  {t(meta.breadcrumb)}
+                                              </a>
+                                          </li>
+                                      ) as string
                                   ].join('');
                         })()}
                         <li aria-current="page">{item.name}</li>
@@ -423,6 +436,7 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                     )}
                     {item.beta && <span class="cdx-badge cdx-badge--beta">Beta</span>}
                     {item.since && <span class="cdx-badge cdx-badge--since">v{item.since}</span>}
+                    {item.signal && <span class="cdx-badge cdx-badge--signal">Signal</span>}
                     {WcagBadge({ wcagLevel: item.wcagLevel })}
                 </div>
                 {item.deprecated && item.deprecationMessage && (

@@ -35,10 +35,6 @@ export const hrefTo = (
     opts?: PageOptions
 ): string => hrefText(hrefFor(symbolTarget(kind, name, opts), fromDepth));
 
-/** Root-relative collection anchor of a miscellaneous symbol. */
-export const miscAnchor = (kind: SymbolKind, name: string): string =>
-    hrefText(hrefFor(symbolTarget(kind, name), 0), 'bare');
-
 /** Root-relative file of a top-level page, e.g. `coverage.html`. */
 export const rootPage = (page: string): string => pagePath(pageLocation({ type: 'root', page }));
 

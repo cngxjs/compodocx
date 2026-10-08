@@ -2,56 +2,38 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
-import { type MiscKind, pageLocation } from '../links/layout';
+import { pageLocation, type UtilityKind } from '../links/layout';
 import { symbolTarget } from '../links/resolve';
 
 /** Engine object key the single-symbol page template reads, per kind. */
-const PAGE_KINDS: readonly MiscKind[] = ['function', 'variable', 'typealias', 'enumeration'];
+const PAGE_KINDS: readonly UtilityKind[] = ['function', 'variable', 'typealias', 'enumeration'];
 
-/** Path, name and depth of a collection page; its file name is its page name. */
-const collectionPage = (kind: MiscKind) => {
-    const { path, filename, depth } = pageLocation({ type: 'misc-collection', kind });
-    return { path, name: filename, depth };
-};
+const UTILITIES_PAGE = 'utilities';
 
+/** The Utilities landing page and one page per function, constant, type alias and enum. */
 export class MiscellaneousPageGenerator {
     public prepare(someMisc?): Promise<any> {
-        logger.info('Prepare miscellaneous');
+        logger.info('Prepare utilities');
         Configuration.mainData.miscellaneous = someMisc
             ? someMisc
             : DependenciesEngine.getMiscellaneous();
 
         return new Promise((resolve, _reject) => {
-            if (Configuration.mainData.miscellaneous.functions.length > 0) {
+            const misc = Configuration.mainData.miscellaneous;
+            const hasAny =
+                misc.functions.length > 0 ||
+                misc.variables.length > 0 ||
+                misc.typealiases.length > 0 ||
+                misc.enumerations.length > 0;
+            if (hasAny) {
+                const location = pageLocation({ type: 'root', page: UTILITIES_PAGE });
                 Configuration.addPage({
-                    ...collectionPage('function'),
-                    id: 'miscellaneous-functions',
-                    context: 'miscellaneous-functions',
-                    pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
-                });
-            }
-            if (Configuration.mainData.miscellaneous.variables.length > 0) {
-                Configuration.addPage({
-                    ...collectionPage('variable'),
-                    id: 'miscellaneous-variables',
-                    context: 'miscellaneous-variables',
-                    pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
-                });
-            }
-            if (Configuration.mainData.miscellaneous.typealiases.length > 0) {
-                Configuration.addPage({
-                    ...collectionPage('typealias'),
-                    id: 'miscellaneous-typealiases',
-                    context: 'miscellaneous-typealiases',
-                    pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
-                });
-            }
-            if (Configuration.mainData.miscellaneous.enumerations.length > 0) {
-                Configuration.addPage({
-                    ...collectionPage('enumeration'),
-                    id: 'miscellaneous-enumerations',
-                    context: 'miscellaneous-enumerations',
-                    pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
+                    path: location.path,
+                    name: location.filename,
+                    id: UTILITIES_PAGE,
+                    context: UTILITIES_PAGE,
+                    depth: location.depth,
+                    pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
                 });
             }
 
@@ -78,7 +60,7 @@ export class MiscellaneousPageGenerator {
                 name: `${kind}-${location.filename}`,
                 filename: location.filename,
                 id: `${kind}-${location.filename}`,
-                context: `miscellaneous-${kind}`,
+                context: kind,
                 [kind]: entry.data,
                 depth: location.depth,
                 pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL

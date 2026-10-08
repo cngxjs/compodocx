@@ -22,10 +22,6 @@ import {
     MiscTypealiasPage,
     MiscVariablePage
 } from '../../templates/pages/MiscDetailPage';
-import { MiscellaneousEnumerations } from '../../templates/pages/MiscellaneousEnumerations';
-import { MiscellaneousFunctions } from '../../templates/pages/MiscellaneousFunctions';
-import { MiscellaneousTypealiases } from '../../templates/pages/MiscellaneousTypealiases';
-import { MiscellaneousVariables } from '../../templates/pages/MiscellaneousVariables';
 import { Overview } from '../../templates/pages/Overview';
 import { PackageDependencies } from '../../templates/pages/PackageDependencies';
 import { PackageProperties } from '../../templates/pages/PackageProperties';
@@ -33,6 +29,7 @@ import { PipePage } from '../../templates/pages/PipePage';
 import { Routes } from '../../templates/pages/Routes';
 import { TokenPage } from '../../templates/pages/TokenPage';
 import { UnitTestReport } from '../../templates/pages/UnitTestReport';
+import { UtilitiesPage } from '../../templates/pages/UtilitiesPage';
 import { logger } from '../../utils/logger';
 import { loadCustomTemplates, renderCustomTemplate } from './custom-template.engine';
 import DependenciesEngine from './dependencies.engine';
@@ -59,14 +56,11 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     routes: 'routes',
     'package-dependencies': 'package-dependencies',
     'package-properties': 'package-properties',
-    'miscellaneous-functions': 'miscellaneous-functions',
-    'miscellaneous-variables': 'miscellaneous-variables',
-    'miscellaneous-typealiases': 'miscellaneous-typealiases',
-    'miscellaneous-enumerations': 'miscellaneous-enumerations',
-    'miscellaneous-function': 'miscellaneous-function',
-    'miscellaneous-variable': 'miscellaneous-variable',
-    'miscellaneous-typealias': 'miscellaneous-typealias',
-    'miscellaneous-enumeration': 'miscellaneous-enumeration',
+    utilities: 'utilities',
+    function: 'function',
+    variable: 'variable',
+    typealias: 'typealias',
+    enumeration: 'enumeration',
     coverage: 'coverage-report',
     'unit-test': 'unit-test-report',
     'additional-page': 'additional-page',
@@ -145,21 +139,15 @@ export class HtmlEngine {
             case 'pipe':
                 data.relationships = DependenciesEngine.getRelationships(data.pipe?.name);
                 return PipePage(data);
-            case 'miscellaneous-functions':
-                return MiscellaneousFunctions(data);
-            case 'miscellaneous-variables':
-                return MiscellaneousVariables(data);
-            case 'miscellaneous-typealiases':
-                return MiscellaneousTypealiases(data);
-            case 'miscellaneous-enumerations':
-                return MiscellaneousEnumerations(data);
-            case 'miscellaneous-function':
+            case 'utilities':
+                return UtilitiesPage(data);
+            case 'function':
                 return MiscFunctionPage(data);
-            case 'miscellaneous-variable':
+            case 'variable':
                 return MiscVariablePage(data);
-            case 'miscellaneous-typealias':
+            case 'typealias':
                 return MiscTypealiasPage(data);
-            case 'miscellaneous-enumeration':
+            case 'enumeration':
                 return MiscEnumerationPage(data);
             case 'component':
                 data.relationships = DependenciesEngine.getRelationships(data.component?.name);

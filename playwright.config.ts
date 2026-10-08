@@ -43,7 +43,7 @@ export default defineConfig({
         {
             name: 'chrome',
             use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/miscellaneous-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts'],
+            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts'],
         },
 
         // firefox + webkit run on a nightly cron (.github/workflows/e2e-cross-browser.yml),
@@ -52,20 +52,20 @@ export default defineConfig({
         {
             name: 'firefox',
             use: { ...devices['Desktop Firefox'] },
-            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/miscellaneous-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts'],
+            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts'],
         },
 
         {
             name: 'webkit',
             use: { ...devices['Desktop Safari'] },
-            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/miscellaneous-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts'],
+            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts'],
         },
 
         /* todomvc-ng2 fixture tests (empty states, etc.) — uses port 4001 */
         {
             name: 'todomvc',
             use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4001' },
-            testMatch: ['**/empty-states.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/miscellaneous-index.spec.ts', '**/overview-dashboard.spec.ts'],
+            testMatch: ['**/empty-states.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts'],
         },
 
         /* standalone-app fixture tests — uses port 4002. Single-version

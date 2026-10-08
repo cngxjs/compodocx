@@ -10,7 +10,7 @@ import {
     type SymbolTable
 } from '../../../src/app/links/symbol-table';
 import { buildEntityIndex } from '../../../src/utils/entity-index.util';
-import { miscAnchor, pageOf } from '../helpers/pages';
+import { pageOf } from '../helpers/pages';
 
 const item = (name: string, file: string, extra: Record<string, unknown> = {}) => ({
     name,
@@ -141,7 +141,7 @@ describe('symbol table', () => {
 
     it('entity-index reproduces buildEntityIndex: last write wins, misc last', () => {
         const index = buildEntityIndex(data as unknown as Record<string, unknown>);
-        expect(index.Foo.href).toBe(miscAnchor('typealias', 'Foo'));
+        expect(index.Foo.href).toBe(pageOf('typealias', 'Foo'));
         expect(lookupName(table, 'Foo', 'entity-index')).toBe('typealias:src/foo.type.ts#Foo');
         expect(index.SettingsService.href).toBe(
             pageOf('injectable', 'SettingsService', { duplicate: 'SettingsService-2' })

@@ -1,6 +1,6 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
 import { pageOf } from '../helpers/pages';
-import { collectionPage } from './paths';
+import { readKindPages } from './paths';
 
 const tmp = temporaryDir();
 
@@ -46,7 +46,7 @@ describe('CLI disable flags', () => {
         });
 
         it('should exclude miscellaneous function marked as @private', () => {
-            const file = read(`${distFolder}/${collectionPage('function')}`);
+            const file = readKindPages(distFolder, 'function');
             expect(file).not.to.contain('private function');
         });
     });

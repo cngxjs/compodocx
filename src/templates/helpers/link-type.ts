@@ -1,5 +1,5 @@
 import DependenciesEngine from '../../app/engines/dependencies.engine';
-import { hrefFor, hrefText, isMiscKind } from '../../app/links/layout';
+import { hrefFor, hrefText, isUtilityKind } from '../../app/links/layout';
 import { targetOfData } from '../../app/links/resolve';
 import BasicTypeUtil from '../../utils/basic-type.util';
 import ExtendsMerger from '../../utils/extends-merger.util';
@@ -34,7 +34,7 @@ export const resolveType = (name: string, indexKey?: string, depth = 1): Resolve
                 return null;
             }
             const anchor =
-                target.type === 'symbol' && isMiscKind(target.kind) ? undefined : indexKey;
+                target.type === 'symbol' && isUtilityKind(target.kind) ? undefined : indexKey;
             const href = hrefText(hrefFor(target, depth, anchor || undefined));
             return { ...resolved, href, indexKey: anchor ?? '' };
         }

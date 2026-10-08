@@ -61,14 +61,6 @@ describe('page layout contract', () => {
         );
     });
 
-    it('keeps the miscellaneous collection pages in miscellaneous/', () => {
-        expect(pageLocation({ type: 'misc-collection', kind: 'function' })).toEqual({
-            path: 'miscellaneous',
-            filename: 'functions',
-            depth: 1
-        });
-    });
-
     it('puts root pages at the output root', () => {
         expect(pageLocation({ type: 'root', page: 'app-config' })).toEqual({
             path: '',

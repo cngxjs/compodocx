@@ -1,6 +1,6 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
 import { pageOf } from '../helpers/pages';
-import { collectionPage } from './paths';
+import { readKindPages } from './paths';
 
 const tmp = temporaryDir();
 
@@ -114,22 +114,22 @@ describe('CLI ignore JSDoc tag support', () => {
         });
 
         it('Simple function ignored', () => {
-            const file = read(`${distFolder}/${collectionPage('function')}`);
+            const file = readKindPages(distFolder, 'function');
             expect(file).to.not.contain('<code>LogMethod');
         });
 
         it('Simple enum ignored', () => {
-            const file = read(`${distFolder}/${collectionPage('enumeration')}`);
+            const file = readKindPages(distFolder, 'enumeration');
             expect(file).to.not.contain('<a href="#Direction">');
         });
 
         it('Simple variable ignored', () => {
-            const file = read(`${distFolder}/${collectionPage('variable')}`);
+            const file = readKindPages(distFolder, 'variable');
             expect(file).to.not.contain('<code>PIT');
         });
 
         it('Simple type alias ignored', () => {
-            const file = read(`${distFolder}/${collectionPage('typealias')}`);
+            const file = readKindPages(distFolder, 'typealias');
             expect(file).to.not.contain('<code>ChartChange');
         });
     });

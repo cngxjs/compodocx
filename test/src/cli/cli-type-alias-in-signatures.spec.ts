@@ -1,6 +1,6 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
 import { hrefTo, pageOf } from '../helpers/pages';
-import { collectionPage } from './paths';
+import { hasKindPages, readKindPages } from './paths';
 
 const tmp = temporaryDir();
 
@@ -34,7 +34,7 @@ describe('CLI generation with type aliases in method signatures', () => {
         }
         stdoutString = ls.stdout.toString();
         typeAliasExampleClassFile = read(`${distFolder}/${pageOf('class', 'TypeAliasExample')}`);
-        typeAliasesFile = read(`${distFolder}/${collectionPage('typealias')}`);
+        typeAliasesFile = readKindPages(distFolder, 'typealias');
     });
     afterAll(() => {
         tmp.clean(tmpFolder);
@@ -45,7 +45,7 @@ describe('CLI generation with type aliases in method signatures', () => {
     });
 
     it('should have generated type aliases file', () => {
-        const isTypeAliasesExists = exists(`${distFolder}/${collectionPage('typealias')}`);
+        const isTypeAliasesExists = hasKindPages(distFolder, 'typealias');
         expect(isTypeAliasesExists).to.be.true;
     });
 

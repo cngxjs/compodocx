@@ -54,7 +54,7 @@ export interface Generators {
     readonly class: ClassPageGenerator;
     readonly interface: InterfacePageGenerator;
     readonly appConfig: AppConfigPageGenerator;
-    readonly miscellaneous: MiscellaneousPageGenerator;
+    readonly utilities: MiscellaneousPageGenerator;
     readonly bucketLanding: BucketLandingPageGenerator;
     readonly apiReference: ApiReferencePageGenerator;
     readonly coverage: CoveragePageGenerator;
@@ -82,7 +82,7 @@ export const createGenerators = (): Generators => {
         class: new ClassPageGenerator(navTabs),
         interface: new InterfacePageGenerator(navTabs),
         appConfig: new AppConfigPageGenerator(),
-        miscellaneous: new MiscellaneousPageGenerator(),
+        utilities: new MiscellaneousPageGenerator(),
         bucketLanding: new BucketLandingPageGenerator(),
         apiReference: new ApiReferencePageGenerator(),
         coverage: new CoveragePageGenerator(),

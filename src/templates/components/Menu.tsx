@@ -10,11 +10,11 @@ import {
     hrefFor,
     hrefText,
     KIND_FOLDER,
-    type MiscKind,
     pageFile,
     pageLocation,
     pagePath,
-    ROOT_DEPTH
+    ROOT_DEPTH,
+    type UtilityKind
 } from '../../app/links/layout';
 import { entryInFile } from '../../app/links/symbol-table';
 import { t } from '../helpers';
@@ -95,9 +95,96 @@ const entityHref = (prefix: string, item: any): string =>
 const rootHref = (page: string): string =>
     hrefText(hrefFor({ type: 'root', page }, ROOT_DEPTH), 'bare');
 
-/** Root-relative link to a miscellaneous collection page. */
-const collectionHref = (kind: MiscKind): string =>
-    hrefText(hrefFor({ type: 'misc-collection', kind }, ROOT_DEPTH), 'bare');
+const UTILITY_GROUPS: readonly { kind: UtilityKind; list: string; labelKey: string }[] = [
+    { kind: 'function', list: 'functions', labelKey: 'functions' },
+    { kind: 'variable', list: 'variables', labelKey: 'variables' },
+    { kind: 'typealias', list: 'typealiases', labelKey: 'type-aliases' },
+    { kind: 'enumeration', list: 'enumerations', labelKey: 'enums' }
+];
+
+/** One menu entry per symbol of a group, deduplicated by page (overloads share one). */
+const utilityItems = (items: readonly any[], kind: UtilityKind): any[] => {
+    const seen = new Set<string>();
+    return items
+        .map(item => ({ ...item, kind }))
+        .filter(item => {
+            const key = `${item.file}#${duplicateNameOf(item) ?? item.name}`;
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+};
+
+/** The Utilities chapter: a link to the landing page, then one group per kind. */
+const UtilitiesChapter = (d: any): string => {
+    const groups = UTILITY_GROUPS.map(group => ({
+        ...group,
+        items: utilityItems(d.miscellaneous[group.list] ?? [], group.kind)
+    })).filter(group => group.items.length > 0);
+    if (groups.length === 0) {
+        return '';
+    }
+    return (
+        <li class="chapter">
+            <button
+                class="simple menu-toggler"
+                type="button"
+                data-cdx-toggle="collapse"
+                data-cdx-target="#utilities-links"
+                aria-expanded={chapterOpen('utilities') ? 'true' : 'false'}
+                aria-controls="utilities-links"
+            >
+                {IconCube()}
+                <span>{t('utilities')}</span>
+                {chevron()}
+            </button>
+            <ul
+                class={`links collapse${chapterOpen('utilities') ? ' in' : ''}`}
+                id="utilities-links"
+            >
+                <li class="link">
+                    <a href={rootHref('utilities')} data-type="entity-link">
+                        {t('overview')}
+                    </a>
+                </li>
+                {groups.map(group => {
+                    const id = `utilities-group-${group.list}`;
+                    const startExpanded = !isCollapsedAll() && group.items.length <= 20;
+                    return (
+                        <li class="chapter inner" style="--depth: 0">
+                            <button
+                                class="simple menu-toggler"
+                                type="button"
+                                data-cdx-toggle="collapse"
+                                data-cdx-target={`#${id}`}
+                                aria-expanded={startExpanded ? 'true' : 'false'}
+                                aria-controls={id}
+                            >
+                                <span class="link-name">{t(group.labelKey)}</span>
+                                <span class="cdx-badge cdx-badge--count">{group.items.length}</span>
+                                {IconChevronRight('cdx-chevron')}
+                            </button>
+                            <ul class={`links collapse${startExpanded ? ' in' : ''}`} id={id}>
+                                {group.items.map(item =>
+                                    EntityLink({
+                                        href: entityHref(KIND_FOLDER[group.kind], item),
+                                        name: item.name,
+                                        deprecated: item.deprecated,
+                                        beta: item.beta,
+                                        entityType: group.kind,
+                                        description: item.description
+                                    })
+                                )}
+                            </ul>
+                        </li>
+                    );
+                })}
+            </ul>
+        </li>
+    ) as string;
+};
 
 /**
  * Kinds whose detail page renders an API tab. Used to gate the
@@ -845,56 +932,8 @@ export const Menu = (props: MenuProps): string => {
                     </>
                 )}
 
-                {/* Miscellaneous — redundant in feature mode (everything moved into References) */}
-                {d.miscellaneous && (d.menuLayout ?? 'type') !== 'feature' && (
-                    <li class="chapter">
-                        <button
-                            class="simple menu-toggler"
-                            type="button"
-                            data-cdx-toggle="collapse"
-                            data-cdx-target="#miscellaneous-links"
-                            aria-expanded={chapterOpen('miscellaneous') ? 'true' : 'false'}
-                            aria-controls="miscellaneous-links"
-                        >
-                            {IconCube()}
-                            <span>{t('miscellaneous')}</span>
-                            {chevron()}
-                        </button>
-                        <ul
-                            class={`links collapse${chapterOpen('miscellaneous') ? ' in' : ''}`}
-                            id="miscellaneous-links"
-                        >
-                            {d.miscellaneous.enumerations?.length > 0 && (
-                                <li class="link">
-                                    <a href={collectionHref('enumeration')} data-type="entity-link">
-                                        {t('enums')}
-                                    </a>
-                                </li>
-                            )}
-                            {d.miscellaneous.functions?.length > 0 && (
-                                <li class="link">
-                                    <a href={collectionHref('function')} data-type="entity-link">
-                                        {t('functions')}
-                                    </a>
-                                </li>
-                            )}
-                            {d.miscellaneous.typealiases?.length > 0 && (
-                                <li class="link">
-                                    <a href={collectionHref('typealias')} data-type="entity-link">
-                                        {t('type-aliases')}
-                                    </a>
-                                </li>
-                            )}
-                            {d.miscellaneous.variables?.length > 0 && (
-                                <li class="link">
-                                    <a href={collectionHref('variable')} data-type="entity-link">
-                                        {t('variables')}
-                                    </a>
-                                </li>
-                            )}
-                        </ul>
-                    </li>
-                )}
+                {/* Utilities: functions, constants, type aliases and enums. Feature mode lists them in References. */}
+                {d.miscellaneous && (d.menuLayout ?? 'type') !== 'feature' && UtilitiesChapter(d)}
 
                 {/* Routes */}
                 {!d.disableRoutesGraph && d.routes && (
