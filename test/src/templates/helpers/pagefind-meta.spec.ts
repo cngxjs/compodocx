@@ -252,3 +252,14 @@ describe('pagefindFilterBlock', () => {
         expect(out).not.toContain('data-pagefind-filter-wcag=');
     });
 });
+
+describe('feature type pages in search', () => {
+    it('marks a feature type page with the cluster kind and the Provider filter', () => {
+        expect(pagefindMetaBlock({ kind: 'cluster' })).toBe(
+            '<span hidden data-pagefind-meta="kind:Cluster"></span>'
+        );
+        expect(pagefindFilterBlock({ kind: 'Provider' })).toContain(
+            'data-pagefind-filter="kind:Provider"'
+        );
+    });
+});

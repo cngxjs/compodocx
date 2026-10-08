@@ -12,6 +12,7 @@ import { IconFile, IconInjectable } from '../components/Icons';
 import {
     functionSignature,
     linkTypeHtml,
+    pagefindFilterBlock,
     pagefindMetaBlock,
     parseDescription,
     t
@@ -145,8 +146,9 @@ const MemberSection = (item: any, owner: string, depth: number): string => {
     const id = memberAnchor(item.name, owner);
     const table: SymbolTable | undefined = Configuration.mainData.symbols;
     return (
-        <section class="cdx-content-section cdx-di-member" id={id}>
-            <h3 class="cdx-section-heading">
+        <section class="cdx-content-section cdx-di-member">
+            {/* The id sits on the heading: Pagefind lists each one as a sub-result. */}
+            <h3 class="cdx-section-heading" id={id}>
                 <code>{item.name}</code>
                 {DiBadges({ facts })}
                 <a class="cdx-member-permalink" href={`#${id}`}>
@@ -290,7 +292,8 @@ export const ClusterPage = (data: any): string => {
     return (
         <>
             <div class="cdx-entity-hero" style="--cdx-hero-color: var(--color-cdx-entity-function)">
-                {pagefindMetaBlock({ description: owner.description })}
+                {pagefindMetaBlock({ kind: 'cluster', description: owner.description })}
+                {pagefindFilterBlock({ kind: 'Provider' })}
                 <div class="cdx-entity-hero-watermark" aria-hidden="true">
                     {IconInjectable()}
                 </div>
