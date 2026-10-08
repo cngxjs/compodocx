@@ -1,11 +1,14 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import Configuration from '../../../../src/app/configuration';
+import { type DiView, emptyDiView } from '../../../../src/app/di/model';
 import {
     clearCustomTemplates,
     registerCustomTemplate,
     renderCustomTemplate
 } from '../../../../src/app/engines/custom-template.engine';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
+import { symbolId } from '../../../../src/app/links/symbol-id';
+import { emptySymbolTable } from '../../../../src/app/links/symbol-table';
 import { Menu } from '../../../../src/templates/components/Menu';
 import { pageOf } from '../../helpers/pages';
 
@@ -400,6 +403,31 @@ describe('Menu — feature layout', () => {
     // (Reference-kind misc walk tests removed; the surface they covered
     // now lives on the references.html portal — see the comment block
     // above and the api-reference-page-generator unit spec.)
+
+    it('drops hidden symbols and follows a rebuilt DI view over the same lists', () => {
+        const file = 'src/hidden/hidden.component.ts';
+        const components = [
+            { name: 'Shown', file: 'src/shown/shown.component.ts' },
+            { name: 'Hidden', file }
+        ];
+        const id = symbolId({ kind: 'component', file, name: 'Hidden' });
+        const hiding: DiView = {
+            ...emptyDiView(),
+            hidden: [id],
+            placement: new Map([[id, { type: 'hidden' }]])
+        };
+        const data = (di: DiView) =>
+            baseData({ components, di, symbols: emptySymbolTable() as unknown as never });
+        Configuration.mainData.toggleMenuItems = ['components'];
+
+        const first = Menu({ data: data(hiding) });
+        expect(first).to.include(`href="${pageOf('component', 'Shown')}"`);
+        expect(first).to.not.include(`href="${pageOf('component', 'Hidden')}"`);
+        expect(Menu({ data: data(hiding) })).to.equal(first);
+
+        const rebuilt = Menu({ data: data({ ...hiding, hidden: [], placement: new Map() }) });
+        expect(rebuilt).to.include(`href="${pageOf('component', 'Hidden')}"`);
+    });
 
     it('honours the menu custom-template override regardless of layout', () => {
         registerCustomTemplate(

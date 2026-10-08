@@ -674,6 +674,43 @@ const FUNCTIONAL_KINDS: ReadonlySet<string> = new Set(['guard', 'interceptor', '
 const functionalKindOf = (item: any): string | undefined =>
     FUNCTIONAL_KINDS.has(item?.functionalKind) ? item.functionalKind : undefined;
 
+const derivedLists = new WeakMap<object, WeakMap<object, unknown>>();
+
+/**
+ * `derive()` once per `source` inside `scope`. The menu renders on every page
+ * from the same run-wide lists; `scope` is an object rebuilt with every crawl
+ * (symbol table, DI view), so a watch rebuild starts fresh. Without a scope
+ * the value is derived on each call.
+ */
+const cached = <T,>(scope: object | undefined, source: unknown, derive: () => T): T => {
+    if (!scope || typeof source !== 'object' || source === null) {
+        return derive();
+    }
+    const inScope = derivedLists.get(scope) ?? new WeakMap<object, unknown>();
+    derivedLists.set(scope, inScope);
+    if (!inScope.has(source)) {
+        inScope.set(source, derive());
+    }
+    return inScope.get(source) as T;
+};
+
+const splitFunctional = (misc: any) => {
+    const all = [...(misc.functions ?? []), ...(misc.variables ?? [])];
+    const ofKind = (kind: string) => all.filter(item => functionalKindOf(item) === kind);
+    const notFunctional = (items: any[] | undefined) =>
+        items?.filter(item => functionalKindOf(item) === undefined);
+    return {
+        guards: ofKind('guard'),
+        interceptors: ofKind('interceptor'),
+        resolvers: ofKind('resolver'),
+        miscellaneous: {
+            ...misc,
+            functions: notFunctional(misc.functions),
+            variables: notFunctional(misc.variables)
+        }
+    };
+};
+
 /**
  * The menu's data with functions and constants that are guards,
  * interceptors or resolvers moved to those sections, out of Utilities.
@@ -683,20 +720,15 @@ const withFunctionalKinds = (d: any): any => {
     if (!misc) {
         return d;
     }
-    const all = [...(misc.functions ?? []), ...(misc.variables ?? [])];
-    const ofKind = (kind: string) => all.filter(item => functionalKindOf(item) === kind);
-    const notFunctional = (items: any[] | undefined) =>
-        items?.filter(item => functionalKindOf(item) === undefined);
+    const split = cached(d.symbols, misc, () => splitFunctional(misc));
+    const merged = (list: 'guards' | 'interceptors') =>
+        cached(split, d[list] ?? split[list], () => [...(d[list] ?? []), ...split[list]]);
     return {
         ...d,
-        guards: [...(d.guards ?? []), ...ofKind('guard')],
-        interceptors: [...(d.interceptors ?? []), ...ofKind('interceptor')],
-        resolvers: ofKind('resolver'),
-        miscellaneous: {
-            ...misc,
-            functions: notFunctional(misc.functions),
-            variables: notFunctional(misc.variables)
-        }
+        guards: merged('guards'),
+        interceptors: merged('interceptors'),
+        resolvers: split.resolvers,
+        miscellaneous: split.miscellaneous
     };
 };
 
@@ -708,19 +740,28 @@ const withoutHidden = (d: any): any => {
     }
     const keep = (kind: TableKind) => (item: any) => !isHiddenItem(view, kind as EntityKind, item);
     const keepOwnKind = (item: any) => !isHiddenItem(view, item.kind, item);
+    const list = (items: any[] | undefined, test: (item: any) => boolean) =>
+        items && cached(view, items, () => items.filter(test));
     const groups = (record: Record<string, any[]> | undefined, test: (item: any) => boolean) =>
         record &&
-        Object.fromEntries(Object.entries(record).map(([key, items]) => [key, items.filter(test)]));
+        cached(view, record, () =>
+            Object.fromEntries(
+                Object.entries(record).map(([key, items]) => [key, items.filter(test)])
+            )
+        );
     const copy: any = { ...d };
-    for (const [list, categorized, kind] of MENU_LISTS) {
-        copy[list] = d[list]?.filter(keep(kind));
+    for (const [name, categorized, kind] of MENU_LISTS) {
+        copy[name] = list(d[name], keep(kind));
         copy[categorized] = groups(d[categorized], keep(kind));
     }
     if (d.miscellaneous) {
-        copy.miscellaneous = { ...d.miscellaneous };
-        for (const [list, kind] of MISC_LISTS) {
-            copy.miscellaneous[list] = d.miscellaneous[list]?.filter(keep(kind));
-        }
+        copy.miscellaneous = cached(view, d.miscellaneous, () => {
+            const misc = { ...d.miscellaneous };
+            for (const [name, kind] of MISC_LISTS) {
+                misc[name] = d.miscellaneous[name]?.filter(keep(kind));
+            }
+            return misc;
+        });
     }
     copy.categorizedByFeature = groups(d.categorizedByFeature, keepOwnKind);
     copy.categorizedByFeaturePrimary = groups(d.categorizedByFeaturePrimary, keepOwnKind);
