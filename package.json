@@ -38,6 +38,7 @@
         "test:standalone-doc": "node ./bin/index-cli.js --no-multiVersion -p ./test/fixtures/standalone-app/src/tsconfig.json --includes ./test/fixtures/standalone-app/additional-doc -d /tmp/compodoc-standalone -s --port 4002 --disableSearch --toggleMenuItems components,directives,classes,injectables,interceptors,guards,pipes,interfaces,miscellaneous,additionalPages",
         "test:standalone-feature-doc": "node ./bin/index-cli.js -c ./test/fixtures/standalone-app/.compodocxrc.feature.json --no-multiVersion -p ./test/fixtures/standalone-app/src/tsconfig.json -d /tmp/compodoc-standalone-feature -s --port 4004 --disableSearch --toggleMenuItems features,miscellaneous,additionalPages",
         "test:multi-version-doc": "node ./scripts/build-multi-version-fixture.mjs",
+        "test:semantic-doc": "node ./bin/index-cli.js --no-multiVersion -p ./test/fixtures/semantic-library/tsconfig.json -d /tmp/compodoc-semantic -s --port 4005",
         "test-e2e-playwright": "npx playwright test",
         "*********QUALITY********": "*******************",
         "lint": "biome check",
