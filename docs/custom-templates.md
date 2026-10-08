@@ -60,14 +60,14 @@ These file names correspond to page contexts. Place them in `partials/` inside y
 | `unit-test-report.js` | Unit test coverage report |
 | `package-dependencies.js` | Package dependencies page |
 | `package-properties.js` | Package properties page |
-| `miscellaneous-functions.js` | Miscellaneous functions collection page |
-| `miscellaneous-variables.js` | Miscellaneous variables collection page |
-| `miscellaneous-typealiases.js` | Miscellaneous type aliases collection page |
-| `miscellaneous-enumerations.js` | Miscellaneous enumerations collection page |
-| `miscellaneous-function.js` | Per-entity detail page for an `@category`-tagged function (v0.5.0+) |
-| `miscellaneous-variable.js` | Per-entity detail page for an `@category`-tagged variable (v0.5.0+) |
-| `miscellaneous-typealias.js` | Per-entity detail page for an `@category`-tagged type alias (v0.5.0+) |
-| `miscellaneous-enumeration.js` | Per-entity detail page for an `@category`-tagged enumeration (v0.5.0+) |
+| `utilities.js` | Utilities landing page, `utilities.html`: functions, constants, type aliases and enumerations in four groups |
+| `function.js` | Function page at `functions/<name>.html`. Receives `data.function` |
+| `variable.js` | Constant page at `variables/<name>.html`. Receives `data.variable` |
+| `typealias.js` | Type alias page at `typealiases/<name>.html`. Receives `data.typealias` |
+| `enumeration.js` | Enumeration page at `enumerations/<name>.html`. Receives `data.enumeration` |
+| `resolver.js` | Functional resolver page at `resolvers/<name>.html`. Receives `data.resolver` |
+| `dependency-injection.js` | Dependency Injection landing page, `dependency-injection.html`: feature types with their providers and feature functions, other providers, tokens |
+| `di-cluster.js` | Page of a feature type at `providers/<FeatureType>.html`. Receives `data.cluster = { featureType, providers, features, tokens }`, each list holding the same entity objects the symbol pages get. Member sections use the anchor `<FeatureType>--<name>`. A provider without a feature type (`providers/<name>.html`) has no override of its own |
 | `bucket-landing.js` | Auto-generated landing page per `@category` / folder bucket at `categories/<bucket-id>.html`. Only emitted under `menuLayout: 'feature'`. Receives `data.bucketLanding = { bucket, segments, depth, items }` (v0.6.0+) |
 | `api-reference.js` | Single-page exhaustive symbol portal at `references.html`. Only emitted under `menuLayout: 'feature'`. Receives `data.categorizedByFeature` (the EXHAUSTIVE per-bucket dict, not the curated primary subset) (v0.6.0+) |
 | `app-config.js` | Application configuration page |
@@ -95,7 +95,7 @@ Block-level overrides replace a region inside a page rather than the whole page:
 | `block-index-signatures.js` | Index signatures section |
 | `block-playground.js` | Whole Playground tab panel |
 | `playground-content.js` | Single playground block (one `@playground` block) inside the Playground tab |
-| `referenced-by.js` | "Referenced by" chip list at the top of interface and `@category`-tagged misc detail pages. Receives `{ entries: { name, kind, hrefPrefix }[], depth }` (v0.6.0+) |
+| `referenced-by.js` | "Used by" chip list on symbol pages: the declarations that use the symbol, from the project analysis. Receives `{ entries: { name, kind, hrefPrefix }[], depth }` (v0.6.0+) |
 
 ## Available helpers
 
