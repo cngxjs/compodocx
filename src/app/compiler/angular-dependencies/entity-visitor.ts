@@ -75,42 +75,12 @@ export class EntityVisitor {
                     ? this.classHelper.stringifyDefaultValue(arg.initializer)
                     : undefined;
             }
-            if (arg.type) {
-                result.type = this.mapType(arg.type.kind);
-                if (arg.type.kind === SyntaxKind.TypeReference) {
-                    // try replace TypeReference with typeName
-                    if (arg.type.typeName) {
-                        result.type = arg.type.typeName.text;
-                    }
-                }
-            }
             const jsdoctags = this.jsdocParserUtil.getJSDocs(arg);
 
             if (jsdoctags && jsdoctags.length >= 1 && (jsdoctags[0] as any).tags) {
                 this.jsdocTags.checkForDeprecation((jsdoctags[0] as any).tags, result);
             }
             return result;
-        }
-    }
-
-    public mapType(type): string | undefined {
-        switch (type) {
-            case SyntaxKind.NullKeyword:
-                return 'null';
-            case SyntaxKind.AnyKeyword:
-                return 'any';
-            case SyntaxKind.BooleanKeyword:
-                return 'boolean';
-            case SyntaxKind.NeverKeyword:
-                return 'never';
-            case SyntaxKind.NumberKeyword:
-                return 'number';
-            case SyntaxKind.StringKeyword:
-                return 'string';
-            case SyntaxKind.UndefinedKeyword:
-                return 'undefined';
-            case SyntaxKind.TypeReference:
-                return 'typeReference';
         }
     }
 
