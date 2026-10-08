@@ -177,6 +177,15 @@ export const miscellaneousWithFacts = (
     return copy;
 };
 
+/** Joins the semantic facts into a symbol list; the list itself without a model. */
+export const factsJoiner =
+    (model: SemanticModel | undefined) =>
+    <T extends SymbolEntry>(
+        entries: T[] | undefined,
+        space: DeclarationSpace = 'value'
+    ): T[] | undefined =>
+        model ? mapEntries(entries, model, space) : entries;
+
 export const exportSemantic = (model: SemanticModel): ExportSemantic => ({
     entryPoints: model.entryPoints.map(entry => ({
         importPath: entry.importPath,
@@ -227,10 +236,7 @@ export class ExportJsonEngine {
         });
 
         const model: SemanticModel | undefined = data.semantic;
-        const facts = <T extends SymbolEntry>(
-            entries: T[] | undefined,
-            space: DeclarationSpace = 'value'
-        ): T[] | undefined => (model ? mapEntries(entries, model, space) : entries);
+        const facts = factsJoiner(model);
 
         exportData.pipes = facts(data.pipes);
         exportData.interfaces = facts(data.interfaces, 'type');

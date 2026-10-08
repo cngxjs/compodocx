@@ -16,6 +16,7 @@ import type {
     ExportData,
     ExportEnumeration,
     ExportFunction,
+    ExportSemanticFacts,
     ExportTypeAlias,
     ExportVariable
 } from '../app/interfaces/export-data.interface';
@@ -38,30 +39,32 @@ import type { LlmMdEmitOptions, LlmMdInput, LlmMdSnapshotMeta } from './types';
 
 const sectionHeader = (title: string): string => `## ${title}`;
 
-const renderSection = <T>(
+/** Symbols that reach no public entry point are left out of every section. */
+const documented = <T extends ExportSemanticFacts>(items: ReadonlyArray<T> | undefined): T[] =>
+    (items ?? []).filter(item => item.notExported !== true);
+
+const renderSection = <T extends ExportSemanticFacts>(
     title: string,
     items: ReadonlyArray<T> | undefined,
     emit: (item: T) => string
 ): string => {
-    if (!items || items.length === 0) {
-        return '';
-    }
-    const blocks = items.map(emit).filter(s => s.length > 0);
+    const blocks = documented(items)
+        .map(emit)
+        .filter(s => s.length > 0);
     if (blocks.length === 0) {
         return '';
     }
     return `${sectionHeader(title)}\n\n${blocks.join('\n\n')}`;
 };
 
-const renderListSection = <T>(
+const renderListSection = <T extends ExportSemanticFacts>(
     title: string,
     items: ReadonlyArray<T> | undefined,
     emit: (item: T) => string
 ): string => {
-    if (!items || items.length === 0) {
-        return '';
-    }
-    const lines = items.map(emit).filter(s => s.length > 0);
+    const lines = documented(items)
+        .map(emit)
+        .filter(s => s.length > 0);
     if (lines.length === 0) {
         return '';
     }
@@ -89,6 +92,7 @@ const buildHeader = (meta: LlmMdSnapshotMeta, options: LlmMdEmitOptions): string
  */
 export const emitLlmMd = (input: LlmMdInput): string => {
     const { meta, options, data } = input;
+    const misc = data.miscellaneous;
 
     const sections: string[] = [
         buildHeader(meta, options),
@@ -99,26 +103,17 @@ export const emitLlmMd = (input: LlmMdInput): string => {
         renderSection('Guards', data.guards, emitGuard),
         renderSection('Interceptors', data.interceptors, emitInterceptor),
         renderSection('Classes', data.classes, emitClass),
-        renderSection('Interfaces', data.interfaces, emitInterface)
+        renderSection('Interfaces', data.interfaces, emitInterface),
+        renderListSection<ExportFunction>('Public functions', misc?.functions, emitFunction),
+        renderSection('Public tokens', data.tokens, emitInjectable),
+        renderListSection<ExportTypeAlias>('Public type aliases', misc?.typealiases, emitTypeAlias),
+        renderSection<ExportEnumeration>(
+            'Public enumerations',
+            misc?.enumerations,
+            emitEnumeration
+        ),
+        renderListSection<ExportVariable>('Public variables', misc?.variables, emitVariable)
     ];
-
-    const misc = data.miscellaneous;
-    if (misc) {
-        sections.push(
-            renderListSection<ExportFunction>('Public functions', misc.functions, emitFunction),
-            renderListSection<ExportTypeAlias>(
-                'Public type aliases',
-                misc.typealiases,
-                emitTypeAlias
-            ),
-            renderSection<ExportEnumeration>(
-                'Public enumerations',
-                misc.enumerations,
-                emitEnumeration
-            ),
-            renderListSection<ExportVariable>('Public variables', misc.variables, emitVariable)
-        );
-    }
 
     return `${joinSections(sections)}\n`;
 };

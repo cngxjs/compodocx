@@ -4,9 +4,11 @@ import traverse from 'neotraverse/legacy';
 import pkg from '../../../package.json';
 import { renderLlmMd } from '../../llm-md';
 import { logger } from '../../utils/logger';
+import type { SemanticModel } from '../compiler/semantic/model';
 import Configuration from '../configuration';
 
 import { EXPORT_SCHEMA_VERSION, type ExportData } from '../interfaces/export-data.interface';
+import { factsJoiner, miscellaneousWithFacts } from './export-json.engine';
 import FileEngine from './file.engine';
 
 /**
@@ -45,15 +47,21 @@ export class ExportLlmMdEngine {
             }
         });
 
-        exportData.pipes = data.pipes;
-        exportData.interfaces = data.interfaces;
-        exportData.injectables = data.injectables;
-        exportData.guards = data.guards;
-        exportData.interceptors = data.interceptors;
-        exportData.classes = data.classes;
-        exportData.directives = data.directives;
-        exportData.components = data.components;
-        exportData.miscellaneous = data.miscellaneous;
+        // Facts carry `notExported`, which the emitter uses to leave symbols out.
+        const model: SemanticModel | undefined = data.semantic;
+        const facts = factsJoiner(model);
+        exportData.pipes = facts(data.pipes);
+        exportData.interfaces = facts(data.interfaces, 'type');
+        exportData.injectables = facts(data.injectables);
+        exportData.guards = facts(data.guards);
+        exportData.interceptors = facts(data.interceptors);
+        exportData.classes = facts(data.classes);
+        exportData.directives = facts(data.directives);
+        exportData.components = facts(data.components);
+        exportData.miscellaneous = model
+            ? miscellaneousWithFacts(data.miscellaneous, model)
+            : data.miscellaneous;
+        exportData.tokens = facts(data.tokens);
         if (!Configuration.mainData.disableRoutesGraph) {
             exportData.routes = data.routes;
         }
