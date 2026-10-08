@@ -24,8 +24,8 @@ export function unused(): void {}
 
 let edges: ReadonlyMap<string, readonly { name: string; file: string }[]>;
 
-const usersOf = (file: string, name: string): readonly string[] =>
-    (edges.get(`${file}#${name}`) ?? []).map(key => `${key.file}#${key.name}`);
+const usersOf = (file: string, name: string, space = ''): readonly string[] =>
+    (edges.get(`${space}${file}#${name}`) ?? []).map(key => `${key.file}#${key.name}`);
 
 beforeAll(() => {
     const options: ts.CompilerOptions = { noLib: true, types: [], noEmit: true };
@@ -51,7 +51,7 @@ describe('used-by edges', () => {
     });
 
     it('records a type reference', () => {
-        expect(usersOf('b.ts', 'Shape')).toEqual(['a.ts#shaped']);
+        expect(usersOf('b.ts', 'Shape', 'type:')).toEqual(['a.ts#shaped']);
     });
 
     it('records a heritage clause', () => {

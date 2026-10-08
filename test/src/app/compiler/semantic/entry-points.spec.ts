@@ -17,8 +17,8 @@ const REL = 'test/fixtures/semantic-library';
 
 let model: SemanticModel;
 
-const facts = (file: string, name: string): SymbolFacts | undefined =>
-    model.facts.get(`${REL}/${file}#${name}`);
+const facts = (file: string, name: string, space = ''): SymbolFacts | undefined =>
+    model.facts.get(`${space}${REL}/${file}#${name}`);
 
 beforeAll(() => {
     const files = fg.sync('projects/**/*.ts', { cwd: FIXTURE, absolute: true }).sort();
@@ -70,9 +70,9 @@ describe('semantic entry points', () => {
     });
 
     it('follows a named re-export through a paths alias', () => {
-        expect(facts('projects/core/tokens/src/tokens.ts', 'FooConfig')?.exportedBy).toEqual([
-            '@sem/core/tokens'
-        ]);
+        expect(
+            facts('projects/core/tokens/src/tokens.ts', 'FooConfig', 'type:')?.exportedBy
+        ).toEqual(['@sem/core/tokens']);
         expect(facts('projects/ui/src/button/button.ts', 'SemButton')?.entryPoint).toBe('@sem/ui');
     });
 

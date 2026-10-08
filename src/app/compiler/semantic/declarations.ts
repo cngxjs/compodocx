@@ -2,7 +2,7 @@ import * as path from 'node:path';
 
 import { ts } from 'ts-morph';
 
-import type { SymbolKey } from './model';
+import type { DeclarationSpace, SymbolKey } from './model';
 
 /** A named top-level declaration of a root file. */
 export interface Declaration {
@@ -94,9 +94,12 @@ const fromStatement = (
     if (ts.isFunctionDeclaration(statement) && !statement.body) {
         return [];
     }
+    const isType = ts.isInterfaceDeclaration(statement) || ts.isTypeAliasDeclaration(statement);
     return [
         {
-            key: { name: statement.name.text, file },
+            key: isType
+                ? { name: statement.name.text, file, space: 'type' }
+                : { name: statement.name.text, file },
             node: statement,
             symbol: checker.getSymbolAtLocation(statement.name),
             exported: hasExportKeyword(statement),
@@ -116,6 +119,41 @@ export const collectDeclarations = (
         const file = relativeFile(cwd, sourceFile.fileName);
         return sourceFile.statements.flatMap(statement => fromStatement(statement, file, checker));
     });
+
+const spaceOf = (declaration: Declaration): DeclarationSpace => declaration.key.space ?? 'value';
+
+/**
+ * Declarations by their merged symbol. A const and a type of one name share
+ * a symbol; each keeps its own slot, the first declaration per space wins.
+ */
+export type DeclarationsBySymbol = ReadonlyMap<
+    ts.Symbol,
+    Partial<Record<DeclarationSpace, Declaration>>
+>;
+
+export const declarationsBySymbol = (
+    declarations: readonly Declaration[]
+): DeclarationsBySymbol => {
+    const bySymbol = new Map<ts.Symbol, Partial<Record<DeclarationSpace, Declaration>>>();
+    for (const declaration of declarations) {
+        if (!declaration.symbol) {
+            continue;
+        }
+        const slots = bySymbol.get(declaration.symbol) ?? {};
+        const space = spaceOf(declaration);
+        if (!slots[space]) {
+            slots[space] = declaration;
+        }
+        bySymbol.set(declaration.symbol, slots);
+    }
+    return bySymbol;
+};
+
+/** The declaration of `space`, or the other one when the symbol has only one. */
+export const declarationIn = (
+    slots: Partial<Record<DeclarationSpace, Declaration>> | undefined,
+    space: DeclarationSpace
+): Declaration | undefined => slots?.[space] ?? slots?.[space === 'type' ? 'value' : 'type'];
 
 /** Follow an import/export alias to the declared symbol. */
 export const resolveAlias = (

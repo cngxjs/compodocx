@@ -3,7 +3,11 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { SemanticModel, SymbolFacts } from '../../../src/app/compiler/semantic/model';
+import {
+    factKey,
+    type SemanticModel,
+    type SymbolFacts
+} from '../../../src/app/compiler/semantic/model';
 import {
     miscellaneousWithFacts,
     withSemanticFacts
@@ -244,7 +248,7 @@ describe('export-json semantic facts', () => {
     });
     const model = (entries: SymbolFacts[]): SemanticModel => ({
         entryPoints: [],
-        facts: new Map(entries.map(f => [`${f.key.file}#${f.key.name}`, f])),
+        facts: new Map(entries.map(f => [factKey(f.key), f])),
         summary: {
             entryPoints: 0,
             providers: 0,
@@ -303,5 +307,19 @@ describe('export-json semantic facts', () => {
         ) as { functions: object[]; groupedFunctions: Record<string, object[]> };
         expect(misc.functions[0]).toEqual({ ...entry, notExported: true });
         expect(misc.groupedFunctions['src/foo.ts'][0]).toEqual({ ...entry, notExported: true });
+    });
+
+    it('joins a const and a type of one name to their own facts by list kind', () => {
+        const pair = { name: 'Mode', file: 'src/mode.ts' };
+        const both = model([
+            facts({ key: pair, usedBy: [{ name: 'value', file: 'src/a.ts' }] }),
+            facts({ key: { ...pair, space: 'type' }, usedBy: [{ name: 'type', file: 'src/a.ts' }] })
+        ]);
+        const misc = miscellaneousWithFacts({ variables: [pair], typealiases: [pair] }, both) as {
+            variables: { usedBy: object[] }[];
+            typealiases: { usedBy: object[] }[];
+        };
+        expect(misc.variables[0].usedBy).toEqual([{ name: 'value', file: 'src/a.ts' }]);
+        expect(misc.typealiases[0].usedBy).toEqual([{ name: 'type', file: 'src/a.ts' }]);
     });
 });

@@ -49,8 +49,13 @@ export const parseSymbolId = (id: string): Result<SymbolRef> => {
     return ok({ kind, file: id.slice(colon + 1, hash), name: id.slice(hash + 1) });
 };
 
-/** The semantic stage's key (file + name) for joining its facts. */
-export const toSymbolKey = (ref: SymbolRef): SymbolKey => ({ name: ref.name, file: ref.file });
+const TYPE_SPACE_KINDS: ReadonlySet<EntityKind> = new Set<EntityKind>(['interface', 'typealias']);
+
+/** The semantic stage's key (file, name, declaration space) for joining its facts. */
+export const toSymbolKey = (ref: SymbolRef): SymbolKey =>
+    TYPE_SPACE_KINDS.has(ref.kind)
+        ? { name: ref.name, file: ref.file, space: 'type' }
+        : { name: ref.name, file: ref.file };
 
 /**
  * The id form of a source file: relative to `cwd`, forward slashes. Accepts
