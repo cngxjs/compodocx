@@ -429,6 +429,41 @@ describe('Menu — feature layout', () => {
         expect(rebuilt).to.include(`href="${pageOf('component', 'Hidden')}"`);
     });
 
+    it('reuses the Features chapter within a run and follows collapsedAll and a new crawl', () => {
+        const primary = {
+            toast: [
+                {
+                    kind: 'component',
+                    hrefPrefix: 'components',
+                    name: 'CngxToast',
+                    file: 'src/toast/toast.component.ts'
+                }
+            ]
+        };
+        const data = (symbols: object) =>
+            baseData({
+                menuLayout: 'feature',
+                categorizedByFeaturePrimary: primary,
+                symbols: symbols as never
+            });
+        const run = emptySymbolTable();
+
+        const open = Menu({ data: data(run) });
+        expect(open).to.include(`href="${pageOf('component', 'CngxToast')}"`);
+        expect(open).to.include('class="links collapse in" id="features-links"');
+        expect(Menu({ data: data(run) })).to.equal(open);
+
+        Configuration.mainData.collapsedAll = true;
+        expect(Menu({ data: data(run) })).to.include('class="links collapse" id="features-links"');
+        Configuration.mainData.collapsedAll = false;
+
+        primary.toast[0].name = 'CngxToaster';
+        expect(Menu({ data: data(run) })).to.equal(open);
+        expect(Menu({ data: data(emptySymbolTable()) })).to.include(
+            `href="${pageOf('component', 'CngxToaster')}"`
+        );
+    });
+
     it('honours the menu custom-template override regardless of layout', () => {
         registerCustomTemplate(
             'menu',

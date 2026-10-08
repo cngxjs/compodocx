@@ -498,13 +498,38 @@ const FeatureGroupTree = (props: {
  * ("Features") and Reference chapters — `chapterKey` drives the id prefix,
  * collapse state, and label.
  */
-const FeatureSection = (props: {
+type FeatureSectionProps = {
     groups?: Record<string, EntityWithKind[]>;
     groupDepth: number;
     chapterKey: 'features' | 'references';
     label: string;
     defaultTab?: 'api';
-}): string => {
+};
+
+/**
+ * The section's HTML does not depend on the page (root-relative links, no
+ * active state), so it renders once per run for the same groups and options.
+ */
+const CachedFeatureSection = (props: FeatureSectionProps, scope: object | undefined): string => {
+    const byOptions = cached(scope, props.groups, () => new Map<string, string>());
+    const key = JSON.stringify([
+        props.groupDepth,
+        props.chapterKey,
+        props.label,
+        props.defaultTab,
+        isCollapsedAll(),
+        chapterOpen(props.chapterKey)
+    ]);
+    const known = byOptions.get(key);
+    if (known !== undefined) {
+        return known;
+    }
+    const html = FeatureSection(props);
+    byOptions.set(key, html);
+    return html;
+};
+
+const FeatureSection = (props: FeatureSectionProps): string => {
     const groups = props.groups ?? {};
     const keys = Object.keys(groups);
     if (keys.length === 0) {
@@ -917,12 +942,15 @@ export const Menu = (props: MenuProps): string => {
                     tree). That keeps the sidebar scannable and matches angular.dev/api. */}
                 {(d.menuLayout ?? 'type') === 'feature' ? (
                     <>
-                        {FeatureSection({
-                            groups: d.categorizedByFeaturePrimary,
-                            groupDepth: d.groupDepth,
-                            chapterKey: 'features',
-                            label: d.featuresName || t('features')
-                        })}
+                        {CachedFeatureSection(
+                            {
+                                groups: d.categorizedByFeaturePrimary,
+                                groupDepth: d.groupDepth,
+                                chapterKey: 'features',
+                                label: d.featuresName || t('features')
+                            },
+                            d.symbols
+                        )}
                         {Object.keys(d.categorizedByFeature ?? {}).length > 0 && (
                             <li class="chapter references">
                                 <a
