@@ -3,6 +3,7 @@ import {
     hrefFor,
     hrefText,
     kindOfPath,
+    memberAnchor,
     type PageTarget,
     pageLocation,
     relativePrefix
@@ -141,5 +142,18 @@ describe('page layout contract', () => {
         expect(kindOfPath('../classes/Foo.html')).toBe('class');
         expect(kindOfPath('./entities/Foo.html')).toBe('entity');
         expect(kindOfPath('miscellaneous/functions.html')).toBeUndefined();
+    });
+
+    it('builds member anchors that are valid ids', () => {
+        expect(memberAnchor('label')).toBe('label');
+        expect(memberAnchor('$implicit')).toBe('$implicit');
+        expect(memberAnchor('items$')).toBe('items$');
+        expect(memberAnchor('#clicked')).toBe('clicked');
+        expect(memberAnchor('Unnamed function')).toBe('Unnamed-function');
+        expect(memberAnchor('provideFoo', 'FooFeature')).toBe('FooFeature--provideFoo');
+        expect(memberAnchor('style.cursor')).toBe('style.cursor');
+        expect(memberAnchor('window:resize')).toBe('window:resize');
+        expect(memberAnchor('a b<c>', 'Owner')).toBe('Owner--a-b-c-');
+        expect(memberAnchor(undefined)).toBeUndefined();
     });
 });

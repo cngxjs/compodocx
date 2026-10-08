@@ -827,7 +827,7 @@ describe('CLI simple generation - big app', () => {
 
     it('should support ECMAScript Private Fields and methods', () => {
         const file = read(`${distFolder}/${pageOf('class', 'Todo')}`);
-        expect(file).to.contain('id="#newprivateproperty"');
+        expect(file).to.contain('id="newprivateproperty"');
         expect(file).to.contain('Another private property');
     });
 

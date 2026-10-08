@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { memberAnchor } from '../../app/links/layout';
 import { shortPath, t } from '../helpers';
 
 type MiscItem = {
@@ -53,7 +54,7 @@ export const IndexMisc = (props: IndexMiscProps): string => {
                 <div class="cdx-index-entries">
                     {sorted.map(item => (
                         <a
-                            href={`#${item.name}`}
+                            href={`#${memberAnchor(item.name)}`}
                             class={`cdx-index-entry${item.deprecated ? ' cdx-index-entry--deprecated' : ''}`}
                             title={shortPath(item.file)}
                             data-cdx-misc-name={item.name.toLowerCase()}

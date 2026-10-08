@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import { memberAnchor } from '../../app/links/layout';
 import { codeWrap, parseDescription, t } from '../helpers';
 
 type EnumChild = {
@@ -35,13 +36,13 @@ export const BlockEnum = (props: BlockEnumProps): string => {
                 }
                 const members = e.childs ?? [];
                 return (
-                    <div class={cls.join(' ')} id={e.name}>
+                    <div class={cls.join(' ')} id={memberAnchor(e.name)}>
                         <div class="cdx-io-member-title">
                             <span
                                 class={`cdx-io-member-name${e.deprecated ? ' cdx-member-name--deprecated' : ''}`}
                             >
                                 {e.name}
-                                <a class="cdx-member-permalink" href={`#${e.name}`}>
+                                <a class="cdx-member-permalink" href={`#${memberAnchor(e.name)}`}>
                                     #
                                 </a>
                             </span>

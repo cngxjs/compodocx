@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import { memberAnchor } from '../../app/links/layout';
 import {
     highlightedCodeWrap,
     isTabEnabled,
@@ -40,13 +41,13 @@ export const BlockInput = (props: BlockInputProps): string => {
                     cls.push('cdx-io-member--deprecated');
                 }
                 return (
-                    <div class={cls.join(' ')} id={inp.name}>
+                    <div class={cls.join(' ')} id={memberAnchor(inp.name)}>
                         <div class="cdx-io-member-title">
                             <span
                                 class={`cdx-io-member-name${inp.deprecated ? ' cdx-member-name--deprecated' : ''}`}
                             >
                                 {inp.name}
-                                <a class="cdx-member-permalink" href={`#${inp.name}`}>
+                                <a class="cdx-member-permalink" href={`#${memberAnchor(inp.name)}`}>
                                     #
                                 </a>
                             </span>

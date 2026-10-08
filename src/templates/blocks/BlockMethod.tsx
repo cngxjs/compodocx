@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import { memberAnchor } from '../../app/links/layout';
 import {
     functionSignature,
     hasJsdocParams,
@@ -47,13 +48,13 @@ export const BlockMethod = (props: BlockMethodProps): string => {
                     cls.push('cdx-io-member--deprecated');
                 }
                 return (
-                    <div class={cls.join(' ')} id={m.name}>
+                    <div class={cls.join(' ')} id={memberAnchor(m.name)}>
                         <div class="cdx-io-member-title">
                             <span
                                 class={`cdx-io-member-name${m.deprecated ? ' cdx-member-name--deprecated' : ''}`}
                             >
                                 {m.name}
-                                <a class="cdx-member-permalink" href={`#${m.name}`}>
+                                <a class="cdx-member-permalink" href={`#${memberAnchor(m.name)}`}>
                                     #
                                 </a>
                             </span>

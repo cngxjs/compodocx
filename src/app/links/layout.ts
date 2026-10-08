@@ -197,10 +197,28 @@ export const hrefFor = (target: PageTarget, fromDepth: number, anchor?: string):
     const isAnchored = target.type === 'symbol' && !symbolLocation(target);
     return {
         path: pagePath(pageLocation(target)),
-        anchor: isAnchored ? target.name : anchor,
+        anchor: isAnchored ? memberAnchor(target.name) : anchor,
         fromDepth
     };
 };
+
+const safeAnchorPart = (text: string): string =>
+    text.replaceAll('#', '').replace(/[^A-Za-z0-9_$.:-]/g, '-');
+
+/**
+ * The element id of a member section: the member name with `#` dropped and
+ * any other character outside `[A-Za-z0-9_$.:-]` replaced by `-`. A page that
+ * documents several symbols namespaces it with the owner (`<owner>--<member>`).
+ * A member without a name (call signature) has no id.
+ */
+export function memberAnchor(member: string, owner?: string): string;
+export function memberAnchor(member: string | undefined, owner?: string): string | undefined;
+export function memberAnchor(member: string | undefined, owner?: string): string | undefined {
+    if (typeof member !== 'string') {
+        return undefined;
+    }
+    return owner ? `${safeAnchorPart(owner)}--${safeAnchorPart(member)}` : safeAnchorPart(member);
+}
 
 /** The `href` string: prefix, path and `#anchor`. */
 export const hrefText = (href: Href, style: PrefixStyle = 'relative'): string =>

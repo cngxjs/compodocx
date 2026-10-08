@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import { memberAnchor } from '../../app/links/layout';
 import { t } from '../helpers';
 
 type IndexItem = {
@@ -60,7 +61,7 @@ const IndexGroup = (props: { title: string; items: IndexItem[]; kind: IndicatorK
             <div class="cdx-index-entries">
                 {props.items.map(item => (
                     <a
-                        href={`#${item.name}`}
+                        href={`#${memberAnchor(item.name)}`}
                         class={`cdx-index-entry${item.deprecated ? ' cdx-index-entry--deprecated' : ''}`}
                     >
                         <span
@@ -152,7 +153,7 @@ export const BlockIndex = (props: BlockIndexProps): string => {
                                 );
                                 return (
                                     <a
-                                        href={`#${key}`}
+                                        href={`#${memberAnchor(key)}`}
                                         class={`cdx-index-entry${isDeprecated ? ' cdx-index-entry--deprecated' : ''}`}
                                     >
                                         <span
