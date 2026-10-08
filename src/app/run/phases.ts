@@ -7,6 +7,7 @@ import { logger } from '../../utils/logger';
 import RouterParserUtil from '../../utils/router-parser.util';
 import { formatLegacyNotice } from '../compiler/legacy-scan';
 import { analyzeProject, formatSemanticSummary } from '../compiler/semantic';
+import { buildDiView } from '../di';
 import DependenciesEngine from '../engines/dependencies.engine';
 import ExportEngine from '../engines/export.engine';
 import FileEngine from '../engines/file.engine';
@@ -221,11 +222,13 @@ const withSemantic = (ctx: RunContext): RunContext => {
     return { ...ctx, semantic: analyzed.value };
 };
 
-/** Index the engine's symbols once it holds the current crawl. */
+/** Index the engine's symbols once it holds the current crawl, then place them. */
 const withSymbols = (ctx: RunContext): RunContext => {
     const symbols = buildSymbolTable(DependenciesEngine, { semantic: ctx.semantic?.model, cwd });
+    const di = buildDiView(symbols, ctx.semantic?.model);
     ctx.config.mainData.symbols = symbols;
-    return { ...ctx, symbols };
+    ctx.config.mainData.di = di;
+    return { ...ctx, symbols, di };
 };
 
 /** The crawler parses nothing the semantic program already holds. */

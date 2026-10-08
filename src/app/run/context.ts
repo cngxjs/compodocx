@@ -1,6 +1,7 @@
 import type { Result } from '../../lib';
 import type { SemanticState } from '../compiler/semantic';
 import type Configuration from '../configuration';
+import type { DiView } from '../di';
 import type { SymbolTable } from '../links';
 import {
     AdditionalPageGenerator,
@@ -115,6 +116,8 @@ export interface RunContext {
     readonly semantic?: SemanticState;
     /** Every documented symbol by id. Built by the crawl phases. */
     readonly symbols?: SymbolTable;
+    /** Where providers, feature functions and tokens are documented. Built with the table. */
+    readonly di?: DiView;
     /**
      * Watch rebuilds only: called once the output phase has started writing
      * HTML, so the watcher can reset its changed-file buffer.

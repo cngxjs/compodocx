@@ -1,0 +1,139 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+    type DiFacts,
+    emptyModel,
+    factKey,
+    type SemanticModel,
+    type SymbolFacts,
+    type SymbolKey
+} from '../../../../src/app/compiler/semantic/model';
+import { buildDiView, placementOf } from '../../../../src/app/di';
+import { buildSymbolTable, type EngineData, type SymbolId } from '../../../../src/app/links';
+
+const F = 'lib/foo.ts';
+const T = 'lib/tokens.ts';
+const key = (name: string, file = F): SymbolKey => ({ name, file });
+const typeKey = (name: string, file = F): SymbolKey => ({ name, file, space: 'type' });
+const id = (kind: string, name: string, file = F) => `${kind}:${file}#${name}` as SymbolId;
+
+const facts = (k: SymbolKey, extra: Partial<SymbolFacts> = {}): SymbolFacts => ({
+    key: k,
+    exportedBy: ['@lib/foo'],
+    notExported: false,
+    usedBy: [],
+    ...extra
+});
+const di = (extra: Partial<DiFacts>): DiFacts => ({
+    providesTokens: [],
+    readsTokens: [],
+    ...extra
+});
+
+const model = (entries: readonly SymbolFacts[]): SemanticModel => ({
+    ...emptyModel(),
+    facts: new Map(entries.map(f => [factKey(f.key), f]))
+});
+
+// sl-shaped: FooFeature with provideFoo + provideFooAt (arrow const), feature withMode,
+// plain provideFooLimit, a token, an unexported helper.
+const ENGINE: EngineData = {
+    interfaces: [{ name: 'FooFeature', file: F }],
+    tokens: [
+        { name: 'FOO_CONFIG', file: T },
+        { name: 'FOO_LIMIT', file: T }
+    ],
+    miscellaneous: {
+        functions: [
+            { name: 'provideFoo', file: F },
+            { name: 'withMode', file: F },
+            { name: 'provideFooLimit', file: F },
+            { name: 'orphan', file: F },
+            { name: 'helper', file: F }
+        ],
+        variables: [{ name: 'provideFooAt', file: F }]
+    }
+};
+
+const FACTS = [
+    facts(typeKey('FooFeature')),
+    facts(key('FOO_CONFIG', T)),
+    facts(key('FOO_LIMIT', T)),
+    facts(key('provideFoo'), {
+        di: di({
+            role: 'provider',
+            featureType: typeKey('FooFeature'),
+            providesTokens: [key('FOO_CONFIG', T), key('FOO_LIMIT', T)]
+        })
+    }),
+    facts(key('provideFooAt'), {
+        di: di({
+            role: 'provider',
+            featureType: typeKey('FooFeature'),
+            providesTokens: [key('FOO_CONFIG', T)]
+        })
+    }),
+    facts(key('withMode'), { di: di({ role: 'feature', featureType: typeKey('FooFeature') }) }),
+    facts(key('provideFooLimit'), { di: di({ role: 'provider' }) }),
+    facts(key('orphan'), { notExported: true, exportedBy: [] }),
+    facts(key('helper'))
+];
+
+const table = buildSymbolTable(ENGINE, { cwd: '/' });
+const view = buildDiView(table, model(FACTS));
+
+describe('dependency injection view', () => {
+    it('groups providers and feature functions under their feature type', () => {
+        expect(view.clusters).toHaveLength(1);
+        expect(view.clusters[0].owner).toBe(id('interface', 'FooFeature'));
+        expect(view.clusters[0].features).toEqual([id('function', 'withMode')]);
+    });
+
+    it('puts provideX and provideXAt in one cluster, arrow consts included', () => {
+        expect(view.clusters[0].providers).toEqual([
+            id('function', 'provideFoo'),
+            id('variable', 'provideFooAt')
+        ]);
+        expect(placementOf(view, id('variable', 'provideFooAt'))).toEqual({
+            type: 'cluster',
+            owner: id('interface', 'FooFeature')
+        });
+    });
+
+    it('gives a provider without a feature type its own provider page', () => {
+        expect(view.plainProviders).toEqual([id('function', 'provideFooLimit')]);
+        expect(placementOf(view, id('function', 'provideFooLimit'))).toEqual({ type: 'provider' });
+    });
+
+    it('places the feature type as the cluster page', () => {
+        expect(placementOf(view, id('interface', 'FooFeature'))).toEqual({
+            type: 'cluster-owner'
+        });
+    });
+
+    it('dedupes the tokens the providers of a cluster provide', () => {
+        expect(view.clusters[0].tokens).toEqual([
+            id('token', 'FOO_CONFIG', T),
+            id('token', 'FOO_LIMIT', T)
+        ]);
+        expect(view.tokens).toEqual(view.clusters[0].tokens);
+    });
+
+    it('hides symbols that reach no entry point', () => {
+        expect(view.hidden).toEqual([id('function', 'orphan')]);
+        expect(placementOf(view, id('function', 'orphan'))).toEqual({ type: 'hidden' });
+    });
+
+    it('leaves every other symbol on its own page', () => {
+        expect(placementOf(view, id('function', 'helper'))).toEqual({ type: 'own' });
+        expect(view.placement.has(id('function', 'helper'))).toBe(false);
+    });
+
+    it('is empty without the semantic stage', () => {
+        const empty = buildDiView(table, undefined);
+        expect(empty.clusters).toEqual([]);
+        expect(empty.hidden).toEqual([]);
+        expect(empty.placement.size).toBe(0);
+        expect(placementOf(empty, id('function', 'provideFoo'))).toEqual({ type: 'own' });
+    });
+});
