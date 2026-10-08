@@ -21,6 +21,7 @@ export const PAGE_LEVEL_OVERRIDES: readonly string[] = [
     'class',
     'component',
     'coverage-report',
+    'di-cluster',
     'directive',
     'entity',
     'enumeration',

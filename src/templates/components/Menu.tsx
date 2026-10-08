@@ -1,6 +1,6 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
-import { type DiView, isHiddenItem } from '../../app/di/model';
+import { type DiView, hasOwnPage, isHiddenItem } from '../../app/di/model';
 import {
     buildGroupTree,
     type EntityKind,
@@ -10,6 +10,7 @@ import {
 import {
     hrefFor,
     hrefText,
+    isPageKind,
     KIND_FOLDER,
     pageFile,
     pageLocation,
@@ -17,6 +18,7 @@ import {
     ROOT_DEPTH,
     type UtilityKind
 } from '../../app/links/layout';
+import { placeTarget } from '../../app/links/resolve';
 import type { TableKind } from '../../app/links/symbol-id';
 import { entryInFile } from '../../app/links/symbol-table';
 import { t } from '../helpers';
@@ -218,8 +220,20 @@ const KINDS_WITH_API_TAB: ReadonlySet<EntityKind> = new Set<EntityKind>([
  * existing href carries no fragment (anchor-style miscellaneous URLs
  * already encode the target row — never stack `#api` on top of `#name`).
  */
+/** A feature-folder entry may live on a provider or cluster page; link it there. */
+const placedEntityHref = (prefix: string, item: any): string => {
+    const kind = isPageKind(item.kind) ? item.kind : undefined;
+    const link =
+        kind &&
+        placeTarget({ type: 'symbol', kind, name: item.name }, item, Configuration.mainData);
+    const moved = link && (link.target.type !== 'symbol' || link.target.kind !== kind);
+    return moved
+        ? hrefText(hrefFor(link.target, ROOT_DEPTH, link.anchor), 'bare')
+        : entityHref(prefix, item);
+};
+
 const featureLinkHref = (prefix: string, item: any, defaultTab: 'api' | undefined): string => {
-    const base = entityHref(prefix, item);
+    const base = placedEntityHref(prefix, item);
     if (defaultTab === 'api' && KINDS_WITH_API_TAB.has(item.kind) && !base.includes('#')) {
         return `${base}#api`;
     }
@@ -741,13 +755,17 @@ const withFunctionalKinds = (d: any): any => {
     };
 };
 
-/** The menu's data without the symbols that get no page. */
+/**
+ * The menu's data without the symbols that get no page in their kind's
+ * list (hidden, or documented on a provider or cluster page). Feature
+ * folders keep the moved ones; their links follow the placement.
+ */
 const withoutHidden = (d: any): any => {
     const view: DiView | undefined = d.di;
-    if (!view || view.hidden.length === 0) {
+    if (!view || view.placement.size === 0) {
         return d;
     }
-    const keep = (kind: TableKind) => (item: any) => !isHiddenItem(view, kind as EntityKind, item);
+    const keep = (kind: TableKind) => (item: any) => hasOwnPage(view, kind as EntityKind, item);
     const keepOwnKind = (item: any) => !isHiddenItem(view, item.kind, item);
     const list = (items: any[] | undefined, test: (item: any) => boolean) =>
         items && cached(view, items, () => items.filter(test));

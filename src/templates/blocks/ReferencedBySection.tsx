@@ -8,11 +8,16 @@ export interface ReferencedByEntry {
     readonly name: string;
     readonly kind: string;
     readonly hrefPrefix: string;
+    /** File name of the page when it is not `name` (a cluster page). */
+    readonly pageName?: string;
+    /** Section on the page (a member of a cluster page). */
+    readonly anchor?: string;
 }
 
 /** The `<a>` href of a backlink; depth is supplied by the page. */
 function referencedByHref(entry: ReferencedByEntry, depth: number): string {
-    return `${relativePrefix(Math.max(depth, 0), 'bare')}${pageFile(entry.hrefPrefix, entry.name)}`;
+    const page = pageFile(entry.hrefPrefix, entry.pageName ?? entry.name);
+    return `${relativePrefix(Math.max(depth, 0), 'bare')}${page}${entry.anchor ? `#${entry.anchor}` : ''}`;
 }
 
 /**

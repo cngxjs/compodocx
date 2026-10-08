@@ -1,6 +1,6 @@
 import Html from '@kitajs/html';
 import type { SemanticModel } from '../../app/compiler/semantic/model';
-import { type DiView, isHidden } from '../../app/di/model';
+import { type DiView, placementOf } from '../../app/di/model';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { hrefFor, hrefText, KIND_FOLDER, type UtilityKind } from '../../app/links/layout';
 import { symbolTarget } from '../../app/links/resolve';
@@ -39,7 +39,7 @@ const entriesOf = (
     kind: UtilityKind
 ): SymbolEntry[] =>
     [...(table?.byId.values() ?? [])]
-        .filter(entry => entry.ref.kind === kind && !isHidden(view, entry.id))
+        .filter(entry => entry.ref.kind === kind && placementOf(view, entry.id).type === 'own')
         .sort((a, b) => a.ref.name.localeCompare(b.ref.name));
 
 const Row = (entry: SymbolEntry, depth: number, semantic: SemanticModel | undefined): string => {

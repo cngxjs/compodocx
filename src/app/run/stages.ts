@@ -92,6 +92,14 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
     },
     { key: 'token', when: hasAny(c => c.tokens), run: step(ctx => ctx.generators.token.prepare()) },
     {
+        key: 'diCluster',
+        when: ctx => {
+            const view = ctx.config.mainData.di;
+            return (view?.clusters.length ?? 0) + (view?.plainProviders.length ?? 0) > 0;
+        },
+        run: step(ctx => ctx.generators.diPages.prepare())
+    },
+    {
         key: 'interceptor',
         when: hasAny(c => c.interceptors),
         run: step(ctx => ctx.generators.interceptor.prepare())

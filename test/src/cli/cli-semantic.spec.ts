@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { shell, temporaryDir } from '../helpers';
-import { pageOf } from '../helpers/pages';
+import { clusterPage, pageOf } from '../helpers/pages';
 import { readKindPages } from './paths';
 
 const tmp = temporaryDir();
@@ -78,10 +78,34 @@ describe('CLI semantic analysis', () => {
     });
 
     it('renders no semantic facts into the HTML output', () => {
-        const page = readKindPages(htmlFolder, 'function');
+        const page = [
+            readKindPages(htmlFolder, 'function'),
+            fs.readFileSync(path.join(htmlFolder, clusterPage('FooFeature')), 'utf8')
+        ].join('\n');
         expect(page).to.contain('provideFoo');
         expect(page).not.to.contain('usesInjectionContext');
         expect(page).not.to.contain('@sem/core/tokens');
+    });
+
+    it('documents providers and features on one page per feature type', () => {
+        const exists = (file: string) => fs.existsSync(path.join(htmlFolder, file));
+        expect(exists(clusterPage('FooFeature'))).to.equal(true);
+        expect(exists(pageOf('provider', 'provideFooLimit'))).to.equal(true);
+        for (const moved of ['provideFoo', 'withMode', 'provideFooLimit']) {
+            expect(exists(pageOf('function', moved)), moved).to.equal(false);
+        }
+        expect(exists(pageOf('variable', 'provideFooAt'))).to.equal(false);
+        expect(exists(pageOf('interface', 'FooFeature'))).to.equal(false);
+
+        const cluster = fs.readFileSync(path.join(htmlFolder, clusterPage('FooFeature')), 'utf8');
+        for (const member of ['provideFoo', 'provideFooAt', 'withMode']) {
+            expect(cluster).to.contain(`id="FooFeature--${member}"`);
+        }
+        expect(cluster).to.contain(`href="../${pageOf('token', 'FOO_CONFIG')}"`);
+
+        const utilities = fs.readFileSync(path.join(htmlFolder, 'utilities.html'), 'utf8');
+        expect(utilities).not.to.contain('>provideFoo<');
+        expect(utilities).to.contain('>formatFoo<');
     });
 
     it('gives a symbol that reaches no entry point no page and lists it in the log', () => {

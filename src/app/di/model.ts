@@ -1,5 +1,11 @@
 import type { EntityKind } from '../engines/dependencies.engine';
-import { presentationKind, type SymbolId, symbolFile, symbolId } from '../links/symbol-id';
+import {
+    presentationKind,
+    type SymbolId,
+    symbolFile,
+    symbolId,
+    type TableKind
+} from '../links/symbol-id';
 
 /**
  * Where a symbol is documented. A symbol without an entry in the placement
@@ -61,18 +67,46 @@ export const isHidden = (view: DiView | undefined, id: SymbolId): boolean =>
 export const hiddenFilter = (view: DiView | undefined): ((id: SymbolId) => boolean) | undefined =>
     view && view.hidden.length > 0 ? id => isHidden(view, id) : undefined;
 
-/** Whether the engine object of `kind` (its `name`, read from its `file`) gets no page. */
-export const isHiddenItem = (
-    view: DiView | undefined,
-    kind: EntityKind,
-    item: { readonly name?: unknown; readonly file?: unknown }
-): boolean => {
-    if (!view || view.hidden.length === 0 || typeof item.name !== 'string') {
-        return false;
+type NamedItem = { readonly name?: unknown; readonly file?: unknown };
+
+/** The table id of the engine object of `kind` (its `name`, read from its `file`). */
+export const itemId = (kind: EntityKind | TableKind, item: NamedItem): SymbolId | undefined => {
+    if (typeof item.name !== 'string') {
+        return undefined;
     }
     const file = typeof item.file === 'string' ? symbolFile(item.file, process.cwd()) : '';
-    return isHidden(view, symbolId({ kind: presentationKind(kind, item), file, name: item.name }));
+    return symbolId({ kind: presentationKind(kind as EntityKind, item), file, name: item.name });
 };
+
+/** The placement of the engine object of `kind`. */
+export const placementOfItem = (
+    view: DiView | undefined,
+    kind: EntityKind | TableKind,
+    item: NamedItem
+): Placement => {
+    if (!view || view.placement.size === 0) {
+        return OWN;
+    }
+    const id = itemId(kind, item);
+    return id ? placementOf(view, id) : OWN;
+};
+
+/** Whether the engine object of `kind` gets no page (it reaches no entry point). */
+export const isHiddenItem = (
+    view: DiView | undefined,
+    kind: EntityKind | TableKind,
+    item: NamedItem
+): boolean => placementOfItem(view, kind, item).type === 'hidden';
+
+/**
+ * Whether the engine object of `kind` has a page in its kind folder: not
+ * hidden, not a section of a cluster page, not a provider or feature type.
+ */
+export const hasOwnPage = (
+    view: DiView | undefined,
+    kind: EntityKind | TableKind,
+    item: NamedItem
+): boolean => placementOfItem(view, kind, item).type === 'own';
 
 const PAGE_KINDS: ReadonlySet<string> = new Set<EntityKind>([
     'component',
@@ -91,8 +125,11 @@ const PAGE_KINDS: ReadonlySet<string> = new Set<EntityKind>([
     'enumeration'
 ]);
 
-/** Whether a symbol page (context = kind, the engine object under that key) is for a hidden symbol. */
-export const isHiddenPage = (
+/**
+ * Whether a kind page (context = kind, the engine object under that key) is
+ * not generated: the symbol is hidden or documented on a provider or cluster page.
+ */
+export const isMovedPage = (
     page: { readonly context?: unknown } & Record<string, unknown>,
     view: DiView | undefined
 ): boolean => {
@@ -102,7 +139,7 @@ export const isHiddenPage = (
     }
     const item = page[kind] ?? page.injectable;
     return typeof item === 'object' && item !== null
-        ? isHiddenItem(view, kind as EntityKind, item as { name?: unknown; file?: unknown })
+        ? !hasOwnPage(view, kind as EntityKind, item as NamedItem)
         : false;
 };
 

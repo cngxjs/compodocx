@@ -1,6 +1,6 @@
 import { type DiView, hiddenFilter } from '../app/di/model';
 import { hrefFor, hrefText } from '../app/links/layout';
-import { symbolTarget } from '../app/links/resolve';
+import { placedLink } from '../app/links/resolve';
 import {
     buildSymbolTable,
     type EngineData,
@@ -33,14 +33,16 @@ export function buildEntityIndex(mainData: Record<string, unknown>): EntityIndex
         }
     }
 
-    const hidden = hiddenFilter(mainData.di as DiView | undefined);
+    const di = mainData.di as DiView | undefined;
+    const hidden = hiddenFilter(di);
     const index: EntityIndex = {};
     for (const name of names) {
         const entry = lookupEntry(table, name, 'entity-index', undefined, hidden);
-        if (!entry) {
+        const link = entry && placedLink(table, entry, di, { duplicate: true });
+        if (!entry || !link) {
             continue;
         }
-        const href = hrefFor(symbolTarget(entry, { duplicate: true }), 0);
+        const href = hrefFor(link.target, 0, link.anchor);
         index[name] = {
             href: hrefText(href, 'bare'),
             kind: INDEX_KIND[entry.ref.kind] ?? entry.ref.kind

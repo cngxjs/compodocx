@@ -1,6 +1,8 @@
 import Html from '@kitajs/html';
+import Configuration from '../../app/configuration';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { hrefFor, hrefText, isPageKind } from '../../app/links/layout';
+import { placeTarget } from '../../app/links/resolve';
 import { IconFolder, IconSearch } from '../components/Icons';
 import { WcagBadge } from '../components/WcagBadge';
 import {
@@ -64,7 +66,8 @@ const buildHref = (item: BucketItem, depth: number): string => {
     const kind = item.kind;
     const name = item.name;
     if (isPageKind(kind)) {
-        return hrefText(hrefFor({ type: 'symbol', kind, name }, depth));
+        const link = placeTarget({ type: 'symbol', kind, name }, item, Configuration.mainData);
+        return link ? hrefText(hrefFor(link.target, depth, link.anchor)) : '';
     }
     return hrefText(hrefFor({ type: 'root', page: name }, depth));
 };

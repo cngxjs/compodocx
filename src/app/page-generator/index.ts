@@ -11,6 +11,7 @@ export { BucketLandingPageGenerator } from './bucket-landing-page-generator';
 export { ClassPageGenerator } from './class-page-generator';
 export { ComponentPageGenerator } from './component-page-generator';
 export { CoveragePageGenerator } from './coverage-page-generator';
+export { DiPageGenerator } from './di-page-generator';
 export { DirectivePageGenerator } from './directive-page-generator';
 export { EntityPageGenerator } from './entity-page-generator';
 export { GuardPageGenerator } from './guard-page-generator';

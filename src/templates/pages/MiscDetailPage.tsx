@@ -104,7 +104,7 @@ const Section = (props: SectionProps): string => {
  * `extractJsdocCodeExamples` would re-wrap and html-entity-escape the already-
  * rendered HTML (the function's `parseCodeFences` `if (!hasCodeFences)` branch
  * treats the entire HTML blob as a single language-html block). */
-const collectExampleComments = (item: any): string[] => {
+export const collectExampleComments = (item: any): string[] => {
     const tags = item.jsdoctags ?? [];
     const out: string[] = [];
     for (const tag of tags) {
@@ -289,7 +289,7 @@ const ExamplesContent = (item: any): string => {
 
 //  Tab orchestration
 
-interface MiscTab {
+export interface MiscTab {
     readonly id: 'info' | 'api' | 'example';
     readonly label: string;
     readonly content: string;
@@ -326,7 +326,7 @@ const EmptyInfoFallback = (): string =>
         </p>
     ) as string;
 
-const TabBar = (tabs: MiscTab[]): string =>
+export const TabBar = (tabs: MiscTab[]): string =>
     (
         <ul class="cdx-tab-bar">
             {tabs.map((tab, i) => (
@@ -350,7 +350,7 @@ const TabBar = (tabs: MiscTab[]): string =>
 
 /** Panels MUST be wrapped in a single parent element — `hash-router.ts`
  * `activatePanel()` finds the tab bar via `panel.parentElement.previousElementSibling`. */
-const TabPanels = (tabs: MiscTab[]): string =>
+export const TabPanels = (tabs: MiscTab[]): string =>
     (
         <div>
             {tabs.map((tab, i) => (
@@ -502,4 +502,12 @@ export const renderFunctionalPage = (item: any, depth: number | undefined): stri
         item,
         depth,
         contextLine: `Functional ${item.functionalKind}`
+    });
+
+/** The page of a provider without a feature type (`providers/<name>.html`). */
+export const renderProviderPage = (item: any, depth: number | undefined): string =>
+    renderMiscDetailPage({
+        kind: item.subtype === 'variable' ? 'variable' : 'function',
+        item,
+        depth
     });

@@ -11,6 +11,7 @@ import {
     ClassPageGenerator,
     ComponentPageGenerator,
     CoveragePageGenerator,
+    DiPageGenerator,
     DirectivePageGenerator,
     EntityPageGenerator,
     GuardPageGenerator,
@@ -51,6 +52,7 @@ export interface Generators {
     readonly interceptor: InterceptorPageGenerator;
     readonly guard: GuardPageGenerator;
     readonly resolver: ResolverPageGenerator;
+    readonly diPages: DiPageGenerator;
     readonly routes: RoutesPageGenerator;
     readonly pipe: PipePageGenerator;
     readonly class: ClassPageGenerator;
@@ -80,6 +82,7 @@ export const createGenerators = (): Generators => {
         interceptor: new InterceptorPageGenerator(navTabs),
         guard: new GuardPageGenerator(navTabs),
         resolver: new ResolverPageGenerator(),
+        diPages: new DiPageGenerator(),
         routes: new RoutesPageGenerator(),
         pipe: new PipePageGenerator(navTabs),
         class: new ClassPageGenerator(navTabs),

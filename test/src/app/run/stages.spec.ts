@@ -44,6 +44,7 @@ const ALL_KEYS = [
     'entity',
     'injectable',
     'token',
+    'diCluster',
     'interceptor',
     'guard',
     'resolver',
@@ -98,14 +99,39 @@ describe('prepare stage table', () => {
         ]);
     });
 
-    it('selects all 22 stages in table order for a full run with every kind', () => {
-        const ctx = context('full', { unitTestCoverage: 'coverage.json', includes: 'docs' });
+    it('selects all 23 stages in table order for a full run with every kind', () => {
+        const ctx = context('full', {
+            unitTestCoverage: 'coverage.json',
+            includes: 'docs',
+            di: { clusters: [{}], plainProviders: [] }
+        });
         expect(keys(ctx, EVERY_KIND)).toEqual(ALL_KEYS);
         expect(PREPARE_STAGES.map(stage => stage.key)).toEqual(ALL_KEYS);
     });
 
+    it('selects the dependency injection pages only when the view has clusters or providers', () => {
+        const withView = (clusters: number, plainProviders: number) =>
+            keys(
+                context('full', {
+                    di: {
+                        clusters: Array.from({ length: clusters }, () => ({})),
+                        plainProviders: Array.from({ length: plainProviders }, () => 'p')
+                    }
+                }),
+                EVERY_KIND
+            );
+        expect(keys(context('full'), EVERY_KIND)).not.toContain('diCluster');
+        expect(withView(0, 0)).not.toContain('diCluster');
+        expect(withView(1, 0)).toContain('diCluster');
+        expect(withView(0, 1)).toContain('diCluster');
+    });
+
     it('never selects unit test coverage or external includes in diff mode', () => {
-        const ctx = context('diff', { unitTestCoverage: 'coverage.json', includes: 'docs' });
+        const ctx = context('diff', {
+            unitTestCoverage: 'coverage.json',
+            includes: 'docs',
+            di: { clusters: [{}], plainProviders: [] }
+        });
         const selected = keys(ctx, EVERY_KIND);
         expect(selected).not.toContain('unitTestCoverage');
         expect(selected).not.toContain('externalIncludes');

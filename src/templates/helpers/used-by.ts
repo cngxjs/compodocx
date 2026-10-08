@@ -1,7 +1,8 @@
 import { factKey } from '../../app/compiler/semantic/model';
 import { isHidden } from '../../app/di/model';
 import type { EntityKind } from '../../app/engines/dependencies.engine';
-import { KIND_FOLDER } from '../../app/links/layout';
+import { pageLocation } from '../../app/links/layout';
+import { placedLink } from '../../app/links/resolve';
 import { type TableKind, toSymbolKey } from '../../app/links/symbol-id';
 import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
 import type { ReferencedByEntry } from '../blocks/ReferencedBySection';
@@ -43,15 +44,27 @@ export const usedByEntries = (
     if (!data.symbols || !own || !facts) {
         return [];
     }
-    const index = byFactKey(data.symbols);
+    const table = data.symbols;
+    const index = byFactKey(table);
     return facts.usedBy
         .map(key => index.get(factKey(key)))
         .filter((user): user is SymbolEntry => user !== undefined && user.id !== own.id)
         .filter(user => !isHidden(data.di, user.id))
-        .map(user => ({
-            name: user.ref.name,
-            kind: user.ref.kind,
-            hrefPrefix: KIND_FOLDER[user.ref.kind]
-        }))
+        .flatMap(user => {
+            const link = placedLink(table, user, data.di);
+            if (!link) {
+                return [];
+            }
+            const location = pageLocation(link.target);
+            return [
+                {
+                    name: user.ref.name,
+                    kind: user.ref.kind,
+                    hrefPrefix: location.path,
+                    ...(location.filename === user.ref.name ? {} : { pageName: location.filename }),
+                    ...(link.anchor ? { anchor: link.anchor } : {})
+                }
+            ];
+        })
         .sort((a, b) => a.name.localeCompare(b.name));
 };

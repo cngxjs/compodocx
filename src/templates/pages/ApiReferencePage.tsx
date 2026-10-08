@@ -1,8 +1,10 @@
 import Html from '@kitajs/html';
+import Configuration from '../../app/configuration';
 import { withoutHiddenItems } from '../../app/di/model';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import type { EntityKind, EntityWithKind } from '../../app/engines/dependencies.engine';
 import { hrefFor, hrefText, isPageKind } from '../../app/links/layout';
+import { placeTarget } from '../../app/links/resolve';
 import type { TableKind } from '../../app/links/symbol-id';
 import { IconSearch, IconX } from '../components/Icons';
 import {
@@ -37,7 +39,8 @@ const buildHref = (item: BucketItem, depth: number): string => {
     const name = (item.duplicateName as string | undefined) ?? item.name;
     const kind = item.kind;
     if (isPageKind(kind)) {
-        return hrefText(hrefFor({ type: 'symbol', kind, name }, depth));
+        const link = placeTarget({ type: 'symbol', kind, name }, item, Configuration.mainData);
+        return link ? hrefText(hrefFor(link.target, depth, link.anchor)) : '';
     }
     return hrefText(hrefFor({ type: 'root', page: name }, depth));
 };

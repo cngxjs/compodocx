@@ -28,13 +28,25 @@ describe('page layout contract', () => {
         ['interceptor', 'interceptors'],
         ['entity', 'entities'],
         ['token', 'tokens'],
-        ['resolver', 'resolvers']
+        ['resolver', 'resolvers'],
+        ['provider', 'providers']
     ])('puts a %s page in %s/ at depth 1', (kind, folder) => {
         expect(pageLocation(symbol(kind, 'Foo'))).toEqual({
             path: folder,
             filename: 'Foo',
             depth: 1
         });
+    });
+
+    it('puts a cluster page in providers/ under its feature type name', () => {
+        expect(pageLocation({ type: 'cluster', name: 'FooFeature' })).toEqual({
+            path: 'providers',
+            filename: 'FooFeature',
+            depth: 1
+        });
+        expect(
+            hrefText(hrefFor({ type: 'cluster', name: 'FooFeature' }, 1, 'FooFeature--withMode'))
+        ).toBe('../providers/FooFeature.html#FooFeature--withMode');
     });
 
     it('names a same-name copy after its duplicate name', () => {

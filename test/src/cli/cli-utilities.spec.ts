@@ -112,7 +112,9 @@ describe('CLI utilities', () => {
     });
 
     it('generates a detail page for every @category-tagged miscellaneous symbol', () => {
-        expect(exists(`${distFolder}/${pageOf('function', 'provideToaster')}`)).to.be.true;
+        // A provider without a feature type gets its page in the providers folder.
+        expect(exists(`${distFolder}/${pageOf('provider', 'provideToaster')}`)).to.be.true;
+        expect(exists(`${distFolder}/${pageOf('function', 'provideToaster')}`)).to.be.false;
         expect(exists(`${distFolder}/${pageOf('variable', 'TOAST_TOKEN')}`)).to.be.true;
         expect(exists(`${distFolder}/${pageOf('typealias', 'ToastConfig')}`)).to.be.true;
         expect(exists(`${distFolder}/${pageOf('enumeration', 'ToastPosition')}`)).to.be.true;
@@ -129,7 +131,8 @@ describe('CLI utilities', () => {
         for (const id of ['functions', 'variables', 'typealiases', 'enumerations']) {
             expect(utilities).to.contain(`id="${id}"`);
         }
-        expect(utilities).to.contain(`href="${hrefTo('function', 'provideToaster', 0)}"`);
+        expect(utilities).to.not.contain(`href="${hrefTo('function', 'provideToaster', 0)}"`);
+        expect(utilities).to.not.contain('<code>provideToaster</code>');
         expect(utilities).to.contain(`href="${hrefTo('function', 'helperFn', 0)}"`);
         expect(utilities).to.contain(`href="${hrefTo('variable', 'TOAST_TOKEN', 0)}"`);
         expect(utilities).to.contain(`href="${hrefTo('typealias', 'Maybe', 0)}"`);
@@ -137,18 +140,22 @@ describe('CLI utilities', () => {
     });
 
     it('detail pages render the entity name in the hero and surface the description', () => {
-        const detail = read(`${distFolder}/${pageOf('function', 'provideToaster')}`);
-        expect(detail).to.match(/<h1[^>]*class="cdx-entity-hero-name">[\s\S]*?provideToaster/);
-        expect(detail).to.contain('Provides the toaster feature');
-        // Category badge surfaced on the hero
-        expect(detail).to.contain('Toast');
-        // Breadcrumb chain: Utilities > Functions > provideToaster
+        const detail = read(`${distFolder}/${pageOf('function', 'helperFn')}`);
+        expect(detail).to.match(/<h1[^>]*class="cdx-entity-hero-name">[\s\S]*?helperFn/);
+        expect(detail).to.contain('Untagged helper.');
+        // Breadcrumb chain: Utilities > Functions > helperFn
         expect(detail).to.contain('class="cdx-breadcrumb"');
         expect(detail).to.contain(`href="../${rootPage('utilities')}#functions"`);
+
+        const provider = read(`${distFolder}/${pageOf('provider', 'provideToaster')}`);
+        expect(provider).to.match(/<h1[^>]*class="cdx-entity-hero-name">[\s\S]*?provideToaster/);
+        expect(provider).to.contain('Provides the toaster feature');
+        // Category badge surfaced on the hero
+        expect(provider).to.contain('Toast');
     });
 
     it('detail pages use the singular template context (override hook stable)', () => {
-        const detail = read(`${distFolder}/${pageOf('function', 'provideToaster')}`);
+        const detail = read(`${distFolder}/${pageOf('function', 'helperFn')}`);
         // A per-entity shell, not a list page.
         expect(detail).to.not.contain('data-compodoc="block-theming-index"');
         // Per-entity pages live one level deep.

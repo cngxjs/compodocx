@@ -1,6 +1,7 @@
+import Configuration from '../../app/configuration';
 import DependenciesEngine from '../../app/engines/dependencies.engine';
 import { hrefFor, hrefText, isUtilityKind } from '../../app/links/layout';
-import { targetOfData } from '../../app/links/resolve';
+import { placeTarget, targetOfData } from '../../app/links/resolve';
 import BasicTypeUtil from '../../utils/basic-type.util';
 import ExtendsMerger from '../../utils/extends-merger.util';
 
@@ -35,8 +36,17 @@ export const resolveType = (name: string, indexKey?: string, depth = 1): Resolve
             }
             const anchor =
                 target.type === 'symbol' && isUtilityKind(target.kind) ? undefined : indexKey;
-            const href = hrefText(hrefFor(target, depth, anchor || undefined));
-            return { ...resolved, href, indexKey: anchor ?? '' };
+            const link = placeTarget(
+                target,
+                result.data,
+                Configuration.mainData,
+                anchor || undefined
+            );
+            if (!link) {
+                return null;
+            }
+            const href = hrefText(hrefFor(link.target, depth, link.anchor));
+            return { ...resolved, href, indexKey: link.anchor ?? '' };
         }
 
         return {

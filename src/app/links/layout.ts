@@ -21,8 +21,11 @@ export type SymbolKind =
 /** The kinds the Utilities chapter lists. */
 export type UtilityKind = 'function' | 'variable' | 'typealias' | 'enumeration';
 
-/** Every symbol kind has a page of its own. */
-export type PageKind = SymbolKind;
+/**
+ * Every symbol kind has a page of its own; `provider` is the page of a
+ * provider without a feature type (a function or constant in the engine).
+ */
+export type PageKind = SymbolKind | 'provider';
 
 export const KIND_FOLDER = {
     component: 'components',
@@ -39,7 +42,8 @@ export const KIND_FOLDER = {
     function: 'functions',
     variable: 'variables',
     typealias: 'typealiases',
-    enumeration: 'enumerations'
+    enumeration: 'enumerations',
+    provider: 'providers'
 } as const satisfies Record<PageKind, string>;
 
 export const BUCKET_FOLDER = 'categories';
@@ -60,18 +64,20 @@ export const isPageKind = (kind: string): kind is PageKind =>
 export const isUtilityKind = (kind: string): kind is UtilityKind => UTILITY_KINDS.has(kind);
 
 /** The `hrefPrefix` of a kind: its folder. */
-export const kindHrefPrefix = (kind: SymbolKind): string => KIND_FOLDER[kind];
+export const kindHrefPrefix = (kind: PageKind): string => KIND_FOLDER[kind];
 
 const last = (items: readonly string[]): string => items[items.length - 1] ?? '';
 
 export type PageTarget =
     | {
           readonly type: 'symbol';
-          readonly kind: SymbolKind;
+          readonly kind: PageKind;
           readonly name: string;
           /** Page name of a same-name copy (`Todo-1`); used when set. */
           readonly duplicateName?: string;
       }
+    /** The page of a feature type with its providers and feature functions. */
+    | { readonly type: 'cluster'; readonly name: string }
     /** A top-level page: index, overview, routes, coverage, app-config, references, ... */
     | { readonly type: 'root'; readonly page: string }
     | { readonly type: 'bucket'; readonly segments: readonly string[] }
@@ -130,6 +136,8 @@ export const pageLocation = (target: PageTarget): PageLocation => {
                 filename: target.duplicateName ?? target.name,
                 depth: 1
             };
+        case 'cluster':
+            return { path: KIND_FOLDER.provider, filename: target.name, depth: 1 };
         case 'root':
             return { path: '', filename: target.page, depth: ROOT_DEPTH };
         case 'bucket': {

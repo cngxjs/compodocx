@@ -12,7 +12,7 @@ import {
     buildDiView,
     formatHiddenList,
     isHiddenItem,
-    isHiddenPage,
+    isMovedPage,
     placementOf
 } from '../../../../src/app/di';
 import {
@@ -163,8 +163,8 @@ describe('dependency injection view', () => {
         expect(isHiddenItem(view, 'function', { name: 'orphan', file: F })).toBe(true);
         expect(isHiddenItem(view, 'function', { name: 'helper', file: F })).toBe(false);
         expect(
-            isHiddenPage({ context: 'function', function: { name: 'orphan', file: F } }, view)
+            isMovedPage({ context: 'function', function: { name: 'orphan', file: F } }, view)
         ).toBe(true);
-        expect(isHiddenPage({ context: 'utilities' }, view)).toBe(false);
+        expect(isMovedPage({ context: 'utilities' }, view)).toBe(false);
     });
 });

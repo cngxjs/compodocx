@@ -1,8 +1,9 @@
 import Html from '@kitajs/html';
+import Configuration from '../../app/configuration';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import DependenciesEngine from '../../app/engines/dependencies.engine';
 import { hrefFor, hrefText } from '../../app/links/layout';
-import { targetOfData } from '../../app/links/resolve';
+import { placeTarget, targetOfData } from '../../app/links/resolve';
 import { logger } from '../../utils/logger';
 import { t } from '../helpers';
 
@@ -26,7 +27,8 @@ const resolveEntry = (name: string, depth: number): RelatedEntry => {
         if (target?.type !== 'symbol') {
             return { name };
         }
-        return { name, href: hrefText(hrefFor({ ...target, name }, depth)) };
+        const link = placeTarget({ ...target, name }, hit, Configuration.mainData);
+        return link ? { name, href: hrefText(hrefFor(link.target, depth, link.anchor)) } : { name };
     }
     // Tokens aren't included in findInCompodoc's merged-data list.
     const tokens = (DependenciesEngine as any).tokens as any[] | undefined;

@@ -1,6 +1,7 @@
+import Configuration from '../../app/configuration';
 import DependenciesEngine from '../../app/engines/dependencies.engine';
 import { hrefFor, hrefText } from '../../app/links/layout';
-import { targetOfData } from '../../app/links/resolve';
+import { placeTarget, targetOfData } from '../../app/links/resolve';
 import { extractLeadingText, splitLinkText } from '../../utils/link-parser';
 
 /** `Name`, `Name.member` or `Name#member`: a symbol, not a URL or a file. */
@@ -74,7 +75,16 @@ export const parseDescription = (description: string, depth: number): string => 
         }
 
         const foundTarget = found ? targetOfData(found) : undefined;
-        if (found && foundTarget) {
+        const foundLink =
+            found && foundTarget
+                ? placeTarget(
+                      foundTarget,
+                      found,
+                      Configuration.mainData,
+                      anchor.slice(1) || undefined
+                  )
+                : undefined;
+        if (found && foundLink) {
             let label = found.name;
 
             if (leading.leadingText !== undefined) {
@@ -84,7 +94,7 @@ export const parseDescription = (description: string, depth: number): string => 
                 label = split.linkText;
             }
 
-            const href = hrefFor(foundTarget, depth, anchor.slice(1) || undefined);
+            const href = hrefFor(foundLink.target, depth, foundLink.anchor);
             const newLink = `<a href="${hrefText(href, 'description')}">${label}</a>`;
             result = result.replace(stringToReplace, newLink);
         } else {

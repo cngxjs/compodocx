@@ -7,6 +7,7 @@ import { ApiReferencePage } from '../../templates/pages/ApiReferencePage';
 import { AppConfigPage } from '../../templates/pages/AppConfigPage';
 import { BucketLandingPage } from '../../templates/pages/BucketLandingPage';
 import { ClassPage } from '../../templates/pages/ClassPage';
+import { ClusterPage } from '../../templates/pages/ClusterPage';
 import { ComponentPage } from '../../templates/pages/ComponentPage';
 import { CoverageReport } from '../../templates/pages/CoverageReport';
 import { DirectivePage } from '../../templates/pages/DirectivePage';
@@ -20,7 +21,8 @@ import {
     MiscEnumerationPage,
     MiscFunctionPage,
     MiscTypealiasPage,
-    MiscVariablePage
+    MiscVariablePage,
+    renderProviderPage
 } from '../../templates/pages/MiscDetailPage';
 import { Overview } from '../../templates/pages/Overview';
 import { PackageDependencies } from '../../templates/pages/PackageDependencies';
@@ -49,6 +51,7 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     directive: 'directive',
     injectable: 'injectable',
     token: 'token',
+    'di-cluster': 'di-cluster',
     interceptor: 'interceptor',
     guard: 'guard',
     resolver: 'resolver',
@@ -134,6 +137,10 @@ export class HtmlEngine {
                 return InjectablePage(data);
             case 'token':
                 return TokenPage(data);
+            case 'di-cluster':
+                return ClusterPage(data);
+            case 'provider':
+                return renderProviderPage(data.provider, data.depth);
             case 'interceptor':
                 return InterceptorPage(data);
             case 'interface':

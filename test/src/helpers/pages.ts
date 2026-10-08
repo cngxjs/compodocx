@@ -1,10 +1,10 @@
 import {
     hrefFor,
     hrefText,
+    type PageKind,
     type PageTarget,
     pageLocation,
-    pagePath,
-    type SymbolKind
+    pagePath
 } from '../../../src/app/links/layout';
 
 /**
@@ -16,7 +16,7 @@ export interface PageOptions {
     readonly duplicate?: string;
 }
 
-const symbolTarget = (kind: SymbolKind, name: string, opts: PageOptions = {}): PageTarget => ({
+const symbolTarget = (kind: PageKind, name: string, opts: PageOptions = {}): PageTarget => ({
     type: 'symbol',
     kind,
     name,
@@ -24,16 +24,20 @@ const symbolTarget = (kind: SymbolKind, name: string, opts: PageOptions = {}): P
 });
 
 /** Root-relative page file of a symbol, e.g. `components/Foo.html`. */
-export const pageOf = (kind: SymbolKind, name: string, opts?: PageOptions): string =>
+export const pageOf = (kind: PageKind, name: string, opts?: PageOptions): string =>
     pagePath(pageLocation(symbolTarget(kind, name, opts)));
 
 /** Link to a symbol from a page at `fromDepth`, e.g. `../components/Foo.html`. */
 export const hrefTo = (
-    kind: SymbolKind,
+    kind: PageKind,
     name: string,
     fromDepth: number,
     opts?: PageOptions
 ): string => hrefText(hrefFor(symbolTarget(kind, name, opts), fromDepth));
+
+/** Root-relative file of the page of a feature type, its providers and features. */
+export const clusterPage = (featureType: string): string =>
+    pagePath(pageLocation({ type: 'cluster', name: featureType }));
 
 /** Root-relative file of a top-level page, e.g. `coverage.html`. */
 export const rootPage = (page: string): string => pagePath(pageLocation({ type: 'root', page }));
