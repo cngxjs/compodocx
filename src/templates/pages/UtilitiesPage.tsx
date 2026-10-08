@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { factKey, type SemanticModel } from '../../app/compiler/semantic/model';
+import { type DiView, isHidden } from '../../app/di/model';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { hrefFor, hrefText, KIND_FOLDER, type UtilityKind } from '../../app/links/layout';
 import { symbolTarget } from '../../app/links/resolve';
@@ -31,9 +32,13 @@ const GROUPS: readonly UtilityGroup[] = [
 /** Section id of a group; the symbol pages link back to it. */
 export const utilityGroupAnchor = (kind: UtilityKind): string => KIND_FOLDER[kind];
 
-const entriesOf = (table: SymbolTable | undefined, kind: UtilityKind): SymbolEntry[] =>
+const entriesOf = (
+    table: SymbolTable | undefined,
+    view: DiView | undefined,
+    kind: UtilityKind
+): SymbolEntry[] =>
     [...(table?.byId.values() ?? [])]
-        .filter(entry => entry.ref.kind === kind)
+        .filter(entry => entry.ref.kind === kind && !isHidden(view, entry.id))
         .sort((a, b) => a.ref.name.localeCompare(b.ref.name));
 
 const usedByCount = (entry: SymbolEntry, semantic: SemanticModel | undefined): number =>
@@ -128,7 +133,9 @@ export const UtilitiesPage = (data: any): string => {
                 {t('no-matching-entities')}
             </div>
             <div class="cdx-utilities-content">
-                {GROUPS.map(group => Group(group, entriesOf(table, group.kind), depth, semantic))}
+                {GROUPS.map(group =>
+                    Group(group, entriesOf(table, data.di, group.kind), depth, semantic)
+                )}
             </div>
         </>
     ) as string;

@@ -49,6 +49,8 @@ export interface TokenFacts {
 
 export interface SymbolFacts {
     readonly key: SymbolKey;
+    /** 1-based line of the declaration. */
+    readonly line?: number;
     /** Import path of the nearest exporting barrel. */
     readonly entryPoint?: string;
     /** Import paths of every barrel that exports the symbol, sorted. */

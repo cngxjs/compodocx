@@ -1,4 +1,5 @@
-import type { SymbolId } from '../links/symbol-id';
+import type { EntityKind } from '../engines/dependencies.engine';
+import { type SymbolId, symbolFile, symbolId } from '../links/symbol-id';
 
 /**
  * Where a symbol is documented. A symbol without an entry in the placement
@@ -51,3 +52,68 @@ export const emptyDiView = (): DiView => ({
 
 export const placementOf = (view: DiView | undefined, id: SymbolId): Placement =>
     view?.placement.get(id) ?? OWN;
+
+/** Whether a symbol gets no page (it reaches no entry point). */
+export const isHidden = (view: DiView | undefined, id: SymbolId): boolean =>
+    placementOf(view, id).type === 'hidden';
+
+/** A lookup filter that skips hidden symbols; undefined when nothing is hidden. */
+export const hiddenFilter = (view: DiView | undefined): ((id: SymbolId) => boolean) | undefined =>
+    view && view.hidden.length > 0 ? id => isHidden(view, id) : undefined;
+
+/** Whether the engine object of `kind` (its `name`, read from its `file`) gets no page. */
+export const isHiddenItem = (
+    view: DiView | undefined,
+    kind: EntityKind,
+    item: { readonly name?: unknown; readonly file?: unknown }
+): boolean => {
+    if (!view || view.hidden.length === 0 || typeof item.name !== 'string') {
+        return false;
+    }
+    const file = typeof item.file === 'string' ? symbolFile(item.file, process.cwd()) : '';
+    return isHidden(view, symbolId({ kind, file, name: item.name }));
+};
+
+const PAGE_KINDS: ReadonlySet<string> = new Set<EntityKind>([
+    'component',
+    'directive',
+    'injectable',
+    'token',
+    'pipe',
+    'class',
+    'interface',
+    'guard',
+    'interceptor',
+    'entity',
+    'function',
+    'variable',
+    'typealias',
+    'enumeration'
+]);
+
+/** Whether a symbol page (context = kind, the engine object under that key) is for a hidden symbol. */
+export const isHiddenPage = (
+    page: { readonly context?: unknown } & Record<string, unknown>,
+    view: DiView | undefined
+): boolean => {
+    const kind = page.context;
+    if (typeof kind !== 'string' || !PAGE_KINDS.has(kind)) {
+        return false;
+    }
+    const item = page[kind];
+    return typeof item === 'object' && item !== null
+        ? isHiddenItem(view, kind as EntityKind, item as { name?: unknown; file?: unknown })
+        : false;
+};
+
+/** Grouped engine objects (each with its own `kind`) without the hidden ones. */
+export const withoutHiddenItems = <T extends { readonly kind?: unknown }>(
+    groups: Record<string, readonly T[]>,
+    view: DiView | undefined
+): Record<string, T[]> =>
+    Object.fromEntries(
+        Object.entries(groups).map(([key, items]) => [
+            key,
+            items.filter(item => !isHiddenItem(view, item.kind as EntityKind, item as never))
+        ])
+    );

@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
+import { type DiView, isHiddenItem } from '../../app/di/model';
 import {
     buildGroupTree,
     type EntityKind,
@@ -643,8 +644,55 @@ const EntitySection = (props: {
     ) as string;
 };
 
+const MENU_LISTS: readonly (readonly [string, string, EntityKind])[] = [
+    ['components', 'categorizedComponents', 'component'],
+    ['directives', 'categorizedDirectives', 'directive'],
+    ['injectables', 'categorizedInjectables', 'injectable'],
+    ['tokens', 'categorizedTokens', 'token'],
+    ['pipes', 'categorizedPipes', 'pipe'],
+    ['classes', 'categorizedClasses', 'class'],
+    ['interfaces', 'categorizedInterfaces', 'interface'],
+    ['guards', 'categorizedGuards', 'guard'],
+    ['interceptors', 'categorizedInterceptors', 'interceptor'],
+    ['entities', 'categorizedEntities', 'entity']
+];
+
+const MISC_LISTS: readonly (readonly [string, EntityKind])[] = [
+    ['functions', 'function'],
+    ['variables', 'variable'],
+    ['typealiases', 'typealias'],
+    ['enumerations', 'enumeration']
+];
+
+/** The menu's data without the symbols that get no page. */
+const withoutHidden = (d: any): any => {
+    const view: DiView | undefined = d.di;
+    if (!view || view.hidden.length === 0) {
+        return d;
+    }
+    const keep = (kind: EntityKind) => (item: any) => !isHiddenItem(view, kind, item);
+    const keepOwnKind = (item: any) => !isHiddenItem(view, item.kind, item);
+    const groups = (record: Record<string, any[]> | undefined, test: (item: any) => boolean) =>
+        record &&
+        Object.fromEntries(Object.entries(record).map(([key, items]) => [key, items.filter(test)]));
+    const copy: any = { ...d };
+    for (const [list, categorized, kind] of MENU_LISTS) {
+        copy[list] = d[list]?.filter(keep(kind));
+        copy[categorized] = groups(d[categorized], keep(kind));
+    }
+    if (d.miscellaneous) {
+        copy.miscellaneous = { ...d.miscellaneous };
+        for (const [list, kind] of MISC_LISTS) {
+            copy.miscellaneous[list] = d.miscellaneous[list]?.filter(keep(kind));
+        }
+    }
+    copy.categorizedByFeature = groups(d.categorizedByFeature, keepOwnKind);
+    copy.categorizedByFeaturePrimary = groups(d.categorizedByFeaturePrimary, keepOwnKind);
+    return copy;
+};
+
 export const Menu = (props: MenuProps): string => {
-    const d = props.data;
+    const d = withoutHidden(props.data);
 
     const components = d.components ?? [];
     const directives = d.directives ?? [];

@@ -278,10 +278,15 @@ interface Occurrence {
     readonly kind: EntityKind;
 }
 
-const occurrencesOf = (table: SymbolTable, name: string): Occurrence[] => {
+/** Ids a lookup must skip, e.g. symbols that get no page. */
+export type ExcludeId = (id: SymbolId) => boolean;
+
+const occurrencesOf = (table: SymbolTable, name: string, exclude?: ExcludeId): Occurrence[] => {
     const ids = table.byName.get(name) ?? [];
     const data = table.dataByName.get(name) ?? [];
-    return ids.map((id, i) => ({ id, data: data[i], kind: kindOf(table, id) as EntityKind }));
+    return ids
+        .map((id, i) => ({ id, data: data[i], kind: kindOf(table, id) as EntityKind }))
+        .filter(o => !exclude?.(o.id));
 };
 
 /** The occurrences in the policy's kind order (engine order inside a kind). */
@@ -299,14 +304,15 @@ const lastOfFirstKind = (ordered: readonly Occurrence[]): Occurrence | undefined
 const containedMatch = (
     table: SymbolTable,
     name: string,
-    kinds: readonly EntityKind[]
+    kinds: readonly EntityKind[],
+    exclude?: ExcludeId
 ): Occurrence | undefined => {
     const perKind = new Map<EntityKind, Occurrence[]>();
     for (const other of table.byName.keys()) {
         if (name.indexOf(other) === -1) {
             continue;
         }
-        for (const occurrence of occurrencesOf(table, other)) {
+        for (const occurrence of occurrencesOf(table, other, exclude)) {
             const hits = perKind.get(occurrence.kind);
             if (hits) {
                 hits.push(occurrence);
@@ -328,16 +334,17 @@ const lookupOccurrence = (
     table: SymbolTable,
     name: string,
     policy: LookupPolicy,
-    kind?: EntityKind
+    kind?: EntityKind,
+    exclude?: ExcludeId
 ): Occurrence | undefined => {
     if (typeof name !== 'string') {
         return undefined;
     }
     const kinds = kind ? POLICY_KINDS[policy].filter(k => k === kind) : POLICY_KINDS[policy];
-    const exact = inKindOrder(occurrencesOf(table, name), kinds);
+    const exact = inKindOrder(occurrencesOf(table, name, exclude), kinds);
     switch (policy) {
         case 'type-link':
-            return lastOfFirstKind(exact) ?? containedMatch(table, name, kinds);
+            return lastOfFirstKind(exact) ?? containedMatch(table, name, kinds, exclude);
         case 'doc-link':
             return exact[0];
         default:
@@ -349,8 +356,9 @@ export const lookupName = (
     table: SymbolTable,
     name: string,
     policy: LookupPolicy,
-    kind?: EntityKind
-): SymbolId | undefined => lookupOccurrence(table, name, policy, kind)?.id;
+    kind?: EntityKind,
+    exclude?: ExcludeId
+): SymbolId | undefined => lookupOccurrence(table, name, policy, kind, exclude)?.id;
 
 /** The duplicate name of one engine object: the table's for the kinds it numbers. */
 const duplicateNameFor = (entry: SymbolEntry, data: Named): string | undefined =>
@@ -364,9 +372,10 @@ export const lookupEntry = (
     table: SymbolTable,
     name: string,
     policy: LookupPolicy,
-    kind?: EntityKind
+    kind?: EntityKind,
+    exclude?: ExcludeId
 ): SymbolEntry | undefined => {
-    const occurrence = lookupOccurrence(table, name, policy, kind);
+    const occurrence = lookupOccurrence(table, name, policy, kind, exclude);
     const entry = occurrence && table.byId.get(occurrence.id);
     if (!occurrence || !entry) {
         return undefined;

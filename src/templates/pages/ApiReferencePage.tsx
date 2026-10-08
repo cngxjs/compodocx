@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { withoutHiddenItems } from '../../app/di/model';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import type { EntityKind, EntityWithKind } from '../../app/engines/dependencies.engine';
 import { hrefFor, hrefText, isPageKind } from '../../app/links/layout';
@@ -222,7 +223,10 @@ export const ApiReferencePage = (data: any): string => {
         return custom;
     }
 
-    const buckets = (data.categorizedByFeature ?? {}) as Record<string, BucketItem[]>;
+    const buckets = withoutHiddenItems(
+        (data.categorizedByFeature ?? {}) as Record<string, BucketItem[]>,
+        data.di
+    );
     const bucketKeys = Object.keys(buckets).sort();
     const depth = 0;
     const heading = t('api-reference');

@@ -136,3 +136,33 @@ export const buildDiView = (table: SymbolTable, semantic?: SemanticModel): DiVie
         placement
     };
 };
+
+/**
+ * The build log lines for the symbols that reach no entry point: a header
+ * and one `<file>:<line> <name>` line each, sorted by file. Empty when none.
+ */
+export const formatHiddenList = (
+    view: DiView,
+    table: SymbolTable,
+    semantic?: SemanticModel
+): readonly string[] => {
+    if (view.hidden.length === 0) {
+        return [];
+    }
+    const lines = view.hidden
+        .map(id => table.byId.get(id))
+        .filter((entry): entry is SymbolEntry => entry !== undefined)
+        .map(entry => {
+            const line = semantic?.facts.get(factKey(toSymbolKey(entry.ref)))?.line;
+            return {
+                file: entry.ref.file,
+                line: line ?? 0,
+                text: `  ${entry.ref.file}${line ? `:${line}` : ''} ${entry.ref.name}`
+            };
+        })
+        .sort((a, b) => compareText(a.file, b.file) || a.line - b.line);
+    return [
+        `${lines.length} exported symbols reach no entry point and are not documented:`,
+        ...lines.map(l => l.text)
+    ];
+};

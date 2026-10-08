@@ -1,6 +1,7 @@
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
+import { withoutHiddenItems } from '../di/model';
 import DependenciesEngine, { buildGroupTree } from '../engines/dependencies.engine';
 import { pageLocation } from '../links/layout';
 
@@ -36,7 +37,11 @@ export class BucketLandingPageGenerator {
                 return;
             }
             logger.info('Prepare bucket landing pages');
-            const tree = buildGroupTree(buckets as Record<string, any[]>);
+            const visible = withoutHiddenItems(
+                buckets as Record<string, any[]>,
+                Configuration.mainData.di
+            );
+            const tree = buildGroupTree(visible);
             for (const node of tree) {
                 this.emitRecursive(node);
             }

@@ -8,8 +8,19 @@ import {
     type SymbolFacts,
     type SymbolKey
 } from '../../../../src/app/compiler/semantic/model';
-import { buildDiView, placementOf } from '../../../../src/app/di';
-import { buildSymbolTable, type EngineData, type SymbolId } from '../../../../src/app/links';
+import {
+    buildDiView,
+    formatHiddenList,
+    isHiddenItem,
+    isHiddenPage,
+    placementOf
+} from '../../../../src/app/di';
+import {
+    buildSymbolTable,
+    type EngineData,
+    lookupName,
+    type SymbolId
+} from '../../../../src/app/links';
 
 const F = 'lib/foo.ts';
 const T = 'lib/tokens.ts';
@@ -75,7 +86,7 @@ const FACTS = [
     }),
     facts(key('withMode'), { di: di({ role: 'feature', featureType: typeKey('FooFeature') }) }),
     facts(key('provideFooLimit'), { di: di({ role: 'provider' }) }),
-    facts(key('orphan'), { notExported: true, exportedBy: [] }),
+    facts(key('orphan'), { notExported: true, exportedBy: [], line: 12 }),
     facts(key('helper'))
 ];
 
@@ -135,5 +146,25 @@ describe('dependency injection view', () => {
         expect(empty.hidden).toEqual([]);
         expect(empty.placement.size).toBe(0);
         expect(placementOf(empty, id('function', 'provideFoo'))).toEqual({ type: 'own' });
+    });
+
+    it('lists the hidden symbols in the build log by file and line', () => {
+        expect(formatHiddenList(view, table, model(FACTS))).toEqual([
+            '1 exported symbols reach no entry point and are not documented:',
+            `  ${F}:12 orphan`
+        ]);
+        expect(formatHiddenList(buildDiView(table, undefined), table)).toEqual([]);
+    });
+
+    it('skips hidden symbols in name lookups and page queues', () => {
+        const hidden = (id: SymbolId) => placementOf(view, id).type === 'hidden';
+        expect(lookupName(table, 'orphan', 'doc-link')).toBe(id('function', 'orphan'));
+        expect(lookupName(table, 'orphan', 'doc-link', undefined, hidden)).toBeUndefined();
+        expect(isHiddenItem(view, 'function', { name: 'orphan', file: F })).toBe(true);
+        expect(isHiddenItem(view, 'function', { name: 'helper', file: F })).toBe(false);
+        expect(
+            isHiddenPage({ context: 'function', function: { name: 'orphan', file: F } }, view)
+        ).toBe(true);
+        expect(isHiddenPage({ context: 'utilities' }, view)).toBe(false);
     });
 });

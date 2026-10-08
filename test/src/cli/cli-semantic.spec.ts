@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { shell, temporaryDir } from '../helpers';
+import { pageOf } from '../helpers/pages';
 import { readKindPages } from './paths';
 
 const tmp = temporaryDir();
@@ -81,5 +82,20 @@ describe('CLI semantic analysis', () => {
         expect(page).to.contain('provideFoo');
         expect(page).not.to.contain('usesInjectionContext');
         expect(page).not.to.contain('@sem/core/tokens');
+    });
+
+    it('gives a symbol that reaches no entry point no page and lists it in the log', () => {
+        expect(fs.existsSync(path.join(htmlFolder, pageOf('function', 'orphanFoo')))).to.equal(
+            false
+        );
+        expect(fs.existsSync(path.join(htmlFolder, pageOf('function', 'formatFoo')))).to.equal(
+            true
+        );
+        expect(stdout).to.contain(
+            '1 exported symbols reach no entry point and are not documented:'
+        );
+        expect(stdout).to.match(new RegExp(`${FILE}/core/src/foo/foo-helpers\\.ts:\\d+ orphanFoo`));
+        const index = fs.readFileSync(path.join(htmlFolder, 'index.html'), 'utf8');
+        expect(index).not.to.contain('orphanFoo');
     });
 });

@@ -16,6 +16,7 @@ import type {
 import type { IComponentDep } from '../compiler/angular/deps/component-dep.factory';
 import type { IDirectiveDep } from '../compiler/angular/deps/directive-dep.factory';
 import Configuration from '../configuration';
+import { hiddenFilter } from '../di/model';
 import type { MiscellaneousData } from '../interfaces/miscellaneous-data.interface';
 import type { ParsedData } from '../interfaces/parsed-data.interface';
 import type { RouteInterface } from '../interfaces/routes.interface';
@@ -397,7 +398,13 @@ export class DependenciesEngine {
 
     /** Resolve a type name: documented symbols first (`type-link` policy), then the Angular API. */
     public find(name: string): IApiSourceResult<any> | undefined {
-        const entry = lookupEntry(this.symbolTable(), name, 'type-link');
+        const entry = lookupEntry(
+            this.symbolTable(),
+            name,
+            'type-link',
+            undefined,
+            hiddenFilter(Configuration.mainData.di)
+        );
         if (entry) {
             return { source: 'internal', data: entry.data, score: entry.ref.name === name ? 2 : 1 };
         }
@@ -502,7 +509,11 @@ export class DependenciesEngine {
 
     /** Resolve a `{@link}` target (`doc-link` policy); `false` when unknown. */
     public findInCompodoc(name: string) {
-        return (lookupEntry(this.symbolTable(), name, 'doc-link')?.data as any) || false;
+        const hidden = hiddenFilter(Configuration.mainData.di);
+        return (
+            (lookupEntry(this.symbolTable(), name, 'doc-link', undefined, hidden)?.data as any) ||
+            false
+        );
     }
 
     private prepareMiscellaneous() {

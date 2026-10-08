@@ -1,3 +1,4 @@
+import { type DiView, hiddenFilter } from '../app/di/model';
 import { hrefFor, hrefText } from '../app/links/layout';
 import { symbolTarget } from '../app/links/resolve';
 import {
@@ -32,9 +33,10 @@ export function buildEntityIndex(mainData: Record<string, unknown>): EntityIndex
         }
     }
 
+    const hidden = hiddenFilter(mainData.di as DiView | undefined);
     const index: EntityIndex = {};
     for (const name of names) {
-        const entry = lookupEntry(table, name, 'entity-index');
+        const entry = lookupEntry(table, name, 'entity-index', undefined, hidden);
         if (!entry) {
             continue;
         }

@@ -101,16 +101,14 @@ describe('CLI public-api-only option', () => {
             expect(isCoverageExists).to.be.true;
         });
 
-        it('should document getDefaultApiRoot from core utils', () => {
-            const functionsFile = readKindPages(distFolder, 'function');
-            expect(functionsFile).to.contain('libs/my-lib/core/src/utils');
-            expect(functionsFile).to.contain('getDefaultApiRoot');
+        it('gives getDefaultApiRoot no page: no entry point reaches it', () => {
+            expect(readKindPages(distFolder, 'function')).not.to.contain('getDefaultApiRoot');
         });
 
-        it('should document getDefaultApiRoot from data utils', () => {
-            const functionsFile = readKindPages(distFolder, 'function');
-            expect(functionsFile).to.contain('libs/my-lib/data/src/utils');
-            expect(functionsFile).to.contain('getDefaultApiRoot');
+        it('lists both getDefaultApiRoot copies in the build log', () => {
+            expect(stdoutString).to.contain('reach no entry point and are not documented:');
+            expect(stdoutString).to.match(/libs\/my-lib\/core\/src\/utils[^\n]*getDefaultApiRoot/);
+            expect(stdoutString).to.match(/libs\/my-lib\/data\/src\/utils[^\n]*getDefaultApiRoot/);
         });
     });
 
