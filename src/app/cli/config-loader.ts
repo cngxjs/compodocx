@@ -16,7 +16,7 @@ import type { MainDataInterface } from '../interfaces/main-data.interface';
 const COSMICONFIG_MODULE_NAME = 'compodoc';
 
 /** Menu keys of chapters that no longer exist; they warn and are dropped. */
-const REMOVED_MENU_ITEMS: readonly string[] = ['modules', 'miscellaneous'];
+const REMOVED_MENU_ITEMS: readonly string[] = ['modules', 'miscellaneous', 'tokens'];
 
 export interface LoadConfigOptions {
     readonly explicitConfigPath?: string;

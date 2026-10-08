@@ -8,9 +8,9 @@ import {
 } from '../../../../src/app/engines/custom-template.engine';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import { symbolId } from '../../../../src/app/links/symbol-id';
-import { emptySymbolTable } from '../../../../src/app/links/symbol-table';
+import { buildSymbolTable, emptySymbolTable } from '../../../../src/app/links/symbol-table';
 import { Menu } from '../../../../src/templates/components/Menu';
-import { pageOf } from '../../helpers/pages';
+import { clusterPage, pageOf, rootPage } from '../../helpers/pages';
 
 beforeAll(() => {
     I18nEngine.init('en-US');
@@ -462,6 +462,47 @@ describe('Menu — feature layout', () => {
         expect(Menu({ data: data(emptySymbolTable()) })).to.include(
             `href="${pageOf('component', 'CngxToaster')}"`
         );
+    });
+
+    it('renders a Dependency Injection chapter with feature type pages, providers and tokens', () => {
+        const file = 'src/foo.ts';
+        const symbols = buildSymbolTable(
+            {
+                interfaces: [{ name: 'FooFeature', file }],
+                tokens: [{ name: 'FOO_CONFIG', file }],
+                miscellaneous: { functions: [{ name: 'provideLimit', file }] }
+            },
+            { cwd: '/' }
+        );
+        const owner = symbolId({ kind: 'interface', file, name: 'FooFeature' });
+        const plain = symbolId({ kind: 'function', file, name: 'provideLimit' });
+        const di: DiView = {
+            ...emptyDiView(),
+            clusters: [{ owner, providers: [], features: [], tokens: [] }],
+            plainProviders: [plain],
+            placement: new Map([
+                [owner, { type: 'cluster-owner' }],
+                [plain, { type: 'provider' }]
+            ])
+        };
+        Configuration.mainData.toggleMenuItems = ['dependency-injection'];
+        const html = Menu({
+            data: baseData({
+                tokens: [{ name: 'FOO_CONFIG', file }],
+                interfaces: [{ name: 'FooFeature', file }],
+                di,
+                symbols: symbols as never
+            })
+        });
+        expect(html).to.include('id="dependency-injection-links"');
+        expect(html).to.include('class="links collapse in" id="dependency-injection-links"');
+        expect(html).to.include(`href="${rootPage('dependency-injection')}"`);
+        expect(html).to.include(`href="${clusterPage('FooFeature')}"`);
+        expect(html).to.include(`href="${pageOf('provider', 'provideLimit')}"`);
+        expect(html).to.include(`href="${pageOf('token', 'FOO_CONFIG')}"`);
+        expect(html).to.not.include('id="tokens-links"');
+        // The feature type has no interface page of its own.
+        expect(html).to.not.include(`href="${pageOf('interface', 'FooFeature')}"`);
     });
 
     it('honours the menu custom-template override regardless of layout', () => {

@@ -10,6 +10,7 @@ import { ClassPage } from '../../templates/pages/ClassPage';
 import { ClusterPage } from '../../templates/pages/ClusterPage';
 import { ComponentPage } from '../../templates/pages/ComponentPage';
 import { CoverageReport } from '../../templates/pages/CoverageReport';
+import { DependencyInjectionPage } from '../../templates/pages/DependencyInjectionPage';
 import { DirectivePage } from '../../templates/pages/DirectivePage';
 import { EntityDetailPage } from '../../templates/pages/EntityDetailPage';
 import { GuardPage } from '../../templates/pages/GuardPage';
@@ -52,6 +53,7 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     injectable: 'injectable',
     token: 'token',
     'di-cluster': 'di-cluster',
+    'dependency-injection': 'dependency-injection',
     interceptor: 'interceptor',
     guard: 'guard',
     resolver: 'resolver',
@@ -139,6 +141,8 @@ export class HtmlEngine {
                 return TokenPage(data);
             case 'di-cluster':
                 return ClusterPage(data);
+            case 'dependency-injection':
+                return DependencyInjectionPage(data);
             case 'provider':
                 return renderProviderPage(data.provider, data.depth);
             case 'interceptor':

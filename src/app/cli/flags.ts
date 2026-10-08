@@ -106,7 +106,7 @@ export function defineFlags(program: Command): Command {
         )
         .option(
             '--toggleMenuItems <items>',
-            "Close by default items in the menu values : ['all'] or one of these ['components','directives','entities','classes','injectables','tokens','guards','interfaces','interceptors','pipes','utilities','additionalPages','features'] (features applies under menuLayout: 'feature')",
+            "Close by default items in the menu values : ['all'] or one of these ['components','directives','entities','classes','injectables','dependency-injection','guards','interfaces','interceptors','pipes','utilities','additionalPages','features'] (features applies under menuLayout: 'feature')",
             splitCommaList,
             COMPODOC_DEFAULTS.toggleMenuItems
         )

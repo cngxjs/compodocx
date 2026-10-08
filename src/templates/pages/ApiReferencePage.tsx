@@ -1,11 +1,12 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
-import { withoutHiddenItems } from '../../app/di/model';
+import { type DiView, withoutHiddenItems } from '../../app/di/model';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import type { EntityKind, EntityWithKind } from '../../app/engines/dependencies.engine';
 import { hrefFor, hrefText, isPageKind } from '../../app/links/layout';
 import { placeTarget } from '../../app/links/resolve';
 import type { TableKind } from '../../app/links/symbol-id';
+import { isNonNull } from '../../lib';
 import { IconSearch, IconX } from '../components/Icons';
 import {
     deriveLibFromBucket,
@@ -221,6 +222,43 @@ const BucketOption = (bucket: string): string =>
  * `data.categorizedByFeature`. Reads `data.referencesName` for the page
  * heading override (falls back to the localised `references` key).
  */
+/** Whether the DI view has anything for `dependency-injection.html`. */
+const hasDiLanding = (view: DiView | undefined): boolean =>
+    (view?.clusters.length ?? 0) + (view?.plainProviders.length ?? 0) + (view?.tokens.length ?? 0) >
+    0;
+
+const hasUtilities = (misc: any): boolean =>
+    ['functions', 'variables', 'typealiases', 'enumerations'].some(
+        list => (misc?.[list]?.length ?? 0) > 0
+    );
+
+/** Links to the Utilities and Dependency Injection landing pages that exist. */
+const LandingLinks = (data: any): string => {
+    const depth: number = data.depth ?? 0;
+    const pages = [
+        hasUtilities(data.miscellaneous) ? { page: 'utilities', label: t('utilities') } : undefined,
+        hasDiLanding(data.di)
+            ? { page: 'dependency-injection', label: t('dependency-injection') }
+            : undefined
+    ].filter(isNonNull);
+    return pages.length > 0
+        ? ((
+              <p class="cdx-ref-hero-subtitle">
+                  {pages
+                      .map(
+                          ({ page, label }) =>
+                              (
+                                  <a href={hrefText(hrefFor({ type: 'root', page }, depth))}>
+                                      {label}
+                                  </a>
+                              ) as string
+                      )
+                      .join(' · ')}
+              </p>
+          ) as string)
+        : '';
+};
+
 export const ApiReferencePage = (data: any): string => {
     const custom = renderCustomTemplate('api-reference', data);
     if (custom !== null) {
@@ -285,6 +323,7 @@ export const ApiReferencePage = (data: any): string => {
                     {totalItems} {t('members').toLowerCase()} · {bucketKeys.length}{' '}
                     {t('categories').toLowerCase()}
                 </p>
+                {LandingLinks(data)}
             </div>
 
             <div class="cdx-ref-page" data-cdx-page="api-reference" data-cdx-ref-total={totalItems}>

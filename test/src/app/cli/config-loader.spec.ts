@@ -195,6 +195,22 @@ describe('applyConfigToMainData', () => {
         vi.clearAllMocks();
     });
 
+    it('drops the miscellaneous and tokens menu keys with a warning, keeps the new ones', () => {
+        const mainData = makeMainData();
+        const program = makeProgram();
+        const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
+        applyConfigToMainData(
+            mainData,
+            { toggleMenuItems: ['tokens', 'miscellaneous', 'dependency-injection', 'utilities'] },
+            program,
+            { cwd: '/tmp/test' }
+        );
+        expect(mainData.toggleMenuItems).toEqual(['dependency-injection', 'utilities']);
+        expect(warn).toHaveBeenCalledWith('toggleMenuItems: "tokens" has no effect');
+        expect(warn).toHaveBeenCalledWith('toggleMenuItems: "miscellaneous" has no effect');
+        warn.mockRestore();
+    });
+
     it('config-file value applies when CLI does not override', () => {
         const mainData = makeMainData();
         const program = makeProgram();

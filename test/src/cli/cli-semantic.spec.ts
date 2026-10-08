@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { shell, temporaryDir } from '../helpers';
-import { clusterPage, pageOf } from '../helpers/pages';
+import { clusterPage, pageOf, rootPage } from '../helpers/pages';
 import { readKindPages } from './paths';
 
 const tmp = temporaryDir();
@@ -106,6 +106,24 @@ describe('CLI semantic analysis', () => {
         const utilities = fs.readFileSync(path.join(htmlFolder, 'utilities.html'), 'utf8');
         expect(utilities).not.to.contain('>provideFoo<');
         expect(utilities).to.contain('>formatFoo<');
+    });
+
+    it('adds a Dependency Injection chapter and landing page', () => {
+        const landing = fs.readFileSync(
+            path.join(htmlFolder, rootPage('dependency-injection')),
+            'utf8'
+        );
+        expect(landing).to.contain(`href="./${clusterPage('FooFeature')}"`);
+        expect(landing).to.contain(`href="./${pageOf('provider', 'provideFooLimit')}"`);
+        expect(landing).to.contain(`href="./${pageOf('token', 'FOO_CONFIG')}"`);
+        expect(landing).to.contain('id="dependency-injection-links"');
+        expect(landing).not.to.contain('id="tokens-links"');
+
+        const provider = fs.readFileSync(
+            path.join(htmlFolder, pageOf('provider', 'provideFooLimit')),
+            'utf8'
+        );
+        expect(provider).to.contain(`href="../${rootPage('dependency-injection')}"`);
     });
 
     it('gives a symbol that reaches no entry point no page and lists it in the log', () => {

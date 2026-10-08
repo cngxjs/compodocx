@@ -10,6 +10,7 @@ import {
 } from '../../../../src/app/compiler/semantic/model';
 import {
     buildDiView,
+    foldClusterMembers,
     formatHiddenList,
     isHiddenItem,
     isMovedPage,
@@ -166,5 +167,27 @@ describe('dependency injection view', () => {
             isMovedPage({ context: 'function', function: { name: 'orphan', file: F } }, view)
         ).toBe(true);
         expect(isMovedPage({ context: 'utilities' }, view)).toBe(false);
+    });
+
+    it('folds the members of a cluster into one feature-folder entry for the feature type', () => {
+        const item = (kind: string, name: string) => ({ kind, name, file: F });
+        const folded = foldClusterMembers(
+            [
+                item('function', 'helper'),
+                item('function', 'withMode'),
+                item('variable', 'provideFooAt'),
+                item('interface', 'FooFeature'),
+                item('function', 'provideFooLimit')
+            ],
+            view,
+            table
+        );
+        expect(folded.map(entry => `${entry.kind}:${entry.name}`)).toEqual([
+            'function:helper',
+            'interface:FooFeature',
+            'function:provideFooLimit'
+        ]);
+        const unchanged = [item('function', 'withMode')];
+        expect(foldClusterMembers(unchanged, undefined, table)).toEqual(unchanged);
     });
 });

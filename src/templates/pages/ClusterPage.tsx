@@ -296,7 +296,15 @@ export const ClusterPage = (data: any): string => {
                 </div>
                 <nav aria-label="Breadcrumb">
                     <ol class="cdx-breadcrumb">
-                        <li>{t('providers')}</li>
+                        <li>
+                            <a
+                                href={hrefText(
+                                    hrefFor({ type: 'root', page: 'dependency-injection' }, depth)
+                                )}
+                            >
+                                {t('dependency-injection')}
+                            </a>
+                        </li>
                         <li aria-current="page">{owner.name}</li>
                     </ol>
                 </nav>

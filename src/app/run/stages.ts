@@ -100,6 +100,18 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
         run: step(ctx => ctx.generators.diPages.prepare())
     },
     {
+        key: 'dependencyInjection',
+        when: ctx => {
+            const view = ctx.config.mainData.di;
+            const count =
+                (view?.clusters.length ?? 0) +
+                (view?.plainProviders.length ?? 0) +
+                (view?.tokens.length ?? 0);
+            return count > 0;
+        },
+        run: step(ctx => ctx.generators.diPages.prepareLanding())
+    },
+    {
         key: 'interceptor',
         when: hasAny(c => c.interceptors),
         run: step(ctx => ctx.generators.interceptor.prepare())

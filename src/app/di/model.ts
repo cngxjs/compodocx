@@ -6,6 +6,7 @@ import {
     symbolId,
     type TableKind
 } from '../links/symbol-id';
+import type { SymbolTable } from '../links/symbol-table';
 
 /**
  * Where a symbol is documented. A symbol without an entry in the placement
@@ -154,3 +155,51 @@ export const withoutHiddenItems = <T extends { readonly kind?: unknown }>(
             items.filter(item => !isHiddenItem(view, item.kind as EntityKind, item as never))
         ])
     );
+
+/** The feature type whose page documents a symbol with this placement. */
+const clusterOf = (
+    placement: Placement,
+    ownId: () => SymbolId | undefined
+): SymbolId | undefined => {
+    if (placement.type === 'cluster') {
+        return placement.owner;
+    }
+    return placement.type === 'cluster-owner' ? ownId() : undefined;
+};
+
+/**
+ * Feature-folder items with the members of each cluster folded into one
+ * entry for their feature type, at the position of the first one. The
+ * feature type's own entry and later members are dropped.
+ */
+export const foldClusterMembers = <T extends { readonly kind?: unknown }>(
+    items: readonly T[],
+    view: DiView | undefined,
+    table: SymbolTable | undefined
+): T[] => {
+    if (view === undefined || table === undefined || view.clusters.length === 0) {
+        return [...items];
+    }
+    const seen = new Set<SymbolId>();
+    const folded: T[] = [];
+    for (const item of items) {
+        const kind = item.kind as EntityKind;
+        const placement = placementOfItem(view, kind, item as NamedItem);
+        const ownerId = clusterOf(placement, () => itemId(kind, item as NamedItem));
+        if (!ownerId) {
+            folded.push(item);
+            continue;
+        }
+        const owner = table.byId.get(ownerId);
+        if (!owner || seen.has(ownerId)) {
+            continue;
+        }
+        seen.add(ownerId);
+        folded.push(
+            placement.type === 'cluster-owner'
+                ? item
+                : ({ ...(owner.data as object), kind: owner.ref.kind } as unknown as T)
+        );
+    }
+    return folded;
+};

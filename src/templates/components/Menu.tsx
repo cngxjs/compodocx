@@ -1,6 +1,6 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
-import { type DiView, hasOwnPage, isHiddenItem } from '../../app/di/model';
+import { type DiView, foldClusterMembers, hasOwnPage, isHiddenItem } from '../../app/di/model';
 import {
     buildGroupTree,
     type EntityKind,
@@ -18,9 +18,9 @@ import {
     ROOT_DEPTH,
     type UtilityKind
 } from '../../app/links/layout';
-import { placeTarget } from '../../app/links/resolve';
-import type { TableKind } from '../../app/links/symbol-id';
-import { entryInFile } from '../../app/links/symbol-table';
+import { placedLink, placeTarget } from '../../app/links/resolve';
+import type { SymbolId, TableKind } from '../../app/links/symbol-id';
+import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { t } from '../helpers';
 import { isToggled } from '../helpers/menu-helpers';
 import {
@@ -121,41 +121,52 @@ const utilityItems = (items: readonly any[], kind: UtilityKind): any[] => {
         });
 };
 
-/** The Utilities chapter: a link to the landing page, then one group per kind. */
-const UtilitiesChapter = (d: any): string => {
-    const groups = UTILITY_GROUPS.map(group => ({
-        ...group,
-        items: utilityItems(d.miscellaneous[group.list] ?? [], group.kind)
-    })).filter(group => group.items.length > 0);
+interface ChapterGroup {
+    /** Element id suffix of the group. */
+    readonly id: string;
+    readonly label: string;
+    readonly links: readonly string[];
+}
+
+/**
+ * A chapter with a link to its landing page, then one collapsible group
+ * per list. Groups of up to 20 entries start expanded.
+ */
+const GroupedChapter = (props: {
+    readonly key: string;
+    readonly icon: string;
+    readonly label: string;
+    readonly landing: string;
+    readonly groups: readonly ChapterGroup[];
+}): string => {
+    const groups = props.groups.filter(group => group.links.length > 0);
     if (groups.length === 0) {
         return '';
     }
+    const listId = `${props.key}-links`;
     return (
         <li class="chapter">
             <button
                 class="simple menu-toggler"
                 type="button"
                 data-cdx-toggle="collapse"
-                data-cdx-target="#utilities-links"
-                aria-expanded={chapterOpen('utilities') ? 'true' : 'false'}
-                aria-controls="utilities-links"
+                data-cdx-target={`#${listId}`}
+                aria-expanded={chapterOpen(props.key) ? 'true' : 'false'}
+                aria-controls={listId}
             >
-                {IconCube()}
-                <span>{t('utilities')}</span>
+                {props.icon}
+                <span>{props.label}</span>
                 {chevron()}
             </button>
-            <ul
-                class={`links collapse${chapterOpen('utilities') ? ' in' : ''}`}
-                id="utilities-links"
-            >
+            <ul class={`links collapse${chapterOpen(props.key) ? ' in' : ''}`} id={listId}>
                 <li class="link">
-                    <a href={rootHref('utilities')} data-type="entity-link">
+                    <a href={rootHref(props.landing)} data-type="entity-link">
                         {t('overview')}
                     </a>
                 </li>
                 {groups.map(group => {
-                    const id = `utilities-group-${group.list}`;
-                    const startExpanded = !isCollapsedAll() && group.items.length <= 20;
+                    const id = `${props.key}-group-${group.id}`;
+                    const startExpanded = !isCollapsedAll() && group.links.length <= 20;
                     return (
                         <li class="chapter inner" style="--depth: 0">
                             <button
@@ -166,21 +177,12 @@ const UtilitiesChapter = (d: any): string => {
                                 aria-expanded={startExpanded ? 'true' : 'false'}
                                 aria-controls={id}
                             >
-                                <span class="link-name">{t(group.labelKey)}</span>
-                                <span class="cdx-badge cdx-badge--count">{group.items.length}</span>
+                                <span class="link-name">{group.label}</span>
+                                <span class="cdx-badge cdx-badge--count">{group.links.length}</span>
                                 {IconChevronRight('cdx-chevron')}
                             </button>
                             <ul class={`links collapse${startExpanded ? ' in' : ''}`} id={id}>
-                                {group.items.map(item =>
-                                    EntityLink({
-                                        href: entityHref(KIND_FOLDER[group.kind], item),
-                                        name: item.name,
-                                        deprecated: item.deprecated,
-                                        beta: item.beta,
-                                        entityType: group.kind,
-                                        description: item.description
-                                    })
-                                )}
+                                {group.links.join('')}
                             </ul>
                         </li>
                     );
@@ -188,6 +190,94 @@ const UtilitiesChapter = (d: any): string => {
             </ul>
         </li>
     ) as string;
+};
+
+/** The Utilities chapter: a link to the landing page, then one group per kind. */
+const UtilitiesChapter = (d: any): string =>
+    GroupedChapter({
+        key: 'utilities',
+        icon: IconCube(),
+        label: t('utilities'),
+        landing: 'utilities',
+        groups: UTILITY_GROUPS.map(group => ({
+            id: group.list,
+            label: t(group.labelKey),
+            links: utilityItems(d.miscellaneous[group.list] ?? [], group.kind).map(item =>
+                EntityLink({
+                    href: entityHref(KIND_FOLDER[group.kind], item),
+                    name: item.name,
+                    deprecated: item.deprecated,
+                    beta: item.beta,
+                    entityType: group.kind,
+                    description: item.description
+                })
+            )
+        }))
+    });
+
+/** Root-relative link to where the DI view documents a table entry. */
+const placedHref = (d: any, id: SymbolId): string | undefined => {
+    const table: SymbolTable | undefined = d.symbols;
+    const entry = table?.byId.get(id);
+    const link = table && entry && placedLink(table, entry, d.di, { duplicate: true });
+    return link ? hrefText(hrefFor(link.target, ROOT_DEPTH, link.anchor), 'bare') : undefined;
+};
+
+/**
+ * The Dependency Injection chapter: a link to the landing page, the
+ * providers (one entry per feature type page, then the plain providers) and
+ * the tokens.
+ */
+const DependencyInjectionChapter = (d: any): string => {
+    const view: DiView | undefined = d.di;
+    const table: SymbolTable | undefined = d.symbols;
+    const providerLink = (id: SymbolId, entityType: string): string[] => {
+        const entry = table?.byId.get(id);
+        const href = placedHref(d, id);
+        return entry && href
+            ? [
+                  EntityLink({
+                      href,
+                      name: entry.ref.name,
+                      entityType,
+                      description: (entry.data as { description?: string }).description
+                  })
+              ]
+            : [];
+    };
+    return GroupedChapter({
+        key: 'dependency-injection',
+        icon: IconInjectable(),
+        label: t('dependency-injection'),
+        landing: 'dependency-injection',
+        groups: [
+            {
+                id: 'providers',
+                label: t('providers'),
+                links: [
+                    ...(view?.clusters ?? []).flatMap(cluster =>
+                        providerLink(cluster.owner, 'cluster')
+                    ),
+                    ...(view?.plainProviders ?? []).flatMap(id => providerLink(id, 'provider'))
+                ]
+            },
+            {
+                id: 'tokens',
+                label: t('tokens'),
+                links: (d.tokens ?? []).map((item: any) =>
+                    EntityLink({
+                        href: entityHref(KIND_FOLDER.token, { ...item, kind: 'token' }),
+                        name: item.name,
+                        deprecated: item.deprecated,
+                        isToken: true,
+                        beta: item.beta,
+                        entityType: 'token',
+                        description: item.description
+                    })
+                )
+            }
+        ]
+    });
 };
 
 /**
@@ -790,8 +880,18 @@ const withoutHidden = (d: any): any => {
             return misc;
         });
     }
-    copy.categorizedByFeature = groups(d.categorizedByFeature, keepOwnKind);
-    copy.categorizedByFeaturePrimary = groups(d.categorizedByFeaturePrimary, keepOwnKind);
+    const folders = (record: Record<string, any[]> | undefined) =>
+        record &&
+        cached(view, record, () =>
+            Object.fromEntries(
+                Object.entries(record).map(([key, items]) => [
+                    key,
+                    foldClusterMembers(items.filter(keepOwnKind), view, d.symbols)
+                ])
+            )
+        );
+    copy.categorizedByFeature = folders(d.categorizedByFeature);
+    copy.categorizedByFeaturePrimary = folders(d.categorizedByFeaturePrimary);
     return copy;
 };
 
@@ -1034,16 +1134,7 @@ export const Menu = (props: MenuProps): string => {
                                 hrefPrefix: KIND_FOLDER.injectable,
                                 groupDepth: d.groupDepth
                             })}
-                        {d.tokens?.length > 0 &&
-                            EntitySection({
-                                items: d.tokens,
-                                categorized: d.categorizedTokens,
-                                type: 'tokens',
-                                iconHtml: IconToken(),
-                                labelKey: 'tokens',
-                                hrefPrefix: KIND_FOLDER.token,
-                                groupDepth: d.groupDepth
-                            })}
+                        {DependencyInjectionChapter(d)}
                         {d.interceptors?.length > 0 &&
                             EntitySection({
                                 items: d.interceptors,

@@ -6,6 +6,8 @@ import { pageLocation } from '../links/layout';
 import type { SymbolId } from '../links/symbol-id';
 import type { SymbolTable } from '../links/symbol-table';
 
+const LANDING_PAGE = 'dependency-injection';
+
 export interface DiPageCounts {
     readonly clusters: number;
     readonly providers: number;
@@ -24,6 +26,20 @@ const dataOf = (table: SymbolTable, ids: readonly SymbolId[]): unknown[] =>
  * `provider`). Reads the DI view; nothing without the semantic stage.
  */
 export class DiPageGenerator {
+    /** The landing page `dependency-injection.html` (context `dependency-injection`). */
+    public prepareLanding(): Promise<void> {
+        const location = pageLocation({ type: 'root', page: LANDING_PAGE });
+        Configuration.addPage({
+            path: location.path,
+            name: location.filename,
+            id: LANDING_PAGE,
+            context: LANDING_PAGE,
+            depth: location.depth,
+            pageType: COMPODOC_DEFAULTS.PAGE_TYPES.ROOT
+        });
+        return Promise.resolve();
+    }
+
     public prepare(): Promise<DiPageCounts> {
         logger.info('Prepare dependency injection pages');
         const table: SymbolTable | undefined = Configuration.mainData.symbols;

@@ -70,6 +70,8 @@ export interface MiscDetailProps {
     readonly depth?: number;
     /** A line under the name, e.g. "Functional guard". */
     readonly contextLine?: string;
+    /** The landing page the breadcrumb leads to; the Utilities group by default. */
+    readonly parent?: { readonly page: string; readonly label: string };
 }
 
 interface SectionProps {
@@ -400,29 +402,43 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                     <ol class="cdx-breadcrumb">
                         {(() => {
                             const segments = resolveBucketSegments(item);
-                            return segments
-                                ? segments.map(seg => <li>{seg}</li>)
-                                : [
-                                      (
-                                          <li>
-                                              <a href={utilitiesHref(props.depth ?? 1)}>
-                                                  {t('utilities')}
-                                              </a>
-                                          </li>
-                                      ) as string,
-                                      (
-                                          <li>
-                                              <a
-                                                  href={utilitiesHref(
-                                                      props.depth ?? 1,
-                                                      utilityGroupAnchor(props.kind)
-                                                  )}
-                                              >
-                                                  {t(meta.breadcrumb)}
-                                              </a>
-                                          </li>
-                                      ) as string
-                                  ].join('');
+                            if (segments) {
+                                return segments.map(seg => <li>{seg}</li>);
+                            }
+                            if (props.parent) {
+                                const href = hrefText(
+                                    hrefFor(
+                                        { type: 'root', page: props.parent.page },
+                                        props.depth ?? 1
+                                    )
+                                );
+                                return (
+                                    <li>
+                                        <a href={href}>{props.parent.label}</a>
+                                    </li>
+                                );
+                            }
+                            return [
+                                (
+                                    <li>
+                                        <a href={utilitiesHref(props.depth ?? 1)}>
+                                            {t('utilities')}
+                                        </a>
+                                    </li>
+                                ) as string,
+                                (
+                                    <li>
+                                        <a
+                                            href={utilitiesHref(
+                                                props.depth ?? 1,
+                                                utilityGroupAnchor(props.kind)
+                                            )}
+                                        >
+                                            {t(meta.breadcrumb)}
+                                        </a>
+                                    </li>
+                                ) as string
+                            ].join('');
                         })()}
                         <li aria-current="page">{item.name}</li>
                     </ol>
@@ -509,5 +525,6 @@ export const renderProviderPage = (item: any, depth: number | undefined): string
     renderMiscDetailPage({
         kind: item.subtype === 'variable' ? 'variable' : 'function',
         item,
-        depth
+        depth,
+        parent: { page: 'dependency-injection', label: t('dependency-injection') }
     });

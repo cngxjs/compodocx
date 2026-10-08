@@ -15,7 +15,7 @@ export interface ReferencedByEntry {
 }
 
 /** The `<a>` href of a backlink; depth is supplied by the page. */
-function referencedByHref(entry: ReferencedByEntry, depth: number): string {
+export function referencedByHref(entry: ReferencedByEntry, depth: number): string {
     const page = pageFile(entry.hrefPrefix, entry.pageName ?? entry.name);
     return `${relativePrefix(Math.max(depth, 0), 'bare')}${page}${entry.anchor ? `#${entry.anchor}` : ''}`;
 }
