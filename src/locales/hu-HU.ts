@@ -202,6 +202,11 @@ export const TRANSLATION_HU_HU = {
     'unit-test-coverage': 'Unit teszt lefedettség',
     value: 'Érték',
     'used-by': 'Használja',
+    'injection-context': 'Injektálási környezet',
+    'injection-context-hint':
+        'Injektálási környezetben kell meghívni (konstruktor, mezőinicializáló vagy runInInjectionContext)',
+    'role-feature': 'Funkció',
+    'role-provider': 'Provider',
     utilities: 'Segédeszközök',
     variables: 'Változók',
     'view-providers': 'Nézet szolgáltatók',

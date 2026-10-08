@@ -200,6 +200,11 @@ export const TRANSLATION_ZH_CN = {
     'unit-test-coverage': '单元测试概览',
     value: '值',
     'used-by': '使用方',
+    'injection-context': '注入上下文',
+    'injection-context-hint':
+        '必须在注入上下文中调用（构造函数、字段初始化器或 runInInjectionContext）',
+    'role-feature': '功能',
+    'role-provider': 'Provider',
     utilities: '工具',
     variables: '变量',
     'view-providers': '视图提供者',

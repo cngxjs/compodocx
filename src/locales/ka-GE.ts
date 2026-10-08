@@ -201,6 +201,11 @@ export const TRANSLATION_KA_GE = {
     'unit-test-coverage': 'ერთეული ტესტის გაშუქება',
     value: 'მნიშვნელობა',
     'used-by': 'იყენებს',
+    'injection-context': 'ინექციის კონტექსტი',
+    'injection-context-hint':
+        'უნდა გამოიძახოს ინექციის კონტექსტში (კონსტრუქტორი, ველის ინიციალიზატორი ან runInInjectionContext)',
+    'role-feature': 'ფუნქცია',
+    'role-provider': 'Provider',
     utilities: 'დამხმარე საშუალებები',
     variables: 'ცვლადები',
     'view-providers': 'ხედის პროვაიდერები',

@@ -1,13 +1,14 @@
 import Html from '@kitajs/html';
-import { factKey, type SemanticModel } from '../../app/compiler/semantic/model';
+import type { SemanticModel } from '../../app/compiler/semantic/model';
 import { type DiView, isHidden } from '../../app/di/model';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { hrefFor, hrefText, KIND_FOLDER, type UtilityKind } from '../../app/links/layout';
 import { symbolTarget } from '../../app/links/resolve';
-import { toSymbolKey } from '../../app/links/symbol-id';
 import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
+import { DiBadges } from '../components/DiBadges';
 import { IconCube } from '../components/Icons';
 import { firstSentence, t } from '../helpers';
+import { entryFacts } from '../helpers/symbol-facts';
 
 /**
  * The Utilities landing page (`utilities.html`): every function, constant,
@@ -41,22 +42,21 @@ const entriesOf = (
         .filter(entry => entry.ref.kind === kind && !isHidden(view, entry.id))
         .sort((a, b) => a.ref.name.localeCompare(b.ref.name));
 
-const usedByCount = (entry: SymbolEntry, semantic: SemanticModel | undefined): number =>
-    semantic?.facts.get(factKey(toSymbolKey(entry.ref)))?.usedBy.length ?? 0;
-
 const Row = (entry: SymbolEntry, depth: number, semantic: SemanticModel | undefined): string => {
     const description = (entry.data as { description?: unknown }).description;
     const href = hrefText(hrefFor(symbolTarget(entry, { duplicate: true }), depth));
     const summary = firstSentence(description);
+    const facts = entryFacts(semantic, entry);
     return (
         <tr data-cdx-misc-name={entry.ref.name.toLowerCase()}>
             <td>
                 <a href={href}>
                     <code>{entry.ref.name}</code>
                 </a>
+                {DiBadges({ facts })}
             </td>
             <td>{summary ?? ''}</td>
-            <td>{semantic ? String(usedByCount(entry, semantic)) : ''}</td>
+            <td>{semantic ? String(facts?.usedBy.length ?? 0) : ''}</td>
         </tr>
     ) as string;
 };

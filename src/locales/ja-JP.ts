@@ -201,6 +201,11 @@ export const TRANSLATION_JA_JP = {
     'unit-test-coverage': 'ユニットテストカバレッジ',
     value: '値',
     'used-by': '使用元',
+    'injection-context': 'インジェクションコンテキスト',
+    'injection-context-hint':
+        'インジェクションコンテキスト内で呼び出す必要があります（コンストラクタ、フィールド初期化子、または runInInjectionContext）',
+    'role-feature': '機能',
+    'role-provider': 'Provider',
     utilities: 'ユーティリティ',
     variables: '変数',
     'view-providers': 'ビュープロバイダー',

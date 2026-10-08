@@ -1,10 +1,11 @@
-import { factKey, type SemanticModel } from '../../app/compiler/semantic/model';
-import { type DiView, isHidden } from '../../app/di/model';
+import { factKey } from '../../app/compiler/semantic/model';
+import { isHidden } from '../../app/di/model';
 import type { EntityKind } from '../../app/engines/dependencies.engine';
 import { KIND_FOLDER } from '../../app/links/layout';
-import { presentationKind, type TableKind, toSymbolKey } from '../../app/links/symbol-id';
-import { entryInFile, type SymbolEntry, type SymbolTable } from '../../app/links/symbol-table';
+import { type TableKind, toSymbolKey } from '../../app/links/symbol-id';
+import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
 import type { ReferencedByEntry } from '../blocks/ReferencedBySection';
+import { entryFacts, type FactsContext, ownEntry } from './symbol-facts';
 
 const indexes = new WeakMap<SymbolTable, ReadonlyMap<string, SymbolEntry>>();
 
@@ -25,11 +26,7 @@ const byFactKey = (table: SymbolTable): ReadonlyMap<string, SymbolEntry> => {
     return index;
 };
 
-export interface UsedByContext {
-    readonly symbols?: SymbolTable;
-    readonly semantic?: SemanticModel;
-    readonly di?: DiView;
-}
+export type UsedByContext = FactsContext;
 
 /**
  * The documented symbols that use an engine object, from the semantic
@@ -41,18 +38,12 @@ export const usedByEntries = (
     kind: EntityKind | TableKind,
     item: { readonly name?: unknown; readonly file?: unknown } | undefined
 ): ReferencedByEntry[] => {
-    const { symbols: table, semantic } = data;
-    if (!table || !semantic || typeof item?.name !== 'string') {
+    const own = ownEntry(data, kind, item);
+    const facts = entryFacts(data.semantic, own);
+    if (!data.symbols || !own || !facts) {
         return [];
     }
-    const file = typeof item.file === 'string' ? item.file : undefined;
-    const ownKind = presentationKind(kind as EntityKind, item);
-    const own = entryInFile(table, ownKind, item.name, file);
-    const facts = own && semantic.facts.get(factKey(toSymbolKey(own.ref)));
-    if (!own || !facts) {
-        return [];
-    }
-    const index = byFactKey(table);
+    const index = byFactKey(data.symbols);
     return facts.usedBy
         .map(key => index.get(factKey(key)))
         .filter((user): user is SymbolEntry => user !== undefined && user.id !== own.id)

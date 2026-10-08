@@ -200,6 +200,11 @@ export const TRANSLATION_KO_KR = {
     'unit-test-coverage': '단위 테스트 커버리지',
     value: '값',
     'used-by': '사용처',
+    'injection-context': '주입 컨텍스트',
+    'injection-context-hint':
+        '주입 컨텍스트에서 호출해야 합니다 (생성자, 필드 초기화 또는 runInInjectionContext)',
+    'role-feature': '기능',
+    'role-provider': 'Provider',
     utilities: '유틸리티',
     variables: '변수',
     'view-providers': '뷰 프로바이더',

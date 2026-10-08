@@ -200,6 +200,11 @@ export const TRANSLATION_EN_US = {
     'unit-test-coverage': 'Unit test coverage',
     value: 'Value',
     'used-by': 'Used by',
+    'injection-context': 'Injection context',
+    'injection-context-hint':
+        'Must be called in an injection context (constructor, field initializer or runInInjectionContext)',
+    'role-feature': 'Feature',
+    'role-provider': 'Provider',
     utilities: 'Utilities',
     variables: 'Variables',
     'view-providers': 'View Providers',

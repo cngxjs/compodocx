@@ -202,6 +202,11 @@ export const TRANSLATION_PT_BR = {
     'unit-test-coverage': 'Cobertura de teste unitário',
     value: 'Valor',
     'used-by': 'Usado por',
+    'injection-context': 'Contexto de injeção',
+    'injection-context-hint':
+        'Deve ser chamado em um contexto de injeção (construtor, inicializador de campo ou runInInjectionContext)',
+    'role-feature': 'Recurso',
+    'role-provider': 'Provider',
     utilities: 'Utilitários',
     variables: 'Variáveis',
     'view-providers': 'Provedores de view',

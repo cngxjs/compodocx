@@ -201,6 +201,11 @@ export const TRANSLATION_SK_SK = {
     'unit-test-coverage': 'Pokrytie unit testami',
     value: 'Hodnota',
     'used-by': 'Používa',
+    'injection-context': 'Kontext injekcie',
+    'injection-context-hint':
+        'Musí sa volať v kontexte injekcie (konštruktor, inicializátor poľa alebo runInInjectionContext)',
+    'role-feature': 'Funkcia',
+    'role-provider': 'Provider',
     utilities: 'Pomocné nástroje',
     variables: 'Premenné',
     'view-providers': 'Poskytovatelia zobrazenia',

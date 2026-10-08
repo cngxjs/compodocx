@@ -254,7 +254,6 @@ const EntityLink = (props: {
     contextId?: string;
     isToken?: boolean;
     beta?: boolean;
-    factoryKind?: string;
     entityType?: string;
     selector?: string;
     inputCount?: number;
@@ -282,12 +281,6 @@ const EntityLink = (props: {
                 {props.deprecated ? Badge({ label: 'D', cssClass: 'cdx-badge--deprecated' }) : ''}
                 {props.isToken ? Badge({ label: 'T', cssClass: 'cdx-badge--token' }) : ''}
                 {props.beta ? Badge({ label: 'B', cssClass: 'cdx-badge--beta' }) : ''}
-                {props.factoryKind
-                    ? Badge({
-                          label: props.factoryKind.charAt(0).toUpperCase(),
-                          cssClass: 'cdx-badge--factory'
-                      })
-                    : ''}
             </a>
         </li>
     ) as string;
@@ -345,7 +338,6 @@ const GroupTree = (props: {
                         deprecated: item.deprecated,
                         isToken: item.isToken,
                         beta: item.beta,
-                        factoryKind: item.factoryKind,
                         entityType: singularizeType(props.type),
                         selector: item.selector,
                         inputCount: item.inputsClass?.length,
@@ -411,12 +403,6 @@ const FeatureEntityLink = (item: EntityWithKind, defaultTab?: 'api'): string =>
                 {item.deprecated ? Badge({ label: 'D', cssClass: 'cdx-badge--deprecated' }) : ''}
                 {item.isToken ? Badge({ label: 'T', cssClass: 'cdx-badge--token' }) : ''}
                 {item.beta ? Badge({ label: 'B', cssClass: 'cdx-badge--beta' }) : ''}
-                {item.factoryKind
-                    ? Badge({
-                          label: item.factoryKind.charAt(0).toUpperCase(),
-                          cssClass: 'cdx-badge--factory'
-                      })
-                    : ''}
             </a>
         </li>
     ) as string;
@@ -617,7 +603,6 @@ const EntitySection = (props: {
                                           deprecated: item.deprecated,
                                           isToken: item.isToken,
                                           beta: item.beta,
-                                          factoryKind: item.factoryKind,
                                           entityType: singularizeType(props.type),
                                           selector: item.selector,
                                           inputCount: item.inputsClass?.length,
@@ -635,7 +620,6 @@ const EntitySection = (props: {
                               deprecated: item.deprecated,
                               isToken: item.isToken,
                               beta: item.beta,
-                              factoryKind: item.factoryKind,
                               entityType: singularizeType(props.type),
                               selector: item.selector,
                               inputCount: item.inputsClass?.length,

@@ -203,6 +203,11 @@ export const TRANSLATION_RU_RU = {
     'unit-test-coverage': 'Покрытие модульными тестами',
     value: 'Значение',
     'used-by': 'Используется в',
+    'injection-context': 'Контекст внедрения',
+    'injection-context-hint':
+        'Должна вызываться в контексте внедрения (конструктор, инициализатор поля или runInInjectionContext)',
+    'role-feature': 'Функциональность',
+    'role-provider': 'Provider',
     utilities: 'Утилиты',
     variables: 'Переменные',
     'view-providers': 'Провайдеры представления',

@@ -203,6 +203,11 @@ export const TRANSLATION_FR_FR = {
     'unit-test-coverage': 'Couverture de test unitaire',
     value: 'Valeur',
     'used-by': 'Utilisé par',
+    'injection-context': "Contexte d'injection",
+    'injection-context-hint':
+        "Doit être appelé dans un contexte d'injection (constructeur, initialiseur de champ ou runInInjectionContext)",
+    'role-feature': 'Fonctionnalité',
+    'role-provider': 'Provider',
     utilities: 'Utilitaires',
     variables: 'Variables',
     'view-providers': 'Fournisseurs de vue',

@@ -3,6 +3,7 @@ import Configuration from '../../app/configuration';
 import { hrefFor, hrefText } from '../../app/links/layout';
 import { ParamsTable } from '../blocks/ParamsTable';
 import { ReferencedBySection } from '../blocks/ReferencedBySection';
+import { DiBadges } from '../components/DiBadges';
 import { IconEnum, IconFile, IconFunction, IconTypealias, IconVariable } from '../components/Icons';
 import { WcagBadge } from '../components/WcagBadge';
 import {
@@ -18,6 +19,7 @@ import {
     resolveBucketSegments,
     t
 } from '../helpers';
+import { symbolFacts } from '../helpers/symbol-facts';
 import { usedByEntries } from '../helpers/used-by';
 import { utilityGroupAnchor } from './UtilitiesPage';
 
@@ -441,6 +443,7 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                     {item.beta && <span class="cdx-badge cdx-badge--beta">Beta</span>}
                     {item.since && <span class="cdx-badge cdx-badge--since">v{item.since}</span>}
                     {item.signal && <span class="cdx-badge cdx-badge--signal">Signal</span>}
+                    {DiBadges({ facts: symbolFacts(Configuration.mainData, props.kind, item) })}
                     {WcagBadge({ wcagLevel: item.wcagLevel })}
                 </div>
                 {props.contextLine && <p class="cdx-entity-hero-context">{props.contextLine}</p>}

@@ -201,6 +201,11 @@ export const TRANSLATION_PL_PL = {
     'unit-test-coverage': 'Pokrycie testami jednostkowymi',
     value: 'Wartość',
     'used-by': 'Używane przez',
+    'injection-context': 'Kontekst wstrzykiwania',
+    'injection-context-hint':
+        'Musi być wywołane w kontekście wstrzykiwania (konstruktor, inicjalizator pola lub runInInjectionContext)',
+    'role-feature': 'Funkcja',
+    'role-provider': 'Provider',
     utilities: 'Narzędzia pomocnicze',
     variables: 'Zmienne',
     'view-providers': 'Dostawcy widoku',

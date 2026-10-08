@@ -202,6 +202,11 @@ export const TRANSLATION_BG_BG = {
     'unit-test-coverage': 'Покритие на Unit-тестовете',
     value: 'Стойност',
     'used-by': 'Използва се от',
+    'injection-context': 'Контекст на инжектиране',
+    'injection-context-hint':
+        'Трябва да се извиква в контекст на инжектиране (конструктор, инициализатор на поле или runInInjectionContext)',
+    'role-feature': 'Функционалност',
+    'role-provider': 'Provider',
     utilities: 'Помощни средства',
     variables: 'Променливи',
     'view-providers': 'Доставчици за изглед',

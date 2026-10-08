@@ -200,6 +200,11 @@ export const TRANSLATION_ZH_TW = {
     'unit-test-coverage': '單元測試覆蓋率',
     value: '值',
     'used-by': '使用者',
+    'injection-context': '注入上下文',
+    'injection-context-hint':
+        '必須在注入上下文中呼叫（建構函式、欄位初始化器或 runInInjectionContext）',
+    'role-feature': '功能',
+    'role-provider': 'Provider',
     utilities: '工具',
     variables: '變數',
     'view-providers': '視圖提供者',

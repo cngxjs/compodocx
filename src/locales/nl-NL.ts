@@ -202,6 +202,11 @@ export const TRANSLATION_NL_NL = {
     'unit-test-coverage': 'Unit test coverage',
     value: 'Waarde',
     'used-by': 'Gebruikt door',
+    'injection-context': 'Injectiecontext',
+    'injection-context-hint':
+        'Moet in een injectiecontext worden aangeroepen (constructor, veldinitialisatie of runInInjectionContext)',
+    'role-feature': 'Feature',
+    'role-provider': 'Provider',
     utilities: 'Hulpmiddelen',
     variables: 'Variabelen',
     'view-providers': 'View-providers',
