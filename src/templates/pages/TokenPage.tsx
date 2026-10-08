@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import Configuration from '../../app/configuration';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { ExternalLinks } from '../blocks/ExternalLinks';
 import { ReferencedBySection } from '../blocks/ReferencedBySection';
@@ -16,6 +17,7 @@ import {
     resolveBucketSegments,
     t
 } from '../helpers';
+import { usedByEntries } from '../helpers/used-by';
 
 /**
  * Dedicated detail page for InjectionToken / HttpContextToken
@@ -156,7 +158,10 @@ export const TokenPage = (data: any): string => {
         <>
             {Hero(item, depth)}
 
-            {ReferencedBySection({ entries: item.referencedBy, depth })}
+            {ReferencedBySection({
+                entries: usedByEntries(Configuration.mainData, 'token', item),
+                depth
+            })}
 
             {item.description
                 ? Section({

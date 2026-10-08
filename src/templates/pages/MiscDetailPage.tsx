@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import Configuration from '../../app/configuration';
 import { hrefFor, hrefText } from '../../app/links/layout';
 import { ParamsTable } from '../blocks/ParamsTable';
 import { ReferencedBySection } from '../blocks/ReferencedBySection';
@@ -17,6 +18,7 @@ import {
     resolveBucketSegments,
     t
 } from '../helpers';
+import { usedByEntries } from '../helpers/used-by';
 import { utilityGroupAnchor } from './UtilitiesPage';
 
 export type MiscDetailKind = 'function' | 'variable' | 'typealias' | 'enumeration';
@@ -117,9 +119,9 @@ const collectExampleComments = (item: any): string[] => {
 
 //  Info-tab content (description + prose)
 
-const InfoContent = (item: any, depth: number): string => {
+const InfoContent = (item: any, depth: number, kind: MiscDetailKind): string => {
     const backlinks = ReferencedBySection({
-        entries: item.referencedBy,
+        entries: usedByEntries(Configuration.mainData, kind, item),
         depth
     });
     if (!item.description) {
@@ -295,7 +297,7 @@ const buildTabs = (props: MiscDetailProps): MiscTab[] => {
     const depth = props.depth ?? 1;
     const tabs: MiscTab[] = [];
 
-    const info = InfoContent(props.item, depth);
+    const info = InfoContent(props.item, depth, props.kind);
     tabs.push({
         id: 'info',
         label: 'Info',

@@ -33,7 +33,7 @@ describe('ReferencedBySection', () => {
             depth: 1
         });
         expect(html).to.include('cdx-referenced-by');
-        expect(html).to.include('id="referenced-by"');
+        expect(html).to.include('id="used-by"');
         expect(html).to.include('class="cdx-chip cdx-chip--component"');
         expect(html).to.include('class="cdx-chip cdx-chip--injectable"');
         expect(html).to.include(`href="${hrefTo('component', 'CngxToast', 1)}"`);

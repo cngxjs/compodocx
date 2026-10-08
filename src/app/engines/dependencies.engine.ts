@@ -21,14 +21,8 @@ import type { MiscellaneousData } from '../interfaces/miscellaneous-data.interfa
 import type { ParsedData } from '../interfaces/parsed-data.interface';
 import type { RouteInterface } from '../interfaces/routes.interface';
 import { kindHrefPrefix } from '../links/layout';
-import type { SymbolId } from '../links/symbol-id';
 import { presentationKind, type TableKind } from '../links/symbol-id';
-import {
-    buildSymbolTable,
-    lookupEntry,
-    type SymbolEntry,
-    type SymbolTable
-} from '../links/symbol-table';
+import { buildSymbolTable, lookupEntry, type SymbolTable } from '../links/symbol-table';
 
 export interface GroupNode {
     name: string; // segment name (single folder)
@@ -53,75 +47,6 @@ export type EntityKind =
     | 'variable'
     | 'typealias'
     | 'enumeration';
-
-/**
- * Extracts PascalCase identifier tokens from a public-surface entity so the
- * reverse-index pass can match them against the set of documented reference
- * symbols. Walks every place a referenced type can live: extends/implements,
- * host directives, member types, method return types, constructor args.
- *
- * Generic parameters resolve by base name (`Component<MyT>` matches `MyT`) —
- * we extract identifiers, not full type expressions. Built-in primitives such
- * as `Type<unknown>` never enter the result because they are not in the
- * reference-name set the caller filters against.
- */
-const REFERENCED_TYPE_TOKEN_RE = /\b[A-Z][A-Za-z0-9_]*\b/g;
-
-function collectReferencedTokensFromString(input: unknown, sink: Set<string>): void {
-    if (typeof input !== 'string' || input.length === 0) {
-        return;
-    }
-    const matches = input.match(REFERENCED_TYPE_TOKEN_RE);
-    if (matches) {
-        for (const token of matches) {
-            sink.add(token);
-        }
-    }
-}
-
-function collectReferencedTypeNames(entity: any): Set<string> {
-    const tokens = new Set<string>();
-    const scanMember = (member: any): void => {
-        if (!member) {
-            return;
-        }
-        collectReferencedTokensFromString(member.type, tokens);
-        collectReferencedTokensFromString(member.rawtype, tokens);
-        collectReferencedTokensFromString(member.returnType, tokens);
-        if (Array.isArray(member.args)) {
-            for (const arg of member.args) {
-                collectReferencedTokensFromString(arg?.type, tokens);
-            }
-        }
-    };
-    (entity?.inputsClass ?? []).forEach(scanMember);
-    (entity?.outputsClass ?? []).forEach(scanMember);
-    (entity?.propertiesClass ?? entity?.properties ?? []).forEach(scanMember);
-    (entity?.methodsClass ?? entity?.methods ?? []).forEach(scanMember);
-    if (entity?.constructorObj?.args) {
-        entity.constructorObj.args.forEach(scanMember);
-    }
-
-    const scanRef = (ref: unknown): void => {
-        if (typeof ref === 'string') {
-            collectReferencedTokensFromString(ref, tokens);
-        } else if (ref && typeof ref === 'object' && (ref as any).name) {
-            tokens.add((ref as any).name);
-        }
-    };
-
-    if (entity?.extends) {
-        const exts = Array.isArray(entity.extends) ? entity.extends : [entity.extends];
-        exts.forEach(scanRef);
-    }
-    if (Array.isArray(entity?.implements)) {
-        entity.implements.forEach(scanRef);
-    }
-    if (Array.isArray(entity?.hostDirectives)) {
-        entity.hostDirectives.forEach(scanRef);
-    }
-    return tokens;
-}
 
 /** Kinds that default into the Features chapter under `menuLayout: 'feature'`. */
 export const PRIMARY_KINDS: ReadonlySet<TableKind> = new Set<TableKind>([
@@ -356,7 +281,6 @@ export class DependenciesEngine {
         this.manageDuplicatesName();
         this.prepareCategoryGroups();
         this.prepareFeatureGroups();
-        this.prepareReferencedByIndex();
     }
 
     private manageDuplicatesName() {
@@ -722,94 +646,6 @@ export class DependenciesEngine {
         }
         this.categorizedByFeaturePrimary = primary;
         this.categorizedByFeatureReference = reference;
-    }
-
-    /**
-     * Reverse-index pass: for every reference-kind symbol (interface, function,
-     * typealias, variable, enumeration), collect the primary-kind entities
-     * (components / directives / pipes / injectables / classes / guards /
-     * interceptors / entities) whose public surface mentions the symbol's name.
-     *
-     * The result is attached as `entity.referencedBy: EntityWithKind[]` on each
-     * reference-kind item, so per-page templates can render a "Referenced by"
-     * chip-list without threading an extra lookup table through render args.
-     * Empty lists stay undefined so templates can `?.length > 0` guard cheaply.
-     */
-    private prepareReferencedByIndex(): void {
-        // Build name → kind/hrefPrefix map for primary entities once.
-        type PrimaryRef = {
-            name: string;
-            kind: EntityKind;
-            hrefPrefix: string;
-            file?: string;
-        };
-        const primaryGroups: Array<{ list: any[]; kind: EntityKind }> = [
-            { list: this.components, kind: 'component' },
-            { list: this.directives, kind: 'directive' },
-            { list: this.injectables, kind: 'injectable' },
-            { list: this.tokens, kind: 'token' },
-            { list: this.pipes, kind: 'pipe' },
-            { list: this.classes, kind: 'class' },
-            { list: this.guards, kind: 'guard' },
-            { list: this.interceptors, kind: 'interceptor' },
-            { list: this.entities, kind: 'entity' }
-        ];
-
-        // Reference-kind targets by name: interfaces, tokens and misc symbols,
-        // the last registered one winning (`referenced-by` lookup policy).
-        // Built from the current arrays, the published table is not up yet.
-        const table = buildSymbolTable(this);
-        const targets = new Map<string, SymbolEntry | undefined>();
-        const targetOf = (name: string): SymbolEntry | undefined => {
-            if (!targets.has(name)) {
-                targets.set(name, name ? lookupEntry(table, name, 'referenced-by') : undefined);
-            }
-            return targets.get(name);
-        };
-
-        // Build inverse index: target id → Map<dedupKey, PrimaryRef>
-        const index = new Map<SymbolId, { target: SymbolEntry; refs: Map<string, PrimaryRef> }>();
-
-        for (const { list, kind } of primaryGroups) {
-            const hrefPrefix = kindHrefPrefix(kind);
-            for (const entity of list ?? []) {
-                const tokens = collectReferencedTypeNames(entity);
-                if (tokens.size === 0) {
-                    continue;
-                }
-                for (const typeName of tokens) {
-                    if (typeName === entity.name) {
-                        continue; // self-reference
-                    }
-                    const target = targetOf(typeName);
-                    if (!target) {
-                        continue;
-                    }
-                    let bucket = index.get(target.id);
-                    if (!bucket) {
-                        bucket = { target, refs: new Map() };
-                        index.set(target.id, bucket);
-                    }
-                    const dedupKey = `${kind}:${entity.name}`;
-                    if (!bucket.refs.has(dedupKey)) {
-                        bucket.refs.set(dedupKey, {
-                            name: entity.name,
-                            kind,
-                            hrefPrefix,
-                            file: entity.file
-                        });
-                    }
-                }
-            }
-        }
-
-        // Attach sorted list onto each reference-kind entity.
-        for (const { target, refs } of index.values()) {
-            const entries = Array.from(refs.values()).sort((a, b) => a.name.localeCompare(b.name));
-            if (entries.length > 0) {
-                (target.data as any).referencedBy = entries;
-            }
-        }
     }
 
     public getComponents() {

@@ -152,18 +152,6 @@ describe('symbol table', () => {
         ).toBe('SettingsService-2');
     });
 
-    it('referenced-by reproduces the reverse index: last registered target wins', () => {
-        (data.components[0] as Record<string, unknown>).inputsClass = [
-            { name: 'size', type: 'DEFAULT_PAGE_SIZE' }
-        ];
-        (DependenciesEngine as any).prepareReferencedByIndex();
-        const legacy = data.miscellaneous.variables[0] as Record<string, unknown>;
-        expect(legacy.referencedBy).toBeDefined();
-        expect(pick(table, lookupName(table, 'DEFAULT_PAGE_SIZE', 'referenced-by'))).toBe(
-            identity(legacy)
-        );
-    });
-
     it('diff narrows by kind and takes the last copy', () => {
         expect(lookupName(table, 'Foo', 'diff', 'class')).toBe('class:src/foo.class.ts#Foo');
         expect(lookupName(table, 'SettingsService', 'diff', 'injectable')).toBe(

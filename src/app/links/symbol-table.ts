@@ -227,11 +227,9 @@ export const emptySymbolTable = (): SymbolTable => ({
  * - `doc-link`: `{@link}` targets. First exact name, no tokens.
  * - `entity-index`: the client's entity index. Last exact name; misc kinds
  *   after the class-like kinds, no tokens or entities.
- * - `referenced-by`: targets of "Referenced by". Last exact name over
- *   interfaces, tokens and misc kinds.
  * - `diff`: export diffs. Last exact name; callers narrow by kind.
  */
-export type LookupPolicy = 'type-link' | 'doc-link' | 'entity-index' | 'referenced-by' | 'diff';
+export type LookupPolicy = 'type-link' | 'doc-link' | 'entity-index' | 'diff';
 
 const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
     'type-link': [
@@ -275,15 +273,6 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
         'interface',
         'guard',
         'interceptor',
-        'resolver',
-        'function',
-        'variable',
-        'typealias',
-        'enumeration'
-    ],
-    'referenced-by': [
-        'interface',
-        'token',
         'resolver',
         'function',
         'variable',
