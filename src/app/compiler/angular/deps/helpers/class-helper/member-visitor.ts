@@ -1,7 +1,6 @@
 import * as crypto from 'node:crypto';
 import { SyntaxKind, ts } from 'ts-morph';
 import { isIgnore } from '../../../../../../utils';
-import AngularVersionUtil from '../../../../../..//utils/angular-version.util';
 import { StringifyArrowFunction } from '../../../../../../utils/arrow-function.util';
 import BasicTypeUtil from '../../../../../../utils/basic-type.util';
 import { JsdocParserUtil } from '../../../../../../utils/jsdoc-parser.util';
@@ -10,19 +9,10 @@ import { getNodeDecorators, nodeHasDecorator } from '../../../../../../utils/nod
 import { StringifyObjectLiteralExpression } from '../../../../../../utils/object-literal-expression.util';
 import { getNamesCompareFn, markedtags, mergeTagsAndArgs } from '../../../../../../utils/utils';
 import Configuration from '../../../../../configuration';
-import DependenciesEngine from '../../../../../engines/dependencies.engine';
-import { hrefFor, hrefText } from '../../../../../links/layout';
-import { targetOfData } from '../../../../../links/resolve';
 import { angularImports, rootInjectCall } from '../../../../semantic/inject-calls';
 import type { DecoratorInspector } from './decorator-inspector';
 import type { JsdocExtractor } from './jsdoc-extractor';
 import type { TypeRenderer } from './type-renderer';
-
-/** Crawl-time link to a documented symbol, from a symbol page (depth 1). */
-const internalHref = (data: unknown): string => {
-    const target = targetOfData(data);
-    return target ? hrefText(hrefFor(target, 1)) : '';
-};
 
 export class MemberVisitor {
     private jsdocParserUtil = new JsdocParserUtil();
@@ -215,47 +205,6 @@ export class MemberVisitor {
         return _decorators;
     }
 
-    private handleFunction(arg): string {
-        if (arg.function.length === 0) {
-            return `${arg.name}${this.getOptionalString(arg)}: () => void`;
-        }
-
-        const argums = arg.function.map(argu => {
-            const _result = DependenciesEngine.find(argu.type);
-            if (_result) {
-                if (_result.source === 'internal') {
-                    return `${argu.name}${this.getOptionalString(arg)}: <a href="${internalHref(
-                        _result.data
-                    )}">${argu.type}</a>`;
-                } else {
-                    const path = AngularVersionUtil.getApiLink(
-                        _result.data,
-                        Configuration.mainData.angularVersion
-                    );
-                    return `${argu.name}${this.getOptionalString(
-                        arg
-                    )}: <a href="${path}" target="_blank">${argu.type}</a>`;
-                }
-            } else if (BasicTypeUtil.isKnownType(argu.type)) {
-                const path = BasicTypeUtil.getTypeUrl(argu.type);
-                return `${argu.name}${this.getOptionalString(
-                    arg
-                )}: <a href="${path}" target="_blank">${argu.type}</a>`;
-            } else {
-                if (argu.name && argu.type) {
-                    return `${argu.name}${this.getOptionalString(arg)}: ${argu.type}`;
-                } else {
-                    if (argu.name) {
-                        return `${argu.name.text}`;
-                    } else {
-                        return '';
-                    }
-                }
-            }
-        });
-        return `${arg.name}${this.getOptionalString(arg)}: (${argums}) => void`;
-    }
-
     private getOptionalString(arg): string {
         return arg.optional ? '?' : '';
     }
@@ -265,25 +214,8 @@ export class MemberVisitor {
 
         stringifyArgs = args
             .map(arg => {
-                const _result = DependenciesEngine.find(arg.type);
-                if (_result) {
-                    if (_result.source === 'internal') {
-                        return `${arg.name}${this.getOptionalString(arg)}: <a href="${internalHref(
-                            _result.data
-                        )}">${arg.type}</a>`;
-                    } else {
-                        const path = AngularVersionUtil.getApiLink(
-                            _result.data,
-                            Configuration.mainData.angularVersion
-                        );
-                        return `${arg.name}${this.getOptionalString(
-                            arg
-                        )}: <a href="${path}" target="_blank">${arg.type}</a>`;
-                    }
-                } else if (arg.dotDotDotToken) {
+                if (arg.dotDotDotToken) {
                     return `...${arg.name}: ${arg.type}`;
-                } else if (arg.function) {
-                    return this.handleFunction(arg);
                 } else if (arg.expression && arg.name) {
                     return `${arg.expression.text}.${arg.name.text}`;
                 } else if (arg.expression && arg.kind === SyntaxKind.NewExpression) {
