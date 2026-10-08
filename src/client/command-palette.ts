@@ -201,18 +201,17 @@ const highlightMatch = (text: string, query: string): string => {
  * Pagefind returns a sub-result per heading with an id, and member
  * headings carry `<featureType>--<member>` ids.
  */
+const MEMBER_ANCHOR = /#[^#]+?--([^#]+)$/;
+
 const clusterMembers = (d: any): SearchResult[] =>
     (Array.isArray(d.sub_results) ? d.sub_results : [])
-        .filter((sub: any) => typeof sub?.url === 'string' && /#[^#]+--[^#]+$/.test(sub.url))
+        .filter((sub: any) => typeof sub?.url === 'string' && MEMBER_ANCHOR.test(sub.url))
         .map((sub: any) => ({
             title: String(sub.title ?? ''),
             url: sub.url,
             type: 'provider' as const,
-            // The heading also holds the role badges and the `#` permalink; the name comes first.
-            name:
-                String(sub.title ?? '')
-                    .trim()
-                    .split(/\s+/)[0] ?? '',
+            // The heading text runs the name into its badges and permalink; the anchor holds it alone.
+            name: decodeURIComponent(MEMBER_ANCHOR.exec(sub.url)?.[1] ?? ''),
             excerpt: typeof sub.excerpt === 'string' ? sub.excerpt : undefined
         }));
 
