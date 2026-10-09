@@ -43,7 +43,7 @@ export default defineConfig({
         {
             name: 'chrome',
             use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts', '**/di-chapter.spec.ts'],
+            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts', '**/di-chapter.spec.ts', '**/features.spec.ts'],
         },
 
         // firefox + webkit run on a nightly cron (.github/workflows/e2e-cross-browser.yml),
@@ -88,14 +88,14 @@ export default defineConfig({
         {
             name: 'standalone-feature',
             use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4004' },
-            testMatch: ['**/menu-layout.spec.ts'],
+            testMatch: ['**/menu-layout.spec.ts', '**/features.spec.ts'],
         },
 
         /* semantic-library fixture with search (DI chapter, feature type pages), uses port 4005 */
         {
             name: 'semantic',
             use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4005' },
-            testMatch: ['**/di-chapter.spec.ts'],
+            testMatch: ['**/di-chapter.spec.ts', '**/features.spec.ts'],
         },
     ],
 
