@@ -13,6 +13,7 @@ import { CoverageReport } from '../../templates/pages/CoverageReport';
 import { DependencyInjectionPage } from '../../templates/pages/DependencyInjectionPage';
 import { DirectivePage } from '../../templates/pages/DirectivePage';
 import { EntityDetailPage } from '../../templates/pages/EntityDetailPage';
+import { FeaturePage } from '../../templates/pages/FeaturePage';
 import { GuardPage } from '../../templates/pages/GuardPage';
 import { InjectablePage } from '../../templates/pages/InjectablePage';
 import { InterceptorPage } from '../../templates/pages/InterceptorPage';
@@ -72,6 +73,7 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     'unit-test': 'unit-test-report',
     'additional-page': 'additional-page',
     'bucket-landing': 'bucket-landing',
+    feature: 'feature',
     'api-reference': 'api-reference'
 };
 
@@ -171,6 +173,8 @@ export class HtmlEngine {
                 return AppConfigPage(data);
             case 'bucket-landing':
                 return BucketLandingPage(data);
+            case 'feature':
+                return FeaturePage(data);
             case 'api-reference':
                 return ApiReferencePage(data);
             default:

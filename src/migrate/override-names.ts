@@ -26,6 +26,7 @@ export const PAGE_LEVEL_OVERRIDES: readonly string[] = [
     'directive',
     'entity',
     'enumeration',
+    'feature',
     'function',
     'guard',
     'injectable',

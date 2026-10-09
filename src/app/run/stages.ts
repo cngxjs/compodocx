@@ -150,6 +150,7 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
         when: always,
         run: step(ctx => ctx.generators.bucketLanding.prepare())
     },
+    { key: 'feature', when: always, run: step(ctx => ctx.generators.feature.prepare()) },
     { key: 'apiReference', when: always, run: step(ctx => ctx.generators.apiReference.prepare()) },
     {
         key: 'documentationCoverage',

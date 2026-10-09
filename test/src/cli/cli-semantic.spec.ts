@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { shell, temporaryDir } from '../helpers';
-import { clusterPage, pageOf, rootPage } from '../helpers/pages';
+import { clusterPage, featurePage, pageOf, rootPage } from '../helpers/pages';
 import { readKindPages } from './paths';
 
 const tmp = temporaryDir();
@@ -113,6 +113,35 @@ describe('CLI semantic analysis', () => {
         const utilities = fs.readFileSync(path.join(htmlFolder, 'utilities.html'), 'utf8');
         expect(utilities).not.to.contain('>provideFoo<');
         expect(utilities).to.contain('>formatFoo<');
+    });
+
+    it('writes one page per feature, the glued entry point as one page with its README', () => {
+        const exists = (segments: string[]) =>
+            fs.existsSync(path.join(htmlFolder, featurePage(segments)));
+        for (const segments of [['core', 'select'], ['core', 'di'], ['ui', 'foo-panel'], ['env']]) {
+            expect(exists(segments), segments.join('/')).to.equal(true);
+        }
+        expect(exists(['core', 'select', 'shared'])).to.equal(false);
+        const select = fs.readFileSync(
+            path.join(htmlFolder, featurePage(['core', 'select'])),
+            'utf8'
+        );
+        expect(select).to.contain("import { ... } from '@sem/core/select';");
+        expect(select).to.contain('A single-select built from small parts');
+        expect(select).to.contain(`href="../../${pageOf('component', 'SemSelectListbox')}"`);
+    });
+
+    it('lists feature members by role and links providers to their feature type page', () => {
+        const di = fs.readFileSync(path.join(htmlFolder, featurePage(['core', 'di'])), 'utf8');
+        expect(di).to.contain('id="configuration"');
+        expect(di).to.contain('id="utilities"');
+        expect(di).to.contain(`href="../../${clusterPage('FooFeature')}#FooFeature--provideFoo"`);
+        const panel = fs.readFileSync(
+            path.join(htmlFolder, featurePage(['ui', 'foo-panel'])),
+            'utf8'
+        );
+        expect(panel).to.contain('A panel that configures foo for everything rendered inside it.');
+        expect(panel).to.contain('id="components-and-directives"');
     });
 
     it('adds a Dependency Injection chapter and landing page', () => {

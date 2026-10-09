@@ -1,5 +1,12 @@
 import type { SymbolKind } from '../../src/app/links/layout';
-import { bucketPage, clusterPage, type PageOptions, pageOf, rootPage } from '../src/helpers/pages';
+import {
+    bucketPage,
+    clusterPage,
+    featurePage,
+    type PageOptions,
+    pageOf,
+    rootPage
+} from '../src/helpers/pages';
 
 /**
  * Server-absolute URLs of generated pages for `page.goto`, built on the page
@@ -12,6 +19,9 @@ export const pageUrl = (kind: SymbolKind, name: string, opts?: PageOptions): str
 
 /** URL of a top-level page, e.g. `/utilities.html`. */
 export const rootUrl = (page: string): string => `/${rootPage(page)}`;
+
+/** URL of a feature page. */
+export const featureUrl = (segments: readonly string[]): string => `/${featurePage(segments)}`;
 
 /** URL of a bucket landing page. */
 export const bucketUrl = (segments: readonly string[]): string => `/${bucketPage(segments)}`;

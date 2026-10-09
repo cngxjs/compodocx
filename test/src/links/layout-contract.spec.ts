@@ -96,6 +96,22 @@ describe('page layout contract', () => {
         });
     });
 
+    it('places feature pages below features/ by import path segments', () => {
+        expect(pageLocation({ type: 'feature', segments: ['forms', 'select'] })).toEqual({
+            path: 'features/forms',
+            filename: 'select',
+            depth: 2
+        });
+        expect(pageLocation({ type: 'feature', segments: ['admin'] })).toEqual({
+            path: 'features',
+            filename: 'admin',
+            depth: 1
+        });
+        expect(
+            hrefText(hrefFor({ type: 'feature', segments: ['common', 'interactive', 'menu'] }, 1))
+        ).toBe('../features/common/interactive/menu.html');
+    });
+
     it('nests additional pages below their folder by slug', () => {
         expect(
             pageLocation({
