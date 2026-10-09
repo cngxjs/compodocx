@@ -76,7 +76,6 @@ export interface EntityWithKind {
     hrefPrefix: string;
     name: string;
     file?: string;
-    category?: string;
     deprecated?: boolean;
     standalone?: boolean;
     isToken?: boolean;

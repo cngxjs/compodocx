@@ -11,7 +11,6 @@ const PRIVATE = ts.SyntaxKind.PrivateKeyword;
 const COMMON = {
     deprecated: false,
     deprecationMessage: '',
-    category: '',
     indexKey: '',
     optional: false
 };

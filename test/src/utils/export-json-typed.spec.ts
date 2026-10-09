@@ -86,6 +86,27 @@ describe('export-json typed snapshot — todomvc fixture', () => {
         expect(snapshot.schemaVersion).toBe(EXPORT_SCHEMA_VERSION);
     });
 
+    it('writes no category or docsKind field on any entry or member (schema 4)', () => {
+        expect(EXPORT_SCHEMA_VERSION).toBe(4);
+        const keys: string[] = [];
+        const walk = (value: unknown): void => {
+            if (Array.isArray(value)) {
+                value.forEach(walk);
+            } else if (value && typeof value === 'object') {
+                for (const [key, child] of Object.entries(value)) {
+                    // Raw JSDoc nodes keep their tag names; only compodocx fields count.
+                    if (key !== 'jsdoctags') {
+                        keys.push(key);
+                        walk(child);
+                    }
+                }
+            }
+        };
+        walk(snapshot);
+        expect(keys).not.toContain('category');
+        expect(keys).not.toContain('docsKind');
+    });
+
     it('writes a valid ISO 8601 generatedAt timestamp', () => {
         expect(snapshot.generatedAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
         expect(Number.isFinite(Date.parse(snapshot.generatedAt))).toBe(true);

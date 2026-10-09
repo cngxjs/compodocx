@@ -7,7 +7,6 @@ import { ReferencedBySection, SymbolChips } from '../blocks/ReferencedBySection'
 import { RelatedSection } from '../blocks/RelatedSection';
 import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
 import { IconToken } from '../components/Icons';
-import { PrimaryBadge } from '../components/PrimaryBadge';
 import { WcagBadge } from '../components/WcagBadge';
 import {
     codeWrap,
@@ -68,11 +67,10 @@ const tokenSignature = (item: any, tokenType: string): string =>
 
 const Hero = (item: any, depth: number): string => {
     const feature = entityFeature('token', item);
-    const breadcrumbLabel = item.category || t('tokens');
+    const breadcrumbLabel = t('tokens');
     const lib = deriveLibFromBucket(item.file) ?? '';
     const meta = pagefindMetaBlock({
         kind: 'token',
-        category: item.category,
         feature: feature?.feature.label,
         description: item.description
     });
@@ -105,7 +103,6 @@ const Hero = (item: any, depth: number): string => {
                 <span class="cdx-badge cdx-badge--entity-token" title={t('token')}>
                     {t('token')}
                 </span>
-                {PrimaryBadge({ docsKind: item.docsKind })}
                 {item.deprecated ? (
                     <span class="cdx-badge cdx-badge--deprecated">{t('deprecated')}</span>
                 ) : (

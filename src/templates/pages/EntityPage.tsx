@@ -46,7 +46,6 @@ import {
     IconInterface,
     IconPipe
 } from '../components/Icons';
-import { PrimaryBadge } from '../components/PrimaryBadge';
 import { WcagBadge } from '../components/WcagBadge';
 import {
     deriveLibFromBucket,
@@ -570,13 +569,12 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
     const feature = entityFeature(props.entityKey as EntityKind, e);
     const searchMeta = pagefindMetaBlock({
         kind: props.entityKey as any,
-        category: e.category,
         feature: feature?.feature.label,
         description: e.description
     });
     const searchFilters = pagefindFilterBlock({
         kind: props.entityKey as any,
-        lib: deriveLibFromBucket(e.category || e.file),
+        lib: deriveLibFromBucket(e.file),
         feature: feature?.feature.label,
         entryPoint: feature?.feature.entryPoint,
         wcag: e.wcagLevel
@@ -609,7 +607,6 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
                 )}
                 <div class="cdx-entity-hero-badges">
                     <span class={`cdx-badge ${meta.badge}`}>{meta.label}</span>
-                    {PrimaryBadge({ docsKind: e.docsKind })}
                     {props.showTokenBadge && e.isToken ? (
                         <span class="cdx-badge cdx-badge--token">Token</span>
                     ) : (

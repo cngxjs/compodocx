@@ -235,7 +235,6 @@ export const TRANSLATION_EN_US = {
     'wcag-level': 'WCAG conformance',
     related: 'Related',
     'related-unresolved': 'Unresolved symbol',
-    'docskind-primary-title': 'Primary teaching surface for this category',
     yes: 'Yes',
     zoomin: 'Zoom in',
     zoomout: 'Zoom out'

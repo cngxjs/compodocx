@@ -235,7 +235,6 @@ export const TRANSLATION_BG_BG = {
     'view-providers': 'Доставчици за изглед',
     'view-details': 'Виж детайли',
     'wcag-level': 'WCAG съответствие',
-    'docskind-primary-title': 'Основна обучаваща повърхност за тази категория',
     yes: 'Да',
     zoomin: 'Zoom in',
     zoomout: 'Zoom out'

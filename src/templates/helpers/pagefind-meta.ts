@@ -100,7 +100,6 @@ export function firstSentence(html: unknown): string | undefined {
  */
 export interface PagefindMetaInput {
     readonly kind?: TableKind | 'cluster';
-    readonly category?: string;
     /** Label of the symbol's feature; the search palette shows it. */
     readonly feature?: string;
     readonly description?: string;
@@ -110,7 +109,7 @@ export interface PagefindMetaInput {
  * Render a Pagefind-discoverable meta block as a string fragment of hidden
  * spans. Each span carries one `data-pagefind-meta` attribute:
  *
- *   - `kind` and `category` use the literal `key:value` form (short, safe
+ *   - `kind` and `feature` use the literal `key:value` form (short, safe
  *     values, no commas or colons in real-world content).
  *   - `description` uses the inner-text form so values containing commas,
  *     colons, or quotes survive without escaping the `data-pagefind-meta`
@@ -133,13 +132,6 @@ export function pagefindMetaBlock(input: PagefindMetaInput): string {
     if (kindLabel) {
         const label = escapeAttr(kindLabel);
         parts.push(`<span hidden data-pagefind-meta="kind:${label}"></span>`);
-    }
-    if (typeof input.category === 'string') {
-        const trimmed = input.category.trim();
-        if (trimmed) {
-            const value = escapeAttr(trimmed);
-            parts.push(`<span hidden data-pagefind-meta="category:${value}"></span>`);
-        }
     }
     if (input.feature?.trim()) {
         parts.push(

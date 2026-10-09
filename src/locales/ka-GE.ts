@@ -234,7 +234,6 @@ export const TRANSLATION_KA_GE = {
     'view-providers': 'ხედის პროვაიდერები',
     'view-details': 'დეტალების ნახვა',
     'wcag-level': 'WCAG შესაბამისობა',
-    'docskind-primary-title': 'ამ კატეგორიის ძირითადი სასწავლო ზედაპირი',
     yes: 'კი',
     zoomin: 'მიახლოვება',
     zoomout: 'მასშტაბირება'

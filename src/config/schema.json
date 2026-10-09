@@ -498,14 +498,6 @@
             "default": "feature",
             "examples": ["feature", "type"]
         },
-        "featureLibraryScope": {
-            "$id": "/properties/featureLibraryScope",
-            "type": "string",
-            "enum": ["primary", "auto", "all"],
-            "title": "Under menuLayout: 'feature', which folder/@category buckets get a node in the Features/Libraries chapter and what they list (config-only, no CLI flag). 'primary' = only buckets with a class-like or @docsKind-promoted symbol (legacy). 'auto' (default) = buckets with no class-like symbol fall back to their full reference surface, so pure function/interface/type-alias libraries are first-class while class-like libraries stay curated. 'all' = every bucket lists its complete surface.",
-            "default": "auto",
-            "examples": ["auto", "primary", "all"]
-        },
         "features": {
             "$id": "/properties/features",
             "type": "object",

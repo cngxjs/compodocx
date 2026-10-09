@@ -1202,7 +1202,9 @@ export const Menu = (props: MenuProps): string => {
                 )}
 
                 {/* Utilities: functions, constants, type aliases and enums. Feature mode lists them in References. */}
-                {d.miscellaneous && (d.menuLayout ?? 'feature') !== 'feature' && UtilitiesChapter(d)}
+                {d.miscellaneous &&
+                    (d.menuLayout ?? 'feature') !== 'feature' &&
+                    UtilitiesChapter(d)}
 
                 {/* Routes */}
                 {!d.disableRoutesGraph && d.routes && (

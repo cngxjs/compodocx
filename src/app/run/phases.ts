@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { err, isErr, mapResult, ok, type Result, sequenceAsync } from '../../lib';
@@ -6,6 +7,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import RouterParserUtil from '../../utils/router-parser.util';
 import { formatLegacyNotice } from '../compiler/legacy-scan';
+import { findRemovedTags, formatRemovedTagNotice } from '../compiler/removed-tags';
 import { analyzeProject, formatFeatureSummary, formatSemanticSummary } from '../compiler/semantic';
 import { buildDiView, formatHiddenList } from '../di';
 import DependenciesEngine from '../engines/dependencies.engine';
@@ -223,6 +225,14 @@ const withSemantic = (ctx: RunContext): RunContext => {
     return { ...ctx, semantic: analyzed.value };
 };
 
+/** `@category` / `@docsKind` tags still written in the documented files. */
+const removedTagFindings = (files: readonly string[]) =>
+    files.flatMap(file => {
+        const absolute = path.resolve(cwd, file);
+        const text = fs.readFileSync(absolute, 'utf8');
+        return findRemovedTags(path.relative(cwd, absolute).split(path.sep).join('/'), text);
+    });
+
 /**
  * Index the engine's symbols once it holds the current crawl, place them and
  * derive their features; the feature model joins the semantic state.
@@ -271,6 +281,12 @@ const crawl: Stage = async current => {
 
     for (const line of formatLegacyNotice(dependenciesData.legacyFindings)) {
         logger.warn(line);
+    }
+    if (ctx.mode !== 'diff') {
+        const notice = formatRemovedTagNotice(removedTagFindings(ctx.files));
+        if (notice.length > 0) {
+            logger.warn(notice.join('\n'));
+        }
     }
 
     DependenciesEngine.init(dependenciesData);

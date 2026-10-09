@@ -31,7 +31,6 @@ import { featureGroups } from '../helpers/feature-info';
  */
 
 interface BucketItem extends EntityWithKind {
-    readonly docsKind?: 'primary';
     readonly wcagLevel?: 'A' | 'AA' | 'AAA';
 }
 
@@ -116,11 +115,6 @@ const RefItem = (item: BucketItem, depth: number, bucket: string): string => {
 
 const sortBucketItems = (items: readonly BucketItem[]): BucketItem[] => {
     return [...items].sort((a, b) => {
-        const ap = a.docsKind === 'primary' ? 0 : 1;
-        const bp = b.docsKind === 'primary' ? 0 : 1;
-        if (ap !== bp) {
-            return ap - bp;
-        }
         const ak = (KIND_LABELS[a.kind] ?? a.kind).toLowerCase();
         const bk = (KIND_LABELS[b.kind] ?? b.kind).toLowerCase();
         if (ak !== bk) {

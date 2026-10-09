@@ -233,7 +233,6 @@ export const TRANSLATION_ZH_TW = {
     'view-providers': '視圖提供者',
     'view-details': '查看詳情',
     'wcag-level': 'WCAG 合規',
-    'docskind-primary-title': '此分類的主要學習對象',
     yes: '是',
     zoomin: '放大',
     zoomout: '縮小'

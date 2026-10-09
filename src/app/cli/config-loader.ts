@@ -19,8 +19,13 @@ const COSMICONFIG_MODULE_NAME = 'compodoc';
 /** Menu keys of chapters that no longer exist; they warn and are dropped. */
 const REMOVED_MENU_ITEMS: readonly string[] = ['modules', 'miscellaneous', 'tokens'];
 
-/** Config keys that no longer have an effect; each one present warns once. */
-const IGNORED_CONFIG_KEYS: readonly string[] = ['groupBy', 'groupDepth'];
+/** Config keys that no longer have an effect, with the reason; each one present warns once. */
+const IGNORED_CONFIG_KEYS: Readonly<Record<string, string>> = {
+    groupBy: 'the sidebar groups symbols by feature',
+    groupDepth: 'the sidebar groups symbols by feature',
+    featureLibraryScope:
+        'each feature lists its primary members, or its whole surface when it has none'
+};
 
 export interface LoadConfigOptions {
     readonly explicitConfigPath?: string;
@@ -134,7 +139,7 @@ export function applyFeatureConfig(
  * Side-effects allowed:
  *  - `process.exit(1)` for invalid `--jsonIndent` / `--maxVersionsShown` /
  *    missing custom-theme file / `--tsconfig` boolean.
- *  - `process.exit(2)` for invalid `menuLayout` / `featureLibraryScope` / `collapsedAll` / `featuresName` / `referencesName` config.
+ *  - `process.exit(2)` for invalid `menuLayout` / `collapsedAll` / `featuresName` / `referencesName` config.
  *  - Mutates `logger.silent` and `logger.routeToStderr`.
  *  - Mutates `I18nEngine` via the language-availability warning.
  *
@@ -790,9 +795,9 @@ export function applyConfigToMainData(
         mainData.stackblitzTemplate = programOptions.stackblitzTemplate;
     }
 
-    for (const key of IGNORED_CONFIG_KEYS) {
+    for (const [key, reason] of Object.entries(IGNORED_CONFIG_KEYS)) {
         if ((configFile as Record<string, unknown>)[key] !== undefined) {
-            logger.warn(`${key} is ignored: the sidebar groups symbols by feature`);
+            logger.warn(`${key} is ignored: ${reason}`);
         }
     }
 
@@ -803,17 +808,6 @@ export function applyConfigToMainData(
             process.exit(2);
         }
         mainData.menuLayout = layout;
-    }
-
-    if (configFile.featureLibraryScope !== undefined) {
-        const featureLibraryScope = configFile.featureLibraryScope;
-        if (!COMPODOC_DEFAULTS.featureLibraryScopesSupported.includes(featureLibraryScope)) {
-            logger.error(
-                `Invalid featureLibraryScope value "${featureLibraryScope}". Expected "primary", "auto" or "all".`
-            );
-            process.exit(2);
-        }
-        mainData.featureLibraryScope = featureLibraryScope;
     }
 
     applyFeatureConfig(configFile, mainData);

@@ -41,7 +41,6 @@ import {
 } from '../components/EmptyStateIcons';
 import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
 import { IconComponent, IconFile } from '../components/Icons';
-import { PrimaryBadge } from '../components/PrimaryBadge';
 import { WcagBadge } from '../components/WcagBadge';
 import {
     deriveLibFromBucket,
@@ -385,13 +384,12 @@ export const ComponentPage = (data: any): string => {
     const feature = entityFeature('component', c);
     const searchMeta = pagefindMetaBlock({
         kind: 'component',
-        category: c.category,
         feature: feature?.feature.label,
         description: c.description
     });
     const searchFilters = pagefindFilterBlock({
         kind: 'component',
-        lib: deriveLibFromBucket(c.category || c.file),
+        lib: deriveLibFromBucket(c.file),
         feature: feature?.feature.label,
         entryPoint: feature?.feature.entryPoint,
         wcag: c.wcagLevel
@@ -426,7 +424,6 @@ export const ComponentPage = (data: any): string => {
                 )}
                 <div class="cdx-entity-hero-badges">
                     <span class="cdx-badge cdx-badge--entity-component">Component</span>
-                    {PrimaryBadge({ docsKind: c.docsKind })}
                     {c.zoneless ? <span class="cdx-badge cdx-badge--zoneless">Zoneless</span> : ''}
                     {(() => {
                         const cd = String(c.changeDetection ?? '');

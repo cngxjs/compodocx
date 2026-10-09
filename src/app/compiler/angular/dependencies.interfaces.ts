@@ -5,8 +5,6 @@ export interface IDep {
     type?: string;
     ctype?: string;
     name: string;
-    category?: string;
-    docsKind?: 'primary';
     wcagLevel?: WcagLevel;
     a11yNote?: string;
     taggedSelector?: string;
@@ -19,7 +17,6 @@ export interface IInjectableDep extends IDep {
     methods: Array<any>;
     deprecated: boolean;
     deprecationMessage: string;
-    category?: string;
     description: string;
     rawdescription: string;
     sourceCode: string;
@@ -52,7 +49,6 @@ export interface IInterceptorDep extends IDep {
     methods: Array<any>;
     deprecated: boolean;
     deprecationMessage: string;
-    category?: string;
     description: string;
     sourceCode: string;
 
@@ -67,7 +63,6 @@ export interface IGuardDep extends IDep {
     methods: Array<any>;
     deprecated: boolean;
     deprecationMessage: string;
-    category?: string;
     description: string;
     sourceCode: string;
 
@@ -80,7 +75,6 @@ export interface IPipeDep extends IDep {
     file: any;
     deprecated: boolean;
     deprecationMessage: string;
-    category?: string;
     description: string;
     rawdescription: string;
     sourceCode: string;
@@ -111,7 +105,6 @@ export interface IInterfaceDep extends IDep {
     kind?: any;
     deprecated: boolean;
     deprecationMessage: string;
-    category?: string;
     description?: string;
     rawdescription?: string;
     methods?: Array<any>;
@@ -129,7 +122,6 @@ export interface IFunctionDecDep extends IDep {
     subtype: string;
     deprecated: boolean;
     deprecationMessage: string;
-    category?: string;
     description: string;
 
     factoryKind?: 'provider' | 'feature' | 'inject' | 'factory';
@@ -144,7 +136,6 @@ export interface IEnumDecDep extends IDep {
     subtype: string;
     deprecated: boolean;
     deprecationMessage: string;
-    category?: string;
     description: string;
     file: any;
 }
@@ -155,7 +146,6 @@ export interface ITypeAliasDecDep extends IDep {
     rawtype: any;
     deprecated: boolean;
     deprecationMessage: string;
-    category?: string;
     description: string;
 
     kind?;
@@ -176,7 +166,6 @@ export interface Deps {
     sourceCode?: string;
     deprecated?: boolean;
     deprecationMessage?: string;
-    category?: string;
     description?: string;
 
     // Component

@@ -143,7 +143,6 @@ export class Configuration implements ConfigurationInterface {
         playgroundFiles: {},
         appConfig: [],
         menuLayout: 'feature',
-        featureLibraryScope: 'auto',
         features: {},
         featureContainers: [...DEFAULT_FEATURE_CONTAINERS],
         featureUtilityFolders: [...DEFAULT_FEATURE_UTILITY_FOLDERS],

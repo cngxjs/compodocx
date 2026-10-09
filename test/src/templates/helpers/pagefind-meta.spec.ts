@@ -87,24 +87,24 @@ describe('pagefindMetaBlock', () => {
         expect(out).toContain('data-pagefind-meta="kind:Type Alias"');
     });
 
-    it('omits category span when empty or whitespace-only', () => {
-        expect(pagefindMetaBlock({ kind: 'component', category: '' })).toBe(
+    it('omits feature span when empty or whitespace-only', () => {
+        expect(pagefindMetaBlock({ kind: 'component', feature: '' })).toBe(
             '<span hidden data-pagefind-meta="kind:Component"></span>'
         );
-        expect(pagefindMetaBlock({ kind: 'component', category: '   ' })).toBe(
+        expect(pagefindMetaBlock({ kind: 'component', feature: '   ' })).toBe(
             '<span hidden data-pagefind-meta="kind:Component"></span>'
         );
     });
 
-    it('emits a trimmed category in literal `key:value` form when set', () => {
+    it('emits a trimmed feature label in literal `key:value` form when set', () => {
         expect(
             pagefindMetaBlock({
                 kind: 'component',
-                category: '  ui/feedback/toast  '
+                feature: '  ui/feedback/toast  '
             })
         ).toBe(
             '<span hidden data-pagefind-meta="kind:Component"></span>' +
-                '<span hidden data-pagefind-meta="category:ui/feedback/toast"></span>'
+                '<span hidden data-pagefind-meta="feature:ui/feedback/toast"></span>'
         );
     });
 
@@ -139,9 +139,9 @@ describe('pagefindMetaBlock', () => {
         ).toContain('<span hidden data-pagefind-meta="description">Foo bar &amp; "baz"</span>');
     });
 
-    it('escapes attribute quotes in kind / category values', () => {
-        expect(pagefindMetaBlock({ kind: 'component', category: 'a"b' })).toContain(
-            'data-pagefind-meta="category:a&quot;b"'
+    it('escapes attribute quotes in kind / feature values', () => {
+        expect(pagefindMetaBlock({ kind: 'component', feature: 'a"b' })).toContain(
+            'data-pagefind-meta="feature:a&quot;b"'
         );
     });
 
@@ -149,12 +149,12 @@ describe('pagefindMetaBlock', () => {
         expect(
             pagefindMetaBlock({
                 kind: 'component',
-                category: 'ui/feedback/toast',
+                feature: 'ui/feedback/toast',
                 description: '<p>Toast component.</p>'
             })
         ).toBe(
             '<span hidden data-pagefind-meta="kind:Component"></span>' +
-                '<span hidden data-pagefind-meta="category:ui/feedback/toast"></span>' +
+                '<span hidden data-pagefind-meta="feature:ui/feedback/toast"></span>' +
                 '<span hidden data-pagefind-meta="description">Toast component</span>'
         );
     });

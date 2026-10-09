@@ -5,14 +5,6 @@ export class JsdocTags {
     constructor(private readonly jsdocParserUtil: JsdocParserUtil) {}
 
     public checkForDeprecation(tags: any[], result: { [key in string | number]: any }) {
-        // Per-pass counter for first-wins detection on @docsKind. Both
-        // extractor paths run on the same `result` for class-like entities;
-        // we can't compare against `result.docsKind` (already set by pass 1
-        // → would always false-fire on pass 2's first tag). The counter is
-        // pass-local, so pass 2 starts from zero and only fires when the
-        // array genuinely contains ≥ 2 valid @docsKind tags. `warnOnce`
-        // dedups the warn across the two passes.
-        let docsKindCount = 0;
         tags.forEach(tag => {
             if (tag.tagName?.text) {
                 if (tag.tagName.text.includes('deprecated')) {
@@ -20,25 +12,6 @@ export class JsdocTags {
                     // tag.comment becomes a NodeArray (not a string) when the
                     // JSDoc has an inline {@link X}; parseJSDocNode flattens both shapes.
                     result.deprecationMessage = this.jsdocParserUtil.parseJSDocNode(tag) || '';
-                }
-                if (tag.tagName.text === 'category') {
-                    result.category = (this.jsdocParserUtil.parseJSDocNode(tag) || '').trim();
-                }
-                if (tag.tagName.text === 'docsKind') {
-                    const raw = (this.jsdocParserUtil.parseJSDocNode(tag) || '').trim();
-                    const value = raw.split('\n')[0].trim().toLowerCase();
-                    if (value === 'primary') {
-                        docsKindCount++;
-                        if (docsKindCount > 1) {
-                            warnOnce(
-                                result,
-                                'docsKind:duplicate',
-                                `Multiple @docsKind primary tags on entity "${result.name || '?'}". First-wins, dropping subsequent.`
-                            );
-                        } else {
-                            result.docsKind = 'primary';
-                        }
-                    }
                 }
                 if (tag.tagName.text === 'wcag') {
                     const raw = (this.jsdocParserUtil.parseJSDocNode(tag) || '').trim();

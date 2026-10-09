@@ -171,7 +171,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
         await expect(page.locator('.cdx-entity-hero')).toBeVisible();
     });
 
-    test('entity heroes emit Pagefind-discoverable meta spans (kind, category, description)', async ({
+    test('entity heroes emit Pagefind-discoverable meta spans (kind, feature, description)', async ({
         page
     }) => {
         // Pagefind reads `data-pagefind-meta="key:value"` (literal form) and
@@ -183,7 +183,8 @@ test.describe('menuLayout: "feature" sidebar', () => {
         await page.waitForLoadState('domcontentloaded');
         const hero = page.locator('.cdx-entity-hero').first();
         await expect(hero.locator('span[data-pagefind-meta="kind:Function"]')).toHaveCount(1);
-        await expect(hero.locator('span[data-pagefind-meta="category:Providers"]')).toHaveCount(1);
+        await expect(hero.locator('span[data-pagefind-meta="feature:app"]')).toHaveCount(1);
+        await expect(hero.locator('span[data-pagefind-meta^="category:"]')).toHaveCount(0);
         // Description uses inner-text form so commas / colons in JSDoc
         // survive Pagefind's attribute parser.
         const description = hero.locator('span[data-pagefind-meta="description"]');

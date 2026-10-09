@@ -242,7 +242,6 @@ export interface MainDataInterface {
     playgroundFiles: Record<string, FileRefBundle>;
     appConfig: any[];
     menuLayout: 'type' | 'feature';
-    featureLibraryScope: 'primary' | 'auto' | 'all';
     /** Glob over cwd-relative file paths -> feature key. */
     features: Record<string, string>;
     /** App folders whose children are features. */

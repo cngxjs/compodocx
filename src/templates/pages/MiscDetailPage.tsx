@@ -381,13 +381,12 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
     const feature = entityFeature(props.kind, item);
     const searchMeta = pagefindMetaBlock({
         kind: props.kind,
-        category: item.category,
         feature: feature?.feature.label,
         description: item.description
     });
     const searchFilters = pagefindFilterBlock({
         kind: props.kind,
-        lib: deriveLibFromBucket(item.category || item.file),
+        lib: deriveLibFromBucket(item.file),
         feature: feature?.feature.label,
         entryPoint: feature?.feature.entryPoint,
         wcag: item.wcagLevel
@@ -452,9 +451,6 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                 </h1>
                 <div class="cdx-entity-hero-badges">
                     <span class={`cdx-badge ${meta.badge}`}>{meta.label}</span>
-                    {item.category && (
-                        <span class="cdx-badge cdx-badge--outline">{item.category}</span>
-                    )}
                     {item.deprecated && (
                         <span class="cdx-badge cdx-badge--deprecated">{t('deprecated')}</span>
                     )}

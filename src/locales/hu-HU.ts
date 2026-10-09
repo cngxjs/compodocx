@@ -235,7 +235,6 @@ export const TRANSLATION_HU_HU = {
     'view-providers': 'Nézet szolgáltatók',
     'view-details': 'Részletek',
     'wcag-level': 'WCAG megfelelőség',
-    'docskind-primary-title': 'A kategória elsődleges tanulási felülete',
     yes: 'Igen',
     zoomin: 'Nagyítás',
     zoomout: 'Kicsinyítés'

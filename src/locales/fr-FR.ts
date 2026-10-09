@@ -236,7 +236,6 @@ export const TRANSLATION_FR_FR = {
     'view-providers': 'Fournisseurs de vue',
     'view-details': 'Voir les détails',
     'wcag-level': 'Conformité WCAG',
-    'docskind-primary-title': "Surface d'apprentissage principale pour cette catégorie",
     yes: 'Oui',
     zoomin: 'Zoom avant',
     zoomout: 'Zoom arrière'

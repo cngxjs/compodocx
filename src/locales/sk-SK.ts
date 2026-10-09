@@ -234,7 +234,6 @@ export const TRANSLATION_SK_SK = {
     'view-providers': 'Poskytovatelia zobrazenia',
     'view-details': 'Zobraziť detaily',
     'wcag-level': 'Súlad s WCAG',
-    'docskind-primary-title': 'Hlavná učebná plocha pre túto kategóriu',
     yes: 'Áno',
     zoomin: 'Priblížiť',
     zoomout: 'Oddialiť'

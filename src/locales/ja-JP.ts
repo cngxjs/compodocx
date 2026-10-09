@@ -234,7 +234,6 @@ export const TRANSLATION_JA_JP = {
     'view-providers': 'ビュープロバイダー',
     'view-details': '詳細を見る',
     'wcag-level': 'WCAG適合性',
-    'docskind-primary-title': 'このカテゴリの主要な学習対象',
     yes: 'はい',
     zoomin: '拡大',
     zoomout: '縮小'

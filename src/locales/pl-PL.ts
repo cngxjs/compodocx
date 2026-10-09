@@ -234,7 +234,6 @@ export const TRANSLATION_PL_PL = {
     'view-providers': 'Dostawcy widoku',
     'view-details': 'Zobacz szczegóły',
     'wcag-level': 'Zgodność WCAG',
-    'docskind-primary-title': 'Główna powierzchnia nauki dla tej kategorii',
     yes: 'Tak',
     zoomin: 'Przybliż',
     zoomout: 'Oddal'

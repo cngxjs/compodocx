@@ -247,31 +247,20 @@ describe('applyConfigToMainData', () => {
         expect(mainData.menuLayout).toBe('feature');
     });
 
-    it('featureLibraryScope propagates from config', () => {
+    it('warns that featureLibraryScope is ignored', () => {
         const mainData = makeMainData();
-        const program = makeProgram();
-        applyConfigToMainData(mainData, { featureLibraryScope: 'primary' }, program, {
-            cwd: '/tmp/test'
-        });
-        expect(mainData.featureLibraryScope).toBe('primary');
-    });
-
-    it('invalid featureLibraryScope exits with code 2', () => {
-        const mainData = makeMainData();
-        const program = makeProgram();
-        const exitSpy = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
-            throw new Error(`process.exit(${code})`);
-        }) as never);
-        expect(() =>
-            applyConfigToMainData(
-                mainData,
-                { featureLibraryScope: 'invalid' as unknown as 'auto' },
-                program,
-                { cwd: '/tmp/test' }
-            )
-        ).toThrow(/process\.exit\(2\)/);
-        expect(exitSpy).toHaveBeenCalledWith(2);
-        exitSpy.mockRestore();
+        applyConfigToMainData(
+            mainData,
+            { featureLibraryScope: 'primary' } as never,
+            makeProgram(),
+            {
+                cwd: '/tmp/test'
+            }
+        );
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'featureLibraryScope is ignored: each feature lists its primary members, or its whole surface when it has none'
+        );
+        expect(mainData).not.toHaveProperty('featureLibraryScope');
     });
 
     it('warns that groupBy and groupDepth are ignored', () => {
