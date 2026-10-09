@@ -164,6 +164,29 @@ export interface ExportSemanticFacts {
     usedBy?: ExportSymbolRef[];
     di?: ExportDiFacts;
     token?: ExportTokenFacts;
+    /** The feature the symbol belongs to; `key` `''` is the entry point's root feature. */
+    feature?: ExportFeatureRef;
+}
+
+export interface ExportFeatureRef {
+    entryPoint?: string;
+    key: string;
+}
+
+/** A feature: entry point plus a key below it, with the features it builds on. */
+export interface ExportFeature {
+    /** `${entryPoint ?? ''}#${key}`. */
+    id: string;
+    entryPoint?: string;
+    key: string;
+    label: string;
+    detector: 'config' | 'tag' | 'cohesion' | 'entry-point' | 'folder';
+    /** README of the feature, relative to the working directory. */
+    readme?: string;
+    /** Ids of features in other entry points this one uses. */
+    buildsOn: string[];
+    /** Ids of features in other entry points that use this one. */
+    extendedBy: string[];
 }
 
 export interface ExportSemanticSummary {
@@ -181,6 +204,7 @@ export interface ExportSemantic {
         source: 'ng-package' | 'tsconfig-paths';
     }[];
     summary: ExportSemanticSummary;
+    features?: ExportFeature[];
 }
 
 export interface ExportEntityCommon extends ExportSemanticFacts {

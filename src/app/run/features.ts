@@ -45,7 +45,11 @@ interface Inputs {
     readonly families: readonly FamilySymbol[];
 }
 
-/** One entry per documented, exported symbol, in table order. */
+/**
+ * One entry per documented symbol that is not hidden, in table order. A
+ * symbol without facts (a module augmentation, a destructured constant) is
+ * placed by its file alone.
+ */
 const symbolInputs = (symbols: SymbolTable, model: SemanticModel): Inputs => {
     const seen = new Set<string>();
     const features: FeatureSymbol[] = [];
@@ -53,12 +57,12 @@ const symbolInputs = (symbols: SymbolTable, model: SemanticModel): Inputs => {
     for (const entry of symbols.byId.values()) {
         const key = factKey(toSymbolKey(entry.ref));
         const facts = model.facts.get(key);
-        if (seen.has(key) || !facts || facts.notExported) {
+        if (seen.has(key) || facts?.notExported) {
             continue;
         }
         seen.add(key);
-        features.push({ key, file: entry.ref.file, tag: facts.featureTag });
-        families.push({ key, kind: entry.ref.kind, usedBy: facts.usedBy.map(factKey) });
+        features.push({ key, file: entry.ref.file, tag: facts?.featureTag });
+        families.push({ key, kind: entry.ref.kind, usedBy: (facts?.usedBy ?? []).map(factKey) });
     }
     return { features, families };
 };
