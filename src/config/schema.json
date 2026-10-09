@@ -494,9 +494,9 @@
             "$id": "/properties/menuLayout",
             "type": "string",
             "enum": ["type", "feature"],
-            "title": "Sidebar layout (config-only, no CLI flag). 'type' groups by Angular artefact kind (default), 'feature' groups every kind together by folder/@category and splits the sidebar into Features (organisms) and References (type shapes)",
-            "default": "type",
-            "examples": ["type", "feature"]
+            "title": "Sidebar layout (config-only, no CLI flag). 'feature' (default) lists the entry points and their features with the primary members of each, the full surface on references.html; 'type' keeps one chapter per Angular artefact kind, grouped by feature",
+            "default": "feature",
+            "examples": ["feature", "type"]
         },
         "featureLibraryScope": {
             "$id": "/properties/featureLibraryScope",

@@ -1,5 +1,9 @@
+import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
 import { pageOf } from '../helpers/pages';
+
+/** The type layout this suite asserts (the default is the feature layout). */
+const TYPE_LAYOUT = path.resolve('test/fixtures/type-layout.compodocxrc.json');
 
 const tmp = temporaryDir();
 
@@ -10,6 +14,8 @@ describe('CLI duplicates support', () => {
         tmp.create(distFolder);
         const ls = shell('node', [
             './bin/index-cli.js',
+            '-c',
+            TYPE_LAYOUT,
             '--no-multiVersion',
             '-p',
             './test/fixtures/standalone-scenarios/duplicates/tsconfig.json',

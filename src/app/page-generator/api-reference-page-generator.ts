@@ -14,7 +14,7 @@ import { pageLocation } from '../links/layout';
 export class ApiReferencePageGenerator {
     public prepare(): Promise<true> {
         return new Promise(resolve => {
-            const layout = Configuration.mainData.menuLayout ?? 'type';
+            const layout = Configuration.mainData.menuLayout ?? 'feature';
             if (layout !== 'feature') {
                 resolve(true);
                 return;

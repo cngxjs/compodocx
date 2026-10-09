@@ -142,7 +142,7 @@ export class Configuration implements ConfigurationInterface {
         playgroundVendorPackages: {},
         playgroundFiles: {},
         appConfig: [],
-        menuLayout: 'type',
+        menuLayout: 'feature',
         featureLibraryScope: 'auto',
         features: {},
         featureContainers: [...DEFAULT_FEATURE_CONTAINERS],

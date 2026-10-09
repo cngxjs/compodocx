@@ -1067,7 +1067,7 @@ export const Menu = (props: MenuProps): string => {
                     primary members of each feature (its whole surface when it has no primary
                     member). The exhaustive reference surface lives on the `references.html`
                     portal page, linked below as a top-level chapter, not a tree. */}
-                {(d.menuLayout ?? 'type') === 'feature' ? (
+                {(d.menuLayout ?? 'feature') === 'feature' ? (
                     <>
                         {CachedFeatureSection(
                             {
@@ -1202,7 +1202,7 @@ export const Menu = (props: MenuProps): string => {
                 )}
 
                 {/* Utilities: functions, constants, type aliases and enums. Feature mode lists them in References. */}
-                {d.miscellaneous && (d.menuLayout ?? 'type') !== 'feature' && UtilitiesChapter(d)}
+                {d.miscellaneous && (d.menuLayout ?? 'feature') !== 'feature' && UtilitiesChapter(d)}
 
                 {/* Routes */}
                 {!d.disableRoutesGraph && d.routes && (

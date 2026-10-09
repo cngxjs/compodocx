@@ -4,6 +4,9 @@ import { shell, temporaryDir } from '../helpers';
 import { clusterPage, featurePage, pageOf, rootPage } from '../helpers/pages';
 import { readKindPages } from './paths';
 
+/** The type layout this suite asserts (the default is the feature layout). */
+const TYPE_LAYOUT = path.resolve('test/fixtures/type-layout.compodocxrc.json');
+
 const tmp = temporaryDir();
 const TSCONFIG = './test/fixtures/semantic-library/tsconfig.json';
 const FILE = 'test/fixtures/semantic-library/projects';
@@ -34,6 +37,8 @@ describe('CLI semantic analysis', () => {
         data = JSON.parse(fs.readFileSync(path.join(jsonFolder, 'documentation.json'), 'utf8'));
         shell('node', [
             './bin/index-cli.js',
+            '-c',
+            TYPE_LAYOUT,
             '-p',
             TSCONFIG,
             '--disableSearch',
