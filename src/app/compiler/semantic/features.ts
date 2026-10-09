@@ -572,6 +572,7 @@ export const formatFeatureSummary = (model: FeatureModel): string => {
         .size;
     return (
         `Features: ${model.features.length} in ${entryPoints} entry points (config ${c.config}, ` +
-        `tag ${c.tag}, cohesion ${c.cohesion}, entry point ${c['entry-point']}, folder ${c.folder})`
+        `tag ${c.tag}, cohesion ${c.cohesion}, entry point ${c['entry-point']}, folder ${c.folder}), ` +
+        `${model.families.length} family links`
     );
 };

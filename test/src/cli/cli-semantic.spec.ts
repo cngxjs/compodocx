@@ -56,7 +56,7 @@ describe('CLI semantic analysis', () => {
 
     it('logs which detectors decided the features', () => {
         expect(stdout).to.contain(
-            'Features: 10 in 5 entry points (config 0, tag 0, cohesion 6, entry point 3, folder 1)'
+            'Features: 10 in 5 entry points (config 0, tag 0, cohesion 6, entry point 3, folder 1), 1 family links'
         );
     });
 

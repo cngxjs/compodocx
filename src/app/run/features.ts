@@ -3,10 +3,12 @@ import * as path from 'node:path';
 
 import {
     detectFeatures,
+    type FamilySymbol,
     type FeatureDetection,
     type FeatureFs,
     type FeatureSymbol,
     factKey,
+    linkFamilies,
     relativeFile,
     type SemanticModel
 } from '../compiler/semantic';
@@ -38,10 +40,16 @@ export const nodeFeatureFs = (cwd: string): FeatureFs => {
     };
 };
 
+interface Inputs {
+    readonly features: readonly FeatureSymbol[];
+    readonly families: readonly FamilySymbol[];
+}
+
 /** One entry per documented, exported symbol, in table order. */
-const featureSymbols = (symbols: SymbolTable, model: SemanticModel): readonly FeatureSymbol[] => {
+const symbolInputs = (symbols: SymbolTable, model: SemanticModel): Inputs => {
     const seen = new Set<string>();
-    const out: FeatureSymbol[] = [];
+    const features: FeatureSymbol[] = [];
+    const families: FamilySymbol[] = [];
     for (const entry of symbols.byId.values()) {
         const key = factKey(toSymbolKey(entry.ref));
         const facts = model.facts.get(key);
@@ -49,21 +57,26 @@ const featureSymbols = (symbols: SymbolTable, model: SemanticModel): readonly Fe
             continue;
         }
         seen.add(key);
-        out.push({ key, file: entry.ref.file, tag: facts.featureTag });
+        features.push({ key, file: entry.ref.file, tag: facts.featureTag });
+        families.push({ key, kind: entry.ref.kind, usedBy: facts.usedBy.map(factKey) });
     }
-    return out;
+    return { features, families };
 };
 
-/** Features of the documented symbols, from the semantic facts and the feature config. */
+/**
+ * Features of the documented symbols, from the semantic facts and the
+ * feature config, with the family links between them.
+ */
 export const deriveFeatures = (
     model: SemanticModel,
     symbols: SymbolTable,
     mainData: MainDataInterface,
     files: readonly string[],
     cwd: string
-): FeatureDetection =>
-    detectFeatures({
-        symbols: featureSymbols(symbols, model),
+): FeatureDetection => {
+    const inputs = symbolInputs(symbols, model);
+    const detection = detectFeatures({
+        symbols: inputs.features,
         files: files.map(file => relativeFile(cwd, path.resolve(cwd, file))),
         entryPoints: model.entryPoints,
         imports: model.imports ?? { edges: new Map() },
@@ -74,3 +87,6 @@ export const deriveFeatures = (
         },
         fs: nodeFeatureFs(cwd)
     });
+    const families = linkFamilies(detection.model, inputs.families);
+    return { ...detection, model: { ...detection.model, families } };
+};
