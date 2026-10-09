@@ -520,6 +520,30 @@
             "default": "auto",
             "examples": ["auto", "primary", "all"]
         },
+        "features": {
+            "$id": "/properties/features",
+            "type": "object",
+            "additionalProperties": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+            "title": "Feature keys by file glob (config-only). Keys are globs over file paths relative to the working directory, values a feature key (one segment, lower case, digits and dashes) relative to the file's entry point or app root. The first matching glob in object order wins; it never moves a symbol into another entry point. Overrides @feature tags and the detected features.",
+            "default": {},
+            "examples": [{ "projects/forms/select/src/**": "select" }]
+        },
+        "featureContainers": {
+            "$id": "/properties/featureContainers",
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "App folders whose sub-folders are the features (config-only): src/app/features/admin gives the feature 'admin'.",
+            "default": ["features", "pages", "domains"],
+            "examples": [["features", "pages", "domains"]]
+        },
+        "featureUtilityFolders": {
+            "$id": "/properties/featureUtilityFolders",
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Folders below an entry point that belong to its root feature instead of forming a feature of their own (config-only).",
+            "default": ["internal", "i18n", "utils", "testing", "__test-helpers", "examples"],
+            "examples": [["internal", "i18n", "utils", "testing", "__test-helpers", "examples"]]
+        },
         "featuresName": {
             "$id": "/properties/featuresName",
             "type": "string",

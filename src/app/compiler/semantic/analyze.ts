@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 
-import type { ts } from 'ts-morph';
+import { ts } from 'ts-morph';
 
 import { mapResult, type Result } from '../../../lib';
 import { collectDeclarations, type Declaration } from './declarations';
@@ -52,6 +52,13 @@ const rootSourceFiles = (program: ts.Program): readonly ts.SourceFile[] =>
         .map(file => program.getSourceFile(file))
         .filter((sf): sf is ts.SourceFile => sf !== undefined);
 
+/** First line of an `@feature` tag, when the declaration has one. */
+const featureTagField = (declaration: Declaration): { featureTag?: string } => {
+    const tag = ts.getJSDocTags(declaration.node).find(t => t.tagName.text === 'feature');
+    const key = ts.getTextOfJSDocComment(tag?.comment)?.split('\n')[0].trim();
+    return key ? { featureTag: key } : {};
+};
+
 const symbolFacts = (
     declaration: Declaration,
     exportFacts: ExportFacts,
@@ -70,7 +77,8 @@ const symbolFacts = (
         notExported: exportFacts.notExported,
         di: di.di.get(key),
         token: di.tokens.get(key),
-        usedBy: usedBy.get(key) ?? []
+        usedBy: usedBy.get(key) ?? [],
+        ...featureTagField(declaration)
     };
 };
 

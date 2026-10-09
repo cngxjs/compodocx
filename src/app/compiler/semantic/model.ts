@@ -4,6 +4,7 @@
  * provides or reads, and who uses it. Data only; nothing here is rendered.
  */
 
+import type { FeatureModel } from './features';
 import type { ImportGraph } from './imports';
 
 /** Interfaces and type aliases live in the type space, everything else in the value space. */
@@ -61,6 +62,8 @@ export interface SymbolFacts {
     readonly di?: DiFacts;
     readonly token?: TokenFacts;
     readonly usedBy: readonly SymbolKey[];
+    /** Key of an `@feature` tag on the declaration. */
+    readonly featureTag?: string;
 }
 
 export interface SemanticSummary {
@@ -82,6 +85,8 @@ export interface SemanticModel {
     readonly summary: SemanticSummary;
     /** Imports between the root files; not exported. */
     readonly imports?: ImportGraph;
+    /** Features of the documented symbols, derived once the symbols are known. */
+    readonly features?: FeatureModel;
 }
 
 /** The one-line build log summary of the semantic stage. */

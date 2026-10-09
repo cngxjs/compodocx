@@ -6,7 +6,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import RouterParserUtil from '../../utils/router-parser.util';
 import { formatLegacyNotice } from '../compiler/legacy-scan';
-import { analyzeProject, formatSemanticSummary } from '../compiler/semantic';
+import { analyzeProject, formatFeatureSummary, formatSemanticSummary } from '../compiler/semantic';
 import { buildDiView, formatHiddenList } from '../di';
 import DependenciesEngine from '../engines/dependencies.engine';
 import ExportEngine from '../engines/export.engine';
@@ -18,6 +18,7 @@ import { buildSymbolTable } from '../links';
 import { copyAssetsFolder, copyResources, finalizeOutput } from '../page-generator';
 import { crawlDependencies, crawlMicroDependencies } from '../services/dependencies';
 import type { RunContext, RunMode, Stage } from './context';
+import { deriveFeatures } from './features';
 import { type Halt, halt } from './halt';
 import { countsFromDiff, countsFromEngine, runPrepareStages, selectPrepareStages } from './stages';
 
@@ -222,13 +223,32 @@ const withSemantic = (ctx: RunContext): RunContext => {
     return { ...ctx, semantic: analyzed.value };
 };
 
-/** Index the engine's symbols once it holds the current crawl, then place them. */
+/**
+ * Index the engine's symbols once it holds the current crawl, place them and
+ * derive their features; the feature model joins the semantic state.
+ */
 const withSymbols = (ctx: RunContext): RunContext => {
+    const { mainData } = ctx.config;
     const symbols = buildSymbolTable(DependenciesEngine, { semantic: ctx.semantic?.model, cwd });
     const di = buildDiView(symbols, ctx.semantic?.model);
-    ctx.config.mainData.symbols = symbols;
-    ctx.config.mainData.di = di;
-    return { ...ctx, symbols, di };
+    mainData.symbols = symbols;
+    mainData.di = di;
+    if (!ctx.semantic) {
+        return { ...ctx, symbols, di };
+    }
+    const detection = deriveFeatures(ctx.semantic.model, symbols, mainData, ctx.files, cwd);
+    const semantic = {
+        ...ctx.semantic,
+        model: { ...ctx.semantic.model, features: detection.model }
+    };
+    mainData.semantic = semantic.model;
+    if (ctx.mode !== 'diff') {
+        for (const warning of detection.warnings) {
+            logger.warn(warning);
+        }
+        logger.info(formatFeatureSummary(detection.model));
+    }
+    return { ...ctx, symbols, di, semantic };
 };
 
 /** The crawler parses nothing the semantic program already holds. */

@@ -78,6 +78,9 @@ export interface ConfigurationFileInterface {
     groupDepth: number;
     menuLayout: 'type' | 'feature';
     featureLibraryScope: 'primary' | 'auto' | 'all';
+    features: Record<string, string>;
+    featureContainers: string[];
+    featureUtilityFolders: string[];
     collapsedAll: boolean;
     shikiTheme: string;
 }

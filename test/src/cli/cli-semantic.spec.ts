@@ -54,6 +54,12 @@ describe('CLI semantic analysis', () => {
         );
     });
 
+    it('logs which detectors decided the features', () => {
+        expect(stdout).to.contain(
+            'Features: 10 in 5 entry points (config 0, tag 0, cohesion 6, entry point 3, folder 1)'
+        );
+    });
+
     it('writes the semantic facts into documentation.json', () => {
         const fn = (name: string) => data.miscellaneous.functions.find((f: any) => f.name === name);
         expect(fn('provideFoo').entryPoint).to.equal('@sem/core');

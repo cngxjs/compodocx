@@ -8,6 +8,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { parseJsonIndent } from '../../utils/json-indent.util';
 import { logger } from '../../utils/logger';
 import { parseMaxVersionsShown } from '../../utils/max-versions-shown.util';
+import { isFeatureKey } from '../compiler/semantic/features';
 import I18nEngine from '../engines/i18n.engine';
 import { STACKBLITZ_POST_LIMIT } from '../engines/stackblitz/constants';
 import type { ConfigurationFileInterface } from '../interfaces/configuration-file.interface';
@@ -72,6 +73,51 @@ export function loadConfigFile(opts: LoadConfigOptions): ConfigFileResult {
         typeof explorerResult.config !== 'undefined' ? explorerResult.config : {};
 
     return ok({ config, explorerResult });
+}
+
+const isStringList = (value: unknown): value is string[] =>
+    Array.isArray(value) && value.every(item => typeof item === 'string');
+
+/**
+ * `features`, `featureContainers` and `featureUtilityFolders` from the config
+ * file. Invalid entries warn once each and are ignored; the run goes on.
+ */
+export function applyFeatureConfig(
+    configFile: Partial<ConfigurationFileInterface>,
+    mainData: MainDataInterface
+): void {
+    const { features, featureContainers, featureUtilityFolders } = configFile;
+    if (features !== undefined) {
+        if (features === null || typeof features !== 'object' || Array.isArray(features)) {
+            logger.warn('features: expected an object of file glob -> feature key; ignored');
+        } else {
+            const valid: Record<string, string> = {};
+            for (const [glob, key] of Object.entries(features)) {
+                if (typeof key === 'string' && isFeatureKey(key)) {
+                    valid[glob] = key;
+                } else {
+                    logger.warn(
+                        `features: ignoring "${glob}": "${String(key)}" (expected one segment [a-z0-9][a-z0-9-]*)`
+                    );
+                }
+            }
+            mainData.features = valid;
+        }
+    }
+    if (featureContainers !== undefined) {
+        if (isStringList(featureContainers)) {
+            mainData.featureContainers = featureContainers;
+        } else {
+            logger.warn('featureContainers: expected a list of folder names; ignored');
+        }
+    }
+    if (featureUtilityFolders !== undefined) {
+        if (isStringList(featureUtilityFolders)) {
+            mainData.featureUtilityFolders = featureUtilityFolders;
+        } else {
+            logger.warn('featureUtilityFolders: expected a list of folder names; ignored');
+        }
+    }
 }
 
 /**
@@ -774,6 +820,8 @@ export function applyConfigToMainData(
         }
         mainData.featureLibraryScope = featureLibraryScope;
     }
+
+    applyFeatureConfig(configFile, mainData);
 
     if (configFile.featuresName !== undefined) {
         if (typeof configFile.featuresName !== 'string') {

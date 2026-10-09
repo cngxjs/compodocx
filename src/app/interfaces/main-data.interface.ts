@@ -258,6 +258,12 @@ export interface MainDataInterface {
     groupDepth: number;
     menuLayout: 'type' | 'feature';
     featureLibraryScope: 'primary' | 'auto' | 'all';
+    /** Glob over cwd-relative file paths -> feature key. */
+    features: Record<string, string>;
+    /** App folders whose children are features. */
+    featureContainers: string[];
+    /** Entry point folders that belong to the root feature. */
+    featureUtilityFolders: string[];
     featuresName: string;
     referencesName: string;
     collapsedAll: boolean;

@@ -82,6 +82,16 @@ const makeMainData = (): MainDataInterface => {
         groupBy: '',
         groupDepth: 2,
         menuLayout: 'type',
+        features: {},
+        featureContainers: ['features', 'pages', 'domains'],
+        featureUtilityFolders: [
+            'internal',
+            'i18n',
+            'utils',
+            'testing',
+            '__test-helpers',
+            'examples'
+        ],
         collapsedAll: false,
         language: 'en-US',
         watch: false,
@@ -264,6 +274,52 @@ describe('applyConfigToMainData', () => {
         ).toThrow(/process\.exit\(2\)/);
         expect(exitSpy).toHaveBeenCalledWith(2);
         exitSpy.mockRestore();
+    });
+
+    it('keeps valid feature globs and warns about invalid keys', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(
+            mainData,
+            {
+                features: {
+                    'projects/forms/select/**': 'select',
+                    'projects/forms/chips/**': 'Chips Group',
+                    'projects/forms/list/**': 'list/item'
+                }
+            },
+            makeProgram(),
+            { cwd: '/tmp/test' }
+        );
+        expect(mainData.features).toEqual({ 'projects/forms/select/**': 'select' });
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledTimes(2);
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            expect.stringContaining('"projects/forms/chips/**": "Chips Group"')
+        );
+    });
+
+    it('takes feature container and utility folder lists, ignoring non-lists with a warning', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(
+            mainData,
+            {
+                featureContainers: ['modules'],
+                featureUtilityFolders: 'helpers' as unknown as string[]
+            },
+            makeProgram(),
+            { cwd: '/tmp/test' }
+        );
+        expect(mainData.featureContainers).toEqual(['modules']);
+        expect(mainData.featureUtilityFolders).toEqual([
+            'internal',
+            'i18n',
+            'utils',
+            'testing',
+            '__test-helpers',
+            'examples'
+        ]);
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'featureUtilityFolders: expected a list of folder names; ignored'
+        );
     });
 
     it('collapsedAll: true propagates from config', () => {
