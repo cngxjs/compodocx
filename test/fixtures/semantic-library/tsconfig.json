@@ -8,6 +8,7 @@
         "paths": {
             "@sem/core": ["projects/core/src/public-api.ts"],
             "@sem/core/tokens": ["projects/core/tokens/src/public-api.ts"],
+            "@sem/core/select": ["projects/core/select/src/public-api.ts"],
             "@sem/ui": ["projects/ui/src/public-api.ts"],
             "@sem/testing": ["projects/testing/public-api.ts"],
             "@sem/env": ["projects/env/environment.ts"],
