@@ -4,12 +4,14 @@ import traverse from 'neotraverse/legacy';
 import pkg from '../../../package.json';
 import { logger } from '../../utils/logger';
 import type { StyleSource } from '../../utils/theme-doc-parser';
-import type {
-    DiFacts,
-    SemanticModel,
-    SymbolFacts,
-    SymbolKey,
-    TokenFacts
+import {
+    type DeclarationSpace,
+    type DiFacts,
+    factKey,
+    type SemanticModel,
+    type SymbolFacts,
+    type SymbolKey,
+    type TokenFacts
 } from '../compiler/semantic/model';
 import Configuration from '../configuration';
 import {
@@ -106,27 +108,35 @@ type SymbolEntry = { name?: string; file?: string };
  * A copy of `entry` with its semantic facts appended, joined by file and
  * name; the entry itself when it has none, so it serialises as before.
  */
-export const withSemanticFacts = <T extends SymbolEntry>(entry: T, model: SemanticModel): T => {
+export const withSemanticFacts = <T extends SymbolEntry>(
+    entry: T,
+    model: SemanticModel,
+    space: DeclarationSpace = 'value'
+): T => {
     const facts =
-        entry.file && entry.name ? model.facts.get(`${entry.file}#${entry.name}`) : undefined;
+        entry.file && entry.name
+            ? model.facts.get(factKey({ name: entry.name, file: entry.file, space }))
+            : undefined;
     const fields = facts ? exportSemanticFacts(facts) : {};
     return Object.keys(fields).length > 0 ? { ...entry, ...fields } : entry;
 };
 
 const mapEntries = <T extends SymbolEntry>(
     entries: T[] | undefined,
-    model: SemanticModel
-): T[] | undefined => entries?.map(entry => withSemanticFacts(entry, model));
+    model: SemanticModel,
+    space: DeclarationSpace = 'value'
+): T[] | undefined => entries?.map(entry => withSemanticFacts(entry, model, space));
 
 const mapGroups = <T extends SymbolEntry>(
     groups: Record<string, T[]> | undefined,
-    model: SemanticModel
+    model: SemanticModel,
+    space: DeclarationSpace = 'value'
 ): Record<string, T[]> | undefined =>
     groups &&
     Object.fromEntries(
         Object.entries(groups).map(([key, entries]) => [
             key,
-            entries.map(e => withSemanticFacts(e, model))
+            entries.map(e => withSemanticFacts(e, model, space))
         ])
     );
 
@@ -137,6 +147,9 @@ const MISC_GROUPS = [
     'groupedEnumerations',
     'groupedTypeAliases'
 ] as const;
+const TYPE_SPACE_LISTS: ReadonlySet<string> = new Set(['typealiases', 'groupedTypeAliases']);
+const spaceOfList = (key: string): DeclarationSpace =>
+    TYPE_SPACE_LISTS.has(key) ? 'type' : 'value';
 
 /** Copy of the miscellaneous block with facts joined into its flat and grouped lists. */
 export const miscellaneousWithFacts = (
@@ -149,16 +162,29 @@ export const miscellaneousWithFacts = (
     const copy: Record<string, unknown> = { ...miscellaneous };
     for (const key of MISC_LISTS) {
         if (Array.isArray(copy[key])) {
-            copy[key] = mapEntries(copy[key] as SymbolEntry[], model);
+            copy[key] = mapEntries(copy[key] as SymbolEntry[], model, spaceOfList(key));
         }
     }
     for (const key of MISC_GROUPS) {
         if (copy[key] && typeof copy[key] === 'object') {
-            copy[key] = mapGroups(copy[key] as Record<string, SymbolEntry[]>, model);
+            copy[key] = mapGroups(
+                copy[key] as Record<string, SymbolEntry[]>,
+                model,
+                spaceOfList(key)
+            );
         }
     }
     return copy;
 };
+
+/** Joins the semantic facts into a symbol list; the list itself without a model. */
+export const factsJoiner =
+    (model: SemanticModel | undefined) =>
+    <T extends SymbolEntry>(
+        entries: T[] | undefined,
+        space: DeclarationSpace = 'value'
+    ): T[] | undefined =>
+        model ? mapEntries(entries, model, space) : entries;
 
 export const exportSemantic = (model: SemanticModel): ExportSemantic => ({
     entryPoints: model.entryPoints.map(entry => ({
@@ -210,11 +236,10 @@ export class ExportJsonEngine {
         });
 
         const model: SemanticModel | undefined = data.semantic;
-        const facts = <T extends SymbolEntry>(entries: T[] | undefined): T[] | undefined =>
-            model ? mapEntries(entries, model) : entries;
+        const facts = factsJoiner(model);
 
         exportData.pipes = facts(data.pipes);
-        exportData.interfaces = facts(data.interfaces);
+        exportData.interfaces = facts(data.interfaces, 'type');
         exportData.injectables = facts(data.injectables);
         exportData.guards = facts(data.guards);
         exportData.interceptors = facts(data.interceptors);

@@ -4,10 +4,18 @@
  * provides or reads, and who uses it. Data only; nothing here is rendered.
  */
 
-/** A top-level declaration. `file` is relative to the process cwd, with forward slashes. */
+/** Interfaces and type aliases live in the type space, everything else in the value space. */
+export type DeclarationSpace = 'value' | 'type';
+
+/**
+ * A top-level declaration. `file` is relative to the process cwd, with
+ * forward slashes. `space` tells a const and a type of one name apart; an
+ * absent space means `value`.
+ */
 export interface SymbolKey {
     readonly name: string;
     readonly file: string;
+    readonly space?: DeclarationSpace;
 }
 
 export interface EntryPoint {
@@ -41,6 +49,8 @@ export interface TokenFacts {
 
 export interface SymbolFacts {
     readonly key: SymbolKey;
+    /** 1-based line of the declaration. */
+    readonly line?: number;
     /** Import path of the nearest exporting barrel. */
     readonly entryPoint?: string;
     /** Import paths of every barrel that exports the symbol, sorted. */
@@ -65,7 +75,7 @@ export interface SemanticSummary {
 
 export interface SemanticModel {
     readonly entryPoints: readonly EntryPoint[];
-    /** Keyed by `${file}#${name}`. */
+    /** Keyed by `factKey`. */
     readonly facts: ReadonlyMap<string, SymbolFacts>;
     readonly summary: SemanticSummary;
 }
@@ -80,10 +90,18 @@ export const formatSemanticSummary = (summary: SemanticSummary): string => {
     );
 };
 
-export const factKey = (key: SymbolKey): string => `${key.file}#${key.name}`;
+/** `${file}#${name}` for values, `type:${file}#${name}` for types. */
+export const factKey = (key: SymbolKey): string =>
+    `${key.space === 'type' ? 'type:' : ''}${key.file}#${key.name}`;
 
-export const compareKeys = (a: SymbolKey, b: SymbolKey): number =>
-    a.file === b.file ? compareText(a.name, b.name) : compareText(a.file, b.file);
+export const compareKeys = (a: SymbolKey, b: SymbolKey): number => {
+    if (a.file !== b.file) {
+        return compareText(a.file, b.file);
+    }
+    return a.name === b.name
+        ? compareText(a.space ?? 'value', b.space ?? 'value')
+        : compareText(a.name, b.name);
+};
 
 /** Code-unit order, independent of the locale, so output stays byte-stable. */
 export const compareText = (a: string, b: string): number => {

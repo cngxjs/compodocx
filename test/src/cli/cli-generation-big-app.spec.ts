@@ -1,6 +1,6 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
 import { hrefTo, pageOf } from '../helpers/pages';
-import { collectionHref, collectionPage } from './paths';
+import { hasKindPages, readKindPages } from './paths';
 
 const tmp = temporaryDir();
 
@@ -72,8 +72,8 @@ describe('CLI simple generation - big app', () => {
 
         todoStoreFile = read(`${distFolder}/${pageOf('injectable', 'TodoStore')}`);
 
-        typeAliasesFile = read(`${distFolder}/${collectionPage('typealias')}`);
-        functionsFile = read(`${distFolder}/${collectionPage('function')}`);
+        typeAliasesFile = readKindPages(distFolder, 'typealias');
+        functionsFile = readKindPages(distFolder, 'function');
 
         contactInfoInterfaceFile = read(`${distFolder}/${pageOf('interface', 'ContactInfo')}`);
     });
@@ -260,12 +260,12 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should have miscellaneous page', () => {
-        const file = exists(`${distFolder}/${collectionPage('enumeration')}`);
+        const file = hasKindPages(distFolder, 'enumeration');
         expect(file).to.be.true;
     });
 
     it('miscellaneous page should contain some things', () => {
-        const miscFile = read(`${distFolder}/${collectionPage('enumeration')}`);
+        const miscFile = readKindPages(distFolder, 'enumeration');
         expect(miscFile).to.contain('Directions of the app');
     });
 
@@ -344,7 +344,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support misc links', () => {
-        expect(todoClassFile).to.contain(`${collectionHref('enumeration', 1)}`);
+        expect(todoClassFile).to.contain(`${hrefTo('enumeration', 'Direction', 1)}`);
     });
 
     it('should have public function for component', () => {
@@ -492,14 +492,14 @@ describe('CLI simple generation - big app', () => {
         file = read(`${distFolder}/${pageOf('pipe', 'FirstUpperPipe2')}`);
         expect(file).to.contain('Uppercase the first letter of the string');
 
-        file = read(`${distFolder}/${collectionPage('enumeration')}`);
+        file = readKindPages(distFolder, 'enumeration');
         expect(file).to.contain('PopupEffect2');
 
         expect(functionsFile).to.contain('foo2');
 
         expect(typeAliasesFile).to.contain('Name2');
 
-        file = read(`${distFolder}/${collectionPage('variable')}`);
+        file = readKindPages(distFolder, 'variable');
         expect(file).to.contain('PI2');
     });
 
@@ -682,7 +682,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should display short filename + long filename in title for index of miscellaneous', () => {
-        const file = read(`${distFolder}/${collectionPage('variable')}`);
+        const file = readKindPages(distFolder, 'variable');
         // Short and long file paths still surface together; assert both
         // substrings present (markup around them is now cdx-* and not
         // a fixed wrapper).
@@ -827,33 +827,35 @@ describe('CLI simple generation - big app', () => {
 
     it('should support ECMAScript Private Fields and methods', () => {
         const file = read(`${distFolder}/${pageOf('class', 'Todo')}`);
-        expect(file).to.contain('id="#newprivateproperty"');
+        expect(file).to.contain('id="newprivateproperty"');
         expect(file).to.contain('Another private property');
     });
 
     it('should support type alias and template literal', () => {
-        const file = read(`${distFolder}/${collectionPage('typealias')}`);
+        const file = readKindPages(distFolder, 'typealias');
         // Template literal renders the placeholder verbatim; backtick is
         // no longer escaped via `&#x60;`.
         expect(file).to.contain('(min-width: ${Foo}px)');
     });
 
     it('should support destructuring for functions', () => {
-        const file = read(`${distFolder}/${collectionPage('function')}`);
-        expect(file).to.contain('cdx-io-member-name">sumFunction');
+        const file = readKindPages(distFolder, 'function');
+        expect(read(`${distFolder}/${pageOf('function', 'sumFunction')}`)).to.match(
+            /class="cdx-entity-hero-name">[\s\S]*?sumFunction/
+        );
         expect(file).to.contain('__namedParameters');
         expect(file).to.contain('<code>2</code>');
     });
 
     it('should support default value for functions parameters', () => {
-        const file = read(`${distFolder}/${collectionPage('function')}`);
+        const file = readKindPages(distFolder, 'function');
         // Default values render with raw single quotes; legacy `&#x27;`
         // entity escapes are gone.
         expect(file).to.contain("<code>'toto'</code>");
     });
 
     it('should support destructuring for variables / array', () => {
-        const file = read(`${distFolder}/${collectionPage('variable')}`);
+        const file = readKindPages(distFolder, 'variable');
         // Variable initializer renders inside Shiki source-style spans.
         expect(file).to.contain("'Gabriel'");
     });

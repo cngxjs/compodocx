@@ -222,6 +222,7 @@ export interface ExportComponent extends ExportEntityCommon {
     inputs?: string[];
     outputs?: string[];
     imports?: ReadonlyArray<unknown>;
+    /** A provider written as a call (`provideFoo(withBar())`) also carries `call`. */
     providers?: ProviderEntry[];
     viewProviders?: ProviderEntry[];
     hostBindings?: ExportHostBinding[];
@@ -278,6 +279,8 @@ export interface ExportInjectable extends ExportEntityCommon {
     tokenClass?: string;
     tokenType?: string;
     providedIn?: string;
+    /** Source text of the `factory` option of an `InjectionToken`; absent without one. */
+    factory?: string;
     jsdoctags?: JsdocTagInterface[];
 }
 

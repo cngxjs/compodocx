@@ -1,3 +1,4 @@
+import Configuration from '../../app/configuration';
 import DependenciesEngine from '../../app/engines/dependencies.engine';
 
 const escapeHtml = (str: string): string =>
@@ -8,14 +9,15 @@ const escapeHtml = (str: string): string =>
         .replaceAll('"', '&quot;');
 
 import { hrefFor, hrefText } from '../../app/links/layout';
-import { targetOfData } from '../../app/links/resolve';
+import { placeTarget, targetOfData } from '../../app/links/resolve';
 import BasicTypeUtil from '../../utils/basic-type.util';
 
 // TODO: Refactor this helper to be more modular and testable, and to handle more complex type scenarios (e.g., generics, unions, intersections).
 /** Link from a page at `depth` to the page of an engine object, or null without one. */
 function buildHrefForInternalType(data: any, depth: number): string | null {
-    const target = targetOfData(data, { detail: true });
-    return target ? hrefText(hrefFor(target, depth)) : null;
+    const target = targetOfData(data);
+    const link = target && placeTarget(target, data, Configuration.mainData);
+    return link ? hrefText(hrefFor(link.target, depth, link.anchor)) : null;
 }
 
 function resolveTypeLink(typeName: string, depth: number): string | null {

@@ -1,6 +1,31 @@
 import { ts } from 'ts-morph';
 import type { IFunctionDecDep } from '../angular/dependencies.interfaces';
 
+/** A provider written as a call: `provideFoo(withBar())` or `...provideFoo()`. */
+export interface ProviderCall {
+    readonly callee: string;
+    /** Callee names of the arguments that are calls (feature functions); others are dropped. */
+    readonly args: readonly string[];
+}
+
+/**
+ * The call of a `providers` array element, or undefined when the element is
+ * not a call. A spread of a call keeps the callee and no arguments.
+ */
+export const providerCallOf = (element: ts.Node): ProviderCall | undefined => {
+    if (ts.isCallExpression(element)) {
+        return {
+            callee: element.expression.getText(),
+            // Feature functions from arguments (e.g. withComponentInputBinding())
+            args: element.arguments.filter(ts.isCallExpression).map(arg => arg.expression.getText())
+        };
+    }
+    if (ts.isSpreadElement(element) && ts.isCallExpression(element.expression)) {
+        return { callee: element.expression.expression.getText(), args: [] };
+    }
+    return undefined;
+};
+
 export class ProviderDetector {
     /**
      * Extract provider function calls from an ApplicationConfig initializer.
@@ -25,23 +50,9 @@ export class ProviderDetector {
         }
 
         for (const element of arr.elements) {
-            if (ts.isCallExpression(element)) {
-                const callName = element.expression.getText();
-                const features: string[] = [];
-
-                // Extract feature functions from arguments (e.g. withComponentInputBinding())
-                for (const arg of element.arguments) {
-                    if (ts.isCallExpression(arg)) {
-                        features.push(arg.expression.getText());
-                    }
-                }
-
-                providers.push({ name: callName, features });
-            } else if (ts.isSpreadElement(element) && ts.isCallExpression(element.expression)) {
-                providers.push({
-                    name: element.expression.expression.getText(),
-                    features: []
-                });
+            const call = providerCallOf(element);
+            if (call) {
+                providers.push({ name: call.callee, features: [...call.args] });
             }
         }
         return providers;
@@ -82,27 +93,36 @@ export class ProviderDetector {
         return '';
     }
 
-    public getInjectionTokenProvidedIn(initializer: any): string {
+    /** The value of option `name` in `new InjectionToken(desc, { ... })`. */
+    private injectionTokenOption(initializer: any, name: string): ts.Expression | undefined {
         if (!initializer || !ts.isNewExpression(initializer)) {
-            return '';
+            return undefined;
         }
         // Second argument to InjectionToken constructor is the options object
-        const args = initializer.arguments;
-        if (args && args.length >= 2 && ts.isObjectLiteralExpression(args[1])) {
-            const providedInProp = args[1].properties.find(
-                (p: any) =>
-                    ts.isPropertyAssignment(p) &&
-                    ts.isIdentifier(p.name) &&
-                    p.name.text === 'providedIn'
-            );
-            if (providedInProp && ts.isPropertyAssignment(providedInProp)) {
-                // Same convention as `@Injectable`: bare value for string
-                // literals, source text for class or module references.
-                const value = providedInProp.initializer;
-                return ts.isStringLiteralLike(value) ? value.text : value.getText();
-            }
+        const options = initializer.arguments?.[1];
+        if (!options || !ts.isObjectLiteralExpression(options)) {
+            return undefined;
         }
-        return '';
+        const property = options.properties.find(
+            (p): p is ts.PropertyAssignment =>
+                ts.isPropertyAssignment(p) && ts.isIdentifier(p.name) && p.name.text === name
+        );
+        return property?.initializer;
+    }
+
+    public getInjectionTokenProvidedIn(initializer: any): string {
+        const value = this.injectionTokenOption(initializer, 'providedIn');
+        if (!value) {
+            return '';
+        }
+        // Same convention as `@Injectable`: bare value for string
+        // literals, source text for class or module references.
+        return ts.isStringLiteralLike(value) ? value.text : value.getText();
+    }
+
+    /** Source text of the token's `factory` option; empty without one. */
+    public getInjectionTokenFactory(initializer: any): string {
+        return this.injectionTokenOption(initializer, 'factory')?.getText() ?? '';
     }
 
     public detectFunctionalAngularKind(

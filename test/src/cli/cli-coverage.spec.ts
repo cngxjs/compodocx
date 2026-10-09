@@ -1,5 +1,5 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { miscAnchor, pageOf } from '../helpers/pages';
+import { pageOf } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -416,9 +416,9 @@ describe('CLI coverage report', () => {
 
             expect(coverageFile).to.contain(`${pageOf('component', 'CompodocComponent')}`);
             expect(coverageFile).to.contain(`${pageOf('interface', 'ClockInterface')}`);
-            expect(coverageFile).to.contain(`${miscAnchor('function', 'foo')}`);
-            expect(coverageFile).to.contain(`${miscAnchor('typealias', 'ChartChange')}`);
-            expect(coverageFile).to.contain('variables.html#PI');
+            expect(coverageFile).to.contain(`${pageOf('function', 'foo')}`);
+            expect(coverageFile).to.contain(`${pageOf('typealias', 'ChartChange')}`);
+            expect(coverageFile).to.contain(`${pageOf('variable', 'PI')}`);
             expect(coverageFile).to.contain(`${pageOf('pipe', 'FirstUpperPipe')}`);
             expect(coverageFile).to.contain(`${pageOf('directive', 'DoNothingDirective2')}`);
             expect(coverageFile).to.contain(`${pageOf('injectable', 'TodoStore2')}`);

@@ -86,6 +86,45 @@ describe('llm-md/dispatcher — emitLlmMd', () => {
         expect(out).toContain('## Public variables');
     });
 
+    it('renders a Public tokens section after Public functions', () => {
+        const out = emitLlmMd({
+            meta: { generatedAt: '', compodocxVersion: '' },
+            options: { projectName: 'X' },
+            data: baseExport({
+                miscellaneous: { functions: [{ name: 'createId', returnType: 'string' }] },
+                tokens: [{ name: 'ApiUrl', isToken: true, tokenType: 'string' }]
+            })
+        });
+        expect(out).toContain('## Public tokens');
+        expect(out).toContain('### ApiUrl');
+        expect(out).toContain('Token type: `string`');
+        expect(out.indexOf('## Public functions')).toBeLessThan(out.indexOf('## Public tokens'));
+    });
+
+    it('skips symbols that reach no public entry point in every section', () => {
+        const out = emitLlmMd({
+            meta: { generatedAt: '', compodocxVersion: '' },
+            options: { projectName: 'X' },
+            data: baseExport({
+                components: [
+                    { name: 'ShownComponent' },
+                    { name: 'HiddenComponent', notExported: true }
+                ],
+                tokens: [{ name: 'HIDDEN_TOKEN', isToken: true, notExported: true }],
+                miscellaneous: {
+                    functions: [{ name: 'shownFn' }, { name: 'hiddenFn', notExported: true }],
+                    variables: [{ name: 'HIDDEN_CONST', notExported: true }]
+                }
+            })
+        });
+        expect(out).toContain('### ShownComponent');
+        expect(out).toContain('shownFn');
+        expect(out).not.toContain('HiddenComponent');
+        expect(out).not.toContain('hiddenFn');
+        expect(out).not.toContain('## Public tokens');
+        expect(out).not.toContain('## Public variables');
+    });
+
     it('escapes special characters in the project name', () => {
         const out = emitLlmMd({
             meta: { generatedAt: '', compodocxVersion: '' },

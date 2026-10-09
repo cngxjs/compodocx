@@ -1,6 +1,7 @@
 import Html from '@kitajs/html';
+import Configuration from '../../app/configuration';
 import { hrefFor, hrefText, ROOT_DEPTH } from '../../app/links/layout';
-import { targetOfCoverage } from '../../app/links/resolve';
+import { placeTarget, targetOfCoverage } from '../../app/links/resolve';
 import { CoverageSummary } from '../blocks/CoverageSummary';
 import { DonutChart } from '../blocks/DonutChart';
 import { shortPath, t } from '../helpers';
@@ -91,8 +92,10 @@ const fileLink = (f: UnitTestFile): string | null => {
     if (!f.linktype) {
         return null;
     }
-    const target = targetOfCoverage({ ...f, name: String(f.name) });
-    return target ? hrefText(hrefFor(target, ROOT_DEPTH)) : null;
+    const name = String(f.name);
+    const target = targetOfCoverage({ ...f, name });
+    const link = target && placeTarget(target, { name, file: f.filePath }, Configuration.mainData);
+    return link ? hrefText(hrefFor(link.target, ROOT_DEPTH, link.anchor)) : null;
 };
 
 const fileGroupKey = (f: UnitTestFile): string => {

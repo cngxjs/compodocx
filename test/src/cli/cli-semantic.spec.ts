@@ -1,8 +1,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-
 import { shell, temporaryDir } from '../helpers';
-import { collectionPage } from './paths';
+import { clusterPage, pageOf, rootPage } from '../helpers/pages';
+import { readKindPages } from './paths';
 
 const tmp = temporaryDir();
 const TSCONFIG = './test/fixtures/semantic-library/tsconfig.json';
@@ -50,7 +50,7 @@ describe('CLI semantic analysis', () => {
     it('exits 0 and logs the semantic summary', () => {
         expect(status).to.equal(0);
         expect(stdout).to.contain(
-            'Semantic analysis: 4 entry points, 4 providers, 2 feature functions, 7+3 use the injection context (1 unresolved), 1 exported symbols reach no entry point'
+            'Semantic analysis: 4 entry points, 4 providers, 2 feature functions, 8+3 use the injection context (1 unresolved), 1 exported symbols reach no entry point'
         );
     });
 
@@ -78,12 +78,88 @@ describe('CLI semantic analysis', () => {
     });
 
     it('renders no semantic facts into the HTML output', () => {
-        const page = fs.readFileSync(
-            path.join(htmlFolder, `${collectionPage('function')}`),
-            'utf8'
-        );
+        const page = [
+            readKindPages(htmlFolder, 'function'),
+            fs.readFileSync(path.join(htmlFolder, clusterPage('FooFeature')), 'utf8')
+        ].join('\n');
         expect(page).to.contain('provideFoo');
         expect(page).not.to.contain('usesInjectionContext');
         expect(page).not.to.contain('@sem/core/tokens');
+    });
+
+    it('documents providers and features on one page per feature type', () => {
+        const exists = (file: string) => fs.existsSync(path.join(htmlFolder, file));
+        expect(exists(clusterPage('FooFeature'))).to.equal(true);
+        expect(exists(pageOf('provider', 'provideFooLimit'))).to.equal(true);
+        for (const moved of ['provideFoo', 'withMode', 'provideFooLimit']) {
+            expect(exists(pageOf('function', moved)), moved).to.equal(false);
+        }
+        expect(exists(pageOf('variable', 'provideFooAt'))).to.equal(false);
+        expect(exists(pageOf('interface', 'FooFeature'))).to.equal(false);
+
+        const cluster = fs.readFileSync(path.join(htmlFolder, clusterPage('FooFeature')), 'utf8');
+        for (const member of ['provideFoo', 'provideFooAt', 'withMode']) {
+            expect(cluster).to.contain(`id="FooFeature--${member}"`);
+        }
+        expect(cluster).to.contain(`href="../${pageOf('token', 'FOO_CONFIG')}"`);
+
+        const utilities = fs.readFileSync(path.join(htmlFolder, 'utilities.html'), 'utf8');
+        expect(utilities).not.to.contain('>provideFoo<');
+        expect(utilities).to.contain('>formatFoo<');
+    });
+
+    it('adds a Dependency Injection chapter and landing page', () => {
+        const landing = fs.readFileSync(
+            path.join(htmlFolder, rootPage('dependency-injection')),
+            'utf8'
+        );
+        expect(landing).to.contain(`href="./${clusterPage('FooFeature')}"`);
+        expect(landing).to.contain(`href="./${pageOf('provider', 'provideFooLimit')}"`);
+        expect(landing).to.contain(`href="./${pageOf('token', 'FOO_CONFIG')}"`);
+        expect(landing).to.contain('id="dependency-injection-links"');
+        expect(landing).not.to.contain('id="tokens-links"');
+
+        const provider = fs.readFileSync(
+            path.join(htmlFolder, pageOf('provider', 'provideFooLimit')),
+            'utf8'
+        );
+        expect(provider).to.contain(`href="../${rootPage('dependency-injection')}"`);
+    });
+
+    it('links provider calls in a component providers array', () => {
+        const panel = fs.readFileSync(
+            path.join(htmlFolder, pageOf('component', 'SemFooPanel')),
+            'utf8'
+        );
+        expect(panel).to.contain(
+            `<a href="../${clusterPage('FooFeature')}#FooFeature--provideFooAt" target="_self" >provideFooAt</a>`
+        );
+        expect(panel).to.contain(
+            `<a href="../${clusterPage('FooFeature')}#FooFeature--withMode" target="_self" >withMode</a>`
+        );
+        expect(panel).to.contain(
+            `<a href="../${pageOf('provider', 'provideFooLimit')}" target="_self" >provideFooLimit</a>`
+        );
+
+        const component = data.components.find((c: any) => c.name === 'SemFooPanel');
+        expect(component.providers.map((p: any) => p.call)).to.deep.equal([
+            { callee: 'provideFooAt', args: ['withMode'] },
+            { callee: 'provideFooLimit', args: [] }
+        ]);
+    });
+
+    it('gives a symbol that reaches no entry point no page and lists it in the log', () => {
+        expect(fs.existsSync(path.join(htmlFolder, pageOf('function', 'orphanFoo')))).to.equal(
+            false
+        );
+        expect(fs.existsSync(path.join(htmlFolder, pageOf('function', 'formatFoo')))).to.equal(
+            true
+        );
+        expect(stdout).to.contain(
+            '1 exported symbols reach no entry point and are not documented:'
+        );
+        expect(stdout).to.match(new RegExp(`${FILE}/core/src/foo/foo-helpers\\.ts:\\d+ orphanFoo`));
+        const index = fs.readFileSync(path.join(htmlFolder, 'index.html'), 'utf8');
+        expect(index).not.to.contain('orphanFoo');
     });
 });

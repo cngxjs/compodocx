@@ -58,8 +58,12 @@ const symbolFacts = (
     usedBy: ReadonlyMap<string, readonly SymbolKey[]>
 ): SymbolFacts => {
     const key = factKey(declaration.key);
+    const sourceFile = declaration.node.getSourceFile();
     return {
         key: declaration.key,
+        line:
+            sourceFile.getLineAndCharacterOfPosition(declaration.node.getStart(sourceFile)).line +
+            1,
         entryPoint: exportFacts.entryPoint,
         exportedBy: exportFacts.exportedBy,
         notExported: exportFacts.notExported,

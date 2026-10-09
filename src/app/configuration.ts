@@ -1,4 +1,5 @@
 import { COMPODOC_DEFAULTS } from '../utils/defaults';
+import { isMovedPage } from './di/model';
 
 import {
     STACKBLITZ_DEP_DEPTH,
@@ -169,7 +170,11 @@ export class Configuration implements ConfigurationInterface {
         return Configuration.instance;
     }
 
+    /** Queue a page; a symbol that reaches no entry point or lives on a DI page gets none here. */
     public addPage(page: PageInterface) {
+        if (isMovedPage(page as never, this.mainData.di)) {
+            return;
+        }
         const indexPage = this._pages.findIndex(p => p.name === page.name);
         if (indexPage === -1) {
             this._pages.push(page);

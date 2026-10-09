@@ -1,7 +1,12 @@
 import Html from '@kitajs/html';
+import Configuration from '../../app/configuration';
+import { type DiView, withoutHiddenItems } from '../../app/di/model';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import type { EntityKind, EntityWithKind } from '../../app/engines/dependencies.engine';
-import { hrefFor, hrefText, isMiscKind, isPageKind } from '../../app/links/layout';
+import { hrefFor, hrefText, isPageKind } from '../../app/links/layout';
+import { placeTarget } from '../../app/links/resolve';
+import type { TableKind } from '../../app/links/symbol-id';
+import { isNonNull } from '../../lib';
 import { IconSearch, IconX } from '../components/Icons';
 import {
     deriveLibFromBucket,
@@ -35,18 +40,8 @@ const buildHref = (item: BucketItem, depth: number): string => {
     const name = (item.duplicateName as string | undefined) ?? item.name;
     const kind = item.kind;
     if (isPageKind(kind)) {
-        return hrefText(hrefFor({ type: 'symbol', kind, name }, depth));
-    }
-    if (isMiscKind(kind)) {
-        // The portal only ever shows items that already live in a bucket
-        // (`@category`-tagged or folder-derived). Misc symbols in a bucket
-        // always have a dedicated detail page — never the collection
-        // anchor form.
-        const category = (item.category as string | undefined)?.trim();
-        // Folder-fallback misc (no `@category` but bucketed by file path):
-        // fall back to the shared collection anchor so the link still
-        // resolves to *something*.
-        return hrefText(hrefFor({ type: 'symbol', kind, name, detail: Boolean(category) }, depth));
+        const link = placeTarget({ type: 'symbol', kind, name }, item, Configuration.mainData);
+        return link ? hrefText(hrefFor(link.target, depth, link.anchor)) : '';
     }
     return hrefText(hrefFor({ type: 'root', page: name }, depth));
 };
@@ -61,7 +56,7 @@ const stabilityOf = (item: BucketItem): 'stable' | 'experimental' | 'deprecated'
     return 'stable';
 };
 
-const KindLetterIcon = (kind: EntityKind): string => {
+const KindLetterIcon = (kind: TableKind): string => {
     const letter = KIND_LETTER[kind] ?? '?';
     return (
         <span class={`cdx-ref-kind-icon cdx-ref-kind-icon--${kind}`} aria-hidden="true">
@@ -167,7 +162,7 @@ const BucketSection = (bucket: string, items: readonly BucketItem[], depth: numb
     ) as string;
 };
 
-const KindChip = (kind: EntityKind, count: number): string => {
+const KindChip = (kind: TableKind, count: number): string => {
     const letter = KIND_LETTER[kind] ?? '?';
     const label = KIND_LABELS[kind] ?? kind;
     return (
@@ -227,13 +222,53 @@ const BucketOption = (bucket: string): string =>
  * `data.categorizedByFeature`. Reads `data.referencesName` for the page
  * heading override (falls back to the localised `references` key).
  */
+/** Whether the DI view has anything for `dependency-injection.html`. */
+const hasDiLanding = (view: DiView | undefined): boolean =>
+    (view?.clusters.length ?? 0) + (view?.plainProviders.length ?? 0) + (view?.tokens.length ?? 0) >
+    0;
+
+const hasUtilities = (misc: any): boolean =>
+    ['functions', 'variables', 'typealiases', 'enumerations'].some(
+        list => (misc?.[list]?.length ?? 0) > 0
+    );
+
+/** Links to the Utilities and Dependency Injection landing pages that exist. */
+const LandingLinks = (data: any): string => {
+    const depth: number = data.depth ?? 0;
+    const pages = [
+        hasUtilities(data.miscellaneous) ? { page: 'utilities', label: t('utilities') } : undefined,
+        hasDiLanding(data.di)
+            ? { page: 'dependency-injection', label: t('dependency-injection') }
+            : undefined
+    ].filter(isNonNull);
+    return pages.length > 0
+        ? ((
+              <p class="cdx-ref-hero-subtitle">
+                  {pages
+                      .map(
+                          ({ page, label }) =>
+                              (
+                                  <a href={hrefText(hrefFor({ type: 'root', page }, depth))}>
+                                      {label}
+                                  </a>
+                              ) as string
+                      )
+                      .join(' · ')}
+              </p>
+          ) as string)
+        : '';
+};
+
 export const ApiReferencePage = (data: any): string => {
     const custom = renderCustomTemplate('api-reference', data);
     if (custom !== null) {
         return custom;
     }
 
-    const buckets = (data.categorizedByFeature ?? {}) as Record<string, BucketItem[]>;
+    const buckets = withoutHiddenItems(
+        (data.categorizedByFeature ?? {}) as Record<string, BucketItem[]>,
+        data.di
+    );
     const bucketKeys = Object.keys(buckets).sort();
     const depth = 0;
     const heading = t('api-reference');
@@ -254,7 +289,7 @@ export const ApiReferencePage = (data: any): string => {
     // Per-kind and per-stability counts for the chip rail. Kinds with
     // zero items don't render a chip — empty dimensions stay invisible
     // (matches the search-palette facet UX).
-    const kindCounts = new Map<EntityKind, number>();
+    const kindCounts = new Map<TableKind, number>();
     const stabilityCounts: Record<'stable' | 'experimental' | 'deprecated', number> = {
         stable: 0,
         experimental: 0,
@@ -288,6 +323,7 @@ export const ApiReferencePage = (data: any): string => {
                     {totalItems} {t('members').toLowerCase()} · {bucketKeys.length}{' '}
                     {t('categories').toLowerCase()}
                 </p>
+                {LandingLinks(data)}
             </div>
 
             <div class="cdx-ref-page" data-cdx-page="api-reference" data-cdx-ref-total={totalItems}>

@@ -1,6 +1,7 @@
+import Configuration from '../../app/configuration';
 import DependenciesEngine from '../../app/engines/dependencies.engine';
-import { hrefFor, hrefText, isMiscKind } from '../../app/links/layout';
-import { targetOfData } from '../../app/links/resolve';
+import { hrefFor, hrefText, isUtilityKind } from '../../app/links/layout';
+import { placeTarget, targetOfData } from '../../app/links/resolve';
 import BasicTypeUtil from '../../utils/basic-type.util';
 import ExtendsMerger from '../../utils/extends-merger.util';
 
@@ -29,13 +30,23 @@ export const resolveType = (name: string, indexKey?: string, depth = 1): Resolve
         const resolved: ResolvedType = { raw: name, indexKey: '', href: '', target: '_self' };
 
         if (result.source === 'internal') {
-            const target = targetOfData(result.data, { detail: true });
+            const target = targetOfData(result.data);
             if (!target) {
                 return null;
             }
             const anchor =
-                target.type === 'symbol' && isMiscKind(target.kind) ? undefined : indexKey;
-            const href = hrefText(hrefFor(target, depth, anchor || undefined));
+                target.type === 'symbol' && isUtilityKind(target.kind) ? undefined : indexKey;
+            const link = placeTarget(
+                target,
+                result.data,
+                Configuration.mainData,
+                anchor || undefined
+            );
+            if (!link) {
+                return null;
+            }
+            const href = hrefText(hrefFor(link.target, depth, link.anchor));
+            // `indexKey` is the indexed access shown next to the name, not the section anchor.
             return { ...resolved, href, indexKey: anchor ?? '' };
         }
 

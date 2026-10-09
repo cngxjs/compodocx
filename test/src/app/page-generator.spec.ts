@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 
 import Configuration from '../../../src/app/configuration';
 import DependenciesEngine from '../../../src/app/engines/dependencies.engine';
+import { buildSymbolTable, KIND_FOLDER } from '../../../src/app/links';
 import {
     AdditionalPageGenerator,
     AppConfigPageGenerator,
@@ -31,6 +32,7 @@ const config = Configuration;
 
 function clearState() {
     config.resetPages();
+    config.mainData.symbols = undefined;
     config.resetAdditionalPages();
     config.mainData.miscellaneous = {
         variables: [],
@@ -137,7 +139,7 @@ describe('page-generator — orchestrator wiring', () => {
         expect(config.pages.some(p => p.path === 'miscellaneous')).toBe(false);
     });
 
-    it('MiscellaneousPageGenerator.prepare adds the functions subpage when only functions exist', async () => {
+    it('MiscellaneousPageGenerator.prepare adds the utilities landing page once', async () => {
         const generator = new MiscellaneousPageGenerator();
         await generator.prepare({
             functions: [{ name: 'f' }],
@@ -145,55 +147,57 @@ describe('page-generator — orchestrator wiring', () => {
             typealiases: [],
             enumerations: []
         });
-        const miscPages = config.pages.filter(p => p.path === 'miscellaneous');
-        expect(miscPages).toHaveLength(1);
-        expect(miscPages[0].name).toBe('functions');
+        const landing = config.pages.filter(p => p.context === 'utilities');
+        expect(landing).toHaveLength(1);
+        expect(landing[0].name).toBe('utilities');
+        expect(landing[0].depth).toBe(0);
     });
 
-    it('MiscellaneousPageGenerator.prepare enqueues a detail page per @category-tagged entry', async () => {
-        const generator = new MiscellaneousPageGenerator();
-        await generator.prepare({
-            functions: [{ name: 'provideToaster', category: 'Toast' }, { name: 'helperFn' }],
-            variables: [{ name: 'TOAST_TOKEN', category: 'Toast' }],
-            typealiases: [{ name: 'ToastConfig', category: 'Toast' }],
-            enumerations: [{ name: 'ToastPosition', category: 'Toast' }]
-        });
-
-        const detailPages = config.pages.filter(
-            p => p.context?.startsWith('miscellaneous-') && p.filename
-        );
-        expect(detailPages).toHaveLength(4);
+    it('MiscellaneousPageGenerator.prepare enqueues a page per symbol, tagged or not', async () => {
+        const misc = {
+            functions: [
+                { name: 'provideToaster', file: 'src/toast.ts', category: 'Toast' },
+                { name: 'helperFn', file: 'src/helper.ts' }
+            ],
+            variables: [{ name: 'TOAST_TOKEN', file: 'src/toast.ts' }],
+            typealiases: [{ name: 'ToastConfig', file: 'src/toast.ts' }],
+            enumerations: [{ name: 'ToastPosition', file: 'src/toast.ts' }]
+        };
+        config.mainData.symbols = buildSymbolTable({ miscellaneous: misc });
+        await new MiscellaneousPageGenerator().prepare(misc);
 
         const fn = config.pages.find(p => p.filename === 'provideToaster');
-        expect(fn?.path).toBe('miscellaneous/functions');
-        expect(fn?.context).toBe('miscellaneous-function');
+        expect(fn?.path).toBe(KIND_FOLDER.function);
+        expect(fn?.name).toBe('function-provideToaster');
+        expect(fn?.context).toBe('function');
         expect((fn as any)?.function?.name).toBe('provideToaster');
-        expect(fn?.depth).toBe(2);
-
-        const varPage = config.pages.find(p => p.filename === 'TOAST_TOKEN');
-        expect(varPage?.path).toBe('miscellaneous/variables');
-        expect(varPage?.context).toBe('miscellaneous-variable');
-
-        const ta = config.pages.find(p => p.filename === 'ToastConfig');
-        expect(ta?.path).toBe('miscellaneous/typealiases');
-        expect(ta?.context).toBe('miscellaneous-typealias');
-
-        const en = config.pages.find(p => p.filename === 'ToastPosition');
-        expect(en?.path).toBe('miscellaneous/enumerations');
-        expect(en?.context).toBe('miscellaneous-enumeration');
-
-        expect(config.pages.find(p => p.filename === 'helperFn')).toBeUndefined();
+        expect(fn?.depth).toBe(1);
+        expect(config.pages.find(p => p.filename === 'helperFn')?.path).toBe(KIND_FOLDER.function);
+        expect(config.pages.find(p => p.filename === 'TOAST_TOKEN')?.path).toBe(
+            KIND_FOLDER.variable
+        );
+        expect(config.pages.find(p => p.filename === 'ToastConfig')?.context).toBe('typealias');
+        expect(config.pages.find(p => p.filename === 'ToastPosition')?.path).toBe(
+            KIND_FOLDER.enumeration
+        );
     });
 
-    it('MiscellaneousPageGenerator.prepare treats whitespace-only category as untagged', async () => {
-        const generator = new MiscellaneousPageGenerator();
-        await generator.prepare({
-            functions: [{ name: 'whitespace', category: '   ' }],
+    it('MiscellaneousPageGenerator.prepare numbers same-name copies and merges overloads', async () => {
+        const misc = {
+            functions: [
+                { name: 'pick', file: 'src/a.ts' },
+                { name: 'pick', file: 'src/a.ts' },
+                { name: 'pick', file: 'src/b.ts' }
+            ],
             variables: [],
             typealiases: [],
             enumerations: []
-        });
-        expect(config.pages.some(p => p.filename === 'whitespace')).toBe(false);
+        };
+        config.mainData.symbols = buildSymbolTable({ miscellaneous: misc });
+        await new MiscellaneousPageGenerator().prepare(misc);
+        const picks = config.pages.filter(p => p.context === 'function');
+        expect(picks.map(p => p.filename)).toEqual(['pick', 'pick-1']);
+        expect(misc.functions[2]).not.toHaveProperty('duplicateName');
     });
 
     it('PlaygroundFileResolver.resolve leaves playgroundFiles empty when no entity has @playground blocks', () => {

@@ -1,6 +1,12 @@
 import { ts } from 'ts-morph';
 
-import { type Declaration, resolveAlias, unwrapExpression } from './declarations';
+import {
+    type Declaration,
+    declarationIn,
+    declarationsBySymbol,
+    resolveAlias,
+    unwrapExpression
+} from './declarations';
 import {
     type AngularImports,
     angularImports,
@@ -190,12 +196,7 @@ export const analyzeDi = (
     checker: ts.TypeChecker,
     isRootFile: (sourceFile: ts.SourceFile) => boolean
 ): DiAnalysis => {
-    const bySymbol = new Map<ts.Symbol, Declaration>();
-    for (const declaration of declarations) {
-        if (declaration.symbol && !bySymbol.has(declaration.symbol)) {
-            bySymbol.set(declaration.symbol, declaration);
-        }
-    }
+    const bySymbol = declarationsBySymbol(declarations);
     const importsCache = new Map<ts.SourceFile, AngularImports>();
     const importsOf = (node: ts.Node): AngularImports => {
         const sourceFile = node.getSourceFile();
@@ -212,11 +213,11 @@ export const analyzeDi = (
         );
     const keyOfExpression = (expression: ts.Expression): SymbolKey | undefined => {
         const symbol = symbolOf(expression);
-        return symbol ? bySymbol.get(symbol)?.key : undefined;
+        return symbol ? declarationIn(bySymbol.get(symbol), 'value')?.key : undefined;
     };
     const keyOfType = (node: ts.TypeReferenceNode): SymbolKey | undefined => {
         const symbol = resolveAlias(checker, checker.getSymbolAtLocation(node.typeName));
-        return symbol ? bySymbol.get(symbol)?.key : undefined;
+        return symbol ? declarationIn(bySymbol.get(symbol), 'type')?.key : undefined;
     };
 
     // Direct scans and one-level callee resolution.
@@ -415,8 +416,11 @@ export const analyzeDi = (
 };
 
 const keyFromFactKey = (key: string): SymbolKey => {
-    const at = key.lastIndexOf('#');
-    return { file: key.slice(0, at), name: key.slice(at + 1) };
+    const isType = key.startsWith('type:');
+    const rest = isType ? key.slice('type:'.length) : key;
+    const at = rest.lastIndexOf('#');
+    const base = { file: rest.slice(0, at), name: rest.slice(at + 1) };
+    return isType ? { ...base, space: 'type' } : base;
 };
 
 const isPrimitive = (node: ts.TypeNode): boolean =>

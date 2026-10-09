@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import Configuration from '../../../../src/app/configuration';
 import DependenciesEngine, {
-    type EntityKind,
     type EntityWithKind
 } from '../../../../src/app/engines/dependencies.engine';
+import { KIND_FOLDER } from '../../../../src/app/links/layout';
+import type { TableKind } from '../../../../src/app/links/symbol-id';
 
 /**
  * Snapshot of every singleton field prepareFeatureGroups reads from so a spec
@@ -146,7 +147,7 @@ describe('DependenciesEngine.prepareFeatureGroups — kinds list coverage', () =
 
         expect(bucket, 'every entity should land in the button bucket').toBeDefined();
 
-        const kindOf = (name: string): EntityKind | undefined =>
+        const kindOf = (name: string): TableKind | undefined =>
             bucket?.find(item => item.name === name)?.kind;
 
         expect(kindOf('ButtonComponent')).toBe('component');
@@ -164,7 +165,7 @@ describe('DependenciesEngine.prepareFeatureGroups — kinds list coverage', () =
         expect(kindOf('ButtonKind')).toBe('enumeration');
     });
 
-    it('stamps the miscellaneous href prefixes with their sub-collection path', () => {
+    it('stamps the miscellaneous href prefixes with their kind folder', () => {
         (DependenciesEngine as any).miscellaneous = {
             functions: [{ name: 'fn', file: 'src/util/util.ts' }],
             variables: [{ name: 'TOKEN', file: 'src/util/util.ts' }],
@@ -175,17 +176,11 @@ describe('DependenciesEngine.prepareFeatureGroups — kinds list coverage', () =
         run();
 
         const bucket = DependenciesEngine.categorizedByFeature.util;
-        expect(findItem({ util: bucket }, 'util', 'fn')?.hrefPrefix).toBe(
-            'miscellaneous/functions'
-        );
-        expect(findItem({ util: bucket }, 'util', 'TOKEN')?.hrefPrefix).toBe(
-            'miscellaneous/variables'
-        );
-        expect(findItem({ util: bucket }, 'util', 'Alias')?.hrefPrefix).toBe(
-            'miscellaneous/typealiases'
-        );
+        expect(findItem({ util: bucket }, 'util', 'fn')?.hrefPrefix).toBe(KIND_FOLDER.function);
+        expect(findItem({ util: bucket }, 'util', 'TOKEN')?.hrefPrefix).toBe(KIND_FOLDER.variable);
+        expect(findItem({ util: bucket }, 'util', 'Alias')?.hrefPrefix).toBe(KIND_FOLDER.typealias);
         expect(findItem({ util: bucket }, 'util', 'Kind')?.hrefPrefix).toBe(
-            'miscellaneous/enumerations'
+            KIND_FOLDER.enumeration
         );
     });
 

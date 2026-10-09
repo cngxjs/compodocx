@@ -1,10 +1,10 @@
 import {
     hrefFor,
     hrefText,
+    type PageKind,
     type PageTarget,
     pageLocation,
-    pagePath,
-    type SymbolKind
+    pagePath
 } from '../../../src/app/links/layout';
 
 /**
@@ -14,33 +14,30 @@ import {
 export interface PageOptions {
     /** Page name of a same-name copy, e.g. `Todo-1`. */
     readonly duplicate?: string;
-    /** The detail page of a tagged miscellaneous symbol. */
-    readonly detail?: boolean;
 }
 
-const symbolTarget = (kind: SymbolKind, name: string, opts: PageOptions = {}): PageTarget => ({
+const symbolTarget = (kind: PageKind, name: string, opts: PageOptions = {}): PageTarget => ({
     type: 'symbol',
     kind,
     name,
-    duplicateName: opts.duplicate,
-    detail: opts.detail
+    duplicateName: opts.duplicate
 });
 
 /** Root-relative page file of a symbol, e.g. `components/Foo.html`. */
-export const pageOf = (kind: SymbolKind, name: string, opts?: PageOptions): string =>
+export const pageOf = (kind: PageKind, name: string, opts?: PageOptions): string =>
     pagePath(pageLocation(symbolTarget(kind, name, opts)));
 
 /** Link to a symbol from a page at `fromDepth`, e.g. `../components/Foo.html`. */
 export const hrefTo = (
-    kind: SymbolKind,
+    kind: PageKind,
     name: string,
     fromDepth: number,
     opts?: PageOptions
 ): string => hrefText(hrefFor(symbolTarget(kind, name, opts), fromDepth));
 
-/** Root-relative collection anchor of a miscellaneous symbol. */
-export const miscAnchor = (kind: SymbolKind, name: string): string =>
-    hrefText(hrefFor(symbolTarget(kind, name), 0), 'bare');
+/** Root-relative file of the page of a feature type, its providers and features. */
+export const clusterPage = (featureType: string): string =>
+    pagePath(pageLocation({ type: 'cluster', name: featureType }));
 
 /** Root-relative file of a top-level page, e.g. `coverage.html`. */
 export const rootPage = (page: string): string => pagePath(pageLocation({ type: 'root', page }));

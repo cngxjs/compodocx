@@ -1,6 +1,14 @@
 import { factKey, type SemanticModel } from '../compiler/semantic/model';
 import type { EntityKind } from '../engines/dependencies.engine';
-import { type SymbolId, type SymbolRef, symbolFile, symbolId, toSymbolKey } from './symbol-id';
+import {
+    presentationKind,
+    type SymbolId,
+    type SymbolRef,
+    symbolFile,
+    symbolId,
+    type TableKind,
+    toSymbolKey
+} from './symbol-id';
 
 export interface SymbolEntry {
     readonly id: SymbolId;
@@ -9,8 +17,6 @@ export interface SymbolEntry {
     readonly data: unknown;
     /** Page name of a same-name copy, e.g. `Todo-1`. */
     readonly duplicateName?: string;
-    /** A miscellaneous symbol with its own detail page (non-empty `@category`). */
-    readonly tagged: boolean;
     /** Import path of the nearest exporting barrel; undefined without semantic facts. */
     readonly entryPoint?: string;
     /** Further engine entries that share the id (overloads, merged declarations). */
@@ -99,21 +105,59 @@ const TABLE_ORDER: readonly EntityKind[] = [
     'enumeration'
 ];
 
-const MISC_KINDS: ReadonlySet<EntityKind> = new Set([
+/**
+ * Kinds whose same-name copies the table numbers itself (`-1`, `-2`, ... in
+ * engine order). The engine numbers the other kinds on its own objects; these
+ * are left untouched because the export copies them.
+ */
+const TABLE_SUFFIX_KINDS: ReadonlySet<TableKind> = new Set<TableKind>([
     'function',
     'variable',
     'typealias',
-    'enumeration'
+    'enumeration',
+    'token'
 ]);
 
-const isTagged = (kind: EntityKind, item: Named): boolean => {
-    const category = (item as { category?: unknown }).category;
-    return MISC_KINDS.has(kind) && typeof category === 'string' && category.trim() !== '';
-};
+/** The engine lists the table numbers. */
+const SUFFIX_LISTS: readonly EntityKind[] = [
+    'function',
+    'variable',
+    'typealias',
+    'enumeration',
+    'token'
+];
 
-const duplicateNameOf = (item: Named): string | undefined => {
+const engineDuplicateName = (item: Named): string | undefined => {
     const name = (item as { duplicateName?: unknown }).duplicateName;
     return typeof name === 'string' ? name : undefined;
+};
+
+/** Duplicate names of the table-numbered kinds; overloads (one id) are one symbol. */
+const tableDuplicateNames = (
+    data: EngineData,
+    idOf: (kind: EntityKind, item: Named) => SymbolId
+): ReadonlyMap<SymbolId, string> => {
+    const names = new Map<SymbolId, string>();
+    for (const kind of SUFFIX_LISTS) {
+        const seen = new Map<string, SymbolId[]>();
+        for (const item of listOf(data, kind) ?? []) {
+            if (typeof item?.name !== 'string') {
+                continue;
+            }
+            const id = idOf(kind, item);
+            const ids = seen.get(item.name) ?? [];
+            if (!ids.includes(id)) {
+                ids.push(id);
+                seen.set(item.name, ids);
+            }
+        }
+        for (const [name, ids] of seen) {
+            ids.slice(1).forEach((id, i) => {
+                names.set(id, `${name}-${i + 1}`);
+            });
+        }
+    }
+    return names;
 };
 
 export interface BuildOptions {
@@ -123,6 +167,12 @@ export interface BuildOptions {
 
 export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): SymbolTable => {
     const cwd = options.cwd ?? process.cwd();
+    const refOf = (kind: EntityKind, item: Named): SymbolRef => ({
+        kind: presentationKind(kind, item),
+        file: typeof item.file === 'string' ? symbolFile(item.file, cwd) : '',
+        name: item.name as string
+    });
+    const suffixes = tableDuplicateNames(data, (kind, item) => symbolId(refOf(kind, item)));
     const byId = new Map<SymbolId, SymbolEntry>();
     const byName = new Map<string, SymbolId[]>();
     const dataByName = new Map<string, unknown[]>();
@@ -131,8 +181,7 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
             if (typeof item?.name !== 'string') {
                 continue;
             }
-            const file = typeof item.file === 'string' ? symbolFile(item.file, cwd) : '';
-            const ref: SymbolRef = { kind, file, name: item.name };
+            const ref = refOf(kind, item);
             const id = symbolId(ref);
             const known = byId.get(id);
             if (known) {
@@ -142,8 +191,9 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
                     id,
                     ref,
                     data: item,
-                    duplicateName: duplicateNameOf(item),
-                    tagged: isTagged(kind, item),
+                    duplicateName: TABLE_SUFFIX_KINDS.has(kind)
+                        ? suffixes.get(id)
+                        : engineDuplicateName(item),
                     entryPoint: options.semantic?.facts.get(factKey(toSymbolKey(ref)))?.entryPoint,
                     overloads: 0
                 });
@@ -177,17 +227,16 @@ export const emptySymbolTable = (): SymbolTable => ({
  * - `doc-link`: `{@link}` targets. First exact name, no tokens.
  * - `entity-index`: the client's entity index. Last exact name; misc kinds
  *   after the class-like kinds, no tokens or entities.
- * - `referenced-by`: targets of "Referenced by". Last exact name over
- *   interfaces, tokens and misc kinds.
  * - `diff`: export diffs. Last exact name; callers narrow by kind.
  */
-export type LookupPolicy = 'type-link' | 'doc-link' | 'entity-index' | 'referenced-by' | 'diff';
+export type LookupPolicy = 'type-link' | 'doc-link' | 'entity-index' | 'diff';
 
-const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly EntityKind[]>> = {
+const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
     'type-link': [
         'injectable',
         'interceptor',
         'guard',
+        'resolver',
         'interface',
         'class',
         'component',
@@ -206,6 +255,7 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly EntityKind[]>> = {
         'injectable',
         'interceptor',
         'guard',
+        'resolver',
         'interface',
         'pipe',
         'class',
@@ -223,36 +273,41 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly EntityKind[]>> = {
         'interface',
         'guard',
         'interceptor',
+        'resolver',
         'function',
         'variable',
         'typealias',
         'enumeration'
     ],
-    'referenced-by': ['interface', 'token', 'function', 'variable', 'typealias', 'enumeration'],
-    diff: TABLE_ORDER
+    diff: [...TABLE_ORDER, 'resolver']
 };
 
 /** The kinds a policy considers, in its order. */
-export const policyKinds = (policy: LookupPolicy): readonly EntityKind[] => POLICY_KINDS[policy];
+export const policyKinds = (policy: LookupPolicy): readonly TableKind[] => POLICY_KINDS[policy];
 
-const kindOf = (table: SymbolTable, id: SymbolId): EntityKind | undefined =>
+const kindOf = (table: SymbolTable, id: SymbolId): TableKind | undefined =>
     table.byId.get(id)?.ref.kind;
 
 /** One engine entry of a name. */
 interface Occurrence {
     readonly id: SymbolId;
     readonly data: unknown;
-    readonly kind: EntityKind;
+    readonly kind: TableKind;
 }
 
-const occurrencesOf = (table: SymbolTable, name: string): Occurrence[] => {
+/** Ids a lookup must skip, e.g. symbols that get no page. */
+export type ExcludeId = (id: SymbolId) => boolean;
+
+const occurrencesOf = (table: SymbolTable, name: string, exclude?: ExcludeId): Occurrence[] => {
     const ids = table.byName.get(name) ?? [];
     const data = table.dataByName.get(name) ?? [];
-    return ids.map((id, i) => ({ id, data: data[i], kind: kindOf(table, id) as EntityKind }));
+    return ids
+        .map((id, i) => ({ id, data: data[i], kind: kindOf(table, id) as TableKind }))
+        .filter(o => !exclude?.(o.id));
 };
 
 /** The occurrences in the policy's kind order (engine order inside a kind). */
-const inKindOrder = (occurrences: readonly Occurrence[], kinds: readonly EntityKind[]) => {
+const inKindOrder = (occurrences: readonly Occurrence[], kinds: readonly TableKind[]) => {
     const rank = (o: Occurrence) => kinds.indexOf(o.kind);
     return occurrences.filter(o => rank(o) !== -1).sort((a, b) => rank(a) - rank(b));
 };
@@ -266,14 +321,15 @@ const lastOfFirstKind = (ordered: readonly Occurrence[]): Occurrence | undefined
 const containedMatch = (
     table: SymbolTable,
     name: string,
-    kinds: readonly EntityKind[]
+    kinds: readonly TableKind[],
+    exclude?: ExcludeId
 ): Occurrence | undefined => {
-    const perKind = new Map<EntityKind, Occurrence[]>();
+    const perKind = new Map<TableKind, Occurrence[]>();
     for (const other of table.byName.keys()) {
         if (name.indexOf(other) === -1) {
             continue;
         }
-        for (const occurrence of occurrencesOf(table, other)) {
+        for (const occurrence of occurrencesOf(table, other, exclude)) {
             const hits = perKind.get(occurrence.kind);
             if (hits) {
                 hits.push(occurrence);
@@ -295,16 +351,17 @@ const lookupOccurrence = (
     table: SymbolTable,
     name: string,
     policy: LookupPolicy,
-    kind?: EntityKind
+    kind?: TableKind,
+    exclude?: ExcludeId
 ): Occurrence | undefined => {
     if (typeof name !== 'string') {
         return undefined;
     }
     const kinds = kind ? POLICY_KINDS[policy].filter(k => k === kind) : POLICY_KINDS[policy];
-    const exact = inKindOrder(occurrencesOf(table, name), kinds);
+    const exact = inKindOrder(occurrencesOf(table, name, exclude), kinds);
     switch (policy) {
         case 'type-link':
-            return lastOfFirstKind(exact) ?? containedMatch(table, name, kinds);
+            return lastOfFirstKind(exact) ?? containedMatch(table, name, kinds, exclude);
         case 'doc-link':
             return exact[0];
         default:
@@ -316,37 +373,38 @@ export const lookupName = (
     table: SymbolTable,
     name: string,
     policy: LookupPolicy,
-    kind?: EntityKind
-): SymbolId | undefined => lookupOccurrence(table, name, policy, kind)?.id;
+    kind?: TableKind,
+    exclude?: ExcludeId
+): SymbolId | undefined => lookupOccurrence(table, name, policy, kind, exclude)?.id;
+
+/** The duplicate name of one engine object: the table's for the kinds it numbers. */
+const duplicateNameFor = (entry: SymbolEntry, data: Named): string | undefined =>
+    TABLE_SUFFIX_KINDS.has(entry.ref.kind) ? entry.duplicateName : engineDuplicateName(data);
 
 /**
  * Like `lookupName`, but returns the entry as the chosen engine object sees
- * it: overloads of one id keep their own data, `@category` and duplicate name.
+ * it: overloads of one id keep their own data and engine duplicate name.
  */
 export const lookupEntry = (
     table: SymbolTable,
     name: string,
     policy: LookupPolicy,
-    kind?: EntityKind
+    kind?: TableKind,
+    exclude?: ExcludeId
 ): SymbolEntry | undefined => {
-    const occurrence = lookupOccurrence(table, name, policy, kind);
+    const occurrence = lookupOccurrence(table, name, policy, kind, exclude);
     const entry = occurrence && table.byId.get(occurrence.id);
     if (!occurrence || !entry) {
         return undefined;
     }
     const data = occurrence.data as Named;
-    return {
-        ...entry,
-        data,
-        duplicateName: duplicateNameOf(data),
-        tagged: isTagged(entry.ref.kind, data)
-    };
+    return { ...entry, data, duplicateName: duplicateNameFor(entry, data) };
 };
 
 /** The entry of `name` and `kind` whose engine object was read from `file`. */
 export const entryInFile = (
     table: SymbolTable,
-    kind: EntityKind,
+    kind: TableKind,
     name: string,
     file: string | undefined
 ): SymbolEntry | undefined => {
@@ -358,7 +416,7 @@ export const entryInFile = (
         return undefined;
     }
     const data = occurrence.data as Named;
-    return { ...entry, data, duplicateName: duplicateNameOf(data), tagged: isTagged(kind, data) };
+    return { ...entry, data, duplicateName: duplicateNameFor(entry, data) };
 };
 
 /** Names that more than one symbol carries. */

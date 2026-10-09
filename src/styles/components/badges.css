@@ -63,6 +63,9 @@
 .cdx-badge--ai-generated {
     --cdx-badge-base: var(--color-cdx-badge-ai-generated, hsl(290 55% 48%));
 }
+.cdx-badge--injection-context {
+    --cdx-badge-base: var(--color-cdx-badge-injection-context, hsl(330 50% 44%));
+}
 .cdx-badge--primary {
     --cdx-badge-base: var(--color-cdx-badge-primary, hsl(38 92% 38%));
     display: inline-flex;

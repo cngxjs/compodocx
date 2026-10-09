@@ -27,7 +27,8 @@ const ENTITY_TYPES = [
     'enum',
     'function',
     'typealias',
-    'variable'
+    'variable',
+    'provider'
 ] as const;
 
 type EntityType = (typeof ENTITY_TYPES)[number];
@@ -38,6 +39,9 @@ type EntityType = (typeof ENTITY_TYPES)[number];
  *  through to the muted "Docs" pill. */
 const entityClass = (type: EntityType | 'other'): string => {
     switch (type) {
+        case 'provider':
+            // Providers and feature functions are functions; share their chip.
+            return 'function';
         case 'service':
         case 'injectable':
             // Badge class is `cdx-badge--entity-injectable`, which itself
@@ -108,7 +112,9 @@ const KIND_LABEL_TO_TYPE: Record<string, EntityType> = {
     Function: 'function',
     Variable: 'variable',
     'Type Alias': 'typealias',
-    Entity: 'class'
+    Entity: 'class',
+    // A feature type page with its providers and feature functions.
+    Cluster: 'provider'
 };
 
 /** Capitalize first letter */
@@ -189,6 +195,25 @@ const highlightMatch = (text: string, query: string): string => {
     const re = new RegExp(`(${pattern})`, 'gi');
     return escaped.replace(re, '<mark class="cdx-cp-highlight">$1</mark>');
 };
+
+/**
+ * One palette row per provider or feature section of a feature type page:
+ * Pagefind returns a sub-result per heading with an id, and member
+ * headings carry `<featureType>--<member>` ids.
+ */
+const MEMBER_ANCHOR = /#[^#]+?--([^#]+)$/;
+
+const clusterMembers = (d: any): SearchResult[] =>
+    (Array.isArray(d.sub_results) ? d.sub_results : [])
+        .filter((sub: any) => typeof sub?.url === 'string' && MEMBER_ANCHOR.test(sub.url))
+        .map((sub: any) => ({
+            title: String(sub.title ?? ''),
+            url: sub.url,
+            type: 'provider' as const,
+            // The heading text runs the name into its badges and permalink; the anchor holds it alone.
+            name: decodeURIComponent(MEMBER_ANCHOR.exec(sub.url)?.[1] ?? ''),
+            excerpt: typeof sub.excerpt === 'string' ? sub.excerpt : undefined
+        }));
 
 interface SearchResult {
     readonly title: string;
@@ -475,7 +500,7 @@ const search = async (query: string) => {
     const sliced = (results?.results ?? []).slice(0, maxResults);
     const data = await Promise.all(sliced.map((r: any) => r.data()));
 
-    const mapped: SearchResult[] = data.map((d: any) => {
+    const mapped: SearchResult[] = data.flatMap((d: any) => {
         const meta = d.meta || {};
         const parsed = parseEntityType(meta.title || '');
         // Prefer the explicit `data-pagefind-meta="kind:..."` value emitted by
@@ -483,7 +508,7 @@ const search = async (query: string) => {
         // back to title parsing for pages that predate the meta block
         // (custom templates, README/CHANGELOG without a kind, etc.).
         const metaType = typeof meta.kind === 'string' ? KIND_LABEL_TO_TYPE[meta.kind] : undefined;
-        return {
+        const page: SearchResult = {
             title: meta.title || '',
             url: d.url,
             type: metaType ?? parsed.type,
@@ -492,6 +517,7 @@ const search = async (query: string) => {
             description: typeof meta.description === 'string' ? meta.description : undefined,
             excerpt: typeof d.excerpt === 'string' ? d.excerpt : undefined
         };
+        return meta.kind === 'Cluster' ? [page, ...clusterMembers(d)] : [page];
     });
 
     if (mapped.length === 0) {

@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
+import { type DiView, foldClusterMembers, hasOwnPage, isHiddenItem } from '../../app/di/model';
 import {
     buildGroupTree,
     type EntityKind,
@@ -9,13 +10,17 @@ import {
 import {
     hrefFor,
     hrefText,
+    isPageKind,
     KIND_FOLDER,
-    type MiscKind,
     pageFile,
     pageLocation,
     pagePath,
-    ROOT_DEPTH
+    ROOT_DEPTH,
+    type UtilityKind
 } from '../../app/links/layout';
+import { placedLink, placeTarget } from '../../app/links/resolve';
+import type { SymbolId, TableKind } from '../../app/links/symbol-id';
+import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { t } from '../helpers';
 import { isToggled } from '../helpers/menu-helpers';
 import {
@@ -69,30 +74,211 @@ const isCollapsedAll = (): boolean => Configuration.mainData.collapsedAll === tr
 /** Whether a top-level chapter should render expanded on first load. */
 const chapterOpen = (type: string): boolean => !isCollapsedAll() && isToggled(type);
 
-/** Miscellaneous kinds render on a shared collection page (`miscellaneous/<plural>.html`).
- * Entries tagged with `@category` get a dedicated detail page; untagged entries
- * remain inline anchors on the collection page. */
-const ANCHOR_KINDS = new Set<EntityKind>(['variable', 'function', 'typealias', 'enumeration']);
+/** Kinds whose same-name copies the symbol table numbers (not the engine object). */
+const TABLE_NUMBERED_KINDS = new Set<EntityKind>([
+    'variable',
+    'function',
+    'typealias',
+    'enumeration',
+    'token'
+]);
+
+const duplicateNameOf = (item: any): string | undefined => {
+    if (!TABLE_NUMBERED_KINDS.has(item.kind)) {
+        return item.duplicateName;
+    }
+    const table = Configuration.mainData.symbols;
+    return table ? entryInFile(table, item.kind, item.name, item.file)?.duplicateName : undefined;
+};
 
 /** Entity link href with duplicateName fallback. */
-const entityHref = (prefix: string, item: any): string => {
-    const name = item.duplicateName ?? item.name;
-    if (ANCHOR_KINDS.has(item.kind) && !item.category) {
-        return hrefText(
-            { path: pageFile('', prefix), anchor: name, fromDepth: ROOT_DEPTH },
-            'bare'
-        );
-    }
-    return pageFile(prefix, name);
-};
+const entityHref = (prefix: string, item: any): string =>
+    pageFile(prefix, duplicateNameOf(item) ?? item.name);
 
 /** Root-relative link to a top-level page; the client router adds the depth prefix. */
 const rootHref = (page: string): string =>
     hrefText(hrefFor({ type: 'root', page }, ROOT_DEPTH), 'bare');
 
-/** Root-relative link to a miscellaneous collection page. */
-const collectionHref = (kind: MiscKind): string =>
-    hrefText(hrefFor({ type: 'misc-collection', kind }, ROOT_DEPTH), 'bare');
+const UTILITY_GROUPS: readonly { kind: UtilityKind; list: string; labelKey: string }[] = [
+    { kind: 'function', list: 'functions', labelKey: 'functions' },
+    { kind: 'variable', list: 'variables', labelKey: 'variables' },
+    { kind: 'typealias', list: 'typealiases', labelKey: 'type-aliases' },
+    { kind: 'enumeration', list: 'enumerations', labelKey: 'enums' }
+];
+
+/** One menu entry per symbol of a group, deduplicated by page (overloads share one). */
+const utilityItems = (items: readonly any[], kind: UtilityKind): any[] => {
+    const seen = new Set<string>();
+    return items
+        .map(item => ({ ...item, kind }))
+        .filter(item => {
+            const key = `${item.file}#${duplicateNameOf(item) ?? item.name}`;
+            if (seen.has(key)) {
+                return false;
+            }
+            seen.add(key);
+            return true;
+        });
+};
+
+interface ChapterGroup {
+    /** Element id suffix of the group. */
+    readonly id: string;
+    readonly label: string;
+    readonly links: readonly string[];
+}
+
+/**
+ * A chapter with a link to its landing page, then one collapsible group
+ * per list. Groups of up to 20 entries start expanded.
+ */
+const GroupedChapter = (props: {
+    readonly key: string;
+    readonly icon: string;
+    readonly label: string;
+    readonly landing: string;
+    readonly groups: readonly ChapterGroup[];
+}): string => {
+    const groups = props.groups.filter(group => group.links.length > 0);
+    if (groups.length === 0) {
+        return '';
+    }
+    const listId = `${props.key}-links`;
+    return (
+        <li class="chapter">
+            <button
+                class="simple menu-toggler"
+                type="button"
+                data-cdx-toggle="collapse"
+                data-cdx-target={`#${listId}`}
+                aria-expanded={chapterOpen(props.key) ? 'true' : 'false'}
+                aria-controls={listId}
+            >
+                {props.icon}
+                <span>{props.label}</span>
+                {chevron()}
+            </button>
+            <ul class={`links collapse${chapterOpen(props.key) ? ' in' : ''}`} id={listId}>
+                <li class="link">
+                    <a href={rootHref(props.landing)} data-type="entity-link">
+                        {t('overview')}
+                    </a>
+                </li>
+                {groups.map(group => {
+                    const id = `${props.key}-group-${group.id}`;
+                    const startExpanded = !isCollapsedAll() && group.links.length <= 20;
+                    return (
+                        <li class="chapter inner" style="--depth: 0">
+                            <button
+                                class="simple menu-toggler"
+                                type="button"
+                                data-cdx-toggle="collapse"
+                                data-cdx-target={`#${id}`}
+                                aria-expanded={startExpanded ? 'true' : 'false'}
+                                aria-controls={id}
+                            >
+                                <span class="link-name">{group.label}</span>
+                                <span class="cdx-badge cdx-badge--count">{group.links.length}</span>
+                                {IconChevronRight('cdx-chevron')}
+                            </button>
+                            <ul class={`links collapse${startExpanded ? ' in' : ''}`} id={id}>
+                                {group.links.join('')}
+                            </ul>
+                        </li>
+                    );
+                })}
+            </ul>
+        </li>
+    ) as string;
+};
+
+/** The Utilities chapter: a link to the landing page, then one group per kind. */
+const UtilitiesChapter = (d: any): string =>
+    GroupedChapter({
+        key: 'utilities',
+        icon: IconCube(),
+        label: t('utilities'),
+        landing: 'utilities',
+        groups: UTILITY_GROUPS.map(group => ({
+            id: group.list,
+            label: t(group.labelKey),
+            links: utilityItems(d.miscellaneous[group.list] ?? [], group.kind).map(item =>
+                EntityLink({
+                    href: entityHref(KIND_FOLDER[group.kind], item),
+                    name: item.name,
+                    deprecated: item.deprecated,
+                    beta: item.beta,
+                    entityType: group.kind,
+                    description: item.description
+                })
+            )
+        }))
+    });
+
+/** Root-relative link to where the DI view documents a table entry. */
+const placedHref = (d: any, id: SymbolId): string | undefined => {
+    const table: SymbolTable | undefined = d.symbols;
+    const entry = table?.byId.get(id);
+    const link = table && entry && placedLink(table, entry, d.di, { duplicate: true });
+    return link ? hrefText(hrefFor(link.target, ROOT_DEPTH, link.anchor), 'bare') : undefined;
+};
+
+/**
+ * The Dependency Injection chapter: a link to the landing page, the
+ * providers (one entry per feature type page, then the plain providers) and
+ * the tokens.
+ */
+const DependencyInjectionChapter = (d: any): string => {
+    const view: DiView | undefined = d.di;
+    const table: SymbolTable | undefined = d.symbols;
+    const providerLink = (id: SymbolId, entityType: string): string[] => {
+        const entry = table?.byId.get(id);
+        const href = placedHref(d, id);
+        return entry && href
+            ? [
+                  EntityLink({
+                      href,
+                      name: entry.ref.name,
+                      entityType,
+                      description: (entry.data as { description?: string }).description
+                  })
+              ]
+            : [];
+    };
+    return GroupedChapter({
+        key: 'dependency-injection',
+        icon: IconInjectable(),
+        label: t('dependency-injection'),
+        landing: 'dependency-injection',
+        groups: [
+            {
+                id: 'providers',
+                label: t('providers'),
+                links: [
+                    ...(view?.clusters ?? []).flatMap(cluster =>
+                        providerLink(cluster.owner, 'cluster')
+                    ),
+                    ...(view?.plainProviders ?? []).flatMap(id => providerLink(id, 'provider'))
+                ]
+            },
+            {
+                id: 'tokens',
+                label: t('tokens'),
+                links: (d.tokens ?? []).map((item: any) =>
+                    EntityLink({
+                        href: entityHref(KIND_FOLDER.token, { ...item, kind: 'token' }),
+                        name: item.name,
+                        deprecated: item.deprecated,
+                        isToken: true,
+                        beta: item.beta,
+                        entityType: 'token',
+                        description: item.description
+                    })
+                )
+            }
+        ]
+    });
+};
 
 /**
  * Kinds whose detail page renders an API tab. Used to gate the
@@ -124,8 +310,20 @@ const KINDS_WITH_API_TAB: ReadonlySet<EntityKind> = new Set<EntityKind>([
  * existing href carries no fragment (anchor-style miscellaneous URLs
  * already encode the target row — never stack `#api` on top of `#name`).
  */
+/** A feature-folder entry may live on a provider or cluster page; link it there. */
+const placedEntityHref = (prefix: string, item: any): string => {
+    const kind = isPageKind(item.kind) ? item.kind : undefined;
+    const link =
+        kind &&
+        placeTarget({ type: 'symbol', kind, name: item.name }, item, Configuration.mainData);
+    const moved = link && (link.target.type !== 'symbol' || link.target.kind !== kind);
+    return moved
+        ? hrefText(hrefFor(link.target, ROOT_DEPTH, link.anchor), 'bare')
+        : entityHref(prefix, item);
+};
+
 const featureLinkHref = (prefix: string, item: any, defaultTab: 'api' | undefined): string => {
-    const base = entityHref(prefix, item);
+    const base = placedEntityHref(prefix, item);
     if (defaultTab === 'api' && KINDS_WITH_API_TAB.has(item.kind) && !base.includes('#')) {
         return `${base}#api`;
     }
@@ -160,7 +358,6 @@ const EntityLink = (props: {
     contextId?: string;
     isToken?: boolean;
     beta?: boolean;
-    factoryKind?: string;
     entityType?: string;
     selector?: string;
     inputCount?: number;
@@ -188,12 +385,6 @@ const EntityLink = (props: {
                 {props.deprecated ? Badge({ label: 'D', cssClass: 'cdx-badge--deprecated' }) : ''}
                 {props.isToken ? Badge({ label: 'T', cssClass: 'cdx-badge--token' }) : ''}
                 {props.beta ? Badge({ label: 'B', cssClass: 'cdx-badge--beta' }) : ''}
-                {props.factoryKind
-                    ? Badge({
-                          label: props.factoryKind.charAt(0).toUpperCase(),
-                          cssClass: 'cdx-badge--factory'
-                      })
-                    : ''}
             </a>
         </li>
     ) as string;
@@ -251,7 +442,6 @@ const GroupTree = (props: {
                         deprecated: item.deprecated,
                         isToken: item.isToken,
                         beta: item.beta,
-                        factoryKind: item.factoryKind,
                         entityType: singularizeType(props.type),
                         selector: item.selector,
                         inputCount: item.inputsClass?.length,
@@ -265,7 +455,7 @@ const GroupTree = (props: {
 };
 
 /** Per-kind Lucide icon for the feature-layout sidebar. */
-const kindIconHtml = (kind: EntityKind): string => {
+const kindIconHtml = (kind: TableKind): string => {
     switch (kind) {
         case 'component':
             return IconComponent();
@@ -282,11 +472,14 @@ const kindIconHtml = (kind: EntityKind): string => {
         case 'interface':
             return IconInterface();
         case 'guard':
+        case 'resolver':
             return IconGuard();
         case 'interceptor':
             return IconInterceptor();
         case 'entity':
             return IconEntity();
+        default:
+            return '';
     }
 };
 
@@ -314,12 +507,6 @@ const FeatureEntityLink = (item: EntityWithKind, defaultTab?: 'api'): string =>
                 {item.deprecated ? Badge({ label: 'D', cssClass: 'cdx-badge--deprecated' }) : ''}
                 {item.isToken ? Badge({ label: 'T', cssClass: 'cdx-badge--token' }) : ''}
                 {item.beta ? Badge({ label: 'B', cssClass: 'cdx-badge--beta' }) : ''}
-                {item.factoryKind
-                    ? Badge({
-                          label: item.factoryKind.charAt(0).toUpperCase(),
-                          cssClass: 'cdx-badge--factory'
-                      })
-                    : ''}
             </a>
         </li>
     ) as string;
@@ -415,13 +602,38 @@ const FeatureGroupTree = (props: {
  * ("Features") and Reference chapters — `chapterKey` drives the id prefix,
  * collapse state, and label.
  */
-const FeatureSection = (props: {
+type FeatureSectionProps = {
     groups?: Record<string, EntityWithKind[]>;
     groupDepth: number;
     chapterKey: 'features' | 'references';
     label: string;
     defaultTab?: 'api';
-}): string => {
+};
+
+/**
+ * The section's HTML does not depend on the page (root-relative links, no
+ * active state), so it renders once per run for the same groups and options.
+ */
+const CachedFeatureSection = (props: FeatureSectionProps, scope: object | undefined): string => {
+    const byOptions = cached(scope, props.groups, () => new Map<string, string>());
+    const key = JSON.stringify([
+        props.groupDepth,
+        props.chapterKey,
+        props.label,
+        props.defaultTab,
+        isCollapsedAll(),
+        chapterOpen(props.chapterKey)
+    ]);
+    const known = byOptions.get(key);
+    if (known !== undefined) {
+        return known;
+    }
+    const html = FeatureSection(props);
+    byOptions.set(key, html);
+    return html;
+};
+
+const FeatureSection = (props: FeatureSectionProps): string => {
     const groups = props.groups ?? {};
     const keys = Object.keys(groups);
     if (keys.length === 0) {
@@ -520,7 +732,6 @@ const EntitySection = (props: {
                                           deprecated: item.deprecated,
                                           isToken: item.isToken,
                                           beta: item.beta,
-                                          factoryKind: item.factoryKind,
                                           entityType: singularizeType(props.type),
                                           selector: item.selector,
                                           inputCount: item.inputsClass?.length,
@@ -538,7 +749,6 @@ const EntitySection = (props: {
                               deprecated: item.deprecated,
                               isToken: item.isToken,
                               beta: item.beta,
-                              factoryKind: item.factoryKind,
                               entityType: singularizeType(props.type),
                               selector: item.selector,
                               inputCount: item.inputsClass?.length,
@@ -551,8 +761,142 @@ const EntitySection = (props: {
     ) as string;
 };
 
+const MENU_LISTS: readonly (readonly [string, string, TableKind])[] = [
+    ['components', 'categorizedComponents', 'component'],
+    ['directives', 'categorizedDirectives', 'directive'],
+    ['injectables', 'categorizedInjectables', 'injectable'],
+    ['tokens', 'categorizedTokens', 'token'],
+    ['pipes', 'categorizedPipes', 'pipe'],
+    ['classes', 'categorizedClasses', 'class'],
+    ['interfaces', 'categorizedInterfaces', 'interface'],
+    ['guards', 'categorizedGuards', 'guard'],
+    ['interceptors', 'categorizedInterceptors', 'interceptor'],
+    ['resolvers', 'categorizedResolvers', 'resolver'],
+    ['entities', 'categorizedEntities', 'entity']
+];
+
+const MISC_LISTS: readonly (readonly [string, EntityKind])[] = [
+    ['functions', 'function'],
+    ['variables', 'variable'],
+    ['typealiases', 'typealias'],
+    ['enumerations', 'enumeration']
+];
+
+const FUNCTIONAL_KINDS: ReadonlySet<string> = new Set(['guard', 'interceptor', 'resolver']);
+
+const functionalKindOf = (item: any): string | undefined =>
+    FUNCTIONAL_KINDS.has(item?.functionalKind) ? item.functionalKind : undefined;
+
+const derivedLists = new WeakMap<object, WeakMap<object, unknown>>();
+
+/**
+ * `derive()` once per `source` inside `scope`. The menu renders on every page
+ * from the same run-wide lists; `scope` is an object rebuilt with every crawl
+ * (symbol table, DI view), so a watch rebuild starts fresh. Without a scope
+ * the value is derived on each call.
+ */
+const cached = <T,>(scope: object | undefined, source: unknown, derive: () => T): T => {
+    if (!scope || typeof source !== 'object' || source === null) {
+        return derive();
+    }
+    const inScope = derivedLists.get(scope) ?? new WeakMap<object, unknown>();
+    derivedLists.set(scope, inScope);
+    if (!inScope.has(source)) {
+        inScope.set(source, derive());
+    }
+    return inScope.get(source) as T;
+};
+
+const splitFunctional = (misc: any) => {
+    const all = [...(misc.functions ?? []), ...(misc.variables ?? [])];
+    const ofKind = (kind: string) => all.filter(item => functionalKindOf(item) === kind);
+    const notFunctional = (items: any[] | undefined) =>
+        items?.filter(item => functionalKindOf(item) === undefined);
+    return {
+        guards: ofKind('guard'),
+        interceptors: ofKind('interceptor'),
+        resolvers: ofKind('resolver'),
+        miscellaneous: {
+            ...misc,
+            functions: notFunctional(misc.functions),
+            variables: notFunctional(misc.variables)
+        }
+    };
+};
+
+/**
+ * The menu's data with functions and constants that are guards,
+ * interceptors or resolvers moved to those sections, out of Utilities.
+ */
+const withFunctionalKinds = (d: any): any => {
+    const misc = d.miscellaneous;
+    if (!misc) {
+        return d;
+    }
+    const split = cached(d.symbols, misc, () => splitFunctional(misc));
+    const merged = (list: 'guards' | 'interceptors') =>
+        cached(split, d[list] ?? split[list], () => [...(d[list] ?? []), ...split[list]]);
+    return {
+        ...d,
+        guards: merged('guards'),
+        interceptors: merged('interceptors'),
+        resolvers: split.resolvers,
+        miscellaneous: split.miscellaneous
+    };
+};
+
+/**
+ * The menu's data without the symbols that get no page in their kind's
+ * list (hidden, or documented on a provider or cluster page). Feature
+ * folders keep the moved ones; their links follow the placement.
+ */
+const withoutHidden = (d: any): any => {
+    const view: DiView | undefined = d.di;
+    if (!view || view.placement.size === 0) {
+        return d;
+    }
+    const keep = (kind: TableKind) => (item: any) => hasOwnPage(view, kind as EntityKind, item);
+    const keepOwnKind = (item: any) => !isHiddenItem(view, item.kind, item);
+    const list = (items: any[] | undefined, test: (item: any) => boolean) =>
+        items && cached(view, items, () => items.filter(test));
+    const groups = (record: Record<string, any[]> | undefined, test: (item: any) => boolean) =>
+        record &&
+        cached(view, record, () =>
+            Object.fromEntries(
+                Object.entries(record).map(([key, items]) => [key, items.filter(test)])
+            )
+        );
+    const copy: any = { ...d };
+    for (const [name, categorized, kind] of MENU_LISTS) {
+        copy[name] = list(d[name], keep(kind));
+        copy[categorized] = groups(d[categorized], keep(kind));
+    }
+    if (d.miscellaneous) {
+        copy.miscellaneous = cached(view, d.miscellaneous, () => {
+            const misc = { ...d.miscellaneous };
+            for (const [name, kind] of MISC_LISTS) {
+                misc[name] = d.miscellaneous[name]?.filter(keep(kind));
+            }
+            return misc;
+        });
+    }
+    const folders = (record: Record<string, any[]> | undefined) =>
+        record &&
+        cached(view, record, () =>
+            Object.fromEntries(
+                Object.entries(record).map(([key, items]) => [
+                    key,
+                    foldClusterMembers(items.filter(keepOwnKind), view, d.symbols)
+                ])
+            )
+        );
+    copy.categorizedByFeature = folders(d.categorizedByFeature);
+    copy.categorizedByFeaturePrimary = folders(d.categorizedByFeaturePrimary);
+    return copy;
+};
+
 export const Menu = (props: MenuProps): string => {
-    const d = props.data;
+    const d = withoutHidden(withFunctionalKinds(props.data));
 
     const components = d.components ?? [];
     const directives = d.directives ?? [];
@@ -716,12 +1060,15 @@ export const Menu = (props: MenuProps): string => {
                     tree). That keeps the sidebar scannable and matches angular.dev/api. */}
                 {(d.menuLayout ?? 'type') === 'feature' ? (
                     <>
-                        {FeatureSection({
-                            groups: d.categorizedByFeaturePrimary,
-                            groupDepth: d.groupDepth,
-                            chapterKey: 'features',
-                            label: d.featuresName || t('features')
-                        })}
+                        {CachedFeatureSection(
+                            {
+                                groups: d.categorizedByFeaturePrimary,
+                                groupDepth: d.groupDepth,
+                                chapterKey: 'features',
+                                label: d.featuresName || t('features')
+                            },
+                            d.symbols
+                        )}
                         {Object.keys(d.categorizedByFeature ?? {}).length > 0 && (
                             <li class="chapter references">
                                 <a
@@ -787,16 +1134,7 @@ export const Menu = (props: MenuProps): string => {
                                 hrefPrefix: KIND_FOLDER.injectable,
                                 groupDepth: d.groupDepth
                             })}
-                        {d.tokens?.length > 0 &&
-                            EntitySection({
-                                items: d.tokens,
-                                categorized: d.categorizedTokens,
-                                type: 'tokens',
-                                iconHtml: IconToken(),
-                                labelKey: 'tokens',
-                                hrefPrefix: KIND_FOLDER.token,
-                                groupDepth: d.groupDepth
-                            })}
+                        {DependencyInjectionChapter(d)}
                         {d.interceptors?.length > 0 &&
                             EntitySection({
                                 items: d.interceptors,
@@ -815,6 +1153,15 @@ export const Menu = (props: MenuProps): string => {
                                 iconHtml: IconGuard(),
                                 labelKey: 'guards',
                                 hrefPrefix: KIND_FOLDER.guard,
+                                groupDepth: d.groupDepth
+                            })}
+                        {d.resolvers?.length > 0 &&
+                            EntitySection({
+                                items: d.resolvers,
+                                type: 'resolvers',
+                                iconHtml: IconGuard(),
+                                labelKey: 'resolvers',
+                                hrefPrefix: KIND_FOLDER.resolver,
                                 groupDepth: d.groupDepth
                             })}
                         {d.interfaces?.length > 0 &&
@@ -840,56 +1187,8 @@ export const Menu = (props: MenuProps): string => {
                     </>
                 )}
 
-                {/* Miscellaneous — redundant in feature mode (everything moved into References) */}
-                {d.miscellaneous && (d.menuLayout ?? 'type') !== 'feature' && (
-                    <li class="chapter">
-                        <button
-                            class="simple menu-toggler"
-                            type="button"
-                            data-cdx-toggle="collapse"
-                            data-cdx-target="#miscellaneous-links"
-                            aria-expanded={chapterOpen('miscellaneous') ? 'true' : 'false'}
-                            aria-controls="miscellaneous-links"
-                        >
-                            {IconCube()}
-                            <span>{t('miscellaneous')}</span>
-                            {chevron()}
-                        </button>
-                        <ul
-                            class={`links collapse${chapterOpen('miscellaneous') ? ' in' : ''}`}
-                            id="miscellaneous-links"
-                        >
-                            {d.miscellaneous.enumerations?.length > 0 && (
-                                <li class="link">
-                                    <a href={collectionHref('enumeration')} data-type="entity-link">
-                                        {t('enums')}
-                                    </a>
-                                </li>
-                            )}
-                            {d.miscellaneous.functions?.length > 0 && (
-                                <li class="link">
-                                    <a href={collectionHref('function')} data-type="entity-link">
-                                        {t('functions')}
-                                    </a>
-                                </li>
-                            )}
-                            {d.miscellaneous.typealiases?.length > 0 && (
-                                <li class="link">
-                                    <a href={collectionHref('typealias')} data-type="entity-link">
-                                        {t('type-aliases')}
-                                    </a>
-                                </li>
-                            )}
-                            {d.miscellaneous.variables?.length > 0 && (
-                                <li class="link">
-                                    <a href={collectionHref('variable')} data-type="entity-link">
-                                        {t('variables')}
-                                    </a>
-                                </li>
-                            )}
-                        </ul>
-                    </li>
-                )}
+                {/* Utilities: functions, constants, type aliases and enums. Feature mode lists them in References. */}
+                {d.miscellaneous && (d.menuLayout ?? 'type') !== 'feature' && UtilitiesChapter(d)}
 
                 {/* Routes */}
                 {!d.disableRoutesGraph && d.routes && (

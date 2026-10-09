@@ -1,6 +1,6 @@
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
 import { pageOf } from '../helpers/pages';
-import { collectionPage } from './paths';
+import { readKindPages } from './paths';
 
 const tmp = temporaryDir();
 
@@ -115,22 +115,22 @@ describe('CLI Deprecated', () => {
         });
 
         it('it should contain enum deprecated and APIs inside', () => {
-            const file = read(`${distFolder}/${collectionPage('enumeration')}`);
+            const file = readKindPages(distFolder, 'enumeration');
             expect(file).to.contain('cdx-member-name--deprecated">Direction');
         });
 
         it('it should contain function deprecated and APIs inside', () => {
-            const file = read(`${distFolder}/${collectionPage('function')}`);
+            const file = readKindPages(distFolder, 'function');
             expect(file).to.contain('cdx-member-name--deprecated">foo2');
         });
 
         it('it should contain type deprecated and APIs inside', () => {
-            const file = read(`${distFolder}/${collectionPage('typealias')}`);
+            const file = readKindPages(distFolder, 'typealias');
             expect(file).to.contain('cdx-member-name--deprecated">LinearDomain');
         });
 
         it('it should contain variable deprecated and APIs inside', () => {
-            const file = read(`${distFolder}/${collectionPage('variable')}`);
+            const file = readKindPages(distFolder, 'variable');
             expect(file).to.contain('cdx-member-name--deprecated">PIT');
         });
 

@@ -1,4 +1,4 @@
-import type { EntityKind } from '../../app/engines/dependencies.engine';
+import type { TableKind } from '../../app/links/symbol-id';
 
 /**
  * User-facing labels for entity kinds. Surfaced on Pagefind search-result
@@ -6,7 +6,7 @@ import type { EntityKind } from '../../app/engines/dependencies.engine';
  * instead of the legacy "Docs" placeholder. Kept in lockstep with the
  * sidebar's per-kind chip colours via `cdx-badge--entity-<kind>` tokens.
  */
-export const KIND_LABELS: Record<EntityKind, string> = {
+export const KIND_LABELS: Record<TableKind, string> = {
     component: 'Component',
     directive: 'Directive',
     pipe: 'Pipe',
@@ -16,6 +16,7 @@ export const KIND_LABELS: Record<EntityKind, string> = {
     interface: 'Interface',
     guard: 'Guard',
     interceptor: 'Interceptor',
+    resolver: 'Resolver',
     entity: 'Entity',
     function: 'Function',
     variable: 'Variable',
@@ -31,7 +32,7 @@ export const KIND_LABELS: Record<EntityKind, string> = {
  * text and is also exposed via the chip's `title` attribute for
  * screen-reader users.
  */
-export const KIND_LETTER: Record<EntityKind, string> = {
+export const KIND_LETTER: Record<TableKind, string> = {
     component: 'C',
     directive: 'D',
     pipe: 'P',
@@ -41,6 +42,7 @@ export const KIND_LETTER: Record<EntityKind, string> = {
     interface: 'If',
     guard: 'G',
     interceptor: 'X',
+    resolver: 'R',
     entity: 'E',
     function: 'F',
     variable: 'V',
@@ -97,7 +99,7 @@ export function firstSentence(html: unknown): string | undefined {
  * <https://pagefind.app/docs/metadata/> for the supported syntax.
  */
 export interface PagefindMetaInput {
-    readonly kind?: EntityKind;
+    readonly kind?: TableKind | 'cluster';
     readonly category?: string;
     readonly description?: string;
 }
@@ -117,10 +119,17 @@ export interface PagefindMetaInput {
  * with the `hidden` attribute (Pagefind's static HTML scan still picks it
  * up; the browser does not render it).
  */
+/** Meta kind label of a feature type page (providers and features on one page). */
+export const CLUSTER_KIND_LABEL = 'Cluster';
+
+const metaKindLabel = (kind: PagefindMetaInput['kind']): string | undefined =>
+    kind === 'cluster' ? CLUSTER_KIND_LABEL : kind && KIND_LABELS[kind];
+
 export function pagefindMetaBlock(input: PagefindMetaInput): string {
     const parts: string[] = [];
-    if (input.kind && KIND_LABELS[input.kind]) {
-        const label = escapeAttr(KIND_LABELS[input.kind]);
+    const kindLabel = metaKindLabel(input.kind);
+    if (kindLabel) {
+        const label = escapeAttr(kindLabel);
         parts.push(`<span hidden data-pagefind-meta="kind:${label}"></span>`);
     }
     if (typeof input.category === 'string') {
@@ -159,7 +168,7 @@ function escapeText(value: string): string {
  * is emitted per dimension so each carries exactly one `dim:value` pair.
  */
 export interface PagefindFilterInput {
-    readonly kind?: EntityKind | 'Bucket' | 'Module';
+    readonly kind?: TableKind | 'Bucket' | 'Module' | 'Provider';
     readonly lib?: string;
     readonly bucket?: string;
     /** `primary` for promoted symbols, `reference` for everything else. */
@@ -167,13 +176,15 @@ export interface PagefindFilterInput {
     readonly wcag?: 'A' | 'AA' | 'AAA';
 }
 
-/** Map an EntityKind to its facet-UI label. Non-entity rows (Bucket,
+/** Map an TableKind to its facet-UI label. Non-entity rows (Bucket,
  *  Module) are passed through verbatim. */
-function kindFilterLabel(kind: EntityKind | 'Bucket' | 'Module' | undefined): string | undefined {
+function kindFilterLabel(
+    kind: TableKind | 'Bucket' | 'Module' | 'Provider' | undefined
+): string | undefined {
     if (!kind) {
         return undefined;
     }
-    if (kind === 'Bucket' || kind === 'Module') {
+    if (kind === 'Bucket' || kind === 'Module' || kind === 'Provider') {
         return kind;
     }
     return KIND_LABELS[kind];

@@ -1,13 +1,16 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import Configuration from '../../../../src/app/configuration';
+import { type DiView, emptyDiView } from '../../../../src/app/di/model';
 import {
     clearCustomTemplates,
     registerCustomTemplate,
     renderCustomTemplate
 } from '../../../../src/app/engines/custom-template.engine';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
+import { symbolId } from '../../../../src/app/links/symbol-id';
+import { buildSymbolTable, emptySymbolTable } from '../../../../src/app/links/symbol-table';
 import { Menu } from '../../../../src/templates/components/Menu';
-import { pageOf } from '../../helpers/pages';
+import { clusterPage, pageOf, rootPage } from '../../helpers/pages';
 
 beforeAll(() => {
     I18nEngine.init('en-US');
@@ -400,6 +403,107 @@ describe('Menu — feature layout', () => {
     // (Reference-kind misc walk tests removed; the surface they covered
     // now lives on the references.html portal — see the comment block
     // above and the api-reference-page-generator unit spec.)
+
+    it('drops hidden symbols and follows a rebuilt DI view over the same lists', () => {
+        const file = 'src/hidden/hidden.component.ts';
+        const components = [
+            { name: 'Shown', file: 'src/shown/shown.component.ts' },
+            { name: 'Hidden', file }
+        ];
+        const id = symbolId({ kind: 'component', file, name: 'Hidden' });
+        const hiding: DiView = {
+            ...emptyDiView(),
+            hidden: [id],
+            placement: new Map([[id, { type: 'hidden' }]])
+        };
+        const data = (di: DiView) =>
+            baseData({ components, di, symbols: emptySymbolTable() as unknown as never });
+        Configuration.mainData.toggleMenuItems = ['components'];
+
+        const first = Menu({ data: data(hiding) });
+        expect(first).to.include(`href="${pageOf('component', 'Shown')}"`);
+        expect(first).to.not.include(`href="${pageOf('component', 'Hidden')}"`);
+        expect(Menu({ data: data(hiding) })).to.equal(first);
+
+        const rebuilt = Menu({ data: data({ ...hiding, hidden: [], placement: new Map() }) });
+        expect(rebuilt).to.include(`href="${pageOf('component', 'Hidden')}"`);
+    });
+
+    it('reuses the Features chapter within a run and follows collapsedAll and a new crawl', () => {
+        const primary = {
+            toast: [
+                {
+                    kind: 'component',
+                    hrefPrefix: 'components',
+                    name: 'CngxToast',
+                    file: 'src/toast/toast.component.ts'
+                }
+            ]
+        };
+        const data = (symbols: object) =>
+            baseData({
+                menuLayout: 'feature',
+                categorizedByFeaturePrimary: primary,
+                symbols: symbols as never
+            });
+        const run = emptySymbolTable();
+
+        const open = Menu({ data: data(run) });
+        expect(open).to.include(`href="${pageOf('component', 'CngxToast')}"`);
+        expect(open).to.include('class="links collapse in" id="features-links"');
+        expect(Menu({ data: data(run) })).to.equal(open);
+
+        Configuration.mainData.collapsedAll = true;
+        expect(Menu({ data: data(run) })).to.include('class="links collapse" id="features-links"');
+        Configuration.mainData.collapsedAll = false;
+
+        primary.toast[0].name = 'CngxToaster';
+        expect(Menu({ data: data(run) })).to.equal(open);
+        expect(Menu({ data: data(emptySymbolTable()) })).to.include(
+            `href="${pageOf('component', 'CngxToaster')}"`
+        );
+    });
+
+    it('renders a Dependency Injection chapter with feature type pages, providers and tokens', () => {
+        const file = 'src/foo.ts';
+        const symbols = buildSymbolTable(
+            {
+                interfaces: [{ name: 'FooFeature', file }],
+                tokens: [{ name: 'FOO_CONFIG', file }],
+                miscellaneous: { functions: [{ name: 'provideLimit', file }] }
+            },
+            { cwd: '/' }
+        );
+        const owner = symbolId({ kind: 'interface', file, name: 'FooFeature' });
+        const plain = symbolId({ kind: 'function', file, name: 'provideLimit' });
+        const di: DiView = {
+            ...emptyDiView(),
+            clusters: [{ owner, providers: [], features: [], tokens: [] }],
+            plainProviders: [plain],
+            placement: new Map([
+                [owner, { type: 'cluster-owner' }],
+                [plain, { type: 'provider' }]
+            ])
+        };
+        Configuration.mainData.toggleMenuItems = ['dependency-injection'];
+        const html = Menu({
+            data: baseData({
+                tokens: [{ name: 'FOO_CONFIG', file }],
+                interfaces: [{ name: 'FooFeature', file }],
+                di,
+                symbols: symbols as never
+            })
+        });
+        expect(html).to.include('id="dependency-injection-links"');
+        expect(html).to.include('class="links collapse in" id="dependency-injection-links"');
+        expect(html).to.include(`href="${rootPage('dependency-injection')}"`);
+        expect(html).to.include(`href="${clusterPage('FooFeature')}"`);
+        expect(html).to.include(`href="${pageOf('provider', 'provideLimit')}"`);
+        expect(html).to.include(`href="${pageOf('token', 'FOO_CONFIG')}"`);
+        expect(html).to.not.include('id="tokens-links"');
+        // The feature type has no interface page of its own.
+        expect(html).to.not.include(`href="${pageOf('interface', 'FooFeature')}"`);
+    });
 
     it('honours the menu custom-template override regardless of layout', () => {
         registerCustomTemplate(

@@ -17,7 +17,8 @@ const EMPTY: SourceCounts = {
     pipes: 0,
     classes: 0,
     interfaces: 0,
-    miscellaneous: 0,
+    utilities: 0,
+    resolvers: 0,
     routes: false
 };
 
@@ -32,7 +33,8 @@ const EVERY_KIND: SourceCounts = {
     pipes: 1,
     classes: 1,
     interfaces: 1,
-    miscellaneous: 1,
+    utilities: 1,
+    resolvers: 1,
     routes: true
 };
 
@@ -42,14 +44,17 @@ const ALL_KEYS = [
     'entity',
     'injectable',
     'token',
+    'diCluster',
+    'dependencyInjection',
     'interceptor',
     'guard',
+    'resolver',
     'routes',
     'pipe',
     'class',
     'interface',
     'appConfig',
-    'miscellaneous',
+    'utilities',
     'bucketLanding',
     'apiReference',
     'documentationCoverage',
@@ -95,14 +100,55 @@ describe('prepare stage table', () => {
         ]);
     });
 
-    it('selects all 21 stages in table order for a full run with every kind', () => {
-        const ctx = context('full', { unitTestCoverage: 'coverage.json', includes: 'docs' });
+    it('selects all 24 stages in table order for a full run with every kind', () => {
+        const ctx = context('full', {
+            unitTestCoverage: 'coverage.json',
+            includes: 'docs',
+            di: { clusters: [{}], plainProviders: [], tokens: [] }
+        });
         expect(keys(ctx, EVERY_KIND)).toEqual(ALL_KEYS);
         expect(PREPARE_STAGES.map(stage => stage.key)).toEqual(ALL_KEYS);
     });
 
+    it('selects the dependency injection pages only when the view has clusters or providers', () => {
+        const withView = (clusters: number, plainProviders: number) =>
+            keys(
+                context('full', {
+                    di: {
+                        clusters: Array.from({ length: clusters }, () => ({})),
+                        plainProviders: Array.from({ length: plainProviders }, () => 'p'),
+                        tokens: []
+                    }
+                }),
+                EVERY_KIND
+            );
+        expect(keys(context('full'), EVERY_KIND)).not.toContain('diCluster');
+        expect(withView(0, 0)).not.toContain('diCluster');
+        expect(withView(1, 0)).toContain('diCluster');
+        expect(withView(0, 1)).toContain('diCluster');
+    });
+
+    it('selects the dependency injection landing page when the view has anything to list', () => {
+        const withView = (view: Record<string, unknown[]>) =>
+            keys(
+                context('full', {
+                    di: { clusters: [], plainProviders: [], tokens: [], ...view }
+                }),
+                EVERY_KIND
+            );
+        expect(keys(context('full'), EVERY_KIND)).not.toContain('dependencyInjection');
+        expect(withView({})).not.toContain('dependencyInjection');
+        expect(withView({ tokens: ['t'] })).toContain('dependencyInjection');
+        expect(withView({ tokens: ['t'] })).not.toContain('diCluster');
+        expect(withView({ clusters: [{}] })).toContain('dependencyInjection');
+    });
+
     it('never selects unit test coverage or external includes in diff mode', () => {
-        const ctx = context('diff', { unitTestCoverage: 'coverage.json', includes: 'docs' });
+        const ctx = context('diff', {
+            unitTestCoverage: 'coverage.json',
+            includes: 'docs',
+            di: { clusters: [{}], plainProviders: [], tokens: [] }
+        });
         const selected = keys(ctx, EVERY_KIND);
         expect(selected).not.toContain('unitTestCoverage');
         expect(selected).not.toContain('externalIncludes');

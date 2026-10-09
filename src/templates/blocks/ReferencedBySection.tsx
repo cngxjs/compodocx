@@ -3,27 +3,27 @@ import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { pageFile, relativePrefix } from '../../app/links/layout';
 import { t } from '../helpers';
 
-/** Entry rendered as a chip in the Referenced by list. */
+/** Entry rendered as a chip in the Used by list. */
 export interface ReferencedByEntry {
     readonly name: string;
     readonly kind: string;
     readonly hrefPrefix: string;
+    /** File name of the page when it is not `name` (a cluster page). */
+    readonly pageName?: string;
+    /** Section on the page (a member of a cluster page). */
+    readonly anchor?: string;
+}
+
+/** The `<a>` href of a backlink; depth is supplied by the page. */
+export function referencedByHref(entry: ReferencedByEntry, depth: number): string {
+    const page = pageFile(entry.hrefPrefix, entry.pageName ?? entry.name);
+    return `${relativePrefix(Math.max(depth, 0), 'bare')}${page}${entry.anchor ? `#${entry.anchor}` : ''}`;
 }
 
 /**
- * Builds the `<a>` href for a reference-page → primary-entity backlink.
- * Reference pages live at depth 1 (`interfaces/Foo.html`) or depth 2 for
- * `@category`-tagged miscellaneous detail pages
- * (`miscellaneous/functions/foo.html`); depth is supplied by the page.
- */
-function referencedByHref(entry: ReferencedByEntry, depth: number): string {
-    return `${relativePrefix(Math.max(depth, 0), 'bare')}${pageFile(entry.hrefPrefix, entry.name)}`;
-}
-
-/**
- * Renders the "Referenced by" chip-list section on a Reference-kind page.
- * Returns an empty string when `entries` is missing or empty — callers can
- * inline the call without an extra guard.
+ * Renders the "Used by" chip list: the documented symbols that use this one,
+ * from the semantic analysis. Returns an empty string when `entries` is
+ * missing or empty, so callers can inline the call without a guard.
  *
  * Overridable as `referenced-by` via `--templates`.
  */
@@ -41,25 +41,49 @@ export const ReferencedBySection = (props: {
         return custom;
     }
 
-    return (
-        <section class="cdx-content-section cdx-referenced-by" data-compodoc="referenced-by">
-            <h3 class="cdx-section-heading" id="referenced-by">
-                {t('referenced-by')}
-                <a class="cdx-member-permalink" href="#referenced-by">
-                    #
-                </a>
-            </h3>
-            <div class="cdx-chip-list">
-                {entries.map(entry => (
-                    <a
-                        class={`cdx-chip cdx-chip--${entry.kind}`}
-                        href={referencedByHref(entry, props.depth)}
-                        data-cdx-kind={entry.kind}
-                    >
-                        {entry.name}
-                    </a>
-                ))}
-            </div>
-        </section>
-    ) as string;
+    return SymbolChips({
+        entries,
+        depth: props.depth,
+        id: 'used-by',
+        title: t('used-by'),
+        className: 'cdx-referenced-by',
+        block: 'referenced-by'
+    });
 };
+
+/** A headed chip list of links to symbol pages (Used by, Provided by, Injected by). */
+export const SymbolChips = (props: {
+    readonly entries: readonly ReferencedByEntry[];
+    readonly depth: number;
+    readonly id: string;
+    readonly title: string;
+    readonly className?: string;
+    /** `data-compodoc` name of the section. */
+    readonly block?: string;
+}): string =>
+    props.entries.length === 0
+        ? ''
+        : ((
+              <section
+                  class={`cdx-content-section${props.className ? ` ${props.className}` : ''}`}
+                  data-compodoc={props.block}
+              >
+                  <h3 class="cdx-section-heading" id={props.id}>
+                      {props.title}
+                      <a class="cdx-member-permalink" href={`#${props.id}`}>
+                          #
+                      </a>
+                  </h3>
+                  <div class="cdx-chip-list">
+                      {props.entries.map(entry => (
+                          <a
+                              class={`cdx-chip cdx-chip--${entry.kind}`}
+                              href={referencedByHref(entry, props.depth)}
+                              data-cdx-kind={entry.kind}
+                          >
+                              {entry.name}
+                          </a>
+                      ))}
+                  </div>
+              </section>
+          ) as string);

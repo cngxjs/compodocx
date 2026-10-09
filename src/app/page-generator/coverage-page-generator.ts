@@ -1,6 +1,8 @@
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
+import { isHiddenItem } from '../di/model';
+import type { EntityKind } from '../engines/dependencies.engine';
 import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
 import type { CoverageData } from '../interfaces/coverageData.interface';
@@ -22,20 +24,25 @@ export class CoveragePageGenerator {
         logger.info('Process documentation coverage report');
 
         return new Promise((resolve, _reject) => {
+            const view = Configuration.mainData.di;
+            const visible = <T>(kind: EntityKind, items: readonly T[] | undefined): T[] =>
+                (items ?? []).filter(item => !isHiddenItem(view, kind, item as never));
+            const { mainData } = Configuration;
+            // Symbols that reach no entry point are not documented, so they are not counted.
             const report = computeDocumentationCoverage({
-                components: Configuration.mainData.components,
-                directives: Configuration.mainData.directives,
-                entities: Configuration.mainData.entities,
-                classes: Configuration.mainData.classes,
-                injectables: Configuration.mainData.injectables,
-                interfaces: Configuration.mainData.interfaces,
-                guards: Configuration.mainData.guards,
-                interceptors: Configuration.mainData.interceptors,
-                pipes: Configuration.mainData.pipes,
+                components: visible('component', mainData.components),
+                directives: visible('directive', mainData.directives),
+                entities: visible('entity', mainData.entities),
+                classes: visible('class', mainData.classes),
+                injectables: visible('injectable', mainData.injectables),
+                interfaces: visible('interface', mainData.interfaces),
+                guards: visible('guard', mainData.guards),
+                interceptors: visible('interceptor', mainData.interceptors),
+                pipes: visible('pipe', mainData.pipes),
                 miscellaneous: {
-                    functions: Configuration.mainData.miscellaneous.functions,
-                    variables: Configuration.mainData.miscellaneous.variables,
-                    typealiases: Configuration.mainData.miscellaneous.typealiases
+                    functions: visible('function', mainData.miscellaneous.functions),
+                    variables: visible('variable', mainData.miscellaneous.variables),
+                    typealiases: visible('typealias', mainData.miscellaneous.typealiases)
                 }
             });
 

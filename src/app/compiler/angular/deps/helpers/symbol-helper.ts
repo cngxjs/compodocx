@@ -3,6 +3,7 @@
 import { SyntaxKind, ts } from 'ts-morph';
 import ImportsUtil from '../../../../../utils/imports.util';
 import { TsPrinterUtil } from '../../../../../utils/ts-printer.util';
+import { type ProviderCall, providerCallOf } from '../../../angular-dependencies/provider-detector';
 
 enum AngularProviderConfigProperties {
     Useclass = 'useClass',
@@ -46,6 +47,12 @@ export type ProviderEntry = {
     readonly deps?: string[];
     readonly useExisting?: string;
     readonly multi?: boolean;
+    /**
+     * Set when the entry is a call (`provideFoo(withBar())`) or a spread of
+     * one: the callee and the callee names of the arguments that are calls.
+     * `name` keeps the printed source.
+     */
+    readonly call?: ProviderCall;
 };
 
 export class SymbolHelper {
@@ -411,7 +418,8 @@ export class SymbolHelper {
         if (!text || typeof text !== 'string') {
             return undefined;
         }
-        return { name: text, kind: 'class', type: this.getType(text) };
+        const call = providerCallOf(element);
+        return { name: text, kind: 'class', type: this.getType(text), ...(call && { call }) };
     }
 
     /**

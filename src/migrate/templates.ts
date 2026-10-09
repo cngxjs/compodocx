@@ -8,6 +8,7 @@
  */
 
 import * as path from 'node:path';
+import { currentOverrideName } from './override-names';
 import { summarize } from './report';
 import { convertTemplate } from './template';
 import type { ConvertResult, RunSummary } from './types';
@@ -44,8 +45,8 @@ export interface ConvertDirectoryOptions {
 
 const targetPathFor = (file: string, opts: ConvertDirectoryOptions): string => {
     const rel = path.relative(opts.inputRoot, file);
-    const out = rel.replace(/\.hbs$/, '.js');
-    return path.resolve(opts.outputRoot, out);
+    const name = currentOverrideName(path.basename(rel).replace(/\.hbs$/, ''));
+    return path.resolve(opts.outputRoot, path.dirname(rel), `${name}.js`);
 };
 
 export const convertDirectory = (opts: ConvertDirectoryOptions): RunSummary => {

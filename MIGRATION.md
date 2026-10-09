@@ -47,6 +47,53 @@ The rest of this document only matters if:
 - Your CSS or downstream tooling targets compodoc's emitted class names.
 - You scraped or post-processed the generated HTML.
 
+## Breaking change in 0.9.0: dependency injection and utilities pages
+
+The Miscellaneous chapter and the `miscellaneous/` output folder are gone. Functions, constants, type aliases and enumerations each get a page of their own, providers and feature functions move to a Dependency Injection chapter.
+
+New URLs (no redirects are written; in multi-version output the version switcher falls back to the version root for a page that moved):
+
+| Before | Now |
+|-|-|
+| `miscellaneous/functions.html#name`, `miscellaneous/functions/<name>.html` | `functions/<name>.html` |
+| `miscellaneous/variables.html#name`, `miscellaneous/variables/<name>.html` | `variables/<name>.html` |
+| `miscellaneous/typealiases.html#name`, `miscellaneous/typealiases/<name>.html` | `typealiases/<name>.html` |
+| `miscellaneous/enumerations.html#name`, `miscellaneous/enumerations/<name>.html` | `enumerations/<name>.html` |
+| page of a provider or feature function with a feature type | section `#<FeatureType>--<name>` on `providers/<FeatureType>.html` |
+| page of a provider without a feature type | `providers/<name>.html` |
+| `interfaces/<FeatureType>.html`, `typealiases/<FeatureType>.html` | `providers/<FeatureType>.html` (its first section is the type definition) |
+| a `ResolveFn` constant | `resolvers/<name>.html` |
+| a guard or interceptor declared as a function | `guards/<name>.html`, `interceptors/<name>.html` |
+
+Landing pages: `utilities.html` and `dependency-injection.html`. Under `menuLayout: 'feature'` both are linked from the header of `references.html`, and a bucket lists a feature type page once instead of each of its members.
+
+Symbols that reach no entry point (`notExported` in the JSON export) get no page, no menu entry and no row in the documentation coverage report, so coverage is measured over the documented surface. Once the project has entry points this works like `--publicApiOnly` by default; the flag stays and still applies its own filter. The build log lists those symbols with file and line.
+
+Anchors of members whose name starts with `#` (ES private fields) lose the `#`: `#clicked` is now `id="clicked"`. Other member anchors are unchanged.
+
+Configuration:
+
+- `toggleMenuItems` accepts `utilities` and `dependency-injection`. `miscellaneous` and `tokens` are accepted, have no effect and log a warning.
+- The name-based Provider / Feature badges (`provideX`, `withX`, `injectX`, `createX`) are gone. Badges now come from the analysis: Provider, Feature and Injection context.
+
+Template overrides:
+
+| Removed | Use instead |
+|-|-|
+| `miscellaneous-functions`, `miscellaneous-variables`, `miscellaneous-typealiases`, `miscellaneous-enumerations` | `utilities` |
+| `miscellaneous-function`, `miscellaneous-variable`, `miscellaneous-typealias`, `miscellaneous-enumeration` | `function`, `variable`, `typealias`, `enumeration` |
+
+New page contexts: `utilities`, `dependency-injection`, `di-cluster` (the page of a feature type) and `resolver`. `compodocx migrate` maps the removed names to the new ones. The `referenced-by` block now renders the "Used by" list; its props are unchanged.
+
+JSON export (schema stays 3):
+
+- `referencedBy` is removed from every entry. Use `usedBy`, which comes from the project analysis.
+- Token entries can carry `factory`, the source of the `factory` option.
+- `providers` / `viewProviders` entries written as a call carry `call: { callee, args }`; `name` and `type` are unchanged.
+- Function guards and resolvers stay under `miscellaneous` (`functionalKind`), although the HTML shows them as guards and resolvers.
+
+The llm-md export gains a "Public tokens" section and leaves out symbols that reach no entry point.
+
 ## Breaking change in 0.9.0: programmatic entry point
 
 The package no longer exports the `Application` and `CliApplication` classes. The programmatic entry point is now `runCompodocx`:
@@ -332,9 +379,9 @@ Stable contract for `--templates`. Data shapes documented inline in the correspo
 
 ### Page-level
 
-`overview`, `markdown`, `component`, `component-detail`, `controller`, `entity`, `directive`, `injectable`, `interceptor`, `guard`, `pipe`, `class`, `interface`, `routes`, `miscellaneous-functions`, `miscellaneous-variables`, `miscellaneous-typealiases`, `miscellaneous-enumerations`, `miscellaneous-function`, `miscellaneous-variable`, `miscellaneous-typealias`, `miscellaneous-enumeration`, `additional-page`, `package-dependencies`, `package-properties`, `coverage-report`, `unit-test-report`, `menu`, `app-config`, `bucket-landing`
+`overview`, `markdown`, `component`, `component-detail`, `controller`, `entity`, `directive`, `injectable`, `interceptor`, `guard`, `pipe`, `class`, `interface`, `resolver`, `token`, `routes`, `utilities`, `function`, `variable`, `typealias`, `enumeration`, `dependency-injection`, `di-cluster`, `additional-page`, `package-dependencies`, `package-properties`, `coverage-report`, `unit-test-report`, `menu`, `app-config`, `bucket-landing`
 
-The four singular miscellaneous contexts (`miscellaneous-function`, `miscellaneous-variable`, `miscellaneous-typealias`, `miscellaneous-enumeration`) target the per-entity detail page generated when a function, variable, type alias, or enumeration carries an `@category` JSDoc tag. The plural contexts continue to drive the shared collection page.
+`function`, `variable`, `typealias` and `enumeration` target the page every such symbol gets (`functions/<name>.html` and so on); the page object carries the symbol under the same key (`data.function`, ...). `resolver` targets `resolvers/<name>.html` (`data.resolver`). `utilities` and `dependency-injection` target the two landing pages. `di-cluster` targets the page of a feature type, `providers/<FeatureType>.html`: `data.cluster = { featureType, providers, features, tokens }`, each list holding the same entity objects the symbol pages get. A provider without a feature type has no override of its own.
 
 The `bucket-landing` context (v0.6.0+) targets the auto-generated `categories/<bucket-id>.html` pages emitted under `menuLayout: 'feature'`. Data: `data.bucketLanding = { bucket: string, segments: string[], depth: number, items: EntityWithKind[] }`. Both leaf and intermediate folder nodes get pages; intermediate buckets aggregate items from every descendant leaf.
 
@@ -342,11 +389,12 @@ The `bucket-landing` context (v0.6.0+) targets the auto-generated `categories/<b
 
 `block-theming`, `block-theming-token`, `block-method`, `block-property`, `block-input`, `block-output`, `block-accessors`, `block-host-listener`, `block-host-listeners`, `block-host-bindings`, `block-derived-state`, `block-constructor`, `block-enum`, `block-typealias`, `block-index`, `block-index-signatures`, `block-playground`, `playground-content`, `referenced-by`, `version-switcher`
 
-The `referenced-by` block (v0.6.0+) renders the chip-list of primary-kind entities that mention a reference-kind symbol's name in their public surface. Data: `{ entries: ReferencedByEntry[], depth: number }`; `ReferencedByEntry = { name, kind, hrefPrefix }`.
+The `referenced-by` block (v0.6.0+) renders the "Used by" chip list: the declarations that use the symbol, from the project analysis. Data: `{ entries: ReferencedByEntry[], depth: number }`; `ReferencedByEntry = { name, kind, hrefPrefix }`.
 
 ### Removed / not overridable
 
 - `modules`, `module` - removed in v0.9.0 together with the module pages.
+- `miscellaneous-functions`, `miscellaneous-variables`, `miscellaneous-typealiases`, `miscellaneous-enumerations`, `miscellaneous-function`, `miscellaneous-variable`, `miscellaneous-typealias`, `miscellaneous-enumeration` - renamed in v0.9.0, see the table in "Breaking change in 0.9.0: dependency injection and utilities pages".
 - `search-results`, `search-input` - Pagefind replaces Lunr and ships its own UI shell. No override hook.
 - `breadcrumbs` - replaced by inline rendering in the entity hero. Override the page-level template if you need to change breadcrumb markup.
 - `block-relationships`, `index`, `index-misc`, `link-type` - not overridable. `link-type` was a Handlebars helper, available now as `helpers.linkTypeHtml(typeName)` inside any JS override.

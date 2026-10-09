@@ -1,7 +1,9 @@
 import Html from '@kitajs/html';
-import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import Configuration from '../../app/configuration';
+import { hrefFor, hrefText } from '../../app/links/layout';
 import { ParamsTable } from '../blocks/ParamsTable';
 import { ReferencedBySection } from '../blocks/ReferencedBySection';
+import { DiBadges } from '../components/DiBadges';
 import { IconEnum, IconFile, IconFunction, IconTypealias, IconVariable } from '../components/Icons';
 import { WcagBadge } from '../components/WcagBadge';
 import {
@@ -17,6 +19,9 @@ import {
     resolveBucketSegments,
     t
 } from '../helpers';
+import { symbolFacts } from '../helpers/symbol-facts';
+import { usedByEntries } from '../helpers/used-by';
+import { utilityGroupAnchor } from './UtilitiesPage';
 
 export type MiscDetailKind = 'function' | 'variable' | 'typealias' | 'enumeration';
 
@@ -26,7 +31,6 @@ interface MiscDetailMeta {
     readonly badge: string;
     readonly label: string;
     readonly breadcrumb: string;
-    readonly contextKey: string;
 }
 
 const META: Record<MiscDetailKind, MiscDetailMeta> = {
@@ -35,32 +39,28 @@ const META: Record<MiscDetailKind, MiscDetailMeta> = {
         icon: IconFunction,
         badge: 'cdx-badge--entity-function',
         label: 'Function',
-        breadcrumb: 'functions',
-        contextKey: 'miscellaneous-function'
+        breadcrumb: 'functions'
     },
     variable: {
         color: 'var(--color-cdx-entity-service)',
         icon: IconVariable,
         badge: 'cdx-badge--entity-variable',
         label: 'Variable',
-        breadcrumb: 'variables',
-        contextKey: 'miscellaneous-variable'
+        breadcrumb: 'variables'
     },
     typealias: {
         color: 'var(--color-cdx-entity-typealias)',
         icon: IconTypealias,
         badge: 'cdx-badge--entity-typealias',
         label: 'Type Alias',
-        breadcrumb: 'type-aliases',
-        contextKey: 'miscellaneous-typealias'
+        breadcrumb: 'type-aliases'
     },
     enumeration: {
         color: 'var(--color-cdx-entity-enum)',
         icon: IconEnum,
         badge: 'cdx-badge--entity-enum',
         label: 'Enumeration',
-        breadcrumb: 'enumerations',
-        contextKey: 'miscellaneous-enumeration'
+        breadcrumb: 'enumerations'
     }
 };
 
@@ -68,6 +68,10 @@ export interface MiscDetailProps {
     readonly kind: MiscDetailKind;
     readonly item: any;
     readonly depth?: number;
+    /** A line under the name, e.g. "Functional guard". */
+    readonly contextLine?: string;
+    /** The landing page the breadcrumb leads to; the Utilities group by default. */
+    readonly parent?: { readonly page: string; readonly label: string };
 }
 
 interface SectionProps {
@@ -102,7 +106,7 @@ const Section = (props: SectionProps): string => {
  * `extractJsdocCodeExamples` would re-wrap and html-entity-escape the already-
  * rendered HTML (the function's `parseCodeFences` `if (!hasCodeFences)` branch
  * treats the entire HTML blob as a single language-html block). */
-const collectExampleComments = (item: any): string[] => {
+export const collectExampleComments = (item: any): string[] => {
     const tags = item.jsdoctags ?? [];
     const out: string[] = [];
     for (const tag of tags) {
@@ -119,9 +123,9 @@ const collectExampleComments = (item: any): string[] => {
 
 //  Info-tab content (description + prose)
 
-const InfoContent = (item: any, depth: number): string => {
+const InfoContent = (item: any, depth: number, kind: MiscDetailKind): string => {
     const backlinks = ReferencedBySection({
-        entries: item.referencedBy,
+        entries: usedByEntries(Configuration.mainData, kind, item),
         depth
     });
     if (!item.description) {
@@ -252,7 +256,7 @@ const EnumerationApi = (item: any): string => {
 };
 
 const ApiContent = (props: MiscDetailProps): string => {
-    const depth = props.depth ?? 2;
+    const depth = props.depth ?? 1;
     switch (props.kind) {
         case 'function':
             return FunctionApi(props.item, depth);
@@ -287,17 +291,17 @@ const ExamplesContent = (item: any): string => {
 
 //  Tab orchestration
 
-interface MiscTab {
+export interface MiscTab {
     readonly id: 'info' | 'api' | 'example';
     readonly label: string;
     readonly content: string;
 }
 
 const buildTabs = (props: MiscDetailProps): MiscTab[] => {
-    const depth = props.depth ?? 2;
+    const depth = props.depth ?? 1;
     const tabs: MiscTab[] = [];
 
-    const info = InfoContent(props.item, depth);
+    const info = InfoContent(props.item, depth, props.kind);
     tabs.push({
         id: 'info',
         label: 'Info',
@@ -324,7 +328,7 @@ const EmptyInfoFallback = (): string =>
         </p>
     ) as string;
 
-const TabBar = (tabs: MiscTab[]): string =>
+export const TabBar = (tabs: MiscTab[]): string =>
     (
         <ul class="cdx-tab-bar">
             {tabs.map((tab, i) => (
@@ -348,7 +352,7 @@ const TabBar = (tabs: MiscTab[]): string =>
 
 /** Panels MUST be wrapped in a single parent element — `hash-router.ts`
  * `activatePanel()` finds the tab bar via `panel.parentElement.previousElementSibling`. */
-const TabPanels = (tabs: MiscTab[]): string =>
+export const TabPanels = (tabs: MiscTab[]): string =>
     (
         <div>
             {tabs.map((tab, i) => (
@@ -366,11 +370,11 @@ const TabPanels = (tabs: MiscTab[]): string =>
 
 //  Page entry
 
+/** Link to the Utilities landing page, optionally to one group. */
+const utilitiesHref = (depth: number, anchor?: string): string =>
+    hrefText(hrefFor({ type: 'root', page: 'utilities' }, depth, anchor));
+
 export const renderMiscDetailPage = (props: MiscDetailProps): string => {
-    const custom = renderCustomTemplate(META[props.kind].contextKey, props);
-    if (custom !== null) {
-        return custom;
-    }
     const meta = META[props.kind];
     const item = props.item;
     const tabs = buildTabs(props);
@@ -398,12 +402,43 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                     <ol class="cdx-breadcrumb">
                         {(() => {
                             const segments = resolveBucketSegments(item);
-                            return segments
-                                ? segments.map(seg => <li>{seg}</li>)
-                                : [
-                                      (<li>{t('miscellaneous')}</li>) as string,
-                                      (<li>{t(meta.breadcrumb)}</li>) as string
-                                  ].join('');
+                            if (segments) {
+                                return segments.map(seg => <li>{seg}</li>);
+                            }
+                            if (props.parent) {
+                                const href = hrefText(
+                                    hrefFor(
+                                        { type: 'root', page: props.parent.page },
+                                        props.depth ?? 1
+                                    )
+                                );
+                                return (
+                                    <li>
+                                        <a href={href}>{props.parent.label}</a>
+                                    </li>
+                                );
+                            }
+                            return [
+                                (
+                                    <li>
+                                        <a href={utilitiesHref(props.depth ?? 1)}>
+                                            {t('utilities')}
+                                        </a>
+                                    </li>
+                                ) as string,
+                                (
+                                    <li>
+                                        <a
+                                            href={utilitiesHref(
+                                                props.depth ?? 1,
+                                                utilityGroupAnchor(props.kind)
+                                            )}
+                                        >
+                                            {t(meta.breadcrumb)}
+                                        </a>
+                                    </li>
+                                ) as string
+                            ].join('');
                         })()}
                         <li aria-current="page">{item.name}</li>
                     </ol>
@@ -423,8 +458,11 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                     )}
                     {item.beta && <span class="cdx-badge cdx-badge--beta">Beta</span>}
                     {item.since && <span class="cdx-badge cdx-badge--since">v{item.since}</span>}
+                    {item.signal && <span class="cdx-badge cdx-badge--signal">Signal</span>}
+                    {DiBadges({ facts: symbolFacts(Configuration.mainData, props.kind, item) })}
                     {WcagBadge({ wcagLevel: item.wcagLevel })}
                 </div>
+                {props.contextLine && <p class="cdx-entity-hero-context">{props.contextLine}</p>}
                 {item.deprecated && item.deprecationMessage && (
                     <p class="cdx-entity-hero-context">{item.deprecationMessage}</p>
                 )}
@@ -467,4 +505,26 @@ export const MiscEnumerationPage = (data: any): string =>
         kind: 'enumeration',
         item: data.enumeration,
         depth: data.depth
+    });
+
+/** Whether an engine object is a function or constant (not a class-like entity). */
+export const isMiscShaped = (item: unknown): boolean =>
+    (item as { ctype?: unknown } | undefined)?.ctype === 'miscellaneous';
+
+/** The page of a function or constant that is a guard, interceptor or resolver. */
+export const renderFunctionalPage = (item: any, depth: number | undefined): string =>
+    renderMiscDetailPage({
+        kind: item.subtype === 'variable' ? 'variable' : 'function',
+        item,
+        depth,
+        contextLine: `Functional ${item.functionalKind}`
+    });
+
+/** The page of a provider without a feature type (`providers/<name>.html`). */
+export const renderProviderPage = (item: any, depth: number | undefined): string =>
+    renderMiscDetailPage({
+        kind: item.subtype === 'variable' ? 'variable' : 'function',
+        item,
+        depth,
+        parent: { page: 'dependency-injection', label: t('dependency-injection') }
     });

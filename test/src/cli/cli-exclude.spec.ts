@@ -1,6 +1,6 @@
 import { exists, hasStderrError, shell, temporaryDir } from '../helpers';
 import { pageOf } from '../helpers/pages';
-import { collectionPage } from './paths';
+import { hasKindPages } from './paths';
 
 const tmp = temporaryDir();
 
@@ -32,7 +32,7 @@ describe('CLI exclude from tsconfig', () => {
             expect(isFileExists).to.be.false;
             isFileExists = exists(`${distFolder}/${pageOf('component', 'FooComponent')}`);
             expect(isFileExists).to.be.true;
-            isFileExists = exists(`${distFolder}/${collectionPage('variable')}`);
+            isFileExists = hasKindPages(distFolder, 'variable');
             expect(isFileExists).to.be.false;
         });
     });

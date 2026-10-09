@@ -515,26 +515,6 @@ a.cdx-chip:hover {
     gap: var(--spacing-cdx-lg) var(--spacing-cdx-xl);
 }
 
-/* Misc collection-page index (functions / variables / typealiases / enumerations):
-   a single flat alphabetical list — no per-group split — so a column-flow
-   layout fits the page better than the API-tab 3-grid.
-   `column-width: 220px` lets the browser fit as many columns as the container
-   has room for (1 on narrow viewports, 4+ on wide). `break-inside: avoid` on
-   the entry keeps each `<a>` row intact when it sits near a column boundary. */
-.cdx-index--misc {
-    display: block;
-}
-.cdx-index--misc .cdx-index-entries {
-    display: block;
-    column-width: 220px;
-    column-gap: var(--spacing-cdx-xl);
-}
-.cdx-index--misc .cdx-index-entry {
-    display: flex;
-    break-inside: avoid;
-    width: 100%;
-}
-
 .cdx-index-group {
     min-width: 0;
 }
@@ -821,53 +801,6 @@ a.cdx-chip:hover {
 
 .cdx-provider-strategy {
     color: var(--color-cdx-text-muted);
-}
-
-/* Tagged-detail jump links on miscellaneous collection pages */
-.cdx-tagged-detail-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    list-style: none;
-    padding: 0;
-    margin: 0 0 var(--spacing-cdx-md) 0;
-}
-
-.cdx-tagged-detail-links li {
-    margin: 0;
-}
-
-.cdx-tagged-detail-links a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0.625rem;
-    border: 1px solid var(--color-cdx-border);
-    border-radius: var(--radius-cdx-md);
-    background: var(--color-cdx-bg-alt);
-    color: var(--color-cdx-text);
-    font-size: 0.8125rem;
-    text-decoration: none;
-    transition: var(--cdx-transition-fast);
-}
-
-.cdx-tagged-detail-links a:hover {
-    border-color: var(--color-cdx-primary);
-    background: var(--color-cdx-bg);
-    color: var(--color-cdx-primary);
-}
-
-.cdx-tagged-detail-links code {
-    background: transparent;
-    padding: 0;
-    border: none;
-    color: inherit;
-    font-weight: 600;
-}
-
-.cdx-tagged-detail-links__hint {
-    color: var(--color-cdx-text-muted);
-    font-size: 0.75rem;
 }
 
 /* Relationships: see src/styles/components/relationships.css */

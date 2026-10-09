@@ -1,4 +1,5 @@
 import type { SemanticModel } from '../compiler/semantic/model';
+import type { DiView } from '../di/model';
 import type { FileRefBundle, VendorPackage } from '../engines/stackblitz';
 import type { SymbolTable } from '../links/symbol-table';
 import type { CoverageData } from './coverageData.interface';
@@ -265,4 +266,6 @@ export interface MainDataInterface {
     semantic?: SemanticModel;
     /** Every documented symbol by id; absent before the first crawl. */
     symbols?: SymbolTable;
+    /** Placement of providers, feature functions and tokens; absent before the first crawl. */
+    di?: DiView;
 }

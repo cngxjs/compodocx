@@ -1,6 +1,7 @@
 import type { Result } from '../../lib';
 import type { SemanticState } from '../compiler/semantic';
 import type Configuration from '../configuration';
+import type { DiView } from '../di';
 import type { SymbolTable } from '../links';
 import {
     AdditionalPageGenerator,
@@ -10,6 +11,7 @@ import {
     ClassPageGenerator,
     ComponentPageGenerator,
     CoveragePageGenerator,
+    DiPageGenerator,
     DirectivePageGenerator,
     EntityPageGenerator,
     GuardPageGenerator,
@@ -25,6 +27,7 @@ import {
     PlaygroundFileResolver,
     PlaygroundValidator,
     PlaygroundVendorResolver,
+    ResolverPageGenerator,
     RoutesPageGenerator,
     TokenPageGenerator
 } from '../page-generator';
@@ -48,12 +51,14 @@ export interface Generators {
     readonly token: TokenPageGenerator;
     readonly interceptor: InterceptorPageGenerator;
     readonly guard: GuardPageGenerator;
+    readonly resolver: ResolverPageGenerator;
+    readonly diPages: DiPageGenerator;
     readonly routes: RoutesPageGenerator;
     readonly pipe: PipePageGenerator;
     readonly class: ClassPageGenerator;
     readonly interface: InterfacePageGenerator;
     readonly appConfig: AppConfigPageGenerator;
-    readonly miscellaneous: MiscellaneousPageGenerator;
+    readonly utilities: MiscellaneousPageGenerator;
     readonly bucketLanding: BucketLandingPageGenerator;
     readonly apiReference: ApiReferencePageGenerator;
     readonly coverage: CoveragePageGenerator;
@@ -76,12 +81,14 @@ export const createGenerators = (): Generators => {
         token: new TokenPageGenerator(navTabs),
         interceptor: new InterceptorPageGenerator(navTabs),
         guard: new GuardPageGenerator(navTabs),
+        resolver: new ResolverPageGenerator(),
+        diPages: new DiPageGenerator(),
         routes: new RoutesPageGenerator(),
         pipe: new PipePageGenerator(navTabs),
         class: new ClassPageGenerator(navTabs),
         interface: new InterfacePageGenerator(navTabs),
         appConfig: new AppConfigPageGenerator(),
-        miscellaneous: new MiscellaneousPageGenerator(),
+        utilities: new MiscellaneousPageGenerator(),
         bucketLanding: new BucketLandingPageGenerator(),
         apiReference: new ApiReferencePageGenerator(),
         coverage: new CoveragePageGenerator(),
@@ -115,6 +122,8 @@ export interface RunContext {
     readonly semantic?: SemanticState;
     /** Every documented symbol by id. Built by the crawl phases. */
     readonly symbols?: SymbolTable;
+    /** Where providers, feature functions and tokens are documented. Built with the table. */
+    readonly di?: DiView;
     /**
      * Watch rebuilds only: called once the output phase has started writing
      * HTML, so the watcher can reset its changed-file buffer.

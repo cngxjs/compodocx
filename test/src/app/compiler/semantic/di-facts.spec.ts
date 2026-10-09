@@ -27,6 +27,7 @@ let model: SemanticModel;
 const facts = (file: string, name: string): SymbolFacts | undefined =>
     model.facts.get(`${REL}/${file}#${name}`);
 const key = (file: string, name: string) => ({ name, file: `${REL}/${file}` });
+const typeKey = (file: string, name: string) => ({ ...key(file, name), space: 'type' });
 
 const firstFunction = (source: string): ts.FunctionDeclaration => {
     const sourceFile = ts.createSourceFile('/x.ts', source, ts.ScriptTarget.Latest, true);
@@ -71,13 +72,13 @@ describe('dependency injection facts', () => {
     it('marks a feature function by return type name identity, not by shape', () => {
         expect(facts(PROVIDERS, 'withMode')?.di?.role).toBe('feature');
         expect(facts(PROVIDERS, 'withExtras')?.di?.featureType).toEqual(
-            key(PROVIDERS, 'FooFeature')
+            typeKey(PROVIDERS, 'FooFeature')
         );
         expect(facts(PROVIDERS, 'withFooLike')?.di?.role).toBeUndefined();
     });
 
     it('gives providers sharing a feature type the same cluster owner', () => {
-        const owner = key(PROVIDERS, 'FooFeature');
+        const owner = typeKey(PROVIDERS, 'FooFeature');
         expect(facts(PROVIDERS, 'provideFoo')?.di?.featureType).toEqual(owner);
         expect(facts(PROVIDERS, 'provideFooAt')?.di?.featureType).toEqual(owner);
         expect(facts(PROVIDERS, 'provideFooFeatures')?.di?.featureType).toEqual(owner);
@@ -185,6 +186,23 @@ describe('dependency injection facts', () => {
             key(INJECT, 'injectFoo'),
             key(INJECT, 'injectViaMethod')
         ]);
+    });
+});
+
+describe('declaration spaces', () => {
+    const FOO = 'core/src/foo/foo.ts';
+    const typeFacts = (file: string, name: string): SymbolFacts | undefined =>
+        model.facts.get(`type:${REL}/${file}#${name}`);
+
+    it('keeps the facts of a const and a type of one name apart', () => {
+        expect(facts(FOO, 'FooMode')?.key).toEqual(key(FOO, 'FooMode'));
+        expect(typeFacts(FOO, 'FooMode')?.key).toEqual({ ...key(FOO, 'FooMode'), space: 'type' });
+    });
+
+    it('points a used-by edge at the space the user names', () => {
+        const users = (f: SymbolFacts | undefined) => f?.usedBy.map(k => k.name) ?? [];
+        expect(users(facts(FOO, 'FooMode'))).toEqual(['FooMode', 'fooModeOf']);
+        expect(users(typeFacts(FOO, 'FooMode'))).toEqual(['describeFooMode', 'fooModeOf']);
     });
 });
 

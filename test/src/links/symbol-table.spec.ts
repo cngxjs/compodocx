@@ -10,7 +10,7 @@ import {
     type SymbolTable
 } from '../../../src/app/links/symbol-table';
 import { buildEntityIndex } from '../../../src/utils/entity-index.util';
-import { miscAnchor, pageOf } from '../helpers/pages';
+import { pageOf } from '../helpers/pages';
 
 const item = (name: string, file: string, extra: Record<string, unknown> = {}) => ({
     name,
@@ -141,7 +141,7 @@ describe('symbol table', () => {
 
     it('entity-index reproduces buildEntityIndex: last write wins, misc last', () => {
         const index = buildEntityIndex(data as unknown as Record<string, unknown>);
-        expect(index.Foo.href).toBe(miscAnchor('typealias', 'Foo'));
+        expect(index.Foo.href).toBe(pageOf('typealias', 'Foo'));
         expect(lookupName(table, 'Foo', 'entity-index')).toBe('typealias:src/foo.type.ts#Foo');
         expect(index.SettingsService.href).toBe(
             pageOf('injectable', 'SettingsService', { duplicate: 'SettingsService-2' })
@@ -152,18 +152,6 @@ describe('symbol table', () => {
         ).toBe('SettingsService-2');
     });
 
-    it('referenced-by reproduces the reverse index: last registered target wins', () => {
-        (data.components[0] as Record<string, unknown>).inputsClass = [
-            { name: 'size', type: 'DEFAULT_PAGE_SIZE' }
-        ];
-        (DependenciesEngine as any).prepareReferencedByIndex();
-        const legacy = data.miscellaneous.variables[0] as Record<string, unknown>;
-        expect(legacy.referencedBy).toBeDefined();
-        expect(pick(table, lookupName(table, 'DEFAULT_PAGE_SIZE', 'referenced-by'))).toBe(
-            identity(legacy)
-        );
-    });
-
     it('diff narrows by kind and takes the last copy', () => {
         expect(lookupName(table, 'Foo', 'diff', 'class')).toBe('class:src/foo.class.ts#Foo');
         expect(lookupName(table, 'SettingsService', 'diff', 'injectable')).toBe(
@@ -172,16 +160,73 @@ describe('symbol table', () => {
         expect(lookupName(table, 'Foo', 'diff', 'component')).toBeUndefined();
     });
 
-    it('carries duplicate names, tagged misc symbols and overload counts', () => {
+    it('carries duplicate names and overload counts', () => {
         const second = table.byId.get(
             'injectable:src/b/settings.service.ts#SettingsService' as never
         );
         expect(second?.duplicateName).toBe('SettingsService-1');
         const provide = table.byId.get('function:src/user.ts#provideUser' as never);
-        expect(provide?.tagged).toBe(true);
         expect(provide?.overloads).toBe(1);
         expect(table.byName.get('provideUser')).toHaveLength(2);
-        expect(table.byId.get('function:src/foo.fn.ts#foo' as never)?.tagged).toBe(false);
+    });
+
+    it('numbers same-name misc symbols and tokens in the table, not on the engine objects', () => {
+        const data = {
+            tokens: [item('LIMIT', 'src/a.ts'), item('LIMIT', 'src/b.ts')],
+            miscellaneous: {
+                functions: [
+                    item('pick', 'src/a.ts'),
+                    item('pick', 'src/b.ts'),
+                    item('pick', 'src/c.ts')
+                ],
+                variables: [item('mode', 'src/a.ts')]
+            }
+        };
+        const numbered = buildSymbolTable(data, { cwd: '/repo' });
+        const dup = (id: string) => numbered.byId.get(id as never)?.duplicateName;
+        expect(dup('function:src/a.ts#pick')).toBeUndefined();
+        expect(dup('function:src/b.ts#pick')).toBe('pick-1');
+        expect(dup('function:src/c.ts#pick')).toBe('pick-2');
+        expect(dup('token:src/b.ts#LIMIT')).toBe('LIMIT-1');
+        for (const entry of [...data.tokens, ...data.miscellaneous.functions]) {
+            expect(entry).not.toHaveProperty('isDuplicate');
+            expect(entry).not.toHaveProperty('duplicateName');
+        }
+    });
+
+    it('documents a function or constant that is a guard, interceptor or resolver as one', () => {
+        const functional = buildSymbolTable(
+            {
+                guards: [item('authGuard', 'src/auth.ts')],
+                miscellaneous: {
+                    functions: [
+                        item('roleGuard', 'src/role.ts', { functionalKind: 'guard' }),
+                        item('format', 'src/format.ts')
+                    ],
+                    variables: [item('userResolver', 'src/user.ts', { functionalKind: 'resolver' })]
+                }
+            },
+            { cwd: '/repo' }
+        );
+        expect(functional.byId.has('guard:src/role.ts#roleGuard' as never)).toBe(true);
+        expect(functional.byId.has('function:src/role.ts#roleGuard' as never)).toBe(false);
+        expect(functional.byId.has('resolver:src/user.ts#userResolver' as never)).toBe(true);
+        expect(lookupName(functional, 'userResolver', 'doc-link')).toBe(
+            'resolver:src/user.ts#userResolver'
+        );
+        expect(functional.byId.has('function:src/format.ts#format' as never)).toBe(true);
+    });
+
+    it('gives overloads of one function one page, no suffix', () => {
+        const provide = table.byId.get('function:src/user.ts#provideUser' as never);
+        expect(provide?.duplicateName).toBeUndefined();
+        expect(lookupEntry(table, 'provideUser', 'doc-link')?.duplicateName).toBeUndefined();
+    });
+
+    it('keeps the engine duplicate name for the kinds the engine numbers', () => {
+        expect(lookupEntry(table, 'SettingsService', 'diff', 'injectable')?.duplicateName).toBe(
+            'SettingsService-2'
+        );
     });
 
     it('sets the entry point from semantic facts and leaves it undefined without them', () => {
@@ -210,9 +255,10 @@ describe('symbol table', () => {
 
     it('keeps the data of the overload each policy picks', () => {
         const index = buildEntityIndex(data as unknown as Record<string, unknown>);
-        expect(index.fill.href).toBe(miscAnchor('function', 'fill'));
-        expect(lookupEntry(table, 'fill', 'entity-index')?.tagged).toBe(false);
-        expect(lookupEntry(table, 'fill', 'doc-link')?.tagged).toBe(true);
+        expect(index.fill.href).toBe(pageOf('function', 'fill'));
+        expect(lookupEntry(table, 'fill', 'entity-index')?.data).not.toBe(
+            lookupEntry(table, 'fill', 'doc-link')?.data
+        );
         expect(lookupEntry(table, 'fill', 'type-link')?.data).toBe(
             DependenciesEngine.find('fill')?.data
         );

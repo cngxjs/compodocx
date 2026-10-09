@@ -11,7 +11,7 @@
 
 import * as path from 'node:path';
 import { convertBody, wrapModule } from './emit';
-import { isWiredOverride } from './override-names';
+import { currentOverrideName, isWiredOverride } from './override-names';
 import { scoreOf } from './report';
 import type { ConvertResult, HardLimitReason, Warning } from './types';
 
@@ -53,7 +53,19 @@ const detectHardLimit = (source: string, overrideName: string): HardLimitReason 
 const cleanOutput = (text: string): string => text.replaceAll('\r\n', '\n').replace(/^﻿/, '');
 
 export const convertTemplate = (input: ConvertFileInput): ConvertResult => {
-    const overrideName = input.overrideName ?? overrideNameFromPath(input.file);
+    const requestedName = input.overrideName ?? overrideNameFromPath(input.file);
+    const overrideName = currentOverrideName(requestedName);
+    const renameWarnings: Warning[] =
+        overrideName === requestedName
+            ? []
+            : [
+                  {
+                      file: input.file,
+                      line: 1,
+                      kind: 'lossy-rename',
+                      message: `"${requestedName}" was renamed to "${overrideName}"; the output is written under the new name. Check the props it reads (see MIGRATION.md).`
+                  }
+              ];
     const hardLimit = detectHardLimit(input.source, overrideName);
 
     if (hardLimit) {
@@ -79,8 +91,8 @@ export const convertTemplate = (input: ConvertFileInput): ConvertResult => {
     return {
         file: input.file,
         output: cleanOutput(wrapped),
-        score: scoreOf(warnings),
-        warnings: [...warnings],
+        score: scoreOf([...renameWarnings, ...warnings]),
+        warnings: [...renameWarnings, ...warnings],
         overrideName
     };
 };

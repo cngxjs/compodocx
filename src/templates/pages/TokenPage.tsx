@@ -1,7 +1,9 @@
 import Html from '@kitajs/html';
+import type { SymbolKey } from '../../app/compiler/semantic/model';
+import Configuration from '../../app/configuration';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { ExternalLinks } from '../blocks/ExternalLinks';
-import { ReferencedBySection } from '../blocks/ReferencedBySection';
+import { ReferencedBySection, SymbolChips } from '../blocks/ReferencedBySection';
 import { RelatedSection } from '../blocks/RelatedSection';
 import { IconToken } from '../components/Icons';
 import { PrimaryBadge } from '../components/PrimaryBadge';
@@ -16,14 +18,17 @@ import {
     resolveBucketSegments,
     t
 } from '../helpers';
+import { symbolFacts } from '../helpers/symbol-facts';
+import { factKeyEntries, usedByEntries } from '../helpers/used-by';
 
 /**
  * Dedicated detail page for InjectionToken / HttpContextToken
- * declarations. Tokens are DI keys — semantically distinct from
- * `@Injectable()` service classes — so they ship a leaner page than
- * `EntityPage`: no methods, no inputs/outputs, no API tab. Just hero
- * + type signature + providedIn + description + reverse-index
- * backlinks. Lives at `tokens/<name>.html`.
+ * declarations. Tokens are DI keys, semantically distinct from
+ * `@Injectable()` service classes, so they ship a leaner page than
+ * `EntityPage`: no methods, no inputs/outputs, no API tab. Hero, then
+ * description, type with its shape, default (`factory`), providedIn, the
+ * symbols that provide and inject the token, Used by and Related. Lives at
+ * `tokens/<name>.html`.
  *
  * The page consumes the same `cdx-content-section` / `cdx-section-heading`
  * pattern as entity Info tabs and misc detail pages, so the
@@ -140,6 +145,10 @@ const Hero = (item: any, _depth: number): string => {
     ) as string;
 };
 
+/** Chip entries for the symbols behind fact keys, or none without the semantic stage. */
+const factEntries = (keys: readonly SymbolKey[] | undefined) =>
+    factKeyEntries(Configuration.mainData, keys ?? []);
+
 export const TokenPage = (data: any): string => {
     const custom = renderCustomTemplate('token', data);
     if (custom !== null) {
@@ -152,11 +161,11 @@ export const TokenPage = (data: any): string => {
     const depth = data.depth ?? 1;
     const tokenType = (item.tokenType as string | undefined)?.trim();
     const providedIn = (item.providedIn as string | undefined)?.trim();
+    const factory = (item.factory as string | undefined)?.trim();
+    const facts = symbolFacts(Configuration.mainData, 'token', item)?.token;
     return (
         <>
             {Hero(item, depth)}
-
-            {ReferencedBySection({ entries: item.referencedBy, depth })}
 
             {item.description
                 ? Section({
@@ -165,20 +174,34 @@ export const TokenPage = (data: any): string => {
                   })
                 : ''}
 
-            {RelatedSection({
-                entityName: item.name,
-                relatedTo: item.relatedTo,
-                depth
-            })}
-
             {tokenType
                 ? Section({
                       title: t('type'),
+                      children: [
+                          facts
+                              ? ((
+                                    <span class="cdx-badge cdx-badge--outline">
+                                        {t(`token-shape-${facts.shape}`)}
+                                    </span>
+                                ) as string)
+                              : '',
+                          (
+                              <pre class="cdx-derived-body">
+                                  <code>
+                                      {Html.escapeHtml(tokenSignature(item, tokenType)) as string}
+                                  </code>
+                              </pre>
+                          ) as string
+                      ]
+                  })
+                : ''}
+
+            {factory
+                ? Section({
+                      title: t('default-value'),
                       children: (
                           <pre class="cdx-derived-body">
-                              <code>
-                                  {Html.escapeHtml(tokenSignature(item, tokenType)) as string}
-                              </code>
+                              <code>{Html.escapeHtml(factory) as string}</code>
                           </pre>
                       ) as string
                   })
@@ -190,6 +213,31 @@ export const TokenPage = (data: any): string => {
                       children: codeWrap(formatProvidedIn(providedIn))
                   })
                 : ''}
+
+            {SymbolChips({
+                entries: factEntries(facts?.providedBy),
+                depth,
+                id: 'provided-by',
+                title: t('provided-by')
+            })}
+
+            {SymbolChips({
+                entries: factEntries(facts?.injectedBy),
+                depth,
+                id: 'injected-by',
+                title: t('injected-by')
+            })}
+
+            {ReferencedBySection({
+                entries: usedByEntries(Configuration.mainData, 'token', item),
+                depth
+            })}
+
+            {RelatedSection({
+                entityName: item.name,
+                relatedTo: item.relatedTo,
+                depth
+            })}
         </>
     ) as string;
 };

@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import { memberAnchor } from '../../app/links/layout';
 import {
     highlightedCodeWrap,
     isTabEnabled,
@@ -62,13 +63,13 @@ export const BlockDerivedState = (props: BlockDerivedStateProps): string => {
                 const hasDeps = deps.length > 0;
 
                 return (
-                    <div class={cls.join(' ')} id={p.name}>
+                    <div class={cls.join(' ')} id={memberAnchor(p.name)}>
                         <div class="cdx-io-member-title">
                             <span
                                 class={`cdx-io-member-name${p.deprecated ? ' cdx-member-name--deprecated' : ''}`}
                             >
                                 {p.name}
-                                <a class="cdx-member-permalink" href={`#${p.name}`}>
+                                <a class="cdx-member-permalink" href={`#${memberAnchor(p.name)}`}>
                                     #
                                 </a>
                             </span>

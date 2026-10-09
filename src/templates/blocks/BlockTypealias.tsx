@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import { memberAnchor } from '../../app/links/layout';
 import { codeWrap, functionSignature, linkTypeHtml, parseDescription, t } from '../helpers';
 
 type TypealiasItem = {
@@ -36,13 +37,13 @@ export const BlockTypealias = (props: BlockTypealiasProps): string => {
                         ? codeWrap(functionSignature(ta))
                         : codeWrap(linkTypeHtml(ta.rawtype ?? ''));
                 return (
-                    <div class={cls.join(' ')} id={ta.name}>
+                    <div class={cls.join(' ')} id={memberAnchor(ta.name)}>
                         <div class="cdx-io-member-title">
                             <span
                                 class={`cdx-io-member-name${ta.deprecated ? ' cdx-member-name--deprecated' : ''}`}
                             >
                                 {ta.name}
-                                <a class="cdx-member-permalink" href={`#${ta.name}`}>
+                                <a class="cdx-member-permalink" href={`#${memberAnchor(ta.name)}`}>
                                     #
                                 </a>
                             </span>

@@ -21,29 +21,29 @@ export const PAGE_LEVEL_OVERRIDES: readonly string[] = [
     'class',
     'component',
     'coverage-report',
+    'dependency-injection',
+    'di-cluster',
     'directive',
     'entity',
+    'enumeration',
+    'function',
     'guard',
     'injectable',
     'interceptor',
     'interface',
     'markdown',
     'menu',
-    'miscellaneous-enumeration',
-    'miscellaneous-enumerations',
-    'miscellaneous-function',
-    'miscellaneous-functions',
-    'miscellaneous-typealias',
-    'miscellaneous-typealiases',
-    'miscellaneous-variable',
-    'miscellaneous-variables',
     'overview',
     'package-dependencies',
     'package-properties',
     'pipe',
+    'resolver',
     'routes',
     'token',
-    'unit-test-report'
+    'typealias',
+    'unit-test-report',
+    'utilities',
+    'variable'
 ];
 
 export const BLOCK_LEVEL_OVERRIDES: readonly string[] = [
@@ -73,5 +73,20 @@ export const BLOCK_LEVEL_OVERRIDES: readonly string[] = [
 const ALL = new Set<string>([...PAGE_LEVEL_OVERRIDES, ...BLOCK_LEVEL_OVERRIDES]);
 
 export const isWiredOverride = (name: string): boolean => ALL.has(name);
+
+/** Override names that were renamed; the converter writes the new name. */
+export const RENAMED_OVERRIDES: Readonly<Record<string, string>> = {
+    'miscellaneous-functions': 'utilities',
+    'miscellaneous-variables': 'utilities',
+    'miscellaneous-typealiases': 'utilities',
+    'miscellaneous-enumerations': 'utilities',
+    'miscellaneous-function': 'function',
+    'miscellaneous-variable': 'variable',
+    'miscellaneous-typealias': 'typealias',
+    'miscellaneous-enumeration': 'enumeration'
+};
+
+/** The current name of an override, following a rename. */
+export const currentOverrideName = (name: string): string => RENAMED_OVERRIDES[name] ?? name;
 
 export const allWiredOverrides = (): readonly string[] => Array.from(ALL).sort();

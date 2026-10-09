@@ -153,16 +153,16 @@ export const initCoverage = () => {
         });
     }
 
-    // --- Miscellaneous index filter ---
+    // --- Utilities filter ---
     initMiscFilter();
 };
 
-/* ---- Miscellaneous index filter ---- */
+/* ---- Utilities filter ---- */
 
 let miscFilterTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const applyMiscFilter = (query: string) => {
-    const entries = document.querySelectorAll<HTMLElement>('.cdx-index-entry[data-cdx-misc-name]');
+    const entries = document.querySelectorAll<HTMLElement>('[data-cdx-misc-name]');
     const noResults = document.querySelector<HTMLElement>('[data-cdx-misc-no-results]');
     const clearBtn = document.querySelector<HTMLElement>('[data-cdx-misc-filter-clear]');
     const q = query.toLowerCase().trim();

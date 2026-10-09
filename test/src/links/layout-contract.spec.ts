@@ -3,6 +3,7 @@ import {
     hrefFor,
     hrefText,
     kindOfPath,
+    memberAnchor,
     type PageTarget,
     pageLocation,
     relativePrefix
@@ -26,13 +27,26 @@ describe('page layout contract', () => {
         ['guard', 'guards'],
         ['interceptor', 'interceptors'],
         ['entity', 'entities'],
-        ['token', 'tokens']
+        ['token', 'tokens'],
+        ['resolver', 'resolvers'],
+        ['provider', 'providers']
     ])('puts a %s page in %s/ at depth 1', (kind, folder) => {
         expect(pageLocation(symbol(kind, 'Foo'))).toEqual({
             path: folder,
             filename: 'Foo',
             depth: 1
         });
+    });
+
+    it('puts a cluster page in providers/ under its feature type name', () => {
+        expect(pageLocation({ type: 'cluster', name: 'FooFeature' })).toEqual({
+            path: 'providers',
+            filename: 'FooFeature',
+            depth: 1
+        });
+        expect(
+            hrefText(hrefFor({ type: 'cluster', name: 'FooFeature' }, 1, 'FooFeature--withMode'))
+        ).toBe('../providers/FooFeature.html#FooFeature--withMode');
     });
 
     it('names a same-name copy after its duplicate name', () => {
@@ -48,24 +62,16 @@ describe('page layout contract', () => {
         ['variable', 'variables'],
         ['typealias', 'typealiases'],
         ['enumeration', 'enumerations']
-    ])('links an untagged %s to the %s collection anchor', (kind, collection) => {
-        const href = hrefFor(symbol(kind, 'item'), 1);
-        expect(hrefText(href)).toBe(`../miscellaneous/${collection}.html#item`);
-        expect(pageLocation({ type: 'misc-collection', kind } as PageTarget)).toEqual({
-            path: 'miscellaneous',
-            filename: collection,
+    ])('puts every %s on its own page in %s/ at depth 1', (kind, folder) => {
+        expect(pageLocation(symbol(kind, 'item'))).toEqual({
+            path: folder,
+            filename: 'item',
             depth: 1
         });
-    });
-
-    it('puts a tagged misc detail page in its collection folder at depth 2', () => {
-        const target = symbol('function', 'provideUser', { detail: true });
-        expect(pageLocation(target)).toEqual({
-            path: 'miscellaneous/functions',
-            filename: 'provideUser',
-            depth: 2
-        });
-        expect(hrefText(hrefFor(target, 2))).toBe('../../miscellaneous/functions/provideUser.html');
+        expect(hrefText(hrefFor(symbol(kind, 'item'), 1))).toBe(`../${folder}/item.html`);
+        expect(pageLocation(symbol(kind, 'item', { duplicateName: 'item-1' })).filename).toBe(
+            'item-1'
+        );
     });
 
     it('puts root pages at the output root', () => {
@@ -131,9 +137,7 @@ describe('page layout contract', () => {
         expect(hrefText(hrefFor(symbol('component', 'Foo'), 0), 'bare')).toBe(
             'components/Foo.html'
         );
-        expect(hrefText(hrefFor(symbol('variable', 'X'), 0), 'bare')).toBe(
-            'miscellaneous/variables.html#X'
-        );
+        expect(hrefText(hrefFor(symbol('variable', 'X'), 0), 'bare')).toBe('variables/X.html');
     });
 
     it('maps a path back to the kind of its folder', () => {
@@ -141,5 +145,18 @@ describe('page layout contract', () => {
         expect(kindOfPath('../classes/Foo.html')).toBe('class');
         expect(kindOfPath('./entities/Foo.html')).toBe('entity');
         expect(kindOfPath('miscellaneous/functions.html')).toBeUndefined();
+    });
+
+    it('builds member anchors that are valid ids', () => {
+        expect(memberAnchor('label')).toBe('label');
+        expect(memberAnchor('$implicit')).toBe('$implicit');
+        expect(memberAnchor('items$')).toBe('items$');
+        expect(memberAnchor('#clicked')).toBe('clicked');
+        expect(memberAnchor('Unnamed function')).toBe('Unnamed-function');
+        expect(memberAnchor('provideFoo', 'FooFeature')).toBe('FooFeature--provideFoo');
+        expect(memberAnchor('style.cursor')).toBe('style.cursor');
+        expect(memberAnchor('window:resize')).toBe('window:resize');
+        expect(memberAnchor('a b<c>', 'Owner')).toBe('Owner--a-b-c-');
+        expect(memberAnchor(undefined)).toBeUndefined();
     });
 });

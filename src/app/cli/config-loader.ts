@@ -15,6 +15,9 @@ import type { MainDataInterface } from '../interfaces/main-data.interface';
 
 const COSMICONFIG_MODULE_NAME = 'compodoc';
 
+/** Menu keys of chapters that no longer exist; they warn and are dropped. */
+const REMOVED_MENU_ITEMS: readonly string[] = ['modules', 'miscellaneous', 'tokens'];
+
 export interface LoadConfigOptions {
     readonly explicitConfigPath?: string;
     readonly cwd: string;
@@ -201,9 +204,11 @@ export function applyConfigToMainData(
     ) {
         mainData.toggleMenuItems = programOptions.toggleMenuItems;
     }
-    if (mainData.toggleMenuItems.includes('modules')) {
-        logger.warn('toggleMenuItems: "modules" has no effect');
-        mainData.toggleMenuItems = mainData.toggleMenuItems.filter(item => item !== 'modules');
+    for (const removed of REMOVED_MENU_ITEMS) {
+        if (mainData.toggleMenuItems.includes(removed)) {
+            logger.warn(`toggleMenuItems: "${removed}" has no effect`);
+            mainData.toggleMenuItems = mainData.toggleMenuItems.filter(item => item !== removed);
+        }
     }
 
     if (configFile.templates) {

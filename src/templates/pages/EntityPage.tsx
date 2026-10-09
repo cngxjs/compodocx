@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
+import type { EntityKind } from '../../app/engines/dependencies.engine';
 import type {
     ConsumerPackageJson,
     DepGraphResolver,
@@ -60,6 +61,7 @@ import {
     t
 } from '../helpers';
 import type { ComponentPlaygroundBlock } from '../helpers/jsdoc';
+import { usedByEntries } from '../helpers/used-by';
 
 /** Map entity key to CSS color variable, badge class, and watermark icon */
 const entityMeta: Record<
@@ -217,7 +219,7 @@ const hasInfoContent = (e: any, props: EntityInfoProps): boolean =>
         e.relatedTo?.length ||
         props.relationships?.incoming?.length ||
         props.relationships?.outgoing?.length ||
-        (props.entityKey === 'interface' && e.referencedBy?.length)
+        usedByEntries(Configuration.mainData, props.entityKey as EntityKind, e).length > 0
     );
 
 /** Render extends/implements as metadata card rows for entities without decorator metadata */
@@ -291,13 +293,11 @@ const InfoContent = (props: EntityInfoProps): string => {
 
     return (
         <>
-            {/* Referenced-by backlinks (References-only — gated to interfaces in EntityPage,
-                  rendered unconditionally on MiscDetailPage which is reference-kind by design) */}
-            {props.entityKey === 'interface' &&
-                ReferencedBySection({
-                    entries: e.referencedBy,
-                    depth: props.depth ?? 0
-                })}
+            {/* Used-by backlinks from the semantic analysis */}
+            {ReferencedBySection({
+                entries: usedByEntries(Configuration.mainData, props.entityKey as EntityKind, e),
+                depth: props.depth ?? 0
+            })}
 
             {/* Import statement */}
             {isInfoSection('import') && ImportStatement({ name: e.name, file: e.file })}

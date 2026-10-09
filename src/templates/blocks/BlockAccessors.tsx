@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import { memberAnchor } from '../../app/links/layout';
 import {
     functionSignature,
     hasJsdocParams,
@@ -42,13 +43,13 @@ export const BlockAccessors = (props: BlockAccessorsProps): string => {
                 }
 
                 return (
-                    <div class={cls.join(' ')} id={key}>
+                    <div class={cls.join(' ')} id={memberAnchor(key)}>
                         <div class="cdx-io-member-title">
                             <span
                                 class={`cdx-io-member-name${isDeprecated ? ' cdx-member-name--deprecated' : ''}`}
                             >
                                 {key}
-                                <a class="cdx-member-permalink" href={`#${key}`}>
+                                <a class="cdx-member-permalink" href={`#${memberAnchor(key)}`}>
                                     #
                                 </a>
                             </span>

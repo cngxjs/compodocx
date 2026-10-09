@@ -1,13 +1,40 @@
 import { ts } from 'ts-morph';
 
-import { type Declaration, resolveAlias } from './declarations';
-import { compareKeys, factKey, type SymbolKey } from './model';
+import {
+    type Declaration,
+    declarationIn,
+    declarationsBySymbol,
+    resolveAlias
+} from './declarations';
+import { compareKeys, type DeclarationSpace, factKey, type SymbolKey } from './model';
 
 const isSpecifier = (node: ts.Node): boolean =>
     ts.isImportSpecifier(node) ||
     ts.isExportSpecifier(node) ||
     ts.isImportClause(node) ||
     ts.isNamespaceImport(node);
+
+/**
+ * Whether an identifier names a type (type reference, heritage clause of an
+ * interface or an `implements` clause) or a value (everything else, `typeof X`
+ * included). Picks the declaration of a const and a type of one name.
+ */
+const spaceOfUse = (identifier: ts.Identifier): DeclarationSpace => {
+    let node: ts.Node = identifier;
+    while (ts.isQualifiedName(node.parent) && node.parent.right === node) {
+        node = node.parent;
+    }
+    const parent = node.parent;
+    if (ts.isTypeReferenceNode(parent)) {
+        return 'type';
+    }
+    if (ts.isExpressionWithTypeArguments(parent) && ts.isHeritageClause(parent.parent)) {
+        const clause = parent.parent;
+        const isInterface = ts.isInterfaceDeclaration(clause.parent);
+        return isInterface || clause.token === ts.SyntaxKind.ImplementsKeyword ? 'type' : 'value';
+    }
+    return 'value';
+};
 
 /**
  * "Used by" edges between the top-level declarations of one run: a
@@ -19,12 +46,7 @@ export const usedByEdges = (
     declarations: readonly Declaration[],
     checker: ts.TypeChecker
 ): ReadonlyMap<string, readonly SymbolKey[]> => {
-    const bySymbol = new Map<ts.Symbol, Declaration>();
-    for (const declaration of declarations) {
-        if (declaration.symbol && !bySymbol.has(declaration.symbol)) {
-            bySymbol.set(declaration.symbol, declaration);
-        }
-    }
+    const bySymbol = declarationsBySymbol(declarations);
     const symbolOf = (identifier: ts.Identifier): ts.Symbol | undefined => {
         const parent = identifier.parent;
         const symbol =
@@ -57,7 +79,7 @@ export const usedByEdges = (
             }
             if (ts.isIdentifier(node)) {
                 const symbol = symbolOf(node);
-                const target = symbol && bySymbol.get(symbol);
+                const target = symbol && declarationIn(bySymbol.get(symbol), spaceOfUse(node));
                 const targetKey = target && factKey(target.key);
                 if (target && targetKey !== userKey) {
                     const users = edges.get(targetKey as string) ?? new Map<string, SymbolKey>();

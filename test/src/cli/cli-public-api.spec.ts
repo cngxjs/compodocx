@@ -1,8 +1,8 @@
 import path from 'node:path';
 import fs from 'fs-extra';
 
-import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { collectionPage } from './paths';
+import { exists, hasStderrError, shell, temporaryDir } from '../helpers';
+import { hasKindPages, readKindPages } from './paths';
 
 const tmp = temporaryDir();
 
@@ -101,16 +101,14 @@ describe('CLI public-api-only option', () => {
             expect(isCoverageExists).to.be.true;
         });
 
-        it('should document getDefaultApiRoot from core utils', () => {
-            const functionsFile = read(`${distFolder}/${collectionPage('function')}`);
-            expect(functionsFile).to.contain('libs/my-lib/core/src/utils');
-            expect(functionsFile).to.contain('getDefaultApiRoot');
+        it('gives getDefaultApiRoot no page: no entry point reaches it', () => {
+            expect(readKindPages(distFolder, 'function')).not.to.contain('getDefaultApiRoot');
         });
 
-        it('should document getDefaultApiRoot from data utils', () => {
-            const functionsFile = read(`${distFolder}/${collectionPage('function')}`);
-            expect(functionsFile).to.contain('libs/my-lib/data/src/utils');
-            expect(functionsFile).to.contain('getDefaultApiRoot');
+        it('lists both getDefaultApiRoot copies in the build log', () => {
+            expect(stdoutString).to.contain('reach no entry point and are not documented:');
+            expect(stdoutString).to.match(/libs\/my-lib\/core\/src\/utils[^\n]*getDefaultApiRoot/);
+            expect(stdoutString).to.match(/libs\/my-lib\/data\/src\/utils[^\n]*getDefaultApiRoot/);
         });
     });
 
@@ -161,11 +159,11 @@ describe('CLI public-api-only option', () => {
         it('should NOT document getDefaultApiRoot when using public API filter', () => {
             // When --publicApiOnly is set, the miscellaneous/functions.html file may not exist
             // because getDefaultApiRoot is the only function and it's not exported from public API
-            const functionsFileExists = exists(`${distFolder}/${collectionPage('function')}`);
+            const functionsFileExists = hasKindPages(distFolder, 'function');
 
             if (functionsFileExists) {
                 // If the file exists, it should not contain getDefaultApiRoot
-                const functionsFile = read(`${distFolder}/${collectionPage('function')}`);
+                const functionsFile = readKindPages(distFolder, 'function');
                 expect(functionsFile).to.not.contain('getDefaultApiRoot');
             } else {
                 // If the file doesn't exist, that's also correct (no public functions to document)
@@ -176,11 +174,11 @@ describe('CLI public-api-only option', () => {
         it('should NOT document variables not in public API', () => {
             // When --publicApiOnly is set, variables like API_ROOT and DATA_CONFIG should not be documented
             // because they are not exported in the *.api.md or index.d.ts files
-            const variablesFileExists = exists(`${distFolder}/${collectionPage('variable')}`);
+            const variablesFileExists = hasKindPages(distFolder, 'variable');
 
             if (variablesFileExists) {
                 // If the file exists, it should not contain the non-exported variables
-                const variablesFile = read(`${distFolder}/${collectionPage('variable')}`);
+                const variablesFile = readKindPages(distFolder, 'variable');
                 expect(variablesFile).to.not.contain('API_ROOT');
                 expect(variablesFile).to.not.contain('DATA_CONFIG');
             } else {

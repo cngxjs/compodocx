@@ -5,6 +5,7 @@ import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
+import { entryInFile } from '../links/symbol-table';
 import type { NavTabsResolver } from './nav-tabs';
 
 /**
@@ -30,10 +31,18 @@ export class TokenPageGenerator {
                     const readme = MarkdownEngine.readNeighbourReadmeFile(token.file);
                     token.readme = markedAcl(readme);
                 }
-                const location = pageLocation({ type: 'symbol', kind: 'token', name: token.name });
+                const table = Configuration.mainData.symbols;
+                const entry = table && entryInFile(table, 'token', token.name, token.file);
+                const location = pageLocation({
+                    type: 'symbol',
+                    kind: 'token',
+                    name: token.name,
+                    duplicateName: entry?.duplicateName
+                });
                 const page: any = {
                     path: location.path,
-                    name: token.name,
+                    name: location.filename,
+                    filename: location.filename,
                     id: token.id,
                     navTabs: this.navTabs.resolve(token),
                     context: 'token',
@@ -41,9 +50,6 @@ export class TokenPageGenerator {
                     depth: location.depth,
                     pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                 };
-                if (token.isDuplicate) {
-                    page.name += `-${token.duplicateId}`;
-                }
                 Configuration.addPage(page);
             }
             resolve();
