@@ -490,20 +490,6 @@
             "default": "",
             "examples": [""]
         },
-        "groupBy": {
-            "$id": "/properties/groupBy",
-            "type": "string",
-            "title": "Sidebar grouping strategy: folder, category, none (default: auto-detect)",
-            "default": "",
-            "examples": ["folder", "category", "none"]
-        },
-        "groupDepth": {
-            "$id": "/properties/groupDepth",
-            "type": "integer",
-            "title": "Max folder depth for group names when using folder grouping",
-            "default": 2,
-            "examples": [2]
-        },
         "menuLayout": {
             "$id": "/properties/menuLayout",
             "type": "string",
@@ -561,7 +547,7 @@
         "collapsedAll": {
             "$id": "/properties/collapsedAll",
             "type": "boolean",
-            "title": "Force every sidebar chapter AND every nested folder group to start collapsed on first load (config-only). Overrides toggleMenuItems and groupDepth-driven expansion.",
+            "title": "Force every sidebar chapter AND every nested folder group to start collapsed on first load (config-only). Overrides toggleMenuItems and the default expansion of the first two group levels.",
             "default": false,
             "examples": [false]
         },

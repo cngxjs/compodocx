@@ -79,8 +79,6 @@ const makeMainData = (): MainDataInterface => {
         maxSearchResults: 15,
         stackblitz: false,
         stackblitzTemplate: '',
-        groupBy: '',
-        groupDepth: 2,
         menuLayout: 'type',
         features: {},
         featureContainers: ['features', 'pages', 'domains'],
@@ -274,6 +272,23 @@ describe('applyConfigToMainData', () => {
         ).toThrow(/process\.exit\(2\)/);
         expect(exitSpy).toHaveBeenCalledWith(2);
         exitSpy.mockRestore();
+    });
+
+    it('warns that groupBy and groupDepth are ignored', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(
+            mainData,
+            { groupBy: 'folder', groupDepth: 3 } as never,
+            makeProgram(),
+            { cwd: '/tmp/test' }
+        );
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'groupBy is ignored: the sidebar groups symbols by feature'
+        );
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'groupDepth is ignored: the sidebar groups symbols by feature'
+        );
+        expect(mainData).not.toHaveProperty('groupBy');
     });
 
     it('keeps valid feature globs and warns about invalid keys', () => {

@@ -22,7 +22,12 @@ import { placedLink, placeTarget } from '../../app/links/resolve';
 import type { SymbolId, TableKind } from '../../app/links/symbol-id';
 import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { t } from '../helpers';
-import { appRootPath, featureGroups, featurePagePaths } from '../helpers/feature-info';
+import {
+    appRootPath,
+    featureGroups,
+    featurePagePaths,
+    groupItemsByFeature
+} from '../helpers/feature-info';
 import { isToggled } from '../helpers/menu-helpers';
 import {
     IconBarChart,
@@ -95,6 +100,9 @@ const duplicateNameOf = (item: any): string | undefined => {
 /** Entity link href with duplicateName fallback. */
 const entityHref = (prefix: string, item: any): string =>
     pageFile(prefix, duplicateNameOf(item) ?? item.name);
+
+/** Folder groups shallower than this start expanded (unless `collapsedAll`). */
+const GROUP_EXPAND_DEPTH = 2;
 
 /** Root-relative link to a top-level page; the client router adds the depth prefix. */
 const rootHref = (page: string): string =>
@@ -783,18 +791,18 @@ const EntitySection = (props: {
     ) as string;
 };
 
-const MENU_LISTS: readonly (readonly [string, string, TableKind])[] = [
-    ['components', 'categorizedComponents', 'component'],
-    ['directives', 'categorizedDirectives', 'directive'],
-    ['injectables', 'categorizedInjectables', 'injectable'],
-    ['tokens', 'categorizedTokens', 'token'],
-    ['pipes', 'categorizedPipes', 'pipe'],
-    ['classes', 'categorizedClasses', 'class'],
-    ['interfaces', 'categorizedInterfaces', 'interface'],
-    ['guards', 'categorizedGuards', 'guard'],
-    ['interceptors', 'categorizedInterceptors', 'interceptor'],
-    ['resolvers', 'categorizedResolvers', 'resolver'],
-    ['entities', 'categorizedEntities', 'entity']
+const MENU_LISTS: readonly (readonly [string, TableKind])[] = [
+    ['components', 'component'],
+    ['directives', 'directive'],
+    ['injectables', 'injectable'],
+    ['tokens', 'token'],
+    ['pipes', 'pipe'],
+    ['classes', 'class'],
+    ['interfaces', 'interface'],
+    ['guards', 'guard'],
+    ['interceptors', 'interceptor'],
+    ['resolvers', 'resolver'],
+    ['entities', 'entity']
 ];
 
 const MISC_LISTS: readonly (readonly [string, EntityKind])[] = [
@@ -880,17 +888,9 @@ const withoutHidden = (d: any): any => {
     const keep = (kind: TableKind) => (item: any) => hasOwnPage(view, kind as EntityKind, item);
     const list = (items: any[] | undefined, test: (item: any) => boolean) =>
         items && cached(view, items, () => items.filter(test));
-    const groups = (record: Record<string, any[]> | undefined, test: (item: any) => boolean) =>
-        record &&
-        cached(view, record, () =>
-            Object.fromEntries(
-                Object.entries(record).map(([key, items]) => [key, items.filter(test)])
-            )
-        );
     const copy: any = { ...d };
-    for (const [name, categorized, kind] of MENU_LISTS) {
+    for (const [name, kind] of MENU_LISTS) {
         copy[name] = list(d[name], keep(kind));
-        copy[categorized] = groups(d[categorized], keep(kind));
     }
     if (d.miscellaneous) {
         copy.miscellaneous = cached(view, d.miscellaneous, () => {
@@ -906,6 +906,8 @@ const withoutHidden = (d: any): any => {
 
 export const Menu = (props: MenuProps): string => {
     const d = withoutHidden(withFunctionalKinds(props.data));
+    const byFeature = (items: any[] | undefined, kind: TableKind) =>
+        groupItemsByFeature(d.semantic, d.symbols, kind, items);
 
     const components = d.components ?? [];
     const directives = d.directives ?? [];
@@ -1072,7 +1074,7 @@ export const Menu = (props: MenuProps): string => {
                                 groups: featureGroups(d.semantic, d.symbols, d.di, 'primary'),
                                 pages: featurePagePaths(d.semantic),
                                 first: appRootPath(d.semantic),
-                                groupDepth: d.groupDepth,
+                                groupDepth: GROUP_EXPAND_DEPTH,
                                 chapterKey: 'features',
                                 label: d.featuresName || t('features')
                             },
@@ -1098,101 +1100,103 @@ export const Menu = (props: MenuProps): string => {
                         {components.length > 0 &&
                             EntitySection({
                                 items: components,
-                                categorized: d.categorizedComponents,
+                                categorized: byFeature(components, 'component'),
                                 type: 'components',
                                 iconHtml: IconComponent(),
                                 labelKey: 'components',
                                 hrefPrefix: KIND_FOLDER.component,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {entities.length > 0 &&
                             EntitySection({
                                 items: entities,
+                                categorized: byFeature(entities, 'entity'),
                                 type: 'entities',
                                 iconHtml: IconEntity(),
                                 labelKey: 'entities',
                                 hrefPrefix: KIND_FOLDER.entity,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {directives.length > 0 &&
                             EntitySection({
                                 items: directives,
-                                categorized: d.categorizedDirectives,
+                                categorized: byFeature(directives, 'directive'),
                                 type: 'directives',
                                 iconHtml: IconDirective(),
                                 labelKey: 'directives',
                                 hrefPrefix: KIND_FOLDER.directive,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.classes?.length > 0 &&
                             EntitySection({
                                 items: d.classes,
-                                categorized: d.categorizedClasses,
+                                categorized: byFeature(d.classes, 'class'),
                                 type: 'classes',
                                 iconHtml: IconClass(),
                                 labelKey: 'classes',
                                 hrefPrefix: KIND_FOLDER.class,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {injectables.length > 0 &&
                             EntitySection({
                                 items: injectables,
-                                categorized: d.categorizedInjectables,
+                                categorized: byFeature(injectables, 'injectable'),
                                 type: 'injectables',
                                 iconHtml: IconInjectable(),
                                 labelKey: 'injectables',
                                 hrefPrefix: KIND_FOLDER.injectable,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {DependencyInjectionChapter(d)}
                         {d.interceptors?.length > 0 &&
                             EntitySection({
                                 items: d.interceptors,
-                                categorized: d.categorizedInterceptors,
+                                categorized: byFeature(d.interceptors, 'interceptor'),
                                 type: 'interceptors',
                                 iconHtml: IconInterceptor(),
                                 labelKey: 'interceptors',
                                 hrefPrefix: KIND_FOLDER.interceptor,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.guards?.length > 0 &&
                             EntitySection({
                                 items: d.guards,
-                                categorized: d.categorizedGuards,
+                                categorized: byFeature(d.guards, 'guard'),
                                 type: 'guards',
                                 iconHtml: IconGuard(),
                                 labelKey: 'guards',
                                 hrefPrefix: KIND_FOLDER.guard,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.resolvers?.length > 0 &&
                             EntitySection({
                                 items: d.resolvers,
+                                categorized: byFeature(d.resolvers, 'resolver'),
                                 type: 'resolvers',
                                 iconHtml: IconGuard(),
                                 labelKey: 'resolvers',
                                 hrefPrefix: KIND_FOLDER.resolver,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.interfaces?.length > 0 &&
                             EntitySection({
                                 items: d.interfaces,
-                                categorized: d.categorizedInterfaces,
+                                categorized: byFeature(d.interfaces, 'interface'),
                                 type: 'interfaces',
                                 iconHtml: IconInterface(),
                                 labelKey: 'interfaces',
                                 hrefPrefix: KIND_FOLDER.interface,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {pipes.length > 0 &&
                             EntitySection({
                                 items: pipes,
-                                categorized: d.categorizedPipes,
+                                categorized: byFeature(pipes, 'pipe'),
                                 type: 'pipes',
                                 iconHtml: IconPipe(),
                                 labelKey: 'pipes',
                                 hrefPrefix: KIND_FOLDER.pipe,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                     </>
                 )}

@@ -232,6 +232,16 @@ describe('Menu — feature layout', () => {
         expect(html).to.not.include('id="directives-links"');
     });
 
+    it('groups the kind chapters of the type layout by feature', () => {
+        Configuration.mainData.toggleMenuItems = ['components'];
+        const html = Menu({ data: featureData(BUTTON, [BUTTON_FEATURE], { menuLayout: 'type' }) });
+        expect(html).to.include('id="components-links"');
+        expect(html).to.include('id="components-group-ui"');
+        expect(html).to.include('id="components-group-ui/button"');
+        expect(html).to.include(`href="${pageOf('component', 'ButtonComponent')}"`);
+        expect(html).to.not.include('id="features-links"');
+    });
+
     it('keeps per-kind chapters in type layout (backward compat)', () => {
         const html = Menu({
             data: baseData({

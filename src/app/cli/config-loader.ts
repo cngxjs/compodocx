@@ -19,6 +19,9 @@ const COSMICONFIG_MODULE_NAME = 'compodoc';
 /** Menu keys of chapters that no longer exist; they warn and are dropped. */
 const REMOVED_MENU_ITEMS: readonly string[] = ['modules', 'miscellaneous', 'tokens'];
 
+/** Config keys that no longer have an effect; each one present warns once. */
+const IGNORED_CONFIG_KEYS: readonly string[] = ['groupBy', 'groupDepth'];
+
 export interface LoadConfigOptions {
     readonly explicitConfigPath?: string;
     readonly cwd: string;
@@ -787,18 +790,10 @@ export function applyConfigToMainData(
         mainData.stackblitzTemplate = programOptions.stackblitzTemplate;
     }
 
-    if (configFile.groupBy) {
-        mainData.groupBy = configFile.groupBy;
-    }
-    if (programOptions.groupBy) {
-        mainData.groupBy = programOptions.groupBy;
-    }
-
-    if (configFile.groupDepth) {
-        mainData.groupDepth = Number(configFile.groupDepth);
-    }
-    if (programOptions.groupDepth && programOptions.groupDepth !== '2') {
-        mainData.groupDepth = Number(programOptions.groupDepth);
+    for (const key of IGNORED_CONFIG_KEYS) {
+        if ((configFile as Record<string, unknown>)[key] !== undefined) {
+            logger.warn(`${key} is ignored: the sidebar groups symbols by feature`);
+        }
     }
 
     if (configFile.menuLayout !== undefined) {

@@ -4,8 +4,8 @@ import { type DiView, foldClusterMembers, placementOf } from '../../app/di/model
 import { type EntityWithKind, PRIMARY_KINDS } from '../../app/engines/dependencies.engine';
 import { featureSegments } from '../../app/links/feature-paths';
 import { kindHrefPrefix } from '../../app/links/layout';
-import { toSymbolKey } from '../../app/links/symbol-id';
-import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
+import { presentationKind, type TableKind, toSymbolKey } from '../../app/links/symbol-id';
+import { entryInFile, type SymbolEntry, type SymbolTable } from '../../app/links/symbol-table';
 
 /** A feature with the segments of its page. */
 export interface PlacedFeature {
@@ -127,7 +127,7 @@ export const featureGroups = (
     scope: FeatureGroupScope
 ): Record<string, EntityWithKind[]> => {
     const model = semantic?.features;
-    if (!model || !table) {
+    if (model === undefined || table === undefined) {
         return {};
     }
     const byScope = groupCache.get(table) ?? new Map();
@@ -158,5 +158,43 @@ export const featureGroups = (
         }
     }
     byScope.set(scope, groups);
+    return groups;
+};
+
+const itemGroups = new WeakMap<object, { model: FeatureModel; groups: Record<string, any[]> }>();
+
+/**
+ * Engine objects of one kind grouped by the page path of their feature, for
+ * the kind chapters of the type layout. Objects without a feature stay out
+ * (the chapter lists them ungrouped). Computed once per list and model.
+ */
+export const groupItemsByFeature = (
+    semantic: SemanticModel | undefined,
+    table: SymbolTable | undefined,
+    kind: TableKind,
+    items: readonly any[] | undefined
+): Record<string, any[]> => {
+    const model = semantic?.features;
+    if (model === undefined || table === undefined || items === undefined || items.length === 0) {
+        return {};
+    }
+    const known = itemGroups.get(items);
+    if (known && known.model === model) {
+        return known.groups;
+    }
+    const groups: Record<string, any[]> = {};
+    for (const item of items) {
+        const file = typeof item?.file === 'string' ? item.file : undefined;
+        const entry =
+            typeof item?.name === 'string'
+                ? entryInFile(table, presentationKind(kind as never, item), item.name, file)
+                : undefined;
+        const info = featureInfoOf(semantic, entry);
+        if (info) {
+            const key = featurePathKey(info.segments);
+            (groups[key] ??= []).push(item);
+        }
+    }
+    itemGroups.set(items, { model, groups });
     return groups;
 };

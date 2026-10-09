@@ -90,45 +90,6 @@ export interface EntityWithKind {
     [key: string]: unknown;
 }
 
-export function deriveGroupKey(filePath: string, maxDepth: number): string {
-    if (!filePath) {
-        return '';
-    }
-
-    // Normalize path separators
-    let rel = filePath.replaceAll('\\', '/');
-
-    // Multi-project Angular workspace (projects/<group>/<lib>/src/...) is
-    // special: we want segments to be [<group>, <lib>, ...rest inside src/]
-    // so groupDepth 2 yields <group>/<lib> as a clean library boundary.
-    // Strip `projects/` AND the inner `/src/` folder, keeping everything
-    // around it.
-    const projectsIdx = rel.indexOf('projects/');
-    if (projectsIdx !== -1) {
-        rel = rel.slice(projectsIdx + 'projects/'.length);
-        rel = rel.replace(/\/src\//, '/');
-    } else {
-        // Single-app fallback: strip the first matching root marker.
-        for (const marker of ['src/app/', 'src/', 'app/', 'lib/']) {
-            const idx = rel.indexOf(marker);
-            if (idx !== -1) {
-                rel = rel.slice(idx + marker.length);
-                break;
-            }
-        }
-    }
-
-    // Take parent directory segments (exclude filename)
-    const segments = rel.split('/').slice(0, -1);
-    if (segments.length === 0) {
-        return '';
-    }
-
-    // Truncate at maxDepth — items from deeper folders merge into
-    // the last allowed group (e.g. depth 2: features/admin/ui/settings → features/admin)
-    return segments.slice(0, maxDepth).join('/');
-}
-
 /**
  * Convert flat `Record<string, items[]>` into a GroupNode tree.
  * Mirrors the actual folder structure — no path compression.
@@ -197,16 +158,6 @@ export class DependenciesEngine {
     public routes: RouteInterface;
     public pipes: IPipeDep[];
     public classes: IDep[];
-    public categorizedComponents: Record<string, IComponentDep[]> = {};
-    public categorizedDirectives: Record<string, IDirectiveDep[]> = {};
-    public categorizedInjectables: Record<string, IInjectableDep[]> = {};
-    public categorizedTokens: Record<string, IInjectableDep[]> = {};
-    public categorizedPipes: Record<string, IPipeDep[]> = {};
-    public categorizedClasses: Record<string, IDep[]> = {};
-    public categorizedInterfaces: Record<string, IInterfaceDep[]> = {};
-    public categorizedGuards: Record<string, IGuardDep[]> = {};
-    public categorizedInterceptors: Record<string, IInterceptorDep[]> = {};
-    public categorizedEntities: Record<string, IDep[]> = {};
     public appConfig: any[] = [];
     public miscellaneous: MiscellaneousData = {
         variables: [],
@@ -275,7 +226,6 @@ export class DependenciesEngine {
         this.prepareMiscellaneous();
         this.routes = this.rawData.routesTree;
         this.manageDuplicatesName();
-        this.prepareCategoryGroups();
     }
 
     private manageDuplicatesName() {
@@ -471,78 +421,6 @@ export class DependenciesEngine {
             },
             {}
         );
-    }
-
-    private groupByStrategy(items: any[], strategy: string, depth: number): Record<string, any[]> {
-        if (strategy === 'none' || !strategy) {
-            return {};
-        }
-
-        if (strategy === 'category') {
-            const hasAnyCategory = items.some(item => item.category && item.category !== '');
-            if (!hasAnyCategory) {
-                return {};
-            }
-            return items.reduce(
-                (groups, item) => {
-                    const k = item.category || '';
-                    (groups[k] ??= []).push(item);
-                    return groups;
-                },
-                {} as Record<string, any[]>
-            );
-        }
-
-        // strategy === 'folder'
-        const groups: Record<string, any[]> = {};
-        for (const item of items) {
-            // Explicit @category always wins
-            if (item.category && item.category !== '') {
-                (groups[item.category] ??= []).push(item);
-                continue;
-            }
-            const key = deriveGroupKey(item.file, depth);
-            if (key) {
-                (groups[key] ??= []).push(item);
-            }
-        }
-
-        return Object.keys(groups).length > 0 ? groups : {};
-    }
-
-    private prepareCategoryGroups() {
-        const strategy = Configuration.mainData.groupBy;
-        const depth = Configuration.mainData.groupDepth;
-        this.categorizedComponents = this.groupByStrategy(
-            this.components as any[],
-            strategy,
-            depth
-        );
-        this.categorizedDirectives = this.groupByStrategy(
-            this.directives as any[],
-            strategy,
-            depth
-        );
-        this.categorizedInjectables = this.groupByStrategy(
-            this.injectables as any[],
-            strategy,
-            depth
-        );
-        this.categorizedTokens = this.groupByStrategy(this.tokens as any[], strategy, depth);
-        this.categorizedPipes = this.groupByStrategy(this.pipes as any[], strategy, depth);
-        this.categorizedClasses = this.groupByStrategy(this.classes as any[], strategy, depth);
-        this.categorizedInterfaces = this.groupByStrategy(
-            this.interfaces as any[],
-            strategy,
-            depth
-        );
-        this.categorizedGuards = this.groupByStrategy(this.guards as any[], strategy, depth);
-        this.categorizedInterceptors = this.groupByStrategy(
-            this.interceptors as any[],
-            strategy,
-            depth
-        );
-        this.categorizedEntities = this.groupByStrategy(this.entities as any[], strategy, depth);
     }
 
     public getComponents() {

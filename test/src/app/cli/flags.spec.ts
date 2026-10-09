@@ -1,7 +1,7 @@
 import { Command } from 'commander';
 import { describe, expect, it } from 'vitest';
 
-import { defineFlags } from '../../../../src/app/cli/flags';
+import { defineFlags, stripRemovedFlags } from '../../../../src/app/cli/flags';
 
 const makeProgram = (): Command => {
     const program = new Command();
@@ -94,9 +94,7 @@ describe('defineFlags', () => {
             '--publicApiOnly',
             '--maxSearchResults',
             '--stackblitz',
-            '--stackblitzTemplate',
-            '--groupBy',
-            '--groupDepth'
+            '--stackblitzTemplate'
         ];
 
         for (const flag of expected) {
@@ -156,11 +154,27 @@ describe('defineFlags', () => {
         expect(program.version()).toMatch(/^\d+\.\d+\.\d+/);
     });
 
-    it('--groupDepth defaults to "2"', () => {
-        const program = makeProgram();
-        defineFlags(program);
-        program.parse(['node', 'compodocx']);
-        expect(program.opts().groupDepth).toBe('2');
+    it('drops the removed grouping flags and their values', () => {
+        expect(
+            stripRemovedFlags([
+                'node',
+                'compodocx',
+                '--groupBy',
+                'folder',
+                '-p',
+                'tsconfig.json',
+                '--groupDepth=3',
+                '--disableSearch'
+            ])
+        ).toEqual({
+            argv: ['node', 'compodocx', '-p', 'tsconfig.json', '--disableSearch'],
+            removed: ['--groupBy', '--groupDepth']
+        });
+        expect(stripRemovedFlags(['node', 'compodocx', '--groupBy', '-s']).argv).toEqual([
+            'node',
+            'compodocx',
+            '-s'
+        ]);
     });
 
     it('source tracking marks user-provided flags as "cli"', () => {

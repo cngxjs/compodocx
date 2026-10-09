@@ -74,8 +74,6 @@ export interface ConfigurationFileInterface {
     playgroundVendorRoot: string;
     playgroundVendorCap: number;
     playgroundVendorIncludeSourcemaps: boolean;
-    groupBy: 'folder' | 'category' | 'none';
-    groupDepth: number;
     menuLayout: 'type' | 'feature';
     featureLibraryScope: 'primary' | 'auto' | 'all';
     features: Record<string, string>;

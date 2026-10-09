@@ -273,23 +273,7 @@ const crawl: Stage = async current => {
         logger.warn(line);
     }
 
-    if (!mainData.groupBy) {
-        mainData.groupBy = 'folder';
-    }
-
     DependenciesEngine.init(dependenciesData);
-
-    // Inject category groupings for sidebar navigation (used by menu partial)
-    mainData.categorizedComponents = DependenciesEngine.categorizedComponents;
-    mainData.categorizedDirectives = DependenciesEngine.categorizedDirectives;
-    mainData.categorizedInjectables = DependenciesEngine.categorizedInjectables;
-    mainData.categorizedTokens = DependenciesEngine.categorizedTokens;
-    mainData.categorizedPipes = DependenciesEngine.categorizedPipes;
-    mainData.categorizedClasses = DependenciesEngine.categorizedClasses;
-    mainData.categorizedInterfaces = DependenciesEngine.categorizedInterfaces;
-    mainData.categorizedGuards = DependenciesEngine.categorizedGuards;
-    mainData.categorizedInterceptors = DependenciesEngine.categorizedInterceptors;
-    mainData.categorizedEntities = DependenciesEngine.categorizedEntities;
 
     mainData.routesLength = RouterParserUtil.routesLength();
 
