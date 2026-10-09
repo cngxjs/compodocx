@@ -228,6 +228,8 @@ export const TRANSLATION_RU_RU = {
     'feature-detector-cohesion': 'Определено по импортам',
     'feature-detector-entry-point': 'Точка входа',
     'feature-detector-folder': 'Определено по папке',
+    'builds-on': 'Основано на',
+    'extended-by': 'Расширяется',
     utilities: 'Утилиты',
     variables: 'Переменные',
     'view-providers': 'Провайдеры представления',

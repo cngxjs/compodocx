@@ -16,8 +16,9 @@ import { entryFacts } from '../helpers/symbol-facts';
 
 /**
  * The page of a feature (`features/<entry point>/<key>.html`): import path,
- * README, sub-features of an entry point, and the members by role, each
- * row linking to where the member is documented.
+ * README, sub-features of an entry point, the members by role (each row
+ * linking to where the member is documented), and the features of other
+ * entry points it builds on or that extend it.
  *
  * Override name: `feature`.
  */
@@ -139,6 +140,44 @@ const SubFeatures = (cards: readonly FeatureCard[], depth: number): string => {
     ) as string;
 };
 
+/** Features of other entry points, with their import path. */
+const Related = (
+    id: string,
+    title: string,
+    cards: readonly FeatureCard[],
+    depth: number
+): string => {
+    if (cards.length === 0) {
+        return '';
+    }
+    return (
+        <section class="cdx-content-section">
+            {Heading(id, title, cards.length)}
+            <table class="cdx-table">
+                <thead>
+                    <tr>
+                        <th scope="col">{t('name')}</th>
+                        <th scope="col">{t('import')}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {cards.map(
+                        card =>
+                            (
+                                <tr data-cdx-feature-related={card.id}>
+                                    <td>
+                                        <a href={featureHref(card.segments, depth)}>{card.label}</a>
+                                    </td>
+                                    <td>{card.entryPoint ? <code>{card.entryPoint}</code> : ''}</td>
+                                </tr>
+                            ) as string
+                    )}
+                </tbody>
+            </table>
+        </section>
+    ) as string;
+};
+
 /** Components with a Theming tab, linked to it. */
 const Theming = (members: FeatureMembers, ctx: Context): string => {
     const themed = members.components.filter(entry => {
@@ -237,6 +276,8 @@ export const FeaturePage = (data: any): string => {
             {SubFeatures(feature.subFeatures, ctx.depth)}
             {SECTIONS.map(section => Members(section, feature.members, ctx))}
             {Theming(feature.members, ctx)}
+            {Related('builds-on', t('builds-on'), feature.buildsOn, ctx.depth)}
+            {Related('extended-by', t('extended-by'), feature.extendedBy, ctx.depth)}
         </>
     ) as string;
 };

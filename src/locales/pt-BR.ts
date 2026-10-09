@@ -227,6 +227,8 @@ export const TRANSLATION_PT_BR = {
     'feature-detector-cohesion': 'Detectado pelos imports',
     'feature-detector-entry-point': 'Ponto de entrada',
     'feature-detector-folder': 'Detectado pela pasta',
+    'builds-on': 'Baseia-se em',
+    'extended-by': 'Estendido por',
     utilities: 'Utilitários',
     variables: 'Variáveis',
     'view-providers': 'Provedores de view',

@@ -228,6 +228,8 @@ export const TRANSLATION_FR_FR = {
     'feature-detector-cohesion': 'Déduit des imports',
     'feature-detector-entry-point': 'Point d’entrée',
     'feature-detector-folder': 'Déduit du dossier',
+    'builds-on': 'S’appuie sur',
+    'extended-by': 'Étendu par',
     utilities: 'Utilitaires',
     variables: 'Variables',
     'view-providers': 'Fournisseurs de vue',

@@ -226,6 +226,8 @@ export const TRANSLATION_SK_SK = {
     'feature-detector-cohesion': 'Zistené z importov',
     'feature-detector-entry-point': 'Vstupný bod',
     'feature-detector-folder': 'Zistené z priečinka',
+    'builds-on': 'Stavia na',
+    'extended-by': 'Rozširuje ho',
     utilities: 'Pomocné nástroje',
     variables: 'Premenné',
     'view-providers': 'Poskytovatelia zobrazenia',

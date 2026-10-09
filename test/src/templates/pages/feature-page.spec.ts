@@ -45,6 +45,7 @@ const facts = (name: string, file: string, extra: Partial<SymbolFacts> = {}): Sy
 
 const ROOT = '@x/select#';
 const MENU = '@x/select#menu';
+const FIELD = '@x/ui#field';
 const features: FeatureModel = {
     features: [
         {
@@ -64,6 +65,14 @@ const features: FeatureModel = {
             root: 'lib/select/src/menu',
             detector: 'cohesion',
             readme: 'lib/select/src/menu/README.md'
+        },
+        {
+            id: FIELD,
+            entryPoint: '@x/ui',
+            key: 'field',
+            label: 'field',
+            root: 'lib/ui/src/field',
+            detector: 'cohesion'
         }
     ],
     featureOf: new Map([
@@ -74,7 +83,7 @@ const features: FeatureModel = {
         [`${SELECT}/shared/option.ts#optionLabel`, ROOT],
         ['lib/select/src/menu/menu.ts#MENU_DELAY', MENU]
     ]),
-    families: []
+    families: [{ from: FIELD, to: ROOT, reason: 'wraps', edges: 2 }]
 };
 
 const semantic: SemanticModel = {
@@ -121,7 +130,8 @@ describe('feature page', () => {
             'components-and-directives',
             'services',
             'utilities',
-            'types'
+            'types',
+            'extended-by'
         ]);
         expect(html).toContain(`href="../${pageOf('component', 'SelectPanel')}"`);
         expect(html).toContain(`href="../${pageOf('directive', 'SelectTrigger')}"`);
@@ -157,5 +167,20 @@ describe('feature page', () => {
             `<tr data-cdx-feature-card="${MENU}"><td><a href="../${featurePage(['select', 'menu'])}">menu</a></td><td>1</td><td>Menu <em>parts</em>.</td></tr>`
         );
         expect(render(MENU)).not.toContain('data-cdx-feature-card');
+    });
+
+    it('links the features of other entry points that extend this one', () => {
+        expect(render(ROOT)).toContain(
+            `<tr data-cdx-feature-related="${FIELD}"><td><a href="../${featurePage(['ui', 'field'])}">field</a></td><td><code>@x/ui</code></td></tr>`
+        );
+        expect(render(MENU)).not.toContain('id="extended-by"');
+    });
+
+    it('links the features this one builds on', () => {
+        const html = render(FIELD);
+        expect(sectionIds(html)).toEqual(['builds-on']);
+        expect(html).toContain(
+            `<tr data-cdx-feature-related="${ROOT}"><td><a href="../../${featurePage(['select'])}">select</a></td><td><code>@x/select</code></td></tr>`
+        );
     });
 });

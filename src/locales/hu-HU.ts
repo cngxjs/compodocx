@@ -227,6 +227,8 @@ export const TRANSLATION_HU_HU = {
     'feature-detector-cohesion': 'Importokból felismerve',
     'feature-detector-entry-point': 'Belépési pont',
     'feature-detector-folder': 'Mappából felismerve',
+    'builds-on': 'Erre épül',
+    'extended-by': 'Kiterjeszti',
     utilities: 'Segédeszközök',
     variables: 'Változók',
     'view-providers': 'Nézet szolgáltatók',

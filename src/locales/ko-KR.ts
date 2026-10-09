@@ -225,6 +225,8 @@ export const TRANSLATION_KO_KR = {
     'feature-detector-cohesion': 'import에서 감지',
     'feature-detector-entry-point': '엔트리 포인트',
     'feature-detector-folder': '폴더에서 감지',
+    'builds-on': '기반',
+    'extended-by': '확장하는 기능',
     utilities: '유틸리티',
     variables: '변수',
     'view-providers': '뷰 프로바이더',

@@ -227,6 +227,8 @@ export const TRANSLATION_IT_IT = {
     'feature-detector-cohesion': 'Rilevato dagli import',
     'feature-detector-entry-point': 'Entry point',
     'feature-detector-folder': 'Rilevato dalla cartella',
+    'builds-on': 'Si basa su',
+    'extended-by': 'Esteso da',
     utilities: 'Utilità',
     variables: 'Variabili',
     'view-providers': 'Provider di vista',

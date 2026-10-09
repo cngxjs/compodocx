@@ -27,6 +27,7 @@ export interface FeatureMembers {
 export interface FeatureCard {
     readonly id: FeatureId;
     readonly label: string;
+    readonly entryPoint?: string;
     readonly segments: readonly string[];
     readonly memberCount: number;
     /** First paragraph of the feature's README, as HTML. */
@@ -47,6 +48,10 @@ export interface FeaturePageData {
     readonly readme?: { readonly file: string; readonly html: string };
     readonly members: FeatureMembers;
     readonly subFeatures: readonly FeatureCard[];
+    /** Features of other entry points this one uses. */
+    readonly buildsOn: readonly FeatureCard[];
+    /** Features of other entry points that use this one. */
+    readonly extendedBy: readonly FeatureCard[];
 }
 
 type Section = keyof FeatureMembers;
@@ -222,11 +227,18 @@ export const featurePages = (
         return {
             id: feature.id,
             label: feature.label,
+            ...(feature.entryPoint ? { entryPoint: feature.entryPoint } : {}),
             segments: segments.get(feature.id) ?? [],
             memberCount: memberCount(members.get(feature.id) ?? none),
             ...(summary ? { summary } : {})
         };
     };
+    const byId = new Map(model.features.map(f => [f.id, f] as const));
+    const linked = (ids: readonly FeatureId[]): FeatureCard[] =>
+        [...new Set(ids)].flatMap(id => {
+            const target = byId.get(id);
+            return target ? [card(target)] : [];
+        });
     const roots = new Map(
         model.features.filter(f => f.key === '').map(f => [f.entryPoint ?? '', f] as const)
     );
@@ -251,7 +263,9 @@ export const featurePages = (
                 ? model.features
                       .filter(f => f.key !== '' && (f.entryPoint ?? '') === scope)
                       .map(card)
-                : []
+                : [],
+            buildsOn: linked(model.families.filter(l => l.from === feature.id).map(l => l.to)),
+            extendedBy: linked(model.families.filter(l => l.to === feature.id).map(l => l.from))
         };
     });
 };

@@ -226,6 +226,8 @@ export const TRANSLATION_PL_PL = {
     'feature-detector-cohesion': 'Wykryte z importów',
     'feature-detector-entry-point': 'Punkt wejścia',
     'feature-detector-folder': 'Wykryte z folderu',
+    'builds-on': 'Bazuje na',
+    'extended-by': 'Rozszerzane przez',
     utilities: 'Narzędzia pomocnicze',
     variables: 'Zmienne',
     'view-providers': 'Dostawcy widoku',

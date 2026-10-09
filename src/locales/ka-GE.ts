@@ -226,6 +226,8 @@ export const TRANSLATION_KA_GE = {
     'feature-detector-cohesion': 'ამოცნობილია import-ებიდან',
     'feature-detector-entry-point': 'შესვლის წერტილი',
     'feature-detector-folder': 'ამოცნობილია საქაღალდიდან',
+    'builds-on': 'ეყრდნობა',
+    'extended-by': 'აფართოებს',
     utilities: 'დამხმარე საშუალებები',
     variables: 'ცვლადები',
     'view-providers': 'ხედის პროვაიდერები',

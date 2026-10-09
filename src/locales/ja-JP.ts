@@ -226,6 +226,8 @@ export const TRANSLATION_JA_JP = {
     'feature-detector-cohesion': 'インポートから検出',
     'feature-detector-entry-point': 'エントリーポイント',
     'feature-detector-folder': 'フォルダーから検出',
+    'builds-on': '基盤',
+    'extended-by': '拡張元',
     utilities: 'ユーティリティ',
     variables: '変数',
     'view-providers': 'ビュープロバイダー',

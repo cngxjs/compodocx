@@ -227,6 +227,8 @@ export const TRANSLATION_BG_BG = {
     'feature-detector-cohesion': 'Открито от импортите',
     'feature-detector-entry-point': 'Входна точка',
     'feature-detector-folder': 'Открито от папката',
+    'builds-on': 'Надгражда',
+    'extended-by': 'Разширено от',
     utilities: 'Помощни средства',
     variables: 'Променливи',
     'view-providers': 'Доставчици за изглед',
