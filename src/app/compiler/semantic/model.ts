@@ -4,6 +4,8 @@
  * provides or reads, and who uses it. Data only; nothing here is rendered.
  */
 
+import type { ImportGraph } from './imports';
+
 /** Interfaces and type aliases live in the type space, everything else in the value space. */
 export type DeclarationSpace = 'value' | 'type';
 
@@ -78,6 +80,8 @@ export interface SemanticModel {
     /** Keyed by `factKey`. */
     readonly facts: ReadonlyMap<string, SymbolFacts>;
     readonly summary: SemanticSummary;
+    /** Imports between the root files; not exported. */
+    readonly imports?: ImportGraph;
 }
 
 /** The one-line build log summary of the semantic stage. */
@@ -120,5 +124,6 @@ export const emptyModel = (): SemanticModel => ({
         features: 0,
         injectionContext: { direct: 0, viaCall: 0, unresolved: 0 },
         notExported: 0
-    }
+    },
+    imports: { edges: new Map() }
 });

@@ -12,6 +12,7 @@ import {
     findEntryPoints,
     toEntryPoint
 } from './entry-points';
+import { buildImportGraph } from './imports';
 import { factKey, type SemanticModel, type SymbolFacts, type SymbolKey } from './model';
 import { createSemanticProgram } from './program';
 import { usedByEdges } from './used-by';
@@ -123,7 +124,12 @@ export const buildSemanticModel = (
                 unresolved: di.counts.unresolved
             },
             notExported
-        }
+        },
+        imports: buildImportGraph(
+            program,
+            sourceFiles.map(sf => sf.fileName),
+            cwd
+        )
     };
 };
 
