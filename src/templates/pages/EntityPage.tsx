@@ -33,6 +33,7 @@ import { RouteChip } from '../blocks/RouteChip';
 import { AiGeneratedBadge } from '../components/AiGeneratedBadge';
 import { EmptyState } from '../components/EmptyState';
 import { EmptyIconDocument } from '../components/EmptyStateIcons';
+import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
 import {
     IconClass,
     IconComponent,
@@ -57,7 +58,6 @@ import {
     pagefindFilterBlock,
     pagefindMetaBlock,
     parseDescription,
-    resolveBucketSegments,
     t
 } from '../helpers';
 import type { ComponentPlaygroundBlock } from '../helpers/jsdoc';
@@ -567,16 +567,18 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
     const meta = entityMeta[props.entityKey] ?? entityMeta['entity'];
     const e = props.entity;
 
+    const feature = entityFeature(props.entityKey as EntityKind, e);
     const searchMeta = pagefindMetaBlock({
         kind: props.entityKey as any,
         category: e.category,
+        feature: feature?.feature.label,
         description: e.description
     });
     const searchFilters = pagefindFilterBlock({
         kind: props.entityKey as any,
         lib: deriveLibFromBucket(e.category || e.file),
-        bucket: e.category,
-        docsKind: e.docsKind === 'primary' ? 'primary' : 'reference',
+        feature: feature?.feature.label,
+        entryPoint: feature?.feature.entryPoint,
         wcag: e.wcagLevel
     });
 
@@ -590,12 +592,8 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
                 </div>
                 <nav aria-label="Breadcrumb">
                     <ol class="cdx-breadcrumb">
-                        {(() => {
-                            const segments = resolveBucketSegments(e);
-                            return segments
-                                ? segments.map(seg => <li>{seg}</li>)
-                                : ((<li>{t(props.breadcrumbLabel)}</li>) as string);
-                        })()}
+                        {FeatureCrumbs(feature, props.depth ?? 1) ??
+                            ((<li>{t(props.breadcrumbLabel)}</li>) as string)}
                         <li aria-current="page">{e.name}</li>
                     </ol>
                 </nav>

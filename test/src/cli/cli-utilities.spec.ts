@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { hrefTo, pageOf, rootPage } from '../helpers/pages';
+import { featurePage, hrefTo, pageOf, rootPage } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -143,9 +143,9 @@ describe('CLI utilities', () => {
         const detail = read(`${distFolder}/${pageOf('function', 'helperFn')}`);
         expect(detail).to.match(/<h1[^>]*class="cdx-entity-hero-name">[\s\S]*?helperFn/);
         expect(detail).to.contain('Untagged helper.');
-        // Breadcrumb chain: Utilities > Functions > helperFn
+        // Breadcrumb: the feature (the app's root feature here) > helperFn
         expect(detail).to.contain('class="cdx-breadcrumb"');
-        expect(detail).to.contain(`href="../${rootPage('utilities')}#functions"`);
+        expect(detail).to.contain(`href="../${featurePage(['app'])}"`);
 
         const provider = read(`${distFolder}/${pageOf('provider', 'provideToaster')}`);
         expect(provider).to.match(/<h1[^>]*class="cdx-entity-hero-name">[\s\S]*?provideToaster/);

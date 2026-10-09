@@ -3,6 +3,7 @@ export const TRANSLATION_SK_SK = {
     'ai-generated': 'Vygenerované AI',
     'ai-generated-tooltip': 'Tento obsah bol vygenerovaný s pomocou AI',
     'all-categories': 'All categories',
+    'all-features': 'Všetky funkcie',
     'angular-adoption': 'Angular Adopcia',
     api: 'API',
     'api-reference': 'API Reference',

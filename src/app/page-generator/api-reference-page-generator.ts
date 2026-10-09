@@ -1,19 +1,15 @@
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
-import DependenciesEngine from '../engines/dependencies.engine';
 import { pageLocation } from '../links/layout';
 
 /**
  * Emits a single `references.html` page at the documentation root under
- * `menuLayout: 'feature'`. The page renders an Angular-style API
- * reference portal — every public symbol across every bucket, laid out
- * as sticky bucket sections and filtered client-side. It replaces the
- * sidebar's References chapter as the exhaustive-catalogue entry point.
+ * `menuLayout: 'feature'`: an Angular-style API reference portal with
+ * every documented symbol, one section per feature, filtered client-side.
  *
- * Skipped entirely under `menuLayout: 'type'` (no bucket concept) and
- * under feature-mode workspaces that produced no buckets (no surface to
- * catalogue).
+ * Skipped under `menuLayout: 'type'` and when no feature was derived (no
+ * semantic stage, or nothing documented).
  */
 export class ApiReferencePageGenerator {
     public prepare(): Promise<true> {
@@ -23,8 +19,7 @@ export class ApiReferencePageGenerator {
                 resolve(true);
                 return;
             }
-            const buckets = DependenciesEngine.categorizedByFeature ?? {};
-            if (Object.keys(buckets).length === 0) {
+            if ((Configuration.mainData.semantic?.features?.features.length ?? 0) === 0) {
                 resolve(true);
                 return;
             }

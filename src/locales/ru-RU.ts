@@ -3,6 +3,7 @@ export const TRANSLATION_RU_RU = {
     'ai-generated': 'Сгенерировано ИИ',
     'ai-generated-tooltip': 'Этот контент создан с помощью ИИ',
     'all-categories': 'All categories',
+    'all-features': 'Все функциональности',
     'angular-adoption': 'Адаптация Angular',
     api: 'API',
     'api-reference': 'API Reference',

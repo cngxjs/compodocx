@@ -55,7 +55,6 @@ const ALL_KEYS = [
     'interface',
     'appConfig',
     'utilities',
-    'bucketLanding',
     'feature',
     'apiReference',
     'documentationCoverage',
@@ -92,7 +91,6 @@ describe('prepare stage table', () => {
         expect(keys(context('full'), EMPTY)).toEqual([
             'component',
             'appConfig',
-            'bucketLanding',
             'feature',
             'apiReference',
             'documentationCoverage',
@@ -102,7 +100,7 @@ describe('prepare stage table', () => {
         ]);
     });
 
-    it('selects all 25 stages in table order for a full run with every kind', () => {
+    it('selects all 24 stages in table order for a full run with every kind', () => {
         const ctx = context('full', {
             unitTestCoverage: 'coverage.json',
             includes: 'docs',

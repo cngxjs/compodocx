@@ -3,6 +3,7 @@ export const TRANSLATION_BG_BG = {
     'ai-generated': 'Генерирано от ИИ',
     'ai-generated-tooltip': 'Това съдържание е създадено с помощта на ИИ',
     'all-categories': 'All categories',
+    'all-features': 'Всички функционалности',
     'angular-adoption': 'Angular Адаптация',
     api: 'API',
     'api-reference': 'API Reference',

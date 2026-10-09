@@ -45,7 +45,3 @@ export const rootPage = (page: string): string => pagePath(pageLocation({ type: 
 /** Root-relative file of a feature page. */
 export const featurePage = (segments: readonly string[]): string =>
     pagePath(pageLocation({ type: 'feature', segments }));
-
-/** Root-relative file of a bucket landing page. */
-export const bucketPage = (segments: readonly string[]): string =>
-    pagePath(pageLocation({ type: 'bucket', segments }));

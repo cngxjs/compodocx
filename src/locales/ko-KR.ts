@@ -3,6 +3,7 @@ export const TRANSLATION_KO_KR = {
     'ai-generated': 'AI 생성',
     'ai-generated-tooltip': '이 콘텐츠는 AI 지원으로 생성되었습니다',
     'all-categories': 'All categories',
+    'all-features': '모든 기능',
     'angular-adoption': 'Angular 채택',
     api: 'API',
     'api-reference': 'API Reference',

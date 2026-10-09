@@ -3,6 +3,7 @@ export const TRANSLATION_IT_IT = {
     'ai-generated': 'Generato da IA',
     'ai-generated-tooltip': "Questo contenuto è stato generato con l'aiuto dell'IA",
     'all-categories': 'All categories',
+    'all-features': 'Tutte le funzionalità',
     'angular-adoption': 'Adozione Angular',
     api: 'API',
     'api-reference': 'API Reference',

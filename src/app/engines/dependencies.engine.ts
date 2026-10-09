@@ -20,8 +20,7 @@ import { hiddenFilter } from '../di/model';
 import type { MiscellaneousData } from '../interfaces/miscellaneous-data.interface';
 import type { ParsedData } from '../interfaces/parsed-data.interface';
 import type { RouteInterface } from '../interfaces/routes.interface';
-import { kindHrefPrefix } from '../links/layout';
-import { presentationKind, type TableKind } from '../links/symbol-id';
+import type { TableKind } from '../links/symbol-id';
 import { buildSymbolTable, lookupEntry, type SymbolTable } from '../links/symbol-table';
 
 export interface GroupNode {
@@ -208,9 +207,6 @@ export class DependenciesEngine {
     public categorizedGuards: Record<string, IGuardDep[]> = {};
     public categorizedInterceptors: Record<string, IInterceptorDep[]> = {};
     public categorizedEntities: Record<string, IDep[]> = {};
-    public categorizedByFeature: Record<string, EntityWithKind[]> = {};
-    public categorizedByFeaturePrimary: Record<string, EntityWithKind[]> = {};
-    public categorizedByFeatureReference: Record<string, EntityWithKind[]> = {};
     public appConfig: any[] = [];
     public miscellaneous: MiscellaneousData = {
         variables: [],
@@ -280,7 +276,6 @@ export class DependenciesEngine {
         this.routes = this.rawData.routesTree;
         this.manageDuplicatesName();
         this.prepareCategoryGroups();
-        this.prepareFeatureGroups();
     }
 
     private manageDuplicatesName() {
@@ -548,104 +543,6 @@ export class DependenciesEngine {
             depth
         );
         this.categorizedEntities = this.groupByStrategy(this.entities as any[], strategy, depth);
-    }
-
-    /**
-     * Flat, cross-kind grouping for `menuLayout: 'feature'` mode.
-     * One bucket per folder (or `@category`) — mixing components, directives,
-     * injectables, etc. from the same folder.
-     */
-    private prepareFeatureGroups(): void {
-        const groups: Record<string, EntityWithKind[]> = {};
-        const depth = Configuration.mainData.groupDepth;
-        const kinds: Array<{ list: any[]; kind: EntityKind }> = [
-            { list: this.components, kind: 'component' },
-            { list: this.directives, kind: 'directive' },
-            { list: this.injectables, kind: 'injectable' },
-            { list: this.tokens, kind: 'token' },
-            { list: this.pipes, kind: 'pipe' },
-            { list: this.classes, kind: 'class' },
-            { list: this.interfaces, kind: 'interface' },
-            { list: this.guards, kind: 'guard' },
-            { list: this.interceptors, kind: 'interceptor' },
-            { list: this.entities, kind: 'entity' },
-            { list: this.miscellaneous?.functions ?? [], kind: 'function' },
-            { list: this.miscellaneous?.variables ?? [], kind: 'variable' },
-            { list: this.miscellaneous?.typealiases ?? [], kind: 'typealias' },
-            { list: this.miscellaneous?.enumerations ?? [], kind: 'enumeration' }
-        ];
-        for (const { list, kind: engineKind } of kinds) {
-            for (const item of list ?? []) {
-                // A function or constant that is a guard, interceptor or
-                // resolver is listed (and linked) as one.
-                const kind = presentationKind(engineKind, item);
-                const hrefPrefix = kindHrefPrefix(kind);
-                const explicit = (item as any).category;
-                const key =
-                    explicit && explicit !== ''
-                        ? explicit
-                        : deriveGroupKey((item as any).file, depth);
-                if (!key) {
-                    continue;
-                }
-                (groups[key] ??= []).push({
-                    ...(item as Record<string, unknown>),
-                    kind,
-                    hrefPrefix
-                } as EntityWithKind);
-            }
-        }
-        this.categorizedByFeature = groups;
-
-        // Features = curated subset of organisms a consumer USES. Filtered
-        // by PRIMARY_KINDS membership; `@docsKind primary` promotes a
-        // reference-kind entity (function, interface, typealias, variable,
-        // enumeration) into Features regardless of its TS kind.
-        //
-        // References = EXHAUSTIVE list of every public symbol in the bucket.
-        // Primary-kind organisms intentionally surface in BOTH chapters —
-        // Features as a curated highlight, References as the complete index.
-        // Same target page; readers pick the chapter that matches their
-        // intent (toolbox view vs. API surface view). `docsKind` is ignored
-        // here because References is the full surface, not a residual.
-        //
-        // `featureLibraryScope` governs which buckets get a Features/Libraries
-        // node and what it lists — modern Angular libraries often ship only
-        // functions / interfaces / type aliases (provideX/withX helpers,
-        // functional composables, adapter types) and would otherwise never
-        // surface as a library:
-        //   'primary' — strict: only buckets with a class-like (or promoted)
-        //               symbol appear, listing just those items (legacy).
-        //   'auto'    — a bucket with no primary items falls back to its full
-        //               reference surface, so a pure-function lib is first-class
-        //               while class-like libs stay curated (default).
-        //   'all'     — every bucket lists its complete surface under Features.
-        const scope = Configuration.mainData.featureLibraryScope ?? 'auto';
-        const primary: Record<string, EntityWithKind[]> = {};
-        const reference: Record<string, EntityWithKind[]> = {};
-        for (const [bucket, items] of Object.entries(groups)) {
-            const primaryItems = items.filter(
-                i => PRIMARY_KINDS.has(i.kind) || (i as any).docsKind === 'primary'
-            );
-            let nodeItems: EntityWithKind[];
-            if (scope === 'all') {
-                nodeItems = items;
-            } else if (scope === 'auto' && primaryItems.length === 0) {
-                nodeItems = items;
-            } else {
-                nodeItems = primaryItems;
-            }
-            // Leaf-level pruning: empty buckets never enter the dict, so the
-            // tree builder cannot synthesise an empty intermediate node.
-            if (nodeItems.length > 0) {
-                primary[bucket] = nodeItems;
-            }
-            if (items.length > 0) {
-                reference[bucket] = items;
-            }
-        }
-        this.categorizedByFeaturePrimary = primary;
-        this.categorizedByFeatureReference = reference;
     }
 
     public getComponents() {

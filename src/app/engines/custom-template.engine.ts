@@ -1,4 +1,5 @@
 import * as path from 'node:path';
+import { REMOVED_OVERRIDES, RENAMED_OVERRIDES } from '../../migrate/override-names';
 import * as helpers from '../../templates/helpers';
 import { logger } from '../../utils/logger';
 import FileEngine from './file.engine';
@@ -47,6 +48,14 @@ export function loadCustomTemplates(templatePath: string): void {
         }
         const name = file.replace('.js', '');
         const fullPath = path.resolve(partialsDir + path.sep + file);
+        const replacement = RENAMED_OVERRIDES[name];
+        if (REMOVED_OVERRIDES.includes(name) || replacement !== undefined) {
+            const hint = replacement
+                ? `renamed to "${replacement}", rename the file`
+                : 'its page no longer exists';
+            logger.warn(`Custom template ${file} is ignored (${hint}); see \`compodocx migrate\``);
+            continue;
+        }
 
         try {
             const mod = require(fullPath);

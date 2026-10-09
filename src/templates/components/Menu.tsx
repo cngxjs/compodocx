@@ -1,6 +1,6 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
-import { type DiView, foldClusterMembers, hasOwnPage, isHiddenItem } from '../../app/di/model';
+import { type DiView, hasOwnPage } from '../../app/di/model';
 import {
     buildGroupTree,
     type EntityKind,
@@ -22,6 +22,7 @@ import { placedLink, placeTarget } from '../../app/links/resolve';
 import type { SymbolId, TableKind } from '../../app/links/symbol-id';
 import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { t } from '../helpers';
+import { appRootPath, featureGroups, featurePagePaths } from '../helpers/feature-info';
 import { isToggled } from '../helpers/menu-helpers';
 import {
     IconBarChart,
@@ -523,15 +524,16 @@ const FeatureEntityLink = (item: EntityWithKind, defaultTab?: 'api'): string =>
  *  No `<a>` nested in `<button>` — HTML5 forbids it; row + sibling
  *  anchor keeps the markup valid and the a11y tree clean.
  *
- *  The bucket landing page exists for EVERY non-empty node — leaves and
- *  intermediate folders alike — so any label that renders here is
- *  guaranteed to resolve.
+ *  A node whose path is a feature's page links its label there; a folder
+ *  of the import path without a feature of its own (`forms` above
+ *  `forms/select`) has a plain label.
  */
 const FeatureGroupTree = (props: {
     node: GroupNode;
     depth: number;
     groupDepth: number;
     idPrefix: string;
+    pages: ReadonlySet<string>;
     defaultTab?: 'api';
 }): string => {
     const hasContent = props.node.items.length > 0 || props.node.children.length > 0;
@@ -540,9 +542,14 @@ const FeatureGroupTree = (props: {
     }
     const id = `${props.idPrefix}${props.node.fullPath}`;
     const startExpanded = !isCollapsedAll() && props.depth < props.groupDepth;
-    const labelHref = pagePath(
-        pageLocation({ type: 'bucket', segments: props.node.fullPath.split('/').filter(Boolean) })
-    );
+    const labelHref = props.pages.has(props.node.fullPath)
+        ? pagePath(
+              pageLocation({
+                  type: 'feature',
+                  segments: props.node.fullPath.split('/').filter(Boolean)
+              })
+          )
+        : undefined;
     const labelText = props.node.name.charAt(0).toUpperCase() + props.node.name.slice(1);
     return (
         <li
@@ -563,14 +570,20 @@ const FeatureGroupTree = (props: {
                 aria-controls={id}
                 aria-label={`Toggle ${labelText} group`}
             >
-                <a
-                    class="cdx-bucket-link"
-                    href={labelHref}
-                    data-cdx-bucket-link="true"
-                    data-type="chapter-link"
-                >
-                    <span class="link-name">{labelText}</span>
-                </a>
+                {labelHref ? (
+                    <a
+                        class="cdx-bucket-link"
+                        href={labelHref}
+                        data-cdx-bucket-link="true"
+                        data-type="chapter-link"
+                    >
+                        <span class="link-name">{labelText}</span>
+                    </a>
+                ) : (
+                    <span class="cdx-bucket-link">
+                        <span class="link-name">{labelText}</span>
+                    </span>
+                )}
                 {props.node.items.length > 0 && (
                     <span class="cdx-badge cdx-badge--count cdx-bucket-count">
                         {props.node.items.length}
@@ -585,6 +598,7 @@ const FeatureGroupTree = (props: {
                         depth: props.depth + 1,
                         groupDepth: props.groupDepth,
                         idPrefix: props.idPrefix,
+                        pages: props.pages,
                         defaultTab: props.defaultTab
                     })
                 )}
@@ -597,15 +611,18 @@ const FeatureGroupTree = (props: {
 };
 
 /**
- * Cross-kind chapter for `menuLayout: 'feature'`. Renders nothing when the
- * `groups` dict is empty. The same component renders both the Primary
- * ("Features") and Reference chapters — `chapterKey` drives the id prefix,
- * collapse state, and label.
+ * The Features chapter of `menuLayout: 'feature'`: the entry points as a
+ * tree of their import path segments, each feature below its entry point
+ * and its members below it. `groups` is keyed by feature page path;
+ * `pages` holds the paths that have a feature page and `first` the path
+ * listed first (an app's root feature). Renders nothing without groups.
  */
 type FeatureSectionProps = {
     groups?: Record<string, EntityWithKind[]>;
+    pages: ReadonlySet<string>;
+    first?: string;
     groupDepth: number;
-    chapterKey: 'features' | 'references';
+    chapterKey: 'features';
     label: string;
     defaultTab?: 'api';
 };
@@ -641,7 +658,11 @@ const FeatureSection = (props: FeatureSectionProps): string => {
     }
     const id = `${props.chapterKey}-links`;
     const idPrefix = `${props.chapterKey}-group-`;
-    const tree = buildGroupTree(groups as unknown as Record<string, any[]>);
+    const sorted = buildGroupTree(groups as unknown as Record<string, any[]>);
+    const tree = [
+        ...sorted.filter(node => node.fullPath === props.first),
+        ...sorted.filter(node => node.fullPath !== props.first)
+    ];
     return (
         <li class={`chapter ${props.chapterKey}`}>
             <button
@@ -663,6 +684,7 @@ const FeatureSection = (props: FeatureSectionProps): string => {
                         depth: 0,
                         groupDepth: props.groupDepth,
                         idPrefix,
+                        pages: props.pages,
                         defaultTab: props.defaultTab
                     })
                 )}
@@ -856,7 +878,6 @@ const withoutHidden = (d: any): any => {
         return d;
     }
     const keep = (kind: TableKind) => (item: any) => hasOwnPage(view, kind as EntityKind, item);
-    const keepOwnKind = (item: any) => !isHiddenItem(view, item.kind, item);
     const list = (items: any[] | undefined, test: (item: any) => boolean) =>
         items && cached(view, items, () => items.filter(test));
     const groups = (record: Record<string, any[]> | undefined, test: (item: any) => boolean) =>
@@ -880,18 +901,6 @@ const withoutHidden = (d: any): any => {
             return misc;
         });
     }
-    const folders = (record: Record<string, any[]> | undefined) =>
-        record &&
-        cached(view, record, () =>
-            Object.fromEntries(
-                Object.entries(record).map(([key, items]) => [
-                    key,
-                    foldClusterMembers(items.filter(keepOwnKind), view, d.symbols)
-                ])
-            )
-        );
-    copy.categorizedByFeature = folders(d.categorizedByFeature);
-    copy.categorizedByFeaturePrimary = folders(d.categorizedByFeaturePrimary);
     return copy;
 };
 
@@ -1052,24 +1061,25 @@ export const Menu = (props: MenuProps): string => {
                     </li>
                 )}
 
-                {/* Feature-folder layout renders ONE curated cross-kind chapter ("Features":
-                    organisms — components, directives, pipes, injectables, classes, guards,
-                    interceptors, entities, plus any reference-kind symbol promoted via
-                    @docsKind primary). The exhaustive reference surface lives on the
-                    `references.html` portal page (linked below as a top-level chapter, not a
-                    tree). That keeps the sidebar scannable and matches angular.dev/api. */}
+                {/* Feature layout: ONE Features chapter, entry points > features > the
+                    primary members of each feature (its whole surface when it has no primary
+                    member). The exhaustive reference surface lives on the `references.html`
+                    portal page, linked below as a top-level chapter, not a tree. */}
                 {(d.menuLayout ?? 'type') === 'feature' ? (
                     <>
                         {CachedFeatureSection(
                             {
-                                groups: d.categorizedByFeaturePrimary,
+                                groups: featureGroups(d.semantic, d.symbols, d.di, 'primary'),
+                                pages: featurePagePaths(d.semantic),
+                                first: appRootPath(d.semantic),
                                 groupDepth: d.groupDepth,
                                 chapterKey: 'features',
                                 label: d.featuresName || t('features')
                             },
                             d.symbols
                         )}
-                        {Object.keys(d.categorizedByFeature ?? {}).length > 0 && (
+                        {Object.keys(featureGroups(d.semantic, d.symbols, d.di, 'all')).length >
+                            0 && (
                             <li class="chapter references">
                                 <a
                                     data-type="chapter-link"

@@ -83,19 +83,6 @@ describe('page layout contract', () => {
         expect(hrefText(hrefFor({ type: 'root', page: 'index' }, 0))).toBe('./index.html');
     });
 
-    it('nests bucket landing pages below categories/', () => {
-        expect(pageLocation({ type: 'bucket', segments: ['ui'] })).toEqual({
-            path: 'categories',
-            filename: 'ui',
-            depth: 1
-        });
-        expect(pageLocation({ type: 'bucket', segments: ['ui', 'feedback', 'toast'] })).toEqual({
-            path: 'categories/ui/feedback',
-            filename: 'toast',
-            depth: 3
-        });
-    });
-
     it('places feature pages below features/ by import path segments', () => {
         expect(pageLocation({ type: 'feature', segments: ['forms', 'select'] })).toEqual({
             path: 'features/forms',

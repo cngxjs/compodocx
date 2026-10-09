@@ -91,7 +91,7 @@ describe('CLI semantic analysis', () => {
         ].join('\n');
         expect(page).to.contain('provideFoo');
         expect(page).not.to.contain('usesInjectionContext');
-        expect(page).not.to.contain('@sem/core/tokens');
+        expect(page).not.to.contain('exportedBy');
     });
 
     it('documents providers and features on one page per feature type', () => {
@@ -159,7 +159,8 @@ describe('CLI semantic analysis', () => {
             path.join(htmlFolder, pageOf('provider', 'provideFooLimit')),
             'utf8'
         );
-        expect(provider).to.contain(`href="../${rootPage('dependency-injection')}"`);
+        // Breadcrumb: entry point > feature, the feature linked to its page.
+        expect(provider).to.contain(`href="../${featurePage(['core', 'di'])}"`);
     });
 
     it('links provider calls in a component providers array', () => {

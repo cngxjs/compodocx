@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { pageOf } from '../src/helpers/pages';
-import { bucketUrl, pageUrl } from './pages';
+import { featureUrl, pageUrl } from './pages';
 
 // Runs against the standalone-app fixture rebuilt with menuLayout: 'feature'
 // (see playwright project `standalone-feature`, port 4004). Sidebar holds
-// the curated Features chapter (organisms + @docsKind primary promotions);
-// the exhaustive reference catalogue lives on the single-page
-// `references.html` portal, linked as a top-level chapter.
+// the Features chapter (features derived from the folders, each with its
+// primary members); the exhaustive reference catalogue lives on the
+// single-page `references.html` portal, linked as a top-level chapter.
 
 test.describe('menuLayout: "feature" sidebar', () => {
     test.beforeEach(async ({ page }) => {
@@ -35,17 +35,17 @@ test.describe('menuLayout: "feature" sidebar', () => {
     }) => {
         // Miscellaneous is redundant under feature layout — functions /
         // variables / typealiases / enumerations all surface on
-        // `references.html` and on per-bucket landings.
+        // `references.html` and on the feature pages.
         await expect(page.locator('#miscellaneous-links')).toHaveCount(0);
     });
 
-    test('Features chapter mixes primary-kind entities in one bucket', async ({ page }) => {
-        // The admin-settings folder in the standalone fixture bundles a
+    test('Features chapter mixes primary-kind entities in one feature', async ({ page }) => {
+        // The admin-settings feature in the standalone fixture bundles a
         // service (injectable) with three components — exercises the cross-
         // kind mixing the chapter is built for.
         const bucket = page
             .locator('#features-links')
-            .locator('ul[id="features-group-features/admin-settings"]');
+            .locator('ul[id="features-group-admin-settings"]');
         await expect(bucket).toHaveCount(1);
 
         await expect(
@@ -223,20 +223,22 @@ test.describe('menuLayout: "feature" sidebar', () => {
         await expect(page.locator('h1.cdx-entity-hero-name')).toContainText('provideUserFeature');
     });
 
-    test('hero breadcrumb mirrors the sidebar bucket path in feature layout', async ({ page }) => {
-        // Tagged misc symbol — breadcrumb from @category.
+    test('hero breadcrumb names the feature and links its page', async ({ page }) => {
+        // A symbol at the app root belongs to the app's root feature.
         await page.goto(pageUrl('provider', 'provideUserFeature'));
         await page.waitForLoadState('domcontentloaded');
-        const taggedCrumbs = page.locator('.cdx-breadcrumb li').allInnerTexts();
-        await expect(page.locator('.cdx-breadcrumb li').first()).toHaveText('Providers');
-        await expect(page.locator('.cdx-breadcrumb li').last()).toHaveText('provideUserFeature');
-        const labels = await taggedCrumbs;
+        const crumbs = page.locator('.cdx-breadcrumb li');
+        await expect(crumbs.first()).toHaveText('app');
+        await expect(crumbs.last()).toHaveText('provideUserFeature');
+        const labels = await crumbs.allInnerTexts();
         expect(labels.some(t => t === 'Miscellaneous' || t === 'Functions')).toBe(false);
 
-        // Untagged component — folder-fallback derived path.
+        // A component in a feature folder.
         await page.goto(pageUrl('component', 'DashboardComponent'));
         await page.waitForLoadState('domcontentloaded');
-        await expect(page.locator('.cdx-breadcrumb li').first()).toHaveText('dashboard');
+        const first = page.locator('.cdx-breadcrumb li').first();
+        await expect(first).toHaveText('dashboard');
+        await expect(first.locator('a')).toHaveAttribute('href', /features\/dashboard\.html$/);
     });
 
     test('a function guard has its own page', async ({ page }) => {
@@ -245,10 +247,10 @@ test.describe('menuLayout: "feature" sidebar', () => {
         await expect(page.locator('h1.cdx-entity-hero-name')).toContainText('roleGuard');
     });
 
-    test('sidebar bucket label navigates to the auto-generated landing page', async ({ page }) => {
+    test('sidebar feature label navigates to the feature page', async ({ page }) => {
         // Whole-row toggle contract: the row itself is the toggle
         // (role="button"); the inner `<a data-cdx-bucket-link>` navigates
-        // to `categories/<bucket>.html`. The client handler short-circuits
+        // to `features/<feature>.html`. The client handler short-circuits
         // when the click target sits inside the anchor, so navigation
         // wins over toggle without `stopPropagation()`.
         const features = page.locator('#features-links');
@@ -257,13 +259,12 @@ test.describe('menuLayout: "feature" sidebar', () => {
         const href = await labels.first().getAttribute('href');
         // The SPA router may prefix sidebar links with `./` at runtime;
         // accept either form so the test is depth-resilient.
-        expect(href).toMatch(/^(?:\.\/)?categories\/[^"]+\.html$/);
+        expect(href).toMatch(/^(?:\.\/)?features\/[^"]+\.html$/);
 
-        // Navigate directly (the bucket may be collapsed in the sidebar).
+        // Navigate directly (the group may be collapsed in the sidebar).
         await page.goto(href!);
         await page.waitForLoadState('domcontentloaded');
-        await expect(page.locator('.cdx-entity-hero')).toBeVisible();
-        await expect(page.locator('.cdx-bucket-landing-content')).toBeVisible();
+        await expect(page.locator('.cdx-entity-hero[data-cdx-feature]')).toBeVisible();
     });
 
     test('clicking the bucket row outside the link toggles expand/collapse', async ({ page }) => {
@@ -283,7 +284,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
 
     test('clicking the bucket link navigates without toggling the row', async ({ page }) => {
         // Inverse of the above: clicking the inner anchor must navigate
-        // to the bucket landing page, not toggle the row. The client
+        // to the feature page, not toggle the row. The client
         // handler short-circuits on `[data-cdx-bucket-link]` so the
         // anchor's native click runs unaltered. SPA router intercepts
         // internal anchors and pushes state via fetch + history API
@@ -295,39 +296,26 @@ test.describe('menuLayout: "feature" sidebar', () => {
         await link.click();
         await page.waitForURL(url => url.pathname.endsWith(target));
         expect(page.url()).toContain(target);
-        await expect(page.locator('.cdx-bucket-landing-content')).toBeVisible();
+        await expect(page.locator('.cdx-entity-hero[data-cdx-feature]')).toBeVisible();
     });
 
-    test('bucket landing page groups members by kind into card lists', async ({ page }) => {
-        // admin-settings bundles a service + multiple components — every
-        // landing page emits an "Organisms" section for components/etc.
-        // and a "References" section for interfaces/functions/types.
-        await page.goto(bucketUrl(['features', 'admin-settings']));
+    test('feature page lists its members by role, linked to their pages', async ({ page }) => {
+        // admin-settings bundles a service with several components.
+        await page.goto(featureUrl(['admin-settings']));
         await page.waitForLoadState('domcontentloaded');
-        // Buckets may render one or two card lists (Organisms / References),
-        // depending on which kinds the bucket holds. At least one must exist.
-        expect(await page.locator('.cdx-bucket-card-list').count()).toBeGreaterThan(0);
-        const cards = page.locator('.cdx-bucket-card');
-        expect(await cards.count()).toBeGreaterThan(0);
-        // Cards link out to per-kind detail pages and carry a kind chip.
-        const firstCard = cards.first();
-        await expect(firstCard.locator('.cdx-badge')).toBeAttached();
-        await expect(firstCard.locator('.cdx-bucket-card-name')).toBeAttached();
-        const linkHref = await firstCard.locator('a.cdx-bucket-card-link').getAttribute('href');
-        expect(linkHref).toMatch(
-            /(?:components|directives|pipes|injectables|classes|guards|interceptors|entities|interfaces|miscellaneous)\/[A-Za-z0-9_-]+\.html$/
-        );
+        await expect(page.locator('h2#components-and-directives')).toHaveCount(1);
+        await expect(page.locator('h2#services')).toHaveCount(1);
+        const rows = page.locator('tr[data-cdx-feature-member]');
+        expect(await rows.count()).toBeGreaterThan(1);
+        const linkHref = await rows.first().locator('a').first().getAttribute('href');
+        expect(linkHref).toMatch(/(?:components|directives|injectables)\/[A-Za-z0-9_-]+\.html$/);
     });
 
-    test('intermediate bucket landings aggregate items from every descendant leaf', async ({
-        page
-    }) => {
-        // `users` is an intermediate folder containing `users/components`.
-        // Its landing page should list every descendant entity, not zero.
-        await page.goto(bucketUrl(['users']));
+    test('a feature folder with nested folders lists every member below it', async ({ page }) => {
+        // `users` holds `users/components`; the feature page lists both levels.
+        await page.goto(featureUrl(['users']));
         await page.waitForLoadState('domcontentloaded');
-        const cards = page.locator('.cdx-bucket-card');
-        expect(await cards.count()).toBeGreaterThan(0);
+        expect(await page.locator('tr[data-cdx-feature-member]').count()).toBeGreaterThan(1);
     });
 
     test('entity hero exposes data-pagefind-filter attributes for the facet UI', async ({
@@ -335,7 +323,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
     }) => {
         // Filter attrs are emitted as one hidden span per dimension next to
         // the meta block on every entity hero. They drive the command-palette
-        // facet rail (kind / lib / bucket / tier / wcag). Pagefind 1.x only
+        // facet rail (kind / lib / feature / wcag). Pagefind 1.x only
         // recognises the canonical `data-pagefind-filter="dim:value"` form,
         // so each dimension gets its own span.
         await page.goto(pageUrl('component', 'DashboardComponent'));
@@ -344,16 +332,15 @@ test.describe('menuLayout: "feature" sidebar', () => {
             .locator('.cdx-entity-hero')
             .first()
             .locator('span[data-pagefind-filter]');
-        // At minimum: kind + tier (every entity has a docsKind classification).
-        // Lib + bucket may or may not be present depending on whether the
-        // entity sits in a categorised folder.
+        // At minimum: kind + feature (every documented symbol has a feature).
         const count = await filterSpans.count();
         expect(count).toBeGreaterThanOrEqual(2);
         const attrs = await filterSpans.evaluateAll(els =>
             els.map(el => el.getAttribute('data-pagefind-filter'))
         );
         expect(attrs).toContain('kind:Component');
-        expect(attrs.some(a => a?.startsWith('tier:'))).toBe(true);
+        expect(attrs).toContain('feature:dashboard');
+        expect(attrs.some(a => a?.startsWith('tier:') || a?.startsWith('bucket:'))).toBe(false);
     });
 
     test('WCAG chip renders when @wcag tag is present; @a11y is not surfaced visually', async ({

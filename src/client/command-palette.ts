@@ -227,23 +227,22 @@ interface SearchResult {
     readonly excerpt?: string;
 }
 
-/** Facet dimensions surfaced in the dropdown. `tier` distinguishes
- *  Features (primary) from References (reference) so users can narrow to
- *  curated entry points. Order matches the visual layout. */
-const FACET_DIMS = ['kind', 'lib', 'tier', 'wcag'] as const;
+/** Facet dimensions surfaced in the dropdown; `feature` narrows to the
+ *  symbols of one feature. Order matches the visual layout. */
+const FACET_DIMS = ['kind', 'lib', 'feature', 'wcag'] as const;
 type FacetDim = (typeof FACET_DIMS)[number];
 
 const FACET_LABELS: Record<FacetDim, string> = {
     kind: 'Kind',
     lib: 'Library',
-    tier: 'Tier',
+    feature: 'Feature',
     wcag: 'WCAG'
 };
 
 const FACET_VALUE_LABELS: Record<FacetDim, Record<string, string>> = {
     kind: {},
     lib: {},
-    tier: { primary: 'Primary', reference: 'Reference' },
+    feature: {},
     wcag: {}
 };
 
@@ -252,7 +251,7 @@ const FACET_VALUE_LABELS: Record<FacetDim, Record<string, string>> = {
 const activeFilters: Record<FacetDim, Set<string>> = {
     kind: new Set(),
     lib: new Set(),
-    tier: new Set(),
+    feature: new Set(),
     wcag: new Set()
 };
 
@@ -300,7 +299,7 @@ const buildFiltersObj = (): Record<string, string | string[]> | undefined => {
     return any ? out : undefined;
 };
 
-/** Serialize active filters + query into `?q=&kind=&lib=&tier=&wcag=`. Each
+/** Serialize active filters + query into `?q=&kind=&lib=&feature=&wcag=`. Each
  *  multi-value dimension uses comma-separated values (URL-encoded). Empty
  *  dimensions omitted so the URL stays short. */
 const updateUrlFromState = () => {
@@ -513,7 +512,7 @@ const search = async (query: string) => {
             url: d.url,
             type: metaType ?? parsed.type,
             name: parsed.name,
-            category: typeof meta.category === 'string' ? meta.category : undefined,
+            category: [meta.feature, meta.category].find(value => typeof value === 'string'),
             description: typeof meta.description === 'string' ? meta.description : undefined,
             excerpt: typeof d.excerpt === 'string' ? d.excerpt : undefined
         };

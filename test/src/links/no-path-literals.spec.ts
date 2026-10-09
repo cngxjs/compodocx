@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import ts from 'typescript';
 import { describe, expect, it } from 'vitest';
-import { BUCKET_FOLDER, KIND_FOLDER } from '../../../src/app/links/layout';
+import { FEATURE_FOLDER, KIND_FOLDER } from '../../../src/app/links/layout';
 
 /**
  * The page layout is the only owner of output folders. This spec scans the
@@ -20,7 +20,7 @@ const SKIP = ['src/app/links/layout.ts', 'src/locales/', 'src/resources/'];
  */
 const ALLOWLIST: ReadonlyArray<{ file: string; text: string; reason: string }> = [];
 
-const FOLDERS = [...Object.values(KIND_FOLDER), BUCKET_FOLDER];
+const FOLDERS = [...Object.values(KIND_FOLDER), FEATURE_FOLDER];
 const FOLDER_RE = new RegExp(`(^|[^A-Za-z0-9_-])(${FOLDERS.join('|')})(/|\\.html)`);
 const KIND_KEYS: ReadonlySet<string> = new Set(Object.keys(KIND_FOLDER));
 const FOLDER_VALUES: ReadonlySet<string> = new Set(FOLDERS);

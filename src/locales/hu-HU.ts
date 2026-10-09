@@ -3,6 +3,7 @@ export const TRANSLATION_HU_HU = {
     'ai-generated': 'MI-generált',
     'ai-generated-tooltip': 'Ezt a tartalmat MI segítségével generálták',
     'all-categories': 'All categories',
+    'all-features': 'Minden funkció',
     'angular-adoption': 'Angular Átvétel',
     api: 'API',
     'api-reference': 'API Reference',

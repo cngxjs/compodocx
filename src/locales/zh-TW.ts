@@ -3,6 +3,7 @@ export const TRANSLATION_ZH_TW = {
     'ai-generated': 'AI 生成',
     'ai-generated-tooltip': '此內容由 AI 協助生成',
     'all-categories': 'All categories',
+    'all-features': '所有功能',
     'angular-adoption': 'Angular 採用',
     api: 'API',
     'api-reference': 'API Reference',

@@ -3,6 +3,7 @@ export const TRANSLATION_NL_NL = {
     'ai-generated': 'AI-gegenereerd',
     'ai-generated-tooltip': 'Deze inhoud is gegenereerd met AI-ondersteuning',
     'all-categories': 'All categories',
+    'all-features': 'Alle features',
     'angular-adoption': 'Angular Adoptie',
     api: 'API',
     'api-reference': 'API Reference',

@@ -3,6 +3,7 @@ export const TRANSLATION_JA_JP = {
     'ai-generated': 'AI生成',
     'ai-generated-tooltip': 'このコンテンツはAI支援で生成されました',
     'all-categories': 'All categories',
+    'all-features': 'すべての機能',
     'angular-adoption': 'Angular導入状況',
     api: 'API',
     'api-reference': 'API Reference',

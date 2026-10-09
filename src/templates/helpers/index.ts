@@ -1,4 +1,3 @@
-export { resolveBucketSegments } from './breadcrumb-bucket';
 export { capitalize } from './capitalize';
 export type { CoverageStats } from './coverage-stats';
 export { computeCoverageStats } from './coverage-stats';

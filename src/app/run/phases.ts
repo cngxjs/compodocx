@@ -290,9 +290,6 @@ const crawl: Stage = async current => {
     mainData.categorizedGuards = DependenciesEngine.categorizedGuards;
     mainData.categorizedInterceptors = DependenciesEngine.categorizedInterceptors;
     mainData.categorizedEntities = DependenciesEngine.categorizedEntities;
-    mainData.categorizedByFeature = DependenciesEngine.categorizedByFeature;
-    mainData.categorizedByFeaturePrimary = DependenciesEngine.categorizedByFeaturePrimary;
-    mainData.categorizedByFeatureReference = DependenciesEngine.categorizedByFeatureReference;
 
     mainData.routesLength = RouterParserUtil.routesLength();
 

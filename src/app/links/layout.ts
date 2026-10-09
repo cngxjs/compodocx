@@ -46,8 +46,6 @@ export const KIND_FOLDER = {
     provider: 'providers'
 } as const satisfies Record<PageKind, string>;
 
-export const BUCKET_FOLDER = 'categories';
-
 export const FEATURE_FOLDER = 'features';
 
 /** Depth of the pages at the output root. */
@@ -82,7 +80,6 @@ export type PageTarget =
     | { readonly type: 'cluster'; readonly name: string }
     /** A top-level page: index, overview, routes, coverage, app-config, references, ... */
     | { readonly type: 'root'; readonly page: string }
-    | { readonly type: 'bucket'; readonly segments: readonly string[] }
     /** The page of a feature: import path segments (scope dropped), then the key. */
     | { readonly type: 'feature'; readonly segments: readonly string[] }
     | {
@@ -144,14 +141,6 @@ export const pageLocation = (target: PageTarget): PageLocation => {
             return { path: KIND_FOLDER.provider, filename: target.name, depth: 1 };
         case 'root':
             return { path: '', filename: target.page, depth: ROOT_DEPTH };
-        case 'bucket': {
-            const parents = target.segments.slice(0, -1);
-            return {
-                path: parents.length > 0 ? `${BUCKET_FOLDER}/${parents.join('/')}` : BUCKET_FOLDER,
-                filename: last(target.segments),
-                depth: target.segments.length
-            };
-        }
         case 'feature': {
             const parents = target.segments.slice(0, -1);
             return {

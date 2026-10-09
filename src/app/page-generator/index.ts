@@ -7,7 +7,6 @@ export {
     finalizeOutput,
     type OutputContext
 } from './asset-copier';
-export { BucketLandingPageGenerator } from './bucket-landing-page-generator';
 export { ClassPageGenerator } from './class-page-generator';
 export { ComponentPageGenerator } from './component-page-generator';
 export { CoveragePageGenerator } from './coverage-page-generator';

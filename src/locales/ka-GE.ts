@@ -3,6 +3,7 @@ export const TRANSLATION_KA_GE = {
     'ai-generated': 'AI-ის გენერირებული',
     'ai-generated-tooltip': 'ეს კონტენტი შექმნილია AI-ის დახმარებით',
     'all-categories': 'All categories',
+    'all-features': 'ყველა ფუნქციონალი',
     'angular-adoption': 'Angular ადაპტაცია',
     api: 'API',
     'api-reference': 'API Reference',
