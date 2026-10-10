@@ -79,6 +79,7 @@ export class DiPageGenerator {
                 type: 'symbol',
                 kind: 'provider',
                 name: entry.ref.name,
+                folder: entry.folder,
                 file: entry.fileName
             });
             Configuration.addPage({

@@ -1,11 +1,12 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
 describe('CLI generation - JSDoc @example language specifications', () => {
     let stdoutString;
     const distFolder = `${tmp.name}-jsdoc-examples`;
+    const pages = pagesIn(distFolder);
 
     beforeAll(() => {
         tmp.create(distFolder);
@@ -37,7 +38,7 @@ describe('CLI generation - JSDoc @example language specifications', () => {
     });
 
     it('should have generated directive documentation', () => {
-        const isDirectiveExists = exists(`${distFolder}/${pageOf('directive', 'TestClass')}`);
+        const isDirectiveExists = exists(`${distFolder}/${pages.of('directive', 'TestClass')}`);
         expect(isDirectiveExists).to.be.true;
     });
 
@@ -45,7 +46,7 @@ describe('CLI generation - JSDoc @example language specifications', () => {
         let directiveFile: string;
 
         beforeAll(() => {
-            directiveFile = read(`${distFolder}/${pageOf('directive', 'TestClass')}`);
+            directiveFile = read(`${distFolder}/${pages.of('directive', 'TestClass')}`);
         });
 
         // Note on the current rendering pipeline (matches actual output of
@@ -135,7 +136,7 @@ describe('CLI generation - JSDoc @example language specifications', () => {
         let directiveFile: string;
 
         beforeAll(() => {
-            directiveFile = read(`${distFolder}/${pageOf('directive', 'TestClass')}`);
+            directiveFile = read(`${distFolder}/${pages.of('directive', 'TestClass')}`);
         });
 
         it('should use proper HTML structure for code blocks', () => {
@@ -164,7 +165,7 @@ describe('CLI generation - JSDoc @example language specifications', () => {
         let directiveFile: string;
 
         beforeAll(() => {
-            directiveFile = read(`${distFolder}/${pageOf('directive', 'TestClass')}`);
+            directiveFile = read(`${distFolder}/${pages.of('directive', 'TestClass')}`);
         });
 
         it('should emit a language- chip on every example block', () => {

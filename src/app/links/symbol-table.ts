@@ -16,6 +16,8 @@ export interface SymbolEntry {
     readonly ref: SymbolRef;
     /** The engine object, by reference. Read only. */
     readonly data: unknown;
+    /** Folder of the symbol's page: its feature's segments, or `symbolFolder` without one. */
+    readonly folder: readonly string[];
     /** File name of the symbol's page, unique in its folder (`folderFileNames`). */
     readonly fileName: string;
     /** Import path of the nearest exporting barrel; undefined without semantic facts. */
@@ -110,7 +112,7 @@ const TABLE_ORDER: readonly EntityKind[] = [
 const fileNames = (entries: Iterable<SymbolEntry>): ReadonlyMap<SymbolId, string> => {
     const byFolder = new Map<string, FileNameRequest[]>();
     for (const entry of entries) {
-        const folder = symbolFolder(entry.ref.kind);
+        const folder = entry.folder.join('/');
         const request = { id: entry.id, name: entry.ref.name, kind: entry.ref.kind };
         byFolder.set(folder, [...(byFolder.get(folder) ?? []), request]);
     }
@@ -153,6 +155,7 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
                     id,
                     ref,
                     data: item,
+                    folder: symbolFolder(ref.kind),
                     fileName: '',
                     entryPoint: options.semantic?.facts.get(factKey(toSymbolKey(ref)))?.entryPoint,
                     overloads: 0
@@ -168,11 +171,32 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
             }
         }
     }
-    const files = fileNames(byId.values());
-    for (const [id, entry] of byId) {
+    return withFileNames({ byId, byName, dataByName });
+};
+
+const withFileNames = (table: SymbolTable): SymbolTable => {
+    const files = fileNames(table.byId.values());
+    const byId = new Map<SymbolId, SymbolEntry>();
+    for (const [id, entry] of table.byId) {
         byId.set(id, { ...entry, fileName: files.get(id) ?? safeFileName(entry.ref.name) });
     }
-    return { byId, byName, dataByName };
+    return { ...table, byId };
+};
+
+/**
+ * The table with every symbol page moved to the folder `folderOf` gives it
+ * (its feature), file names assigned anew per folder. A symbol `folderOf`
+ * has no folder for keeps its kind folder.
+ */
+export const placeInFolders = (
+    table: SymbolTable,
+    folderOf: (entry: SymbolEntry) => readonly string[] | undefined
+): SymbolTable => {
+    const byId = new Map<SymbolId, SymbolEntry>();
+    for (const [id, entry] of table.byId) {
+        byId.set(id, { ...entry, folder: folderOf(entry) ?? symbolFolder(entry.ref.kind) });
+    }
+    return withFileNames({ ...table, byId });
 };
 
 export const emptySymbolTable = (): SymbolTable => ({
@@ -367,9 +391,16 @@ export const entryInFile = (
     name: string,
     file: string | undefined
 ): SymbolEntry | undefined => {
-    const occurrence = occurrencesOf(table, name).find(
-        o => o.kind === kind && (o.data as Named).file === file
-    );
+    const occurrences = occurrencesOf(table, name).filter(o => o.kind === kind);
+    // The engine's own path first, then the id form (absolute or backslash paths).
+    const id = file === undefined ? undefined : symbolFile(file, process.cwd());
+    const refFile = (o: Occurrence) => table.byId.get(o.id)?.ref.file ?? '';
+    // A path from another root (a coverage report) ends with the id form; only a unique match counts.
+    const bySuffix = occurrences.filter(o => id?.endsWith(`/${refFile(o)}`));
+    const occurrence =
+        occurrences.find(o => (o.data as Named).file === file) ??
+        occurrences.find(o => id !== undefined && refFile(o) === id) ??
+        (bySuffix.length === 1 ? bySuffix[0] : undefined);
     const entry = occurrence && table.byId.get(occurrence.id);
     if (!occurrence || !entry) {
         return undefined;

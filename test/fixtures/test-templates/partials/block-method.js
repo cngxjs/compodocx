@@ -10,7 +10,7 @@
 module.exports = function (data, helpers) {
     const { methods, file, title } = data;
     const t = helpers.t;
-    const linkType = helpers.linkTypeHtml;
+    const linkType = type => helpers.linkTypeHtml(type, { depth: data.depth });
 
     if (!methods || methods.length === 0) {
         return '';

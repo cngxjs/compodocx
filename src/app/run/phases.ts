@@ -20,7 +20,7 @@ import { buildSymbolTable } from '../links';
 import { copyAssetsFolder, copyResources, finalizeOutput } from '../page-generator';
 import { crawlDependencies, crawlMicroDependencies } from '../services/dependencies';
 import type { RunContext, RunMode, Stage } from './context';
-import { deriveFeatures } from './features';
+import { deriveFeatures, placeInFeatures } from './features';
 import { type Halt, halt } from './halt';
 import { countsFromDiff, countsFromEngine, runPrepareStages, selectPrepareStages } from './stages';
 
@@ -252,13 +252,15 @@ const withSymbols = (ctx: RunContext): RunContext => {
         model: { ...ctx.semantic.model, features: detection.model }
     };
     mainData.semantic = semantic.model;
+    const placed = placeInFeatures(symbols, detection.model);
+    mainData.symbols = placed;
     if (ctx.mode !== 'diff') {
         for (const warning of detection.warnings) {
             logger.warn(warning);
         }
         logger.info(formatFeatureSummary(detection.model));
     }
-    return { ...ctx, symbols, di, semantic };
+    return { ...ctx, symbols: placed, di, semantic };
 };
 
 /** The crawler parses nothing the semantic program already holds. */

@@ -1,17 +1,17 @@
 import { expect, test } from '@playwright/test';
 import { pageUrl } from './pages';
 
-const COMPONENT_URL = pageUrl('component', 'LoadingSpinnerComponent');
+const COMPONENT_URL = (): string => pageUrl('component', 'LoadingSpinnerComponent');
 
 test.describe('Playground tab', () => {
     test('renders the Playground tab on a component with @playground blocks', async ({ page }) => {
-        await page.goto(COMPONENT_URL);
+        await page.goto(COMPONENT_URL());
         const tabBar = page.locator('.cdx-tab-bar');
         await expect(tabBar).toContainText('Playground');
     });
 
     test('emits a manifest script and a launch button per @playground block', async ({ page }) => {
-        await page.goto(COMPONENT_URL);
+        await page.goto(COMPONENT_URL());
         await page.locator('a#playground-tab').click();
         const buttons = page.locator('.cdx-playground-launch');
         // Default (inline) + Multiple (html-mode) + Toggle (ts-mode) = 3
@@ -36,7 +36,7 @@ test.describe('Playground tab', () => {
     test('inline-mode manifest packs the JSDoc snippet as the AppComponent template', async ({
         page
     }) => {
-        await page.goto(COMPONENT_URL);
+        await page.goto(COMPONENT_URL());
         await page.locator('a#playground-tab').click();
         const inlineButton = page.locator('.cdx-playground-launch').nth(0);
         const manifestId = await inlineButton.getAttribute('data-cdx-stackblitz-manifest');
@@ -52,7 +52,7 @@ test.describe('Playground tab', () => {
     test('html-mode fileRef body lands inside the AppComponent template literal', async ({
         page
     }) => {
-        await page.goto(COMPONENT_URL);
+        await page.goto(COMPONENT_URL());
         await page.locator('a#playground-tab').click();
         const htmlButton = page.locator('.cdx-playground-launch').nth(1);
         const manifestId = await htmlButton.getAttribute('data-cdx-stackblitz-manifest');
@@ -67,7 +67,7 @@ test.describe('Playground tab', () => {
     test('ts-mode fileRef replaces the AppComponent with the entry source verbatim', async ({
         page
     }) => {
-        await page.goto(COMPONENT_URL);
+        await page.goto(COMPONENT_URL());
         await page.locator('a#playground-tab').click();
         const tsButton = page.locator('.cdx-playground-launch').nth(2);
         const manifestId = await tsButton.getAttribute('data-cdx-stackblitz-manifest');
@@ -83,7 +83,7 @@ test.describe('Playground tab', () => {
     test('manifest JSON uses \\u escapes for `<`/`>`/`&` so it survives any HTML parser', async ({
         page
     }) => {
-        await page.goto(COMPONENT_URL);
+        await page.goto(COMPONENT_URL());
         await page.locator('a#playground-tab').click();
         // Each manifest script must be parseable from textContent without
         // browser-side surprises — regression for the sprint-4 hardening fix.
@@ -115,7 +115,7 @@ test.describe('Playground tab', () => {
     });
 
     test('clicking the launch button calls openProject({ newWindow: true })', async ({ page }) => {
-        await page.goto(COMPONENT_URL);
+        await page.goto(COMPONENT_URL());
         await page.locator('a#playground-tab').click();
 
         // Replace the dynamic SDK import with a stub that records the call.

@@ -1,5 +1,5 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -399,6 +399,7 @@ describe('CLI coverage report', () => {
             coverageFile = read(`${distFolder}/coverage.html`);
         });
         afterAll(() => tmp.clean(distFolder));
+        const pages = pagesIn(distFolder);
 
         it('it should have links in coverage page', () => {
             // Entity-type column is now rendered as `cdx-badge--entity-…`
@@ -414,17 +415,17 @@ describe('CLI coverage report', () => {
             expect(coverageFile).to.contain('cdx-badge--entity-pipe');
             expect(coverageFile).to.contain('cdx-badge--entity-variable');
 
-            expect(coverageFile).to.contain(`${pageOf('component', 'CompodocComponent')}`);
-            expect(coverageFile).to.contain(`${pageOf('interface', 'ClockInterface')}`);
-            expect(coverageFile).to.contain(`${pageOf('function', 'foo')}`);
-            expect(coverageFile).to.contain(`${pageOf('typealias', 'ChartChange')}`);
-            expect(coverageFile).to.contain(`${pageOf('variable', 'PI')}`);
-            expect(coverageFile).to.contain(`${pageOf('pipe', 'FirstUpperPipe')}`);
-            expect(coverageFile).to.contain(`${pageOf('directive', 'DoNothingDirective2')}`);
-            expect(coverageFile).to.contain(`${pageOf('injectable', 'TodoStore2')}`);
-            expect(coverageFile).to.contain(`${pageOf('class', 'Todo2')}`);
-            expect(coverageFile).to.contain(`${pageOf('guard', 'AuthGuard')}`);
-            expect(coverageFile).to.contain(`${pageOf('interceptor', 'NoopInterceptor')}`);
+            expect(coverageFile).to.contain(`${pages.of('component', 'CompodocComponent')}`);
+            expect(coverageFile).to.contain(`${pages.of('interface', 'ClockInterface')}`);
+            expect(coverageFile).to.contain(`${pages.of('function', 'foo')}`);
+            expect(coverageFile).to.contain(`${pages.of('typealias', 'ChartChange')}`);
+            expect(coverageFile).to.contain(`${pages.of('variable', 'PI')}`);
+            expect(coverageFile).to.contain(`${pages.of('pipe', 'FirstUpperPipe')}`);
+            expect(coverageFile).to.contain(`${pages.of('directive', 'DoNothingDirective2')}`);
+            expect(coverageFile).to.contain(`${pages.of('injectable', 'TodoStore2')}`);
+            expect(coverageFile).to.contain(`${pages.of('class', 'Todo2')}`);
+            expect(coverageFile).to.contain(`${pages.of('guard', 'AuthGuard')}`);
+            expect(coverageFile).to.contain(`${pages.of('interceptor', 'NoopInterceptor')}`);
         });
     });
 

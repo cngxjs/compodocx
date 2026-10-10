@@ -1,5 +1,5 @@
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -7,6 +7,7 @@ describe('CLI custom JS templates', () => {
     const distFolder = `${tmp.name}-templates`;
 
     describe('with alternative JS template files', () => {
+        const pages = pagesIn(distFolder);
         let barComponentFile, fooComponentFile;
 
         beforeAll(() => {
@@ -27,8 +28,8 @@ describe('CLI custom JS templates', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            barComponentFile = read(`${distFolder}/${pageOf('component', 'BarComponent')}`);
-            fooComponentFile = read(`${distFolder}/${pageOf('component', 'FooComponent')}`);
+            barComponentFile = read(`${distFolder}/${pages.of('component', 'BarComponent')}`);
+            fooComponentFile = read(`${distFolder}/${pages.of('component', 'FooComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 

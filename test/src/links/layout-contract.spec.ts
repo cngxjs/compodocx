@@ -8,7 +8,8 @@ import {
     type PageTarget,
     pageLocation,
     relativePrefix,
-    safeFileName
+    safeFileName,
+    symbolFolder
 } from '../../../src/app/links/layout';
 
 /**
@@ -17,7 +18,44 @@ import {
  */
 describe('page layout contract', () => {
     const symbol = (kind: string, name: string, extra = {}): PageTarget =>
-        ({ type: 'symbol', kind, name, file: name, ...extra }) as PageTarget;
+        ({
+            type: 'symbol',
+            kind,
+            name,
+            folder: symbolFolder(kind as never),
+            file: name,
+            ...extra
+        }) as PageTarget;
+
+    it('puts a symbol page in its feature folder, as deep as the folder', () => {
+        const page = symbol('component', 'SelectPanel', { folder: ['forms', 'select'] });
+        expect(pageLocation(page)).toEqual({
+            path: 'forms/select',
+            filename: 'SelectPanel',
+            depth: 2
+        });
+        expect(hrefText(hrefFor(page, 3))).toBe('../../../forms/select/SelectPanel.html');
+        expect(
+            pageLocation(symbol('function', 'withMode', { folder: ['core'], file: 'withMode' }))
+        ).toEqual({ path: 'core', filename: 'withMode', depth: 1 });
+    });
+
+    it('puts the page of a feature type with its providers in the feature folder', () => {
+        const cluster: PageTarget = {
+            type: 'cluster',
+            name: 'FooFeature',
+            folder: ['core', 'tokens'],
+            file: 'FooFeature'
+        };
+        expect(pageLocation(cluster)).toEqual({
+            path: 'core/tokens',
+            filename: 'FooFeature',
+            depth: 2
+        });
+        expect(hrefText(hrefFor(cluster, 1, 'FooFeature--withMode'))).toBe(
+            '../core/tokens/FooFeature.html#FooFeature--withMode'
+        );
+    });
 
     it.each([
         ['component', 'components'],
@@ -32,24 +70,12 @@ describe('page layout contract', () => {
         ['token', 'tokens'],
         ['resolver', 'resolvers'],
         ['provider', 'providers']
-    ])('puts a %s page in %s/ at depth 1', (kind, folder) => {
+    ])('without a feature, puts a %s page in %s/ at depth 1', (kind, folder) => {
         expect(pageLocation(symbol(kind, 'Foo'))).toEqual({
             path: folder,
             filename: 'Foo',
             depth: 1
         });
-    });
-
-    it('puts a cluster page in providers/ under its feature type name', () => {
-        const cluster: PageTarget = { type: 'cluster', name: 'FooFeature', file: 'FooFeature' };
-        expect(pageLocation(cluster)).toEqual({
-            path: 'providers',
-            filename: 'FooFeature',
-            depth: 1
-        });
-        expect(hrefText(hrefFor(cluster, 1, 'FooFeature--withMode'))).toBe(
-            '../providers/FooFeature.html#FooFeature--withMode'
-        );
     });
 
     it('writes a symbol page under its file name', () => {
@@ -117,7 +143,7 @@ describe('page layout contract', () => {
         ['variable', 'variables'],
         ['typealias', 'typealiases'],
         ['enumeration', 'enumerations']
-    ])('puts every %s on its own page in %s/ at depth 1', (kind, folder) => {
+    ])('without a feature, puts every %s on its own page in %s/ at depth 1', (kind, folder) => {
         expect(pageLocation(symbol(kind, 'item'))).toEqual({
             path: folder,
             filename: 'item',
@@ -136,20 +162,20 @@ describe('page layout contract', () => {
         expect(hrefText(hrefFor({ type: 'root', page: 'index' }, 0))).toBe('./index.html');
     });
 
-    it('places feature pages below features/ by import path segments', () => {
+    it('writes a feature page as index.html in the folder of its import path segments', () => {
         expect(pageLocation({ type: 'feature', segments: ['forms', 'select'] })).toEqual({
-            path: 'features/forms',
-            filename: 'select',
+            path: 'forms/select',
+            filename: 'index',
             depth: 2
         });
         expect(pageLocation({ type: 'feature', segments: ['admin'] })).toEqual({
-            path: 'features',
-            filename: 'admin',
+            path: 'admin',
+            filename: 'index',
             depth: 1
         });
         expect(
             hrefText(hrefFor({ type: 'feature', segments: ['common', 'interactive', 'menu'] }, 1))
-        ).toBe('../features/common/interactive/menu.html');
+        ).toBe('../common/interactive/menu/index.html');
     });
 
     it('nests additional pages below their folder by slug', () => {
@@ -176,7 +202,7 @@ describe('page layout contract', () => {
 
     it.each<[string, PageTarget]>([
         ['symbol', symbol('component', 'Foo')],
-        ['cluster', { type: 'cluster', name: 'Feature' }],
+        ['cluster', { type: 'cluster', name: 'Feature', folder: ['core'], file: 'Feature' }],
         ['root', { type: 'root', page: 'index' }],
         ['feature', { type: 'feature', segments: ['forms', 'select', 'chips'] }],
         ['additional', { type: 'additional', folder: 'guides', slugs: ['a', 'b', 'c'] }],

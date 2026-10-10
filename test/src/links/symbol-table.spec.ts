@@ -5,6 +5,7 @@ import {
     ambiguousNames,
     buildSymbolTable,
     type EngineData,
+    entryInFile,
     lookupEntry,
     lookupName,
     type SymbolTable
@@ -266,5 +267,18 @@ describe('symbol table', () => {
 
     it('lists names that more than one symbol carries', () => {
         expect(ambiguousNames(table)).toEqual(['DEFAULT_PAGE_SIZE', 'Foo', 'SettingsService']);
+    });
+
+    it('finds an entry by file written as engine path, absolute, backslash or from another root', () => {
+        const own = buildSymbolTable(
+            { components: [item('App', 'src/app/app.ts'), item('Other', 'src/other/app.ts')] },
+            { cwd: process.cwd() }
+        );
+        const found = (file: string) => entryInFile(own, 'component', 'App', file)?.id;
+        expect(found('src/app/app.ts')).toBe('component:src/app/app.ts#App');
+        expect(found(`${process.cwd()}/src/app/app.ts`)).toBe('component:src/app/app.ts#App');
+        expect(found('src\\app\\app.ts')).toBe('component:src/app/app.ts#App');
+        expect(found('fixtures/demo/src/app/app.ts')).toBe('component:src/app/app.ts#App');
+        expect(found('src/elsewhere/app.ts')).toBeUndefined();
     });
 });

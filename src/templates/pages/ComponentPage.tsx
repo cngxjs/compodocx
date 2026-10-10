@@ -413,7 +413,7 @@ export const ComponentPage = (data: any): string => {
                 </div>
                 <nav aria-label="Breadcrumb">
                     <ol class="cdx-breadcrumb">
-                        {FeatureCrumbs(feature, 1) ?? ((<li>{t('components')}</li>) as string)}
+                        {FeatureCrumbs(feature, depth) ?? ((<li>{t('components')}</li>) as string)}
                         <li aria-current="page">{c.name}</li>
                     </ol>
                 </nav>

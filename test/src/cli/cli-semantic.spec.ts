@@ -1,7 +1,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { relativePrefix } from '../../../src/app/links/layout';
 import { shell, temporaryDir } from '../helpers';
-import { clusterPage, featurePage, pageOf, rootPage } from '../helpers/pages';
+import { featurePage, pagesIn, rootPage } from '../helpers/pages';
 import { readKindPages } from './paths';
 
 /** The type layout this suite asserts (the default is the feature layout). */
@@ -16,6 +17,7 @@ const stripAnsi = (text: string): string => text.replaceAll(/\x1b\[[0-9;]*m/g, '
 describe('CLI semantic analysis', () => {
     const jsonFolder = `${tmp.name}-semantic-json`;
     const htmlFolder = `${tmp.name}-semantic-html`;
+    const pages = pagesIn(htmlFolder);
     let status: number | null;
     let stdout: string;
     let data: any;
@@ -92,7 +94,7 @@ describe('CLI semantic analysis', () => {
     it('renders no semantic facts into the HTML output', () => {
         const page = [
             readKindPages(htmlFolder, 'function'),
-            fs.readFileSync(path.join(htmlFolder, clusterPage('FooFeature')), 'utf8')
+            fs.readFileSync(path.join(htmlFolder, pages.cluster('FooFeature')), 'utf8')
         ].join('\n');
         expect(page).to.contain('provideFoo');
         expect(page).not.to.contain('usesInjectionContext');
@@ -101,19 +103,22 @@ describe('CLI semantic analysis', () => {
 
     it('documents providers and features on one page per feature type', () => {
         const exists = (file: string) => fs.existsSync(path.join(htmlFolder, file));
-        expect(exists(clusterPage('FooFeature'))).to.equal(true);
-        expect(exists(pageOf('provider', 'provideFooLimit'))).to.equal(true);
+        const clusterFile = pages.cluster('FooFeature');
+        expect(exists(clusterFile)).to.equal(true);
+        expect(exists(pages.of('provider', 'provideFooLimit'))).to.equal(true);
         for (const moved of ['provideFoo', 'withMode', 'provideFooLimit']) {
-            expect(exists(pageOf('function', moved)), moved).to.equal(false);
+            expect(() => pages.of('function', moved), moved).to.throw(/^0 /);
         }
-        expect(exists(pageOf('variable', 'provideFooAt'))).to.equal(false);
-        expect(exists(pageOf('interface', 'FooFeature'))).to.equal(false);
+        expect(() => pages.of('variable', 'provideFooAt')).to.throw(/^0 /);
+        expect(() => pages.of('interface', 'FooFeature')).to.throw(/^0 /);
 
-        const cluster = fs.readFileSync(path.join(htmlFolder, clusterPage('FooFeature')), 'utf8');
+        const cluster = fs.readFileSync(path.join(htmlFolder, clusterFile), 'utf8');
         for (const member of ['provideFoo', 'provideFooAt', 'withMode']) {
             expect(cluster).to.contain(`id="FooFeature--${member}"`);
         }
-        expect(cluster).to.contain(`href="../${pageOf('token', 'FOO_CONFIG')}"`);
+        expect(cluster).to.contain(
+            `href="${pages.href('token', 'FOO_CONFIG', pages.depthOf(clusterFile))}"`
+        );
 
         const utilities = fs.readFileSync(path.join(htmlFolder, 'utilities.html'), 'utf8');
         expect(utilities).not.to.contain('>provideFoo<');
@@ -131,22 +136,26 @@ describe('CLI semantic analysis', () => {
         // entry point with a single feature is its root feature.
         expect(exists(['core', 'di'])).to.equal(false);
         expect(exists(['core', 'foo'])).to.equal(false);
-        const select = fs.readFileSync(
-            path.join(htmlFolder, featurePage(['core', 'select'])),
-            'utf8'
-        );
+        const selectFile = featurePage(['core', 'select']);
+        const select = fs.readFileSync(path.join(htmlFolder, selectFile), 'utf8');
         expect(select).to.contain("import { ... } from '@sem/core/select';");
         expect(select).to.contain('A single-select built from small parts');
-        expect(select).to.contain(`href="../../${pageOf('component', 'SemSelectListbox')}"`);
+        expect(select).to.contain(
+            `href="${pages.href('component', 'SemSelectListbox', pages.depthOf(selectFile))}"`
+        );
     });
 
     it('lists feature members by role and links providers to their feature type page', () => {
-        const core = fs.readFileSync(path.join(htmlFolder, featurePage(['core'])), 'utf8');
+        const coreFile = featurePage(['core']);
+        const depth = pages.depthOf(coreFile);
+        const core = fs.readFileSync(path.join(htmlFolder, coreFile), 'utf8');
         expect(core).to.contain('id="configuration"');
         expect(core).to.contain('id="utilities"');
-        expect(core).to.contain(`href="../${clusterPage('FooFeature')}#FooFeature--provideFoo"`);
-        expect(core).to.contain(`href="../${pageOf('function', 'formatFoo')}"`);
-        expect(core).to.contain(`href="../${pageOf('guard', 'fooReadyGuard')}"`);
+        expect(core).to.contain(
+            `href="${relativePrefix(depth)}${pages.cluster('FooFeature')}#FooFeature--provideFoo"`
+        );
+        expect(core).to.contain(`href="${pages.href('function', 'formatFoo', depth)}"`);
+        expect(core).to.contain(`href="${pages.href('guard', 'fooReadyGuard', depth)}"`);
         const panel = fs.readFileSync(
             path.join(htmlFolder, featurePage(['ui', 'foo-panel'])),
             'utf8'
@@ -160,33 +169,33 @@ describe('CLI semantic analysis', () => {
             path.join(htmlFolder, rootPage('dependency-injection')),
             'utf8'
         );
-        expect(landing).to.contain(`href="./${clusterPage('FooFeature')}"`);
-        expect(landing).to.contain(`href="./${pageOf('provider', 'provideFooLimit')}"`);
-        expect(landing).to.contain(`href="./${pageOf('token', 'FOO_CONFIG')}"`);
+        expect(landing).to.contain(`href="./${pages.cluster('FooFeature')}"`);
+        expect(landing).to.contain(`href="${pages.href('provider', 'provideFooLimit', 0)}"`);
+        expect(landing).to.contain(`href="${pages.href('token', 'FOO_CONFIG', 0)}"`);
         expect(landing).to.contain('id="dependency-injection-links"');
         expect(landing).not.to.contain('id="tokens-links"');
 
-        const provider = fs.readFileSync(
-            path.join(htmlFolder, pageOf('provider', 'provideFooLimit')),
-            'utf8'
-        );
+        const providerFile = pages.of('provider', 'provideFooLimit');
+        const provider = fs.readFileSync(path.join(htmlFolder, providerFile), 'utf8');
         // Breadcrumb: entry point > feature, the feature linked to its page.
-        expect(provider).to.contain(`href="../${featurePage(['core'])}"`);
+        expect(provider).to.contain(
+            `href="${relativePrefix(pages.depthOf(providerFile))}${featurePage(['core'])}"`
+        );
     });
 
     it('links provider calls in a component providers array', () => {
-        const panel = fs.readFileSync(
-            path.join(htmlFolder, pageOf('component', 'SemFooPanel')),
-            'utf8'
+        const panelFile = pages.of('component', 'SemFooPanel');
+        const depth = pages.depthOf(panelFile);
+        const cluster = `${relativePrefix(depth)}${pages.cluster('FooFeature')}`;
+        const panel = fs.readFileSync(path.join(htmlFolder, panelFile), 'utf8');
+        expect(panel).to.contain(
+            `<a href="${cluster}#FooFeature--provideFooAt" target="_self" >provideFooAt</a>`
         );
         expect(panel).to.contain(
-            `<a href="../${clusterPage('FooFeature')}#FooFeature--provideFooAt" target="_self" >provideFooAt</a>`
+            `<a href="${cluster}#FooFeature--withMode" target="_self" >withMode</a>`
         );
         expect(panel).to.contain(
-            `<a href="../${clusterPage('FooFeature')}#FooFeature--withMode" target="_self" >withMode</a>`
-        );
-        expect(panel).to.contain(
-            `<a href="../${pageOf('provider', 'provideFooLimit')}" target="_self" >provideFooLimit</a>`
+            `<a href="${pages.href('provider', 'provideFooLimit', depth)}" target="_self" >provideFooLimit</a>`
         );
 
         const component = data.components.find((c: any) => c.name === 'SemFooPanel');
@@ -197,10 +206,8 @@ describe('CLI semantic analysis', () => {
     });
 
     it('gives a symbol that reaches no entry point no page and lists it in the log', () => {
-        expect(fs.existsSync(path.join(htmlFolder, pageOf('function', 'orphanFoo')))).to.equal(
-            false
-        );
-        expect(fs.existsSync(path.join(htmlFolder, pageOf('function', 'formatFoo')))).to.equal(
+        expect(() => pages.of('function', 'orphanFoo')).to.throw(/^0 /);
+        expect(fs.existsSync(path.join(htmlFolder, pages.of('function', 'formatFoo')))).to.equal(
             true
         );
         expect(stdout).to.contain(

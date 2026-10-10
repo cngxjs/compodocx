@@ -1,5 +1,5 @@
 import { exists, hasStderrError, shell, temporaryDir } from '../helpers';
-import { pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 import { hasKindPages } from './paths';
 
 const tmp = temporaryDir();
@@ -25,9 +25,10 @@ describe('CLI include with tsconfig', () => {
             }
         });
         afterAll(() => tmp.clean(distFolder));
+        const pages = pagesIn(distFolder);
 
         it('should create files included', () => {
-            let isFileExists = exists(`${distFolder}/${pageOf('component', 'BarComponent')}`);
+            let isFileExists = exists(`${distFolder}/${pages.of('component', 'BarComponent')}`);
             expect(isFileExists).to.be.true;
             isFileExists = hasKindPages(distFolder, 'variable');
             expect(isFileExists).to.be.false;
@@ -54,9 +55,10 @@ describe('CLI include with tsconfig', () => {
             }
         });
         afterAll(() => tmp.clean(distFolder));
+        const pages = pagesIn(distFolder);
 
         it('should create file included', () => {
-            let isFileExists = exists(`${distFolder}/${pageOf('component', 'BarComponent')}`);
+            let isFileExists = exists(`${distFolder}/${pages.of('component', 'BarComponent')}`);
             expect(isFileExists).to.be.true;
             isFileExists = hasKindPages(distFolder, 'variable');
             expect(isFileExists).to.be.false;
@@ -81,9 +83,10 @@ describe('CLI include with tsconfig', () => {
             }
         });
         afterAll(() => tmp.clean(distFolder));
+        const pages = pagesIn(distFolder);
 
         it('should create file included', () => {
-            const isFileExists = exists(`${distFolder}/${pageOf('class', 'GenTodo')}`);
+            const isFileExists = exists(`${distFolder}/${pages.of('class', 'GenTodo')}`);
             expect(isFileExists).to.be.true;
         });
     });

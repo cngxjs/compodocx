@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 import { readKindPages } from './paths';
 
 /** The type layout this suite asserts (the default is the feature layout). */
@@ -11,6 +11,7 @@ const tmp = temporaryDir();
 describe('CLI Deprecated', () => {
     const tmpFolder = `${tmp.name}-deprecated`;
     const distFolder = `${tmpFolder}/documentation`;
+    const pages = pagesIn(distFolder);
 
     let menuFile;
 
@@ -45,7 +46,7 @@ describe('CLI Deprecated', () => {
         afterAll(() => tmp.clean(tmpFolder));
 
         it('it should contain injectable deprecated and one API inside', () => {
-            const file = read(`${distFolder}/${pageOf('injectable', 'TodoStore')}`);
+            const file = read(`${distFolder}/${pages.of('injectable', 'TodoStore')}`);
             expect(file).to.contain('class="cdx-deprecation-banner"');
             expect(file).to.contain('<strong>Deprecated</strong>');
             expect(file).to.contain('cdx-member-name--deprecated">getThemAll');
@@ -55,7 +56,7 @@ describe('CLI Deprecated', () => {
         });
 
         it('it should contain component deprecated and APIs inside', () => {
-            const file = read(`${distFolder}/${pageOf('component', 'DumbComponent')}`);
+            const file = read(`${distFolder}/${pages.of('component', 'DumbComponent')}`);
             expect(file).to.contain('class="cdx-deprecation-banner"');
             expect(file).to.contain('cdx-member-name--deprecated">emptyOutput');
             expect(file).to.contain('cdx-member-name--deprecated">emptyInput');
@@ -67,7 +68,7 @@ describe('CLI Deprecated', () => {
         });
 
         it('it should contain directive deprecated and APIs inside', () => {
-            const file = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective2')}`);
+            const file = read(`${distFolder}/${pages.of('directive', 'DoNothingDirective2')}`);
             expect(file).to.contain('class="cdx-deprecation-banner"');
             expect(file).to.contain('cdx-member-name--deprecated">popover');
             expect(menuFile).to.contain(
@@ -76,7 +77,7 @@ describe('CLI Deprecated', () => {
         });
 
         it('it should contain class deprecated and APIs inside', () => {
-            const file = read(`${distFolder}/${pageOf('class', 'Tidi')}`);
+            const file = read(`${distFolder}/${pages.of('class', 'Tidi')}`);
             expect(file).to.contain('class="cdx-deprecation-banner"');
             expect(file).to.contain('cdx-member-name--deprecated">completed');
             expect(menuFile).to.contain(
@@ -87,7 +88,7 @@ describe('CLI Deprecated', () => {
         // Functional interceptor and guard pages mark the title as deprecated
         // but render no deprecation banner (class-based pages do).
         it('it should contain interceptor deprecated and APIs inside', () => {
-            const file = read(`${distFolder}/${pageOf('interceptor', 'NoopInterceptor')}`);
+            const file = read(`${distFolder}/${pages.of('interceptor', 'NoopInterceptor')}`);
             expect(file).to.contain('cdx-member-name--deprecated">NoopInterceptor');
             expect(menuFile).to.contain(
                 'cdx-member-name--deprecated" data-cdx-entity-type="interceptor"><span class="cdx-menu-item-name">NoopInterceptor'
@@ -95,7 +96,7 @@ describe('CLI Deprecated', () => {
         });
 
         it('it should contain guard deprecated and APIs inside', () => {
-            const file = read(`${distFolder}/${pageOf('guard', 'NotAuthGuard')}`);
+            const file = read(`${distFolder}/${pages.of('guard', 'NotAuthGuard')}`);
             expect(file).to.contain('cdx-member-name--deprecated">NotAuthGuard');
             expect(menuFile).to.contain(
                 'cdx-member-name--deprecated" data-cdx-entity-type="guard"><span class="cdx-menu-item-name">NotAuthGuard'
@@ -103,7 +104,7 @@ describe('CLI Deprecated', () => {
         });
 
         it('it should contain interface deprecated and APIs inside', () => {
-            const file = read(`${distFolder}/${pageOf('interface', 'IDATA')}`);
+            const file = read(`${distFolder}/${pages.of('interface', 'IDATA')}`);
             expect(file).to.contain('class="cdx-deprecation-banner"');
             expect(file).to.contain('cdx-member-name--deprecated">value');
             expect(menuFile).to.contain(
@@ -112,7 +113,7 @@ describe('CLI Deprecated', () => {
         });
 
         it('it should contain pipe deprecated and APIs inside', () => {
-            const file = read(`${distFolder}/${pageOf('pipe', 'FirstUpperPipe2')}`);
+            const file = read(`${distFolder}/${pages.of('pipe', 'FirstUpperPipe2')}`);
             expect(file).to.contain('class="cdx-deprecation-banner"');
             expect(file).to.contain('cdx-member-name--deprecated">transform');
             expect(menuFile).to.contain(
@@ -144,7 +145,7 @@ describe('CLI Deprecated', () => {
         // string. The `[object Object]` check rules out a template-literal
         // coerce that would still pass the other assertions.
         it('renders @deprecated JSDoc that contains an inline {@link} reference', () => {
-            const file = read(`${distFolder}/${pageOf('interface', 'TabsI18n')}`);
+            const file = read(`${distFolder}/${pages.of('interface', 'TabsI18n')}`);
             expect(file).to.contain('cdx-member-name--deprecated">commitFailedRetry');
             expect(file).to.contain('class="cdx-member-deprecated"');
             expect(file).to.contain('superseded by');

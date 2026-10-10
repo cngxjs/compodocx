@@ -46,7 +46,21 @@ export const KIND_FOLDER = {
     provider: 'providers'
 } as const satisfies Record<PageKind, string>;
 
-export const FEATURE_FOLDER = 'features';
+/** File name of a feature page inside the feature's folder. */
+export const FEATURE_INDEX = 'index';
+
+/**
+ * Folders the output root already holds (assets, additional pages, search
+ * index); a feature folder never takes one of these names.
+ */
+export const RESERVED_ROOT_FOLDERS: readonly string[] = [
+    'additional-documentation',
+    'assets',
+    'images',
+    'js',
+    'pagefind',
+    'styles'
+];
 
 /** Depth of the pages at the output root. */
 export const ROOT_DEPTH = 0;
@@ -70,14 +84,21 @@ export type PageTarget =
           readonly type: 'symbol';
           readonly kind: PageKind;
           readonly name: string;
+          /** Folder segments: the symbol's feature (`symbolFolder` without one). */
+          readonly folder: readonly string[];
           /** File name without `.html`, unique in its folder (`folderFileNames`). */
           readonly file: string;
       }
     /** The page of a feature type with its providers and feature functions. */
-    | { readonly type: 'cluster'; readonly name: string; readonly file: string }
+    | {
+          readonly type: 'cluster';
+          readonly name: string;
+          readonly folder: readonly string[];
+          readonly file: string;
+      }
     /** A top-level page: index, overview, routes, coverage, app-config, references, ... */
     | { readonly type: 'root'; readonly page: string }
-    /** The page of a feature: import path segments (scope dropped), then the key. */
+    /** The page of a feature, `index` in its folder: import path segments (scope dropped), then the key. */
     | { readonly type: 'feature'; readonly segments: readonly string[] }
     | {
           readonly type: 'additional';
@@ -125,8 +146,8 @@ export const relativePrefix = (depth: number, style: PrefixStyle = 'relative'): 
 
 const joinPath = (folder: string, file: string): string => (folder ? `${folder}/${file}` : file);
 
-/** The folder of the own page of a symbol of `kind`. */
-export const symbolFolder = (kind: PageKind): string => KIND_FOLDER[kind];
+/** The folder of a symbol page without a feature (no semantic facts): its kind folder. */
+export const symbolFolder = (kind: PageKind): readonly string[] => [KIND_FOLDER[kind]];
 
 /** A page file name from a symbol name: characters outside `[A-Za-z0-9._-]` become `-`. */
 export const safeFileName = (name: string): string => name.replace(/[^A-Za-z0-9._-]+/g, '-') || '-';
@@ -204,16 +225,12 @@ const located = (path: string, filename: string): PageLocation => ({
 export const pageLocation = (target: PageTarget): PageLocation => {
     switch (target.type) {
         case 'symbol':
-            return located(symbolFolder(target.kind), target.file);
         case 'cluster':
-            return located(KIND_FOLDER.provider, target.file);
+            return located(target.folder.join('/'), target.file);
         case 'root':
             return located('', target.page);
         case 'feature':
-            return located(
-                [FEATURE_FOLDER, ...target.segments.slice(0, -1)].join('/'),
-                last(target.segments)
-            );
+            return located(target.segments.join('/'), FEATURE_INDEX);
         case 'additional': {
             const filename = last(target.slugs);
             const nested = target.slugs.map(slug => `/${slug}`).join('');

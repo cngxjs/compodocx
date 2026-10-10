@@ -1,5 +1,5 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -21,6 +21,7 @@ const tmp = temporaryDir();
  */
 describe('CLI class-level JSDoc tags on library Components', () => {
     const distFolder = `${tmp.name}-class-jsdoc-lib`;
+    const pages = pagesIn(distFolder);
     let apiStatusFile: string;
     let stdout: string;
 
@@ -42,7 +43,7 @@ describe('CLI class-level JSDoc tags on library Components', () => {
         }
 
         stdout = ls.stdout.toString();
-        apiStatusFile = read(`${distFolder}/${pageOf('component', 'ApiStatusComponent')}`);
+        apiStatusFile = read(`${distFolder}/${pages.of('component', 'ApiStatusComponent')}`);
     });
 
     it('lists the ignored @category tag in the build notice', () => {
@@ -53,7 +54,7 @@ describe('CLI class-level JSDoc tags on library Components', () => {
     afterAll(() => tmp.clean(distFolder));
 
     it('renders the ApiStatusComponent page', () => {
-        expect(exists(`${distFolder}/${pageOf('component', 'ApiStatusComponent')}`)).to.be.true;
+        expect(exists(`${distFolder}/${pages.of('component', 'ApiStatusComponent')}`)).to.be.true;
     });
 
     it('renders an Examples section on the Info tab from the class-level @example', () => {

@@ -1,5 +1,6 @@
+import type { PageKind } from '../../../src/app/links/layout';
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { hrefTo, pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -9,6 +10,9 @@ describe('CLI simple generation - extends app', () => {
     let appComponentFile, myInitialClassFile;
 
     const distFolder = `${tmp.name}-big-app-extends`;
+    const pages = pagesIn(distFolder);
+    /** Depth of the page a link is rendered on. */
+    const depthOf = (kind: PageKind, name: string) => pages.depthOf(pages.of(kind, name));
 
     beforeAll(() => {
         tmp.create(distFolder);
@@ -26,8 +30,8 @@ describe('CLI simple generation - extends app', () => {
             throw new Error('error');
         }
         stdoutString = ls.stdout.toString();
-        appComponentFile = read(`${distFolder}/${pageOf('component', 'AppComponent')}`);
-        myInitialClassFile = read(`${distFolder}/${pageOf('class', 'MyInitialClass')}`);
+        appComponentFile = read(`${distFolder}/${pages.of('component', 'AppComponent')}`);
+        myInitialClassFile = read(`${distFolder}/${pages.of('class', 'MyInitialClass')}`);
     });
     afterAll(() => tmp.clean(distFolder));
 
@@ -39,10 +43,12 @@ describe('CLI simple generation - extends app', () => {
     });
 
     it('DoNothingDirective extends ADirective', () => {
-        const file = read(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
+        const file = read(`${distFolder}/${pages.of('directive', 'DoNothingDirective')}`);
         expect(file).to.contain('Extends');
         expect(file).to.contain('cdx-chip cdx-chip--directive');
-        expect(file).to.contain(`href="${hrefTo('directive', 'ADirective', 1)}"`);
+        expect(file).to.contain(
+            `href="${pages.href('directive', 'ADirective', depthOf('directive', 'DoNothingDirective'))}"`
+        );
         expect(file).to.contain('>ADirective</a>');
     });
 
@@ -52,7 +58,7 @@ describe('CLI simple generation - extends app', () => {
     });
 
     it('FirstClass extends BSecondClass extends AThirdClass', () => {
-        const FirstClassFile = read(`${distFolder}/${pageOf('class', 'FirstClass')}`);
+        const FirstClassFile = read(`${distFolder}/${pages.of('class', 'FirstClass')}`);
         // Direct parent shown in entity hero context line.
         expect(FirstClassFile).to.contain('extends BSecondClass');
         // Inherited members are merged into the FirstClass page:
@@ -68,19 +74,19 @@ describe('CLI simple generation - extends app', () => {
     });
 
     it('CharactersService extends AbstractService', () => {
-        const file = read(`${distFolder}/${pageOf('injectable', 'CharactersService')}`);
+        const file = read(`${distFolder}/${pages.of('injectable', 'CharactersService')}`);
         expect(file).to.contain(
-            `code><a href="${hrefTo('injectable', 'AbstractService', 1)}" target="_self" >AbstractService`
+            `code><a href="${pages.href('injectable', 'AbstractService', depthOf('injectable', 'CharactersService'))}" target="_self" >AbstractService`
         );
     });
 
     it('ClockInterface multiple extends', () => {
-        const file = read(`${distFolder}/${pageOf('interface', 'ClockInterface')}`);
+        const file = read(`${distFolder}/${pages.of('interface', 'ClockInterface')}`);
         expect(file).to.contain(
-            `code><a href="${hrefTo('interface', 'TimeInterface', 1)}" target="_self" >TimeInterface`
+            `code><a href="${pages.href('interface', 'TimeInterface', depthOf('interface', 'ClockInterface'))}" target="_self" >TimeInterface`
         );
         expect(file).to.contain(
-            `code><a href="${hrefTo('interface', 'BooInterface', 1)}" target="_self" >BooInterface`
+            `code><a href="${pages.href('interface', 'BooInterface', depthOf('interface', 'ClockInterface'))}" target="_self" >BooInterface`
         );
     });
 });

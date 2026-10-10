@@ -9,6 +9,7 @@ import {
     renderCustomTemplate
 } from '../../../../src/app/engines/custom-template.engine';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
+import { symbolFolder } from '../../../../src/app/links/layout';
 import { symbolId } from '../../../../src/app/links/symbol-id';
 import { buildSymbolTable, emptySymbolTable } from '../../../../src/app/links/symbol-table';
 import { Menu } from '../../../../src/templates/components/Menu';
@@ -376,11 +377,13 @@ describe('Menu — feature layout', () => {
         expect(html).to.include('class="links collapse in" id="dependency-injection-links"');
         expect(html).to.include(`href="${rootPage('dependency-injection')}"`);
         expect(html).to.include(`href="${clusterPage('FooFeature')}"`);
-        expect(html).to.include(`href="${pageOf('provider', 'provideLimit')}"`);
+        expect(html).to.include(
+            `href="${pageOf('provider', 'provideLimit', { folder: symbolFolder('function') })}"`
+        );
         expect(html).to.include(`href="${pageOf('token', 'FOO_CONFIG')}"`);
         expect(html).to.not.include('id="tokens-links"');
-        // The feature type has no interface page of its own.
-        expect(html).to.not.include(`href="${pageOf('interface', 'FooFeature')}"`);
+        // The feature type has no interface page of its own: its one link is the cluster page.
+        expect(html.split(`href="${clusterPage('FooFeature')}"`)).toHaveLength(2);
     });
 
     it('honours the menu custom-template override regardless of layout', () => {

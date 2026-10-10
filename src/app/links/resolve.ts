@@ -7,6 +7,7 @@ import {
     type PageKind,
     type PageTarget,
     safeFileName,
+    symbolFolder,
     type UtilityKind
 } from './layout';
 import { presentationKind, type SymbolId } from './symbol-id';
@@ -27,6 +28,7 @@ export const symbolTarget = (entry: SymbolEntry): PageTarget => ({
     type: 'symbol',
     kind: entry.ref.kind,
     name: entry.ref.name,
+    folder: entry.folder,
     file: entry.fileName
 });
 
@@ -44,13 +46,16 @@ export const itemTarget = (
         table && kind !== 'provider'
             ? entryInFile(table, kind, name, item.file as string | undefined)
             : undefined;
-    return entry ? symbolTarget(entry) : { type: 'symbol', kind, name, file: safeFileName(name) };
+    return entry
+        ? symbolTarget(entry)
+        : { type: 'symbol', kind, name, folder: symbolFolder(kind), file: safeFileName(name) };
 };
 
 /** The page of a feature type (the cluster owner) with its providers and feature functions. */
 export const clusterTarget = (owner: SymbolEntry): PageTarget => ({
     type: 'cluster',
     name: owner.ref.name,
+    folder: owner.folder,
     file: owner.fileName
 });
 
@@ -82,6 +87,7 @@ export const placedLink = (
                     type: 'symbol',
                     kind: 'provider',
                     name: entry.ref.name,
+                    folder: entry.folder,
                     file: entry.fileName
                 },
                 anchor: options.anchor
@@ -209,7 +215,13 @@ export const targetOfCoverage = (
             : undefined;
         return entry
             ? symbolTarget(entry)
-            : { type: 'symbol', kind, name: row.name, file: safeFileName(row.name) };
+            : {
+                  type: 'symbol',
+                  kind,
+                  name: row.name,
+                  folder: symbolFolder(kind),
+                  file: safeFileName(row.name)
+              };
     }
     const kind = row.linktype === 'classe' ? 'class' : (row.linktype ?? '');
     return isPageKind(kind)

@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { pageOf } from '../src/helpers/pages';
-import { featureUrl, pageUrl } from './pages';
+import { featureUrl, hrefTo, pageUrl } from './pages';
 
 // Runs against the standalone-app fixture rebuilt with menuLayout: 'feature'
 // (see playwright project `standalone-feature`, port 4004). Sidebar holds
@@ -56,12 +55,13 @@ test.describe('menuLayout: "feature" sidebar', () => {
         ).toBeAttached();
     });
 
-    test('entity links inside Features chapter point at per-kind detail pages', async ({
+    test('entity links inside Features chapter point at the entity detail pages', async ({
         page
     }) => {
         const componentLink = page.locator('#features-links a[data-cdx-entity-type="component"]');
         const first = componentLink.first();
-        await expect(first).toHaveAttribute('href', /(?:\.\/)?components\/[A-Za-z]+\.html$/);
+        const name = (await first.innerText()).trim();
+        await expect(first).toHaveAttribute('href', hrefTo(pageUrl('component', name)));
     });
 
     test('top-nav Reference link points at references.html', async ({ page }) => {
@@ -204,17 +204,18 @@ test.describe('menuLayout: "feature" sidebar', () => {
         page
     }) => {
         // standalone-app fixture: provideUserFeature is a provider without a
-        // feature type (providers/), roleGuard a function-declared guard
-        // (guards/).
+        // feature type, roleGuard a function-declared guard.
         await page.goto('/references.html');
         await page.waitForLoadState('domcontentloaded');
 
         const tagged = page.locator(
-            `.cdx-ref-item-link[href*="${pageOf('provider', 'provideUserFeature')}"]`
+            `.cdx-ref-item-link[href$="${pageUrl('provider', 'provideUserFeature').slice(1)}"]`
         );
         await expect(tagged).toHaveCount(1);
 
-        const anchor = page.locator(`.cdx-ref-item-link[href*="${pageOf('guard', 'roleGuard')}"]`);
+        const anchor = page.locator(
+            `.cdx-ref-item-link[href$="${pageUrl('guard', 'roleGuard').slice(1)}"]`
+        );
         await expect(anchor).toHaveCount(1);
 
         // The dedicated detail page must actually exist and render the entity name.
@@ -239,7 +240,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
         await page.waitForLoadState('domcontentloaded');
         const first = page.locator('.cdx-breadcrumb li').first();
         await expect(first).toHaveText('dashboard');
-        await expect(first.locator('a')).toHaveAttribute('href', /features\/dashboard\.html$/);
+        await expect(first.locator('a')).toHaveAttribute('href', hrefTo(featureUrl(['dashboard'])));
     });
 
     test('a function guard has its own page', async ({ page }) => {
@@ -251,7 +252,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
     test('sidebar feature label navigates to the feature page', async ({ page }) => {
         // Whole-row toggle contract: the row itself is the toggle
         // (role="button"); the inner `<a data-cdx-bucket-link>` navigates
-        // to `features/<feature>.html`. The client handler short-circuits
+        // to the feature page `<feature>/index.html`. The client handler short-circuits
         // when the click target sits inside the anchor, so navigation
         // wins over toggle without `stopPropagation()`.
         const features = page.locator('#features-links');
@@ -260,7 +261,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
         const href = await labels.first().getAttribute('href');
         // The SPA router may prefix sidebar links with `./` at runtime;
         // accept either form so the test is depth-resilient.
-        expect(href).toMatch(/^(?:\.\/)?features\/[^"]+\.html$/);
+        expect(href).toMatch(/^(?:\.\/)?[^"]+\/index\.html$/);
 
         // Navigate directly (the group may be collapsed in the sidebar).
         await page.goto(href!);
@@ -308,8 +309,13 @@ test.describe('menuLayout: "feature" sidebar', () => {
         await expect(page.locator('h2#services')).toHaveCount(1);
         const rows = page.locator('tr[data-cdx-feature-member]');
         expect(await rows.count()).toBeGreaterThan(1);
-        const linkHref = await rows.first().locator('a').first().getAttribute('href');
-        expect(linkHref).toMatch(/(?:components|directives|injectables)\/[A-Za-z0-9_-]+\.html$/);
+        const link = rows.first().locator('a').first();
+        const name = (await link.innerText()).trim();
+        const kind = (await rows.first().getAttribute('data-cdx-feature-member')) as 'component';
+        await expect(link).toHaveAttribute(
+            'href',
+            hrefTo(pageUrl(kind, name, { folder: ['admin-settings'] }))
+        );
     });
 
     test('a feature folder with nested folders lists every member below it', async ({ page }) => {
@@ -420,7 +426,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
         expect(visibleKinds.every(k => k === 'token')).toBe(true);
     });
 
-    test('Token kind: token row links to tokens/<name>.html (not injectables/)', async ({
+    test('Token kind: token row links to the token page (not an injectable page)', async ({
         page
     }) => {
         await page.goto('/references.html');
@@ -428,8 +434,8 @@ test.describe('menuLayout: "feature" sidebar', () => {
         const tokenRow = page
             .locator('.cdx-ref-item[data-cdx-kind="token"] .cdx-ref-item-link')
             .first();
-        const href = await tokenRow.getAttribute('href');
-        expect(href).toMatch(/^(?:\.\/)?tokens\/[A-Z][A-Z0-9_]*\.html$/);
+        const name = (await tokenRow.locator('.cdx-ref-item-name').innerText()).trim();
+        await expect(tokenRow).toHaveAttribute('href', hrefTo(pageUrl('token', name)));
     });
 
     test('Token detail page: hero badge + type + providedIn sections', async ({ page }) => {
