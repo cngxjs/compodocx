@@ -17,6 +17,7 @@ describe('BlockAccessors', () => {
 
     it('renders the default block-accessors section with one row per accessor', () => {
         const html = BlockAccessors({
+            depth: 1,
             accessors: {
                 value: { getSignature: { returnType: 'number' } }
             },
@@ -33,6 +34,7 @@ describe('BlockAccessors', () => {
                 `<section id="custom-accessors">${Object.keys(data.accessors).join(',')}</section>`
         );
         const html = BlockAccessors({
+            depth: 1,
             accessors: {
                 a: { getSignature: { returnType: 'number' } },
                 b: { setSignature: {} }

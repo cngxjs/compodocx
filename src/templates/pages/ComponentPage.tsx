@@ -73,7 +73,7 @@ const breakComma = (text: string): string => {
     return escaped.replaceAll(',', ',<br>');
 };
 
-const ComponentMetadata = (c: any): string => {
+const ComponentMetadata = (c: any, depth: number): string => {
     if (!isInfoSection('metadata')) {
         return '';
     }
@@ -111,13 +111,13 @@ const ComponentMetadata = (c: any): string => {
     codeField('assetsDirs', c.assetsDirs);
 
     // Array values → chip rows (implements before imports to match design)
-    rows.push(MetadataChipsRow('extends', (c.extends as string[]) ?? []));
-    rows.push(MetadataChipsRow('implements', (c.implements as string[]) ?? []));
-    rows.push(MetadataChipsRow('imports', c.imports ?? []));
+    rows.push(MetadataChipsRow('extends', (c.extends as string[]) ?? [], depth));
+    rows.push(MetadataChipsRow('implements', (c.implements as string[]) ?? [], depth));
+    rows.push(MetadataChipsRow('imports', c.imports ?? [], depth));
 
     // Host directives stay in core metadata (they're component config, not runtime host bindings)
     if (c.hostDirectives?.length > 0) {
-        rows.push(MetadataHostDirectivesRow(c.hostDirectives));
+        rows.push(MetadataHostDirectivesRow(c.hostDirectives, depth));
     }
 
     return MetadataSection({ rows });
@@ -192,14 +192,14 @@ const InfoContent = (data: any): string => {
             {RelatedSection({
                 entityName: c.name,
                 relatedTo: c.relatedTo,
-                depth: depth ?? 0
+                depth
             })}
 
             {isInfoSection('examples') &&
                 c.jsdoctags &&
                 JsdocExamplesBlock({ tags: c.jsdoctags, variant: 'code', level: 'section' })}
 
-            {isInfoSection('metadata') && ComponentMetadata(c)}
+            {isInfoSection('metadata') && ComponentMetadata(c, depth)}
 
             {isInfoSection('metadata') && ContentSlotsSection(c.slots)}
 
@@ -207,11 +207,15 @@ const InfoContent = (data: any): string => {
 
             {isInfoSection('providers') &&
                 c.providers?.length > 0 &&
-                ProvidersSection({ title: t('providers'), entries: c.providers })}
+                ProvidersSection({ title: t('providers'), entries: c.providers, depth })}
 
             {isInfoSection('viewProviders') &&
                 c.viewProviders?.length > 0 &&
-                ProvidersSection({ title: t('view-providers'), entries: c.viewProviders })}
+                ProvidersSection({
+                    title: t('view-providers'),
+                    entries: c.viewProviders,
+                    depth
+                })}
 
             {isInfoSection('dependencies') &&
                 (() => {
@@ -222,7 +226,7 @@ const InfoContent = (data: any): string => {
                         ? DependenciesSection({
                               injectProps,
                               constructorArgs: [],
-                              depth: depth ?? 0
+                              depth
                           })
                         : '';
                 })()}
@@ -232,7 +236,8 @@ const InfoContent = (data: any): string => {
                 BlockRelationshipGraph({
                     incoming: data.relationships.incoming,
                     outgoing: data.relationships.outgoing,
-                    entityName: c.name
+                    entityName: c.name,
+                    depth
                 })}
         </>
     ) as string;

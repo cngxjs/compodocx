@@ -19,7 +19,7 @@ type BlockHostListenerProps = {
     readonly methods: any[];
     readonly file: string;
     readonly title?: string;
-    readonly depth?: number;
+    readonly depth: number;
     readonly navTabs?: any[];
 };
 
@@ -59,7 +59,7 @@ export const BlockHostListener = (props: BlockHostListenerProps): string => {
                             </a>
                         </span>
                         <span class="cdx-member-type">
-                            {m.returnType && linkTypeHtml(m.returnType)}
+                            {m.returnType && linkTypeHtml(m.returnType, { depth: props.depth })}
                         </span>
                     </header>
                 ) as string;
@@ -95,7 +95,8 @@ export const BlockHostListener = (props: BlockHostListenerProps): string => {
                             line: m.line,
                             file: props.file,
                             inheritance: m.inheritance,
-                            navTabs: props.navTabs
+                            navTabs: props.navTabs,
+                            depth: props.depth
                         })}
                         {m.typeParameters?.length > 0 && (
                             <div class="cdx-member-row">
@@ -109,7 +110,7 @@ export const BlockHostListener = (props: BlockHostListenerProps): string => {
                         )}
                         {m.description && (
                             <div class="cdx-member-description">
-                                {parseDescription(m.description, props.depth ?? 0)}
+                                {parseDescription(m.description, props.depth)}
                             </div>
                         )}
                         {m.jsdoctags && hasJsdocParams(m.jsdoctags) && (
@@ -117,7 +118,7 @@ export const BlockHostListener = (props: BlockHostListenerProps): string => {
                                 <div class="cdx-member-description">
                                     {ParamsTable({
                                         jsdocTags: m.jsdoctags,
-                                        depth: props.depth ?? 0,
+                                        depth: props.depth,
                                         showOptional: true,
                                         showDefaultValue: true
                                     })}
@@ -128,7 +129,7 @@ export const BlockHostListener = (props: BlockHostListenerProps): string => {
                         {m.returnType && (
                             <div class="cdx-member-returns">
                                 <b>{t('returns')} : </b>
-                                {linkTypeHtml(m.returnType)}
+                                {linkTypeHtml(m.returnType, { depth: props.depth })}
                             </div>
                         )}
                         {m.returnType && m.jsdoctags && (

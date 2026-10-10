@@ -17,7 +17,7 @@ type TypealiasItem = {
 
 type BlockTypealiasProps = {
     readonly typealias: TypealiasItem[];
-    readonly depth?: number;
+    readonly depth: number;
 };
 
 export const BlockTypealias = (props: BlockTypealiasProps): string => {
@@ -34,8 +34,8 @@ export const BlockTypealias = (props: BlockTypealiasProps): string => {
                 }
                 const body =
                     ta.kind === 160
-                        ? codeWrap(functionSignature(ta))
-                        : codeWrap(linkTypeHtml(ta.rawtype ?? ''));
+                        ? codeWrap(functionSignature(ta, props.depth))
+                        : codeWrap(linkTypeHtml(ta.rawtype ?? '', { depth: props.depth }));
                 return (
                     <div class={cls.join(' ')} id={memberAnchor(ta.name)}>
                         <div class="cdx-io-member-title">
@@ -53,7 +53,7 @@ export const BlockTypealias = (props: BlockTypealiasProps): string => {
                         )}
                         {ta.description && (
                             <div class="cdx-io-member-desc">
-                                {parseDescription(ta.description, props.depth ?? 0)}
+                                {parseDescription(ta.description, props.depth)}
                             </div>
                         )}
                         <div class="cdx-io-member-default">{body}</div>

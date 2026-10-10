@@ -45,8 +45,6 @@ export const HELPER_MAP: Readonly<Record<string, HelperMapping>> = {
     t: { kind: 'rename', to: 't' },
     capitalize: { kind: 'rename', to: 'capitalize' },
     parseDescription: { kind: 'rename', to: 'parseDescription' },
-    functionSignature: { kind: 'rename', to: 'functionSignature' },
-    linkType: { kind: 'rename', to: 'linkTypeHtml' },
     modifIcon: { kind: 'rename', to: 'modifIcon' },
     modifKind: { kind: 'rename', to: 'modifKind' },
     isApiSection: { kind: 'rename', to: 'isApiSection' },
@@ -71,6 +69,15 @@ export const HELPER_MAP: Readonly<Record<string, HelperMapping>> = {
     },
 
     // Inline JS replacements — HBS-only constructs with no helper analog.
+    // Type links need the depth of the page they are rendered on.
+    functionSignature: {
+        kind: 'inline',
+        emit: ([method]) => `helpers.functionSignature(${method}, data.depth)`
+    },
+    linkType: {
+        kind: 'inline',
+        emit: ([type]) => `helpers.linkTypeHtml(${type}, { depth: data.depth })`
+    },
     compare: {
         kind: 'inline',
         emit: ([a, op, b]) => {

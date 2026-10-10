@@ -15,7 +15,7 @@ import { ParamsTable } from './ParamsTable';
 type BlockAccessorsProps = {
     readonly accessors: Record<string, any>;
     readonly file: string;
-    readonly depth?: number;
+    readonly depth: number;
     readonly navTabs?: any[];
 };
 
@@ -54,7 +54,9 @@ export const BlockAccessors = (props: BlockAccessorsProps): string => {
                                 </a>
                             </span>
                             {returnType && (
-                                <span class="cdx-io-member-type">{linkTypeHtml(returnType)}</span>
+                                <span class="cdx-io-member-type">
+                                    {linkTypeHtml(returnType, { depth: props.depth })}
+                                </span>
                             )}
                         </div>
                         <div class="cdx-io-member-badges">
@@ -70,26 +72,23 @@ export const BlockAccessors = (props: BlockAccessorsProps): string => {
                         )}
                         {acc.getSignature?.args?.length > 0 && (
                             <pre class="cdx-derived-body">
-                                <code>{functionSignature(acc.getSignature)}</code>
+                                <code>{functionSignature(acc.getSignature, props.depth)}</code>
                             </pre>
                         )}
                         {acc.setSignature?.args?.length > 0 && (
                             <pre class="cdx-derived-body">
-                                <code>{functionSignature(acc.setSignature)}</code>
+                                <code>{functionSignature(acc.setSignature, props.depth)}</code>
                             </pre>
                         )}
                         {acc.getSignature?.description && (
                             <div class="cdx-io-member-desc">
-                                {parseDescription(acc.getSignature.description, props.depth ?? 0)}
+                                {parseDescription(acc.getSignature.description, props.depth)}
                             </div>
                         )}
                         {acc.setSignature?.description &&
                             acc.setSignature.description !== acc.getSignature?.description && (
                                 <div class="cdx-io-member-desc">
-                                    {parseDescription(
-                                        acc.setSignature.description,
-                                        props.depth ?? 0
-                                    )}
+                                    {parseDescription(acc.setSignature.description, props.depth)}
                                 </div>
                             )}
                         {acc.getSignature?.jsdoctags &&
@@ -97,7 +96,7 @@ export const BlockAccessors = (props: BlockAccessorsProps): string => {
                                 <div class="cdx-io-member-desc">
                                     {ParamsTable({
                                         jsdocTags: acc.getSignature.jsdoctags,
-                                        depth: props.depth ?? 0,
+                                        depth: props.depth,
                                         showOptional: true,
                                         showDefaultValue: false
                                     })}
@@ -108,7 +107,7 @@ export const BlockAccessors = (props: BlockAccessorsProps): string => {
                                 <div class="cdx-io-member-desc">
                                     {ParamsTable({
                                         jsdocTags: acc.setSignature.jsdoctags,
-                                        depth: props.depth ?? 0,
+                                        depth: props.depth,
                                         showOptional: true,
                                         showDefaultValue: false
                                     })}

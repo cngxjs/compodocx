@@ -16,7 +16,7 @@ import { ParamsTable } from './ParamsTable';
 type BlockConstructorProps = {
     readonly constructor: any;
     readonly file: string;
-    readonly depth?: number;
+    readonly depth: number;
     readonly navTabs?: any[];
 };
 
@@ -42,18 +42,25 @@ export const BlockConstructor = (props: BlockConstructorProps): string => {
                             ))}
                         </div>
                     )}
-                    <div class="cdx-member-signature">{codeWrap(functionSignature(ctor))}</div>
-                    {DefinedInRow({ line: ctor.line, file: props.file, navTabs: props.navTabs })}
+                    <div class="cdx-member-signature">
+                        {codeWrap(functionSignature(ctor, props.depth))}
+                    </div>
+                    {DefinedInRow({
+                        line: ctor.line,
+                        file: props.file,
+                        navTabs: props.navTabs,
+                        depth: props.depth
+                    })}
                     {ctor.description && (
                         <div class="cdx-member-description">
-                            {parseDescription(ctor.description, props.depth ?? 0)}
+                            {parseDescription(ctor.description, props.depth)}
                         </div>
                     )}
                     {ctor.jsdoctags && hasJsdocParams(ctor.jsdoctags) && (
                         <div>
                             {ParamsTable({
                                 jsdocTags: ctor.jsdoctags,
-                                depth: props.depth ?? 0,
+                                depth: props.depth,
                                 showOptional: true
                             })}
                             {JsdocExamplesBlock({ tags: ctor.jsdoctags, variant: 'text' })}

@@ -13,7 +13,7 @@ import { convertBody, wrapModule } from '../../../src/migrate/emit';
 interface OracleHelpers {
     readonly t: (key: string) => string;
     readonly capitalize: (str: string) => string;
-    readonly linkTypeHtml: (name: string) => string;
+    readonly linkTypeHtml: (name: string, options: { depth: number }) => string;
     readonly relativeUrl: (depth: number, p?: string) => string;
     readonly parseDescription: (str: string) => string;
 }
@@ -47,7 +47,9 @@ const buildLegacyHandlebars = (): typeof Handlebars => {
     const safe = (html: string) => new Handlebars.SafeString(html);
     hbs.registerHelper('t', (key: string) => oracleModernHelpers.t(key));
     hbs.registerHelper('capitalize', (s: string) => oracleModernHelpers.capitalize(s));
-    hbs.registerHelper('linkType', (name: string) => safe(oracleModernHelpers.linkTypeHtml(name)));
+    hbs.registerHelper('linkType', (name: string) =>
+        safe(oracleModernHelpers.linkTypeHtml(name, { depth: 1 }))
+    );
     hbs.registerHelper('relativeURL', (depth: number) => oracleModernHelpers.relativeUrl(depth));
     hbs.registerHelper('parseDescription', (s: string) =>
         safe(oracleModernHelpers.parseDescription(s))

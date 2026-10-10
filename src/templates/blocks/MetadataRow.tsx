@@ -61,8 +61,11 @@ export function humanLabel(key: string): string {
  * so we can colour-code entity chips. Unresolved names fall back to a neutral
  * chip with no icon.
  */
-function resolveChip(name: string): { href?: string; target?: string; type?: string } {
-    const resolved = resolveType(name);
+function resolveChip(
+    name: string,
+    depth: number
+): { href?: string; target?: string; type?: string } {
+    const resolved = resolveType(name, undefined, depth);
     if (!resolved) {
         return {};
     }
@@ -149,7 +152,7 @@ const escapeHtml = (s: string): string =>
  * Each directive gets its own line with the name linked, followed by
  * `inputs` / `outputs` labels with chip tokens.
  */
-export function MetadataHostDirectivesRow(hostDirectives: HostDirective[]): string {
+export function MetadataHostDirectivesRow(hostDirectives: HostDirective[], depth: number): string {
     if (!hostDirectives?.length) {
         return '';
     }
@@ -157,7 +160,7 @@ export function MetadataHostDirectivesRow(hostDirectives: HostDirective[]): stri
     const chip = (name: string) => `<span class="cdx-host-dir-chip">${escapeHtml(name)}</span>`;
 
     const items = hostDirectives.map(hd => {
-        const resolved = resolveType(hd.name);
+        const resolved = resolveType(hd.name, undefined, depth);
         const nameHtml = resolved
             ? `<a class="cdx-host-dir-name" href="${resolved.href}" target="${resolved.target}">${hd.name}</a>`
             : `<span class="cdx-host-dir-name">${hd.name}</span>`;
@@ -288,7 +291,7 @@ type ProviderEntry = {
  * `MetadataProvidersRow` (inside metadata card) and `ProvidersListHtml`
  * (standalone section).
  */
-export function renderProvidersListHtml(entries: ProviderEntry[]): string {
+export function renderProvidersListHtml(entries: ProviderEntry[], depth: number): string {
     if (!entries?.length) {
         return '';
     }
@@ -306,7 +309,7 @@ export function renderProvidersListHtml(entries: ProviderEntry[]): string {
         if (isStringLiteralName(name)) {
             return token(name);
         }
-        const resolved = resolveType(name);
+        const resolved = resolveType(name, undefined, depth);
         if (resolved) {
             return `<a class="cdx-host-dir-name" href="${resolved.href}" target="${resolved.target}">${name}</a>`;
         }
@@ -354,15 +357,23 @@ export function renderProvidersListHtml(entries: ProviderEntry[]): string {
     return `<div class="cdx-host-dir-list">${items.join('')}</div>`;
 }
 
-export function MetadataProvidersRow(label: string, entries: ProviderEntry[]): string {
-    const html = renderProvidersListHtml(entries);
+export function MetadataProvidersRow(
+    label: string,
+    entries: ProviderEntry[],
+    depth: number
+): string {
+    const html = renderProvidersListHtml(entries, depth);
     if (!html) {
         return '';
     }
     return MetadataRow(label, html);
 }
 
-export function MetadataChipsRow(label: string, names: Array<string | { name: string }>): string {
+export function MetadataChipsRow(
+    label: string,
+    names: Array<string | { name: string }>,
+    depth: number
+): string {
     const items = names
         .map(n => (typeof n === 'string' ? n : n.name))
         .filter(Boolean)
@@ -371,7 +382,7 @@ export function MetadataChipsRow(label: string, names: Array<string | { name: st
         return '';
     }
     const chips = items.map(name => {
-        const chip = resolveChip(name);
+        const chip = resolveChip(name, depth);
         const kindClass = chip.type ? ` cdx-chip--${chip.type}` : '';
         if (chip.href) {
             return `<a class="cdx-chip${kindClass}" href="${chip.href}" target="${chip.target}">${name}</a>`;

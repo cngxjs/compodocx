@@ -282,7 +282,7 @@ const ExamplesContent = (cluster: ClusterPageData): string => {
 
 export const ClusterPage = (data: any): string => {
     const cluster: ClusterPageData = data.cluster;
-    const depth: number = data.depth ?? 1;
+    const depth: number = data.depth;
     const owner = cluster.featureType;
     const examples = ExamplesContent(cluster);
     const tabs: MiscTab[] = [

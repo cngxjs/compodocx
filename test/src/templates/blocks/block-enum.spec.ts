@@ -17,6 +17,7 @@ describe('BlockEnum', () => {
 
     it('renders the default block-enums section with one card per enum', () => {
         const html = BlockEnum({
+            depth: 1,
             enums: [{ name: 'Color', childs: [{ name: 'Red', value: '0' }] }]
         });
         expect(html).to.include('data-compodoc="block-enums"');
@@ -30,6 +31,7 @@ describe('BlockEnum', () => {
             (data: any) => `<section id="custom-enum">${data.enums.length}</section>`
         );
         const html = BlockEnum({
+            depth: 1,
             enums: [{ name: 'A' }, { name: 'B' }]
         });
         expect(html).to.equal('<section id="custom-enum">2</section>');

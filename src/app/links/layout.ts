@@ -128,43 +128,41 @@ export const relativePrefix = (depth: number, style: PrefixStyle = 'relative'): 
 
 const joinPath = (folder: string, file: string): string => (folder ? `${folder}/${file}` : file);
 
-/** Where a page is written. */
+/** Folder depth of a root-relative folder path (`''` for the root). */
+export const folderDepth = (path: string): number =>
+    path === '' ? ROOT_DEPTH : path.split('/').length;
+
+const located = (path: string, filename: string): PageLocation => ({
+    path,
+    filename,
+    depth: folderDepth(path)
+});
+
+/** Where a page is written. Its depth follows from the folder path. */
 export const pageLocation = (target: PageTarget): PageLocation => {
     switch (target.type) {
         case 'symbol':
-            return {
-                path: KIND_FOLDER[target.kind],
-                filename: target.duplicateName ?? target.name,
-                depth: 1
-            };
+            return located(KIND_FOLDER[target.kind], target.duplicateName ?? target.name);
         case 'cluster':
-            return { path: KIND_FOLDER.provider, filename: target.name, depth: 1 };
+            return located(KIND_FOLDER.provider, target.name);
         case 'root':
-            return { path: '', filename: target.page, depth: ROOT_DEPTH };
-        case 'feature': {
-            const parents = target.segments.slice(0, -1);
-            return {
-                path: [FEATURE_FOLDER, ...parents].join('/'),
-                filename: last(target.segments),
-                depth: target.segments.length
-            };
-        }
+            return located('', target.page);
+        case 'feature':
+            return located(
+                [FEATURE_FOLDER, ...target.segments.slice(0, -1)].join('/'),
+                last(target.segments)
+            );
         case 'additional': {
             const filename = last(target.slugs);
             const nested = target.slugs.map(slug => `/${slug}`).join('');
-            return {
-                path: `${target.folder}${nested}`.replace(`/${filename}`, ''),
-                filename,
-                depth: target.slugs.length
-            };
+            return located(`${target.folder}${nested}`.replace(`/${filename}`, ''), filename);
         }
         case 'asset': {
             const slash = target.path.lastIndexOf('/');
-            return {
-                path: slash === -1 ? '' : target.path.slice(0, slash),
-                filename: target.path.slice(slash + 1),
-                depth: target.path.split('/').length - 1
-            };
+            return located(
+                slash === -1 ? '' : target.path.slice(0, slash),
+                target.path.slice(slash + 1)
+            );
         }
     }
 };

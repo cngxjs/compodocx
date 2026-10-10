@@ -17,6 +17,7 @@ describe('BlockIndexSignatures', () => {
 
     it('renders the default block-indexables section with one row per indexable', () => {
         const html = BlockIndexSignatures({
+            depth: 1,
             indexables: [
                 { name: 'idx', returnType: 'string', args: [{ name: 'key', type: 'string' }] }
             ],
@@ -31,6 +32,7 @@ describe('BlockIndexSignatures', () => {
             (data: any) => `<section id="custom-idx">${data.indexables.length}</section>`
         );
         const html = BlockIndexSignatures({
+            depth: 1,
             indexables: [
                 { name: 'a', returnType: 'string', args: [{ name: 'k', type: 'string' }] },
                 { name: 'b', returnType: 'number', args: [{ name: 'k', type: 'string' }] }

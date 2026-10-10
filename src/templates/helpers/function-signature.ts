@@ -65,7 +65,7 @@ function handleFunction(arg: any, depth: number): string {
  * Render a method's full signature as HTML string with type links.
  * `depth` is the directory depth of the page the signature is rendered on.
  */
-export const functionSignature = (method: any, depth = 1): string => {
+export const functionSignature = (method: any, depth: number): string => {
     let args = '';
     let destructuredCounterInitial = 0;
     let destructuredCounterReal = 0;

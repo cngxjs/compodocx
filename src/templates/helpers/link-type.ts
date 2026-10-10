@@ -17,7 +17,11 @@ export type ResolvedType = {
  * Returns null if the type is unknown (render as plain code).
  * `depth` is the directory depth of the page the link is rendered on.
  */
-export const resolveType = (name: string, indexKey?: string, depth = 1): ResolvedType | null => {
+export const resolveType = (
+    name: string,
+    indexKey: string | undefined,
+    depth: number
+): ResolvedType | null => {
     let result = DependenciesEngine.find(name);
     if (!result) {
         const alias = ExtendsMerger.findInAliases(name);
@@ -72,14 +76,14 @@ export const resolveType = (name: string, indexKey?: string, depth = 1): Resolve
 /** Render a type as an HTML link string (or plain code if unresolvable). */
 export const linkTypeHtml = (
     name: string,
-    options?: { withLine?: boolean; line?: number; indexKey?: string; depth?: number }
+    options: { depth: number; withLine?: boolean; line?: number; indexKey?: string }
 ): string => {
-    const resolved = resolveType(name, options?.indexKey, options?.depth);
+    const resolved = resolveType(name, options.indexKey, options.depth);
     if (!resolved) {
         return `<code>${name}</code>`;
     }
 
-    if (options?.withLine && options.line) {
+    if (options.withLine && options.line) {
         const sourceHref = resolved.href.includes('#') ? resolved.href : `${resolved.href}#source`;
         return `<code><a href="${sourceHref}" target="${resolved.target}" >${resolved.raw}:${options.line}</a></code>`;
     }

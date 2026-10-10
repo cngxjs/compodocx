@@ -17,6 +17,7 @@ describe('BlockInput', () => {
 
     it('renders the default block-inputs section with one row per input', () => {
         const html = BlockInput({
+            depth: 1,
             element: { inputsClass: [{ name: 'value', type: 'string' }], file: 'foo.ts' },
             file: 'foo.ts'
         });
@@ -31,6 +32,7 @@ describe('BlockInput', () => {
                 `<section id="custom-inputs">${data.element.inputsClass.length}</section>`
         );
         const html = BlockInput({
+            depth: 1,
             element: { inputsClass: [{ name: 'a' }, { name: 'b' }], file: 'foo.ts' },
             file: 'foo.ts'
         });

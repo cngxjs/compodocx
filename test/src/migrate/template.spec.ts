@@ -44,8 +44,16 @@ describe('migrate/emit — mustache expressions', () => {
 
 describe('migrate/emit — helper calls', () => {
     it('renames legacy → modern helper for direct invocation', () => {
-        const { body, warnings } = convert('{{linkType returnType}}');
-        expect(body).toBe('${helpers.linkTypeHtml(data.returnType)}');
+        const { body, warnings } = convert('{{capitalize returnType}}');
+        expect(body).toBe('${helpers.capitalize(data.returnType)}');
+        expect(warnings).toEqual([]);
+    });
+
+    it('passes the page depth to the type-link helpers', () => {
+        const { body, warnings } = convert('{{linkType returnType}} {{functionSignature method}}');
+        expect(body).toBe(
+            '${helpers.linkTypeHtml(data.returnType, { depth: data.depth })} ${helpers.functionSignature(data.method, data.depth)}'
+        );
         expect(warnings).toEqual([]);
     });
 
@@ -93,7 +101,9 @@ describe('migrate/emit — helper calls', () => {
 describe('migrate/emit — sub-expressions', () => {
     it('recursively emits (helper x y) without template interpolation', () => {
         const { body } = convert('{{linkType (capitalize name)}}');
-        expect(body).toBe('${helpers.linkTypeHtml(helpers.capitalize(data.name))}');
+        expect(body).toBe(
+            '${helpers.linkTypeHtml(helpers.capitalize(data.name), { depth: data.depth })}'
+        );
     });
 });
 

@@ -17,6 +17,7 @@ describe('BlockConstructor', () => {
 
     it('renders the default block-constructor section', () => {
         const html = BlockConstructor({
+            depth: 1,
             constructor: { name: 'constructor', args: [], modifierKind: [] },
             file: 'foo.ts'
         });
@@ -30,6 +31,7 @@ describe('BlockConstructor', () => {
             (data: any) => `<section id="custom-ctor">${data.file}</section>`
         );
         const html = BlockConstructor({
+            depth: 1,
             constructor: { name: 'constructor', args: [] },
             file: 'foo.ts'
         });

@@ -27,7 +27,7 @@ export const DependenciesSection = (props: {
     injectProps: any[];
     constructorArgs: any[];
     constructorDescription?: string;
-    depth?: number;
+    depth: number;
 }): string => {
     const items: Array<{
         name: string;
@@ -71,14 +71,16 @@ export const DependenciesSection = (props: {
             </h3>
             {props.constructorDescription && (
                 <div class="cdx-deps-constructor-desc">
-                    {parseDescription(props.constructorDescription, props.depth ?? 0)}
+                    {parseDescription(props.constructorDescription, props.depth)}
                 </div>
             )}
             <div class="cdx-deps-list">
                 {items.map(item => (
                     <div class="cdx-deps-item">
                         <span class="cdx-deps-name">
-                            {item.type ? linkTypeHtml(item.type) : item.name}
+                            {item.type
+                                ? linkTypeHtml(item.type, { depth: props.depth })
+                                : item.name}
                         </span>
                         <span class="cdx-deps-badges">
                             <span
@@ -95,7 +97,7 @@ export const DependenciesSection = (props: {
                         )}
                         {item.description && (
                             <div class="cdx-deps-desc">
-                                {parseDescription(item.description, props.depth ?? 0)}
+                                {parseDescription(item.description, props.depth)}
                             </div>
                         )}
                     </div>

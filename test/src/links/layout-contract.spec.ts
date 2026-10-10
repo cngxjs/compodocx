@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+    folderDepth,
     hrefFor,
     hrefText,
     kindOfPath,
@@ -119,6 +120,24 @@ describe('page layout contract', () => {
     it('keeps asset paths as given', () => {
         const href = hrefFor({ type: 'asset', path: 'pagefind/pagefind.js' }, 2);
         expect(hrefText(href)).toBe('../../pagefind/pagefind.js');
+    });
+
+    it.each<[string, PageTarget]>([
+        ['symbol', symbol('component', 'Foo')],
+        ['cluster', { type: 'cluster', name: 'Feature' }],
+        ['root', { type: 'root', page: 'index' }],
+        ['feature', { type: 'feature', segments: ['forms', 'select', 'chips'] }],
+        ['additional', { type: 'additional', folder: 'guides', slugs: ['a', 'b', 'c'] }],
+        ['asset', { type: 'asset', path: 'js/chunks/x.js' }]
+    ])('derives the depth of a %s page from its folder path', (_, target) => {
+        const location = pageLocation(target);
+        expect(location.depth).toBe(folderDepth(location.path));
+    });
+
+    it('counts folder segments as depth', () => {
+        expect(folderDepth('')).toBe(0);
+        expect(folderDepth('components')).toBe(1);
+        expect(folderDepth('forms/select/chips')).toBe(3);
     });
 
     it.each([

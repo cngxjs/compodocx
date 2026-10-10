@@ -224,7 +224,7 @@ export const FeaturePage = (data: any): string => {
         table: data.symbols,
         di: data.di,
         semantic: data.semantic,
-        depth: data.depth ?? 1
+        depth: data.depth
     };
     return (
         <>

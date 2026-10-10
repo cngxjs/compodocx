@@ -14,7 +14,7 @@ type BlockDerivedStateProps = {
     readonly properties: any[];
     readonly allSignalProps: any[];
     readonly file: string;
-    readonly depth?: number;
+    readonly depth: number;
     readonly navTabs?: any[];
 };
 
@@ -74,7 +74,9 @@ export const BlockDerivedState = (props: BlockDerivedStateProps): string => {
                                 </a>
                             </span>
                             {p.type && (
-                                <span class="cdx-io-member-type">{linkTypeHtml(p.type)}</span>
+                                <span class="cdx-io-member-type">
+                                    {linkTypeHtml(p.type, { depth: props.depth })}
+                                </span>
                             )}
                         </div>
                         <div class="cdx-io-member-badges">
@@ -86,7 +88,7 @@ export const BlockDerivedState = (props: BlockDerivedStateProps): string => {
                         </div>
                         {(hasDesc || hasDeps) && (
                             <div class="cdx-io-member-desc">
-                                {hasDesc && parseDescription(p.description, props.depth ?? 0)}
+                                {hasDesc && parseDescription(p.description, props.depth)}
                                 {hasDeps && (
                                     <p>
                                         {'Derives from '}

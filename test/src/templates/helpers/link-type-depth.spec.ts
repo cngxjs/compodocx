@@ -33,8 +33,8 @@ describe('Type links at page depth', () => {
         vi.restoreAllMocks();
     });
 
-    it('resolveType keeps the ../ prefix by default', () => {
-        expect(resolveType('User')?.href).toBe(hrefTo('interface', 'User', 1));
+    it('resolveType prefixes ../ at depth 1', () => {
+        expect(resolveType('User', undefined, 1)?.href).toBe(hrefTo('interface', 'User', 1));
     });
 
     it('resolveType climbs two levels at depth 2', () => {

@@ -17,6 +17,7 @@ describe('BlockHostListener', () => {
 
     it('renders the default block-host-listener section with one card per method', () => {
         const html = BlockHostListener({
+            depth: 1,
             methods: [{ name: 'onClick', returnType: 'void' }],
             file: 'foo.ts'
         });
@@ -30,6 +31,7 @@ describe('BlockHostListener', () => {
             (data: any) => `<section id="custom-host-listener">${data.methods.length}</section>`
         );
         const html = BlockHostListener({
+            depth: 1,
             methods: [{ name: 'a' }, { name: 'b' }],
             file: 'foo.ts'
         });

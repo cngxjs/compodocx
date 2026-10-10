@@ -17,6 +17,7 @@ describe('BlockOutput', () => {
 
     it('renders the default block-outputs section with one row per output', () => {
         const html = BlockOutput({
+            depth: 1,
             element: {
                 outputsClass: [{ name: 'changed', type: 'EventEmitter<string>' }],
                 file: 'foo.ts'
@@ -34,6 +35,7 @@ describe('BlockOutput', () => {
                 `<section id="custom-outputs">${data.element.outputsClass.length}</section>`
         );
         const html = BlockOutput({
+            depth: 1,
             element: { outputsClass: [{ name: 'a' }, { name: 'b' }], file: 'foo.ts' },
             file: 'foo.ts'
         });
