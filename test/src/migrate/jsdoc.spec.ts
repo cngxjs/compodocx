@@ -1,9 +1,14 @@
+import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { memoryFs } from '../../../src/migrate/fs-adapter';
 import { migrateJsdoc, stripRemovedJsdocTags } from '../../../src/migrate/jsdoc';
 
 const strip = (source: string) => stripRemovedJsdocTags('x.ts', source);
+
+/** Native paths below a virtual root, so the walker works on every platform. */
+const ROOT = path.resolve('/virtual/p');
+const at = (rel: string): string => path.join(ROOT, rel);
 
 describe('migrate jsdoc', () => {
     it('removes a single-line tag and keeps the rest of the block', () => {
@@ -41,26 +46,26 @@ describe('migrate jsdoc', () => {
 
     it('writes nothing on a dry run', () => {
         const before = '/** @category a */\nexport const a = 1;\n';
-        const { adapter, state } = memoryFs({ '/p/src/a.ts': before });
-        const result = migrateJsdoc('/p', adapter, true);
+        const { adapter, state } = memoryFs({ [at('src/a.ts')]: before });
+        const result = migrateJsdoc(ROOT, adapter, true);
         expect(result.removed).toBe(1);
-        expect(state['/p/src/a.ts']).toBe(before);
+        expect(state[at('src/a.ts')]).toBe(before);
     });
 
     it('reports changed files and removed tags, skipping node_modules, dist and .d.ts', () => {
         const tagged = '/**\n * @category a\n * @docsKind primary\n */\nexport const a = 1;\n';
         const { adapter, state } = memoryFs({
-            '/p/src/a.ts': tagged,
-            '/p/src/b.ts': 'export const b = 2;\n',
-            '/p/src/c.d.ts': tagged,
-            '/p/node_modules/x/index.ts': tagged,
-            '/p/dist/a.ts': tagged
+            [at('src/a.ts')]: tagged,
+            [at('src/b.ts')]: 'export const b = 2;\n',
+            [at('src/c.d.ts')]: tagged,
+            [at('node_modules/x/index.ts')]: tagged,
+            [at('dist/a.ts')]: tagged
         });
-        const result = migrateJsdoc('/p', adapter, false);
+        const result = migrateJsdoc(ROOT, adapter, false);
         expect(result).toMatchObject({ scanned: 2, removed: 2 });
-        expect(result.files.map(file => file.file)).toEqual(['/p/src/a.ts']);
-        expect(state['/p/src/a.ts']).toBe('export const a = 1;\n');
-        expect(state['/p/src/c.d.ts']).toBe(tagged);
-        expect(state['/p/node_modules/x/index.ts']).toBe(tagged);
+        expect(result.files.map(file => file.file)).toEqual([at('src/a.ts')]);
+        expect(state[at('src/a.ts')]).toBe('export const a = 1;\n');
+        expect(state[at('src/c.d.ts')]).toBe(tagged);
+        expect(state[at('node_modules/x/index.ts')]).toBe(tagged);
     });
 });
