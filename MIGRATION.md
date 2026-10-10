@@ -72,7 +72,7 @@ Configuration:
 | `featureLibraryScope` | Ignored with a warning; a feature lists its primary members, or its whole surface when it has none |
 | `menuLayout` default `'type'` | Default `'feature'` |
 
-New: `features`, `featureContainers` (app folders whose sub-folders are features, default `features`, `pages`, `domains`) and `featureUtilityFolders` (folders that belong to the entry point's root feature). See "Features" in docs/configuration.md for the detection rules.
+New: `features`, `featureContainers` (app folders whose sub-folders are features, default `features`, `pages`, `domains`), `featureUtilityFolders` (folders that belong to the entry point's root feature) and `featureRoleFolders` (folders such as `di/`, `routes/` or `components/` whose files join the feature their file name starts with). See "Features" in docs/configuration.md for the detection rules.
 
 Pages: `categories/<bucket>.html` is gone. Every feature has a page at `features/<entry point>/<feature>.html`, an app feature at `features/<feature>.html`; the entry point's import path loses a scope that all entry points share. No redirects are written.
 
