@@ -1,9 +1,9 @@
 import { buildEntityIndex } from '../../utils/entity-index.util';
 import { logger } from '../../utils/logger';
-import Configuration from '../configuration';
+import Configuration, { pageOutputPath } from '../configuration';
 import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
-import { hrefFor, hrefText, pagePath, ROOT_DEPTH } from '../links/layout';
+import { hrefFor, hrefText, ROOT_DEPTH } from '../links/layout';
 import { placedLink } from '../links/resolve';
 import type { TableKind } from '../links/symbol-id';
 import { entryInFile } from '../links/symbol-table';
@@ -18,11 +18,7 @@ export class PageWriter {
         if (Configuration.mainData.output.lastIndexOf('/') === -1) {
             finalPath += '/';
         }
-        finalPath += pagePath({
-            path: page.path ?? '',
-            filename: page.filename || page.name,
-            depth: page.depth
-        });
+        finalPath += pageOutputPath(page);
 
         FileEngine.writeSync(finalPath, htmlData);
         return Promise.resolve();

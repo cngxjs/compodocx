@@ -1,13 +1,13 @@
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
-import { ROOT_DEPTH } from '../links/layout';
+import { pageFile, ROOT_DEPTH } from '../links/layout';
 
 export class PackageDependenciesPageGenerator {
     public processPeerDependencies(dependencies): void {
         logger.info('Processing package.json peerDependencies');
         Configuration.mainData.packagePeerDependencies = dependencies;
-        if (!Configuration.hasPage('dependencies')) {
+        if (!Configuration.hasPage(pageFile('', 'dependencies'))) {
             Configuration.addPage({
                 name: 'dependencies',
                 id: 'packageDependencies',

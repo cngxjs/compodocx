@@ -16,6 +16,11 @@ import type { ConfigurationInterface } from './interfaces/configuration.interfac
 import type { CoverageData } from './interfaces/coverageData.interface';
 import type { MainDataInterface } from './interfaces/main-data.interface';
 import type { PageInterface } from './interfaces/page.interface';
+import { pageFile } from './links/layout';
+
+/** Root-relative file a page is written to: its folder and file name (its name without one). */
+export const pageOutputPath = (page: PageInterface): string =>
+    pageFile(page.path ?? '', page.filename || page.name);
 
 export class Configuration implements ConfigurationInterface {
     private _pages: PageInterface[] = [];
@@ -163,20 +168,22 @@ export class Configuration implements ConfigurationInterface {
         return Configuration.instance;
     }
 
-    /** Queue a page; a symbol that reaches no entry point or lives on a DI page gets none here. */
+    /**
+     * Queue a page unless one is already queued for the same output file; a
+     * symbol that reaches no entry point or lives on a DI page gets none here.
+     */
     public addPage(page: PageInterface) {
         if (isMovedPage(page as never, this.mainData.di)) {
             return;
         }
-        const indexPage = this._pages.findIndex(p => p.name === page.name);
-        if (indexPage === -1) {
+        if (!this.hasPage(pageOutputPath(page))) {
             this._pages.push(page);
         }
     }
 
-    public hasPage(name: string): boolean {
-        const indexPage = this._pages.findIndex(p => p.name === name);
-        return indexPage !== -1;
+    /** True when a queued page is written to `path` (root-relative, see `pageOutputPath`). */
+    public hasPage(path: string): boolean {
+        return this._pages.some(p => pageOutputPath(p) === path);
     }
 
     public addAdditionalPage(page: PageInterface) {
