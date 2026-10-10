@@ -4,7 +4,7 @@ import type { DiView } from '../../app/di/model';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import type { EntityKind, EntityWithKind } from '../../app/engines/dependencies.engine';
 import { hrefFor, hrefText, isPageKind } from '../../app/links/layout';
-import { placeTarget } from '../../app/links/resolve';
+import { itemTarget, placeTarget } from '../../app/links/resolve';
 import type { TableKind } from '../../app/links/symbol-id';
 import { isNonNull } from '../../lib';
 import { IconSearch, IconX } from '../components/Icons';
@@ -35,13 +35,13 @@ interface BucketItem extends EntityWithKind {
 }
 
 const buildHref = (item: BucketItem, depth: number): string => {
-    const name = (item.duplicateName as string | undefined) ?? item.name;
     const kind = item.kind;
     if (isPageKind(kind)) {
-        const link = placeTarget({ type: 'symbol', kind, name }, item, Configuration.mainData);
+        const target = itemTarget(Configuration.mainData.symbols, kind, item);
+        const link = placeTarget(target, item, Configuration.mainData);
         return link ? hrefText(hrefFor(link.target, depth, link.anchor)) : '';
     }
-    return hrefText(hrefFor({ type: 'root', page: name }, depth));
+    return hrefText(hrefFor({ type: 'root', page: item.name }, depth));
 };
 
 const stabilityOf = (item: BucketItem): 'stable' | 'experimental' | 'deprecated' => {
@@ -67,7 +67,7 @@ const RefItem = (item: BucketItem, depth: number, bucket: string): string => {
     const href = buildHref(item, depth);
     const stability = stabilityOf(item);
     const wcag = item.wcagLevel;
-    const name = (item.duplicateName as string | undefined) ?? item.name;
+    const name = item.name;
     const excerpt = firstSentence(item.description) ?? '';
     return (
         <li

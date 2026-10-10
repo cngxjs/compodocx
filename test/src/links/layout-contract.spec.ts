@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
     folderDepth,
+    folderFileNames,
     hrefFor,
     hrefText,
     memberAnchor,
     type PageTarget,
     pageLocation,
-    relativePrefix
+    relativePrefix,
+    safeFileName
 } from '../../../src/app/links/layout';
 
 /**
@@ -15,7 +17,7 @@ import {
  */
 describe('page layout contract', () => {
     const symbol = (kind: string, name: string, extra = {}): PageTarget =>
-        ({ type: 'symbol', kind, name, ...extra }) as PageTarget;
+        ({ type: 'symbol', kind, name, file: name, ...extra }) as PageTarget;
 
     it.each([
         ['component', 'components'],
@@ -39,21 +41,74 @@ describe('page layout contract', () => {
     });
 
     it('puts a cluster page in providers/ under its feature type name', () => {
-        expect(pageLocation({ type: 'cluster', name: 'FooFeature' })).toEqual({
+        const cluster: PageTarget = { type: 'cluster', name: 'FooFeature', file: 'FooFeature' };
+        expect(pageLocation(cluster)).toEqual({
             path: 'providers',
             filename: 'FooFeature',
             depth: 1
         });
-        expect(
-            hrefText(hrefFor({ type: 'cluster', name: 'FooFeature' }, 1, 'FooFeature--withMode'))
-        ).toBe('../providers/FooFeature.html#FooFeature--withMode');
+        expect(hrefText(hrefFor(cluster, 1, 'FooFeature--withMode'))).toBe(
+            '../providers/FooFeature.html#FooFeature--withMode'
+        );
     });
 
-    it('names a same-name copy after its duplicate name', () => {
-        expect(pageLocation(symbol('class', 'Todo', { duplicateName: 'Todo-1' }))).toEqual({
+    it('writes a symbol page under its file name', () => {
+        expect(pageLocation(symbol('class', 'Todo', { file: 'Todo-2' }))).toEqual({
             path: 'classes',
-            filename: 'Todo-1',
+            filename: 'Todo-2',
             depth: 1
+        });
+    });
+
+    it('makes file names safe', () => {
+        expect(safeFileName('Unnamed function')).toBe('Unnamed-function');
+        expect(safeFileName('a  b$c')).toBe('a-b-c');
+        expect(safeFileName('Foo.bar_baz-1')).toBe('Foo.bar_baz-1');
+    });
+
+    const names = (...requests: [string, string, string][]) =>
+        Object.fromEntries(
+            folderFileNames(requests.map(([id, name, kind]) => ({ id, name, kind })))
+        );
+
+    it('keeps the bare name for the first symbol by id and numbers same-kind copies', () => {
+        expect(
+            names(
+                ['class:c.ts#Todo', 'Todo', 'class'],
+                ['class:a.ts#Todo', 'Todo', 'class'],
+                ['class:b.ts#Todo', 'Todo', 'class']
+            )
+        ).toEqual({
+            'class:a.ts#Todo': 'Todo',
+            'class:b.ts#Todo': 'Todo-2',
+            'class:c.ts#Todo': 'Todo-3'
+        });
+    });
+
+    it('suffixes the kind when it tells a clash apart, ignoring case', () => {
+        expect(
+            names(
+                ['component:a.ts#Row', 'Row', 'component'],
+                ['interface:a.ts#row', 'row', 'interface']
+            )
+        ).toEqual({ 'component:a.ts#Row': 'Row', 'interface:a.ts#row': 'row-interface' });
+    });
+
+    it('reserves index for the feature page', () => {
+        expect(names(['function:a.ts#index', 'index', 'function'])).toEqual({
+            'function:a.ts#index': 'index-function'
+        });
+    });
+
+    it('numbers names that clash once made safe', () => {
+        expect(
+            names(
+                ['function:a.ts#Unnamed function', 'Unnamed function', 'function'],
+                ['function:b.ts#Unnamed-function', 'Unnamed-function', 'function']
+            )
+        ).toEqual({
+            'function:a.ts#Unnamed function': 'Unnamed-function',
+            'function:b.ts#Unnamed-function': 'Unnamed-function-2'
         });
     });
 
@@ -69,9 +124,7 @@ describe('page layout contract', () => {
             depth: 1
         });
         expect(hrefText(hrefFor(symbol(kind, 'item'), 1))).toBe(`../${folder}/item.html`);
-        expect(pageLocation(symbol(kind, 'item', { duplicateName: 'item-1' })).filename).toBe(
-            'item-1'
-        );
+        expect(pageLocation(symbol(kind, 'item', { file: 'item-2' })).filename).toBe('item-2');
     });
 
     it('puts root pages at the output root', () => {

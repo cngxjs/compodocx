@@ -5,7 +5,7 @@ import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
-import { entryInFile } from '../links/symbol-table';
+import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
 
 /**
@@ -31,14 +31,9 @@ export class TokenPageGenerator {
                     const readme = MarkdownEngine.readNeighbourReadmeFile(token.file);
                     token.readme = markedAcl(readme);
                 }
-                const table = Configuration.mainData.symbols;
-                const entry = table && entryInFile(table, 'token', token.name, token.file);
-                const location = pageLocation({
-                    type: 'symbol',
-                    kind: 'token',
-                    name: token.name,
-                    duplicateName: entry?.duplicateName
-                });
+                const location = pageLocation(
+                    itemTarget(Configuration.mainData.symbols, 'token', token)
+                );
                 const page: any = {
                     path: location.path,
                     name: location.filename,

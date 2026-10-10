@@ -5,6 +5,7 @@ import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
+import { itemTarget } from '../links/resolve';
 import { enqueueFunctionalPages } from './functional-pages';
 import type { NavTabsResolver } from './nav-tabs';
 
@@ -27,14 +28,13 @@ export class GuardPageGenerator {
                         const readme = MarkdownEngine.readNeighbourReadmeFile(guard.file);
                         guard.readme = markedAcl(readme);
                     }
-                    const location = pageLocation({
-                        type: 'symbol',
-                        kind: 'guard',
-                        name: guard.name
-                    });
+                    const location = pageLocation(
+                        itemTarget(Configuration.mainData.symbols, 'guard', guard)
+                    );
                     const page = {
                         path: location.path,
-                        name: guard.name,
+                        name: location.filename,
+                        filename: location.filename,
                         id: guard.id,
                         navTabs: this.navTabs.resolve(guard),
                         context: 'guard',
@@ -42,9 +42,6 @@ export class GuardPageGenerator {
                         depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
-                    if (guard.isDuplicate) {
-                        page.name += `-${guard.duplicateId}`;
-                    }
                     Configuration.addPage(page);
                     i++;
                     loop();

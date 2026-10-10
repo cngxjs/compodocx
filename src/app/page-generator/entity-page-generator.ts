@@ -3,6 +3,7 @@ import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import { pageLocation } from '../links/layout';
+import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class EntityPageGenerator {
@@ -20,14 +21,13 @@ export class EntityPageGenerator {
             const loop = () => {
                 if (i < len) {
                     const entity = Configuration.mainData.entities[i];
-                    const location = pageLocation({
-                        type: 'symbol',
-                        kind: 'entity',
-                        name: entity.name
-                    });
+                    const location = pageLocation(
+                        itemTarget(Configuration.mainData.symbols, 'entity', entity)
+                    );
                     const page = {
                         path: location.path,
-                        name: entity.name,
+                        name: location.filename,
+                        filename: location.filename,
                         id: entity.id,
                         navTabs: this.navTabs.resolve(entity),
                         context: 'entity',
@@ -35,9 +35,6 @@ export class EntityPageGenerator {
                         depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
-                    if (entity.isDuplicate) {
-                        page.name += `-${entity.duplicateId}`;
-                    }
                     Configuration.addPage(page);
                     i++;
                     loop();

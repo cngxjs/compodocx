@@ -3,7 +3,7 @@ import Configuration from '../../app/configuration';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import DependenciesEngine from '../../app/engines/dependencies.engine';
 import { hrefFor, hrefText } from '../../app/links/layout';
-import { placeTarget, targetOfData } from '../../app/links/resolve';
+import { itemTarget, placeTarget, targetOfData } from '../../app/links/resolve';
 import { logger } from '../../utils/logger';
 import { t } from '../helpers';
 
@@ -23,7 +23,7 @@ type RelatedEntry = { name: string; href?: string };
 const resolveEntry = (name: string, depth: number): RelatedEntry => {
     const hit = DependenciesEngine.findInCompodoc(name);
     if (hit && typeof hit !== 'boolean') {
-        const target = targetOfData(hit);
+        const target = targetOfData(hit, Configuration.mainData.symbols);
         if (target?.type !== 'symbol') {
             return { name };
         }
@@ -34,7 +34,8 @@ const resolveEntry = (name: string, depth: number): RelatedEntry => {
     const tokens = (DependenciesEngine as any).tokens as any[] | undefined;
     const token = tokens?.find((tk: any) => tk.name === name);
     if (token) {
-        return { name, href: hrefText(hrefFor({ type: 'symbol', kind: 'token', name }, depth)) };
+        const target = itemTarget(Configuration.mainData.symbols, 'token', token);
+        return { name, href: hrefText(hrefFor(target, depth)) };
     }
     return { name };
 };

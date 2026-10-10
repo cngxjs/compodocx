@@ -27,7 +27,7 @@ export const enqueueFunctionalPages = (kind: FunctionalKind): number => {
     const entries = functionalEntries(kind);
     const dataKey = kind === 'resolver' ? 'resolver' : 'injectable';
     for (const entry of entries) {
-        const location = pageLocation(symbolTarget(entry, { duplicate: true }));
+        const location = pageLocation(symbolTarget(entry));
         Configuration.addPage({
             path: location.path,
             name: `${kind}-${location.filename}`,

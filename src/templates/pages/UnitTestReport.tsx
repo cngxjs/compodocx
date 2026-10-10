@@ -93,7 +93,7 @@ const fileLink = (f: UnitTestFile): string | null => {
         return null;
     }
     const name = String(f.name);
-    const target = targetOfCoverage({ ...f, name });
+    const target = targetOfCoverage({ ...f, name }, { table: Configuration.mainData.symbols });
     const link = target && placeTarget(target, { name, file: f.filePath }, Configuration.mainData);
     return link ? hrefText(hrefFor(link.target, ROOT_DEPTH, link.anchor)) : null;
 };

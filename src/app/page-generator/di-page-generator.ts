@@ -3,6 +3,7 @@ import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import type { DiView } from '../di/model';
 import { pageLocation } from '../links/layout';
+import { clusterTarget } from '../links/resolve';
 import type { SymbolId } from '../links/symbol-id';
 import type { SymbolTable } from '../links/symbol-table';
 
@@ -52,7 +53,7 @@ export class DiPageGenerator {
             if (!owner) {
                 continue;
             }
-            const location = pageLocation({ type: 'cluster', name: owner.ref.name });
+            const location = pageLocation(clusterTarget(owner));
             Configuration.addPage({
                 path: location.path,
                 name: `cluster-${location.filename}`,
@@ -78,7 +79,7 @@ export class DiPageGenerator {
                 type: 'symbol',
                 kind: 'provider',
                 name: entry.ref.name,
-                duplicateName: entry.duplicateName
+                file: entry.fileName
             });
             Configuration.addPage({
                 path: location.path,

@@ -4,7 +4,8 @@ import {
     type PageKind,
     type PageTarget,
     pageLocation,
-    pagePath
+    pagePath,
+    safeFileName
 } from '../../../src/app/links/layout';
 
 /**
@@ -12,15 +13,15 @@ import {
  * out folder names. The literal format is pinned in layout-contract.spec.ts.
  */
 export interface PageOptions {
-    /** Page name of a same-name copy, e.g. `Todo-1`. */
-    readonly duplicate?: string;
+    /** File name when it is not the safe name, e.g. `Todo-2` for a same-name copy. */
+    readonly file?: string;
 }
 
 const symbolTarget = (kind: PageKind, name: string, opts: PageOptions = {}): PageTarget => ({
     type: 'symbol',
     kind,
     name,
-    duplicateName: opts.duplicate
+    file: opts.file ?? safeFileName(name)
 });
 
 /** Root-relative page file of a symbol, e.g. `components/Foo.html`. */
@@ -37,7 +38,7 @@ export const hrefTo = (
 
 /** Root-relative file of the page of a feature type, its providers and features. */
 export const clusterPage = (featureType: string): string =>
-    pagePath(pageLocation({ type: 'cluster', name: featureType }));
+    pagePath(pageLocation({ type: 'cluster', name: featureType, file: safeFileName(featureType) }));
 
 /** Root-relative file of a top-level page, e.g. `coverage.html`. */
 export const rootPage = (page: string): string => pagePath(pageLocation({ type: 'root', page }));

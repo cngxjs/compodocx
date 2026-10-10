@@ -15,7 +15,7 @@ import BasicTypeUtil from '../../utils/basic-type.util';
 // TODO: Refactor this helper to be more modular and testable, and to handle more complex type scenarios (e.g., generics, unions, intersections).
 /** Link from a page at `depth` to the page of an engine object, or null without one. */
 function buildHrefForInternalType(data: any, depth: number): string | null {
-    const target = targetOfData(data);
+    const target = targetOfData(data, Configuration.mainData.symbols);
     const link = target && placeTarget(target, data, Configuration.mainData);
     return link ? hrefText(hrefFor(link.target, depth, link.anchor)) : null;
 }

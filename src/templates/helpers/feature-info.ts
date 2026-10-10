@@ -3,7 +3,6 @@ import { factKey, type SemanticModel } from '../../app/compiler/semantic/model';
 import { type DiView, foldClusterMembers, placementOf } from '../../app/di/model';
 import { type EntityWithKind, PRIMARY_KINDS } from '../../app/engines/dependencies.engine';
 import { featureSegments } from '../../app/links/feature-paths';
-import { kindHrefPrefix } from '../../app/links/layout';
 import { presentationKind, type TableKind, toSymbolKey } from '../../app/links/symbol-id';
 import { entryInFile, type SymbolEntry, type SymbolTable } from '../../app/links/symbol-table';
 
@@ -101,9 +100,7 @@ export const featurePathKey = (segments: readonly string[]): string => segments.
 const asItem = (entry: SymbolEntry): EntityWithKind => ({
     ...(entry.data as object),
     kind: entry.ref.kind,
-    hrefPrefix: kindHrefPrefix(entry.ref.kind),
-    name: entry.ref.name,
-    ...(entry.duplicateName ? { duplicateName: entry.duplicateName } : {})
+    name: entry.ref.name
 });
 
 export type FeatureGroupScope = 'primary' | 'all';

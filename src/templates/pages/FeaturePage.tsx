@@ -55,7 +55,7 @@ const featureHref = (segments: readonly string[], depth: number): string =>
     hrefText(hrefFor({ type: 'feature', segments }, depth));
 
 const memberHref = (entry: SymbolEntry, ctx: Context): string | undefined => {
-    const link = placedLink(ctx.table, entry, ctx.di, { duplicate: true });
+    const link = placedLink(ctx.table, entry, ctx.di);
     return link ? hrefText(hrefFor(link.target, ctx.depth, link.anchor)) : undefined;
 };
 
@@ -201,11 +201,7 @@ const Theming = (members: FeatureMembers, ctx: Context): string => {
                             <li>
                                 <a
                                     href={hrefText(
-                                        hrefFor(
-                                            symbolTarget(entry, { duplicate: true }),
-                                            ctx.depth,
-                                            'theming'
-                                        )
+                                        hrefFor(symbolTarget(entry), ctx.depth, 'theming')
                                     )}
                                 >
                                     <code>{entry.ref.name}</code>

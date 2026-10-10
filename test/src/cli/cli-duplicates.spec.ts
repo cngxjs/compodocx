@@ -35,30 +35,30 @@ describe('CLI duplicates support', () => {
         expect(file).to.be.true;
     });
 
-    it('Todo-1 class generated', () => {
-        const file = exists(`${distFolder}/${pageOf('class', 'Todo', { duplicate: 'Todo-1' })}`);
-        expect(file).to.be.true;
-    });
-
     it('Todo-2 class generated', () => {
-        const file = exists(`${distFolder}/${pageOf('class', 'Todo', { duplicate: 'Todo-2' })}`);
+        const file = exists(`${distFolder}/${pageOf('class', 'Todo', { file: 'Todo-2' })}`);
         expect(file).to.be.true;
     });
 
-    // Duplicate suffixes follow the sorted source path order, so each page
-    // documents the same declaration on every build.
+    it('Todo-3 class generated', () => {
+        const file = exists(`${distFolder}/${pageOf('class', 'Todo', { file: 'Todo-3' })}`);
+        expect(file).to.be.true;
+    });
+
+    // The first copy by source path keeps the bare name, later ones get -2,
+    // -3 in path order, so each page documents the same declaration on every build.
     it('Todo documents the miscellaneous todo.model.ts', () => {
         const file = read(`${distFolder}/${pageOf('class', 'Todo')}`);
         expect(file).to.contain('src/app/shared/miscellaneous/todo.model.ts');
     });
 
-    it('Todo-1 documents models/todo.model.1.ts', () => {
-        const file = read(`${distFolder}/${pageOf('class', 'Todo', { duplicate: 'Todo-1' })}`);
+    it('Todo-2 documents models/todo.model.1.ts', () => {
+        const file = read(`${distFolder}/${pageOf('class', 'Todo', { file: 'Todo-2' })}`);
         expect(file).to.contain('src/app/shared/models/todo.model.1.ts');
     });
 
-    it('Todo-2 documents models/todo.model.ts', () => {
-        const file = read(`${distFolder}/${pageOf('class', 'Todo', { duplicate: 'Todo-2' })}`);
+    it('Todo-3 documents models/todo.model.ts', () => {
+        const file = read(`${distFolder}/${pageOf('class', 'Todo', { file: 'Todo-3' })}`);
         expect(file).to.contain('src/app/shared/models/todo.model.ts');
     });
 
@@ -67,9 +67,9 @@ describe('CLI duplicates support', () => {
         expect(file).to.be.true;
     });
 
-    it('TimeInterface-1 generated', () => {
+    it('TimeInterface-2 generated', () => {
         const file = exists(
-            `${distFolder}/${pageOf('interface', 'TimeInterface', { duplicate: 'TimeInterface-1' })}`
+            `${distFolder}/${pageOf('interface', 'TimeInterface', { file: 'TimeInterface-2' })}`
         );
         expect(file).to.be.true;
     });
@@ -79,9 +79,9 @@ describe('CLI duplicates support', () => {
         expect(file).to.be.true;
     });
 
-    it('EmptyService-1 generated', () => {
+    it('EmptyService-2 generated', () => {
         const file = exists(
-            `${distFolder}/${pageOf('injectable', 'EmptyService', { duplicate: 'EmptyService-1' })}`
+            `${distFolder}/${pageOf('injectable', 'EmptyService', { file: 'EmptyService-2' })}`
         );
         expect(file).to.be.true;
     });
@@ -96,9 +96,9 @@ describe('CLI duplicates support', () => {
         expect(file).to.be.true;
     });
 
-    it('NoopInterceptor-1 generated', () => {
+    it('NoopInterceptor-2 generated', () => {
         const file = exists(
-            `${distFolder}/${pageOf('interceptor', 'NoopInterceptor', { duplicate: 'NoopInterceptor-1' })}`
+            `${distFolder}/${pageOf('interceptor', 'NoopInterceptor', { file: 'NoopInterceptor-2' })}`
         );
         expect(file).to.be.true;
     });
@@ -108,9 +108,9 @@ describe('CLI duplicates support', () => {
         expect(file).to.be.true;
     });
 
-    it('EmptyComponent-1 generated', () => {
+    it('EmptyComponent-2 generated', () => {
         const file = exists(
-            `${distFolder}/${pageOf('component', 'EmptyComponent', { duplicate: 'EmptyComponent-1' })}`
+            `${distFolder}/${pageOf('component', 'EmptyComponent', { file: 'EmptyComponent-2' })}`
         );
         expect(file).to.be.true;
     });
@@ -120,9 +120,9 @@ describe('CLI duplicates support', () => {
         expect(file).to.be.true;
     });
 
-    it('DoNothingDirective-1 generated', () => {
+    it('DoNothingDirective-2 generated', () => {
         const file = exists(
-            `${distFolder}/${pageOf('directive', 'DoNothingDirective', { duplicate: 'DoNothingDirective-1' })}`
+            `${distFolder}/${pageOf('directive', 'DoNothingDirective', { file: 'DoNothingDirective-2' })}`
         );
         expect(file).to.be.true;
     });
@@ -138,7 +138,7 @@ describe('CLI duplicates support', () => {
         const indexFile = read(`${distFolder}/index.html`);
         expect(indexFile).to.contain(`<a href="${pageOf('component', 'FooterComponent')}"`);
         expect(indexFile).to.contain(
-            `<a href="${pageOf('component', 'FooterComponent', { duplicate: 'FooterComponent-1' })}"`
+            `<a href="${pageOf('component', 'FooterComponent', { file: 'FooterComponent-2' })}"`
         );
         expect(indexFile).to.contain('<span class="cdx-menu-item-name">FooterComponent');
     });
@@ -147,7 +147,7 @@ describe('CLI duplicates support', () => {
         let file = exists(`${distFolder}/${pageOf('injectable', 'MyService')}`);
         expect(file).to.be.true;
         file = exists(
-            `${distFolder}/${pageOf('injectable', 'MyService', { duplicate: 'MyService-1' })}`
+            `${distFolder}/${pageOf('injectable', 'MyService', { file: 'MyService-2' })}`
         );
         expect(file).to.be.false;
     });

@@ -5,6 +5,7 @@ import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
+import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class ClassPageGenerator {
@@ -27,14 +28,13 @@ export class ClassPageGenerator {
                         const readme = MarkdownEngine.readNeighbourReadmeFile(classe.file);
                         classe.readme = markedAcl(readme);
                     }
-                    const location = pageLocation({
-                        type: 'symbol',
-                        kind: 'class',
-                        name: classe.name
-                    });
+                    const location = pageLocation(
+                        itemTarget(Configuration.mainData.symbols, 'class', classe)
+                    );
                     const page = {
                         path: location.path,
-                        name: classe.name,
+                        name: location.filename,
+                        filename: location.filename,
                         id: classe.id,
                         navTabs: this.navTabs.resolve(classe),
                         context: 'class',
@@ -42,9 +42,6 @@ export class ClassPageGenerator {
                         depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
-                    if (classe.isDuplicate) {
-                        page.name += `-${classe.duplicateId}`;
-                    }
                     Configuration.addPage(page);
                     i++;
                     loop();

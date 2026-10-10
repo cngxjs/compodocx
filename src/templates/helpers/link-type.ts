@@ -36,7 +36,7 @@ export const resolveType = (
         const resolved: ResolvedType = { raw: name, indexKey: '', href: '', target: '_self' };
 
         if (result.source === 'internal') {
-            const target = targetOfData(result.data);
+            const target = targetOfData(result.data, Configuration.mainData.symbols);
             if (!target) {
                 return null;
             }

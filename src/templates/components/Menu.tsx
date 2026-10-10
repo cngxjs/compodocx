@@ -11,14 +11,14 @@ import {
     hrefFor,
     hrefText,
     isPageKind,
-    KIND_FOLDER,
+    type PageKind,
     pageFile,
     pageLocation,
     pagePath,
     ROOT_DEPTH,
     type UtilityKind
 } from '../../app/links/layout';
-import { placedLink, placeTarget } from '../../app/links/resolve';
+import { itemTarget, placedLink, placeTarget } from '../../app/links/resolve';
 import type { SymbolId, TableKind } from '../../app/links/symbol-id';
 import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { t } from '../helpers';
@@ -85,25 +85,9 @@ const isCollapsedAll = (): boolean => Configuration.mainData.collapsedAll === tr
 const chapterOpen = (type: string): boolean => !isCollapsedAll() && isToggled(type);
 
 /** Kinds whose same-name copies the symbol table numbers (not the engine object). */
-const TABLE_NUMBERED_KINDS = new Set<EntityKind>([
-    'variable',
-    'function',
-    'typealias',
-    'enumeration',
-    'token'
-]);
-
-const duplicateNameOf = (item: any): string | undefined => {
-    if (!TABLE_NUMBERED_KINDS.has(item.kind)) {
-        return item.duplicateName;
-    }
-    const table = Configuration.mainData.symbols;
-    return table ? entryInFile(table, item.kind, item.name, item.file)?.duplicateName : undefined;
-};
-
-/** Entity link href with duplicateName fallback. */
-const entityHref = (prefix: string, item: any): string =>
-    pageFile(prefix, duplicateNameOf(item) ?? item.name);
+/** Root-relative href of the own page of an engine object of `kind`; the router adds the prefix. */
+const entityHref = (kind: PageKind, item: any): string =>
+    hrefText(hrefFor(itemTarget(Configuration.mainData.symbols, kind, item), ROOT_DEPTH), 'bare');
 
 /** Folder groups shallower than this start expanded (unless `collapsedAll`). */
 const GROUP_EXPAND_DEPTH = 2;
@@ -125,7 +109,7 @@ const utilityItems = (items: readonly any[], kind: UtilityKind): any[] => {
     return items
         .map(item => ({ ...item, kind }))
         .filter(item => {
-            const key = `${item.file}#${duplicateNameOf(item) ?? item.name}`;
+            const key = entityHref(kind, item);
             if (seen.has(key)) {
                 return false;
             }
@@ -217,7 +201,7 @@ const UtilitiesChapter = (d: any): string =>
             label: t(group.labelKey),
             links: utilityItems(d.miscellaneous[group.list] ?? [], group.kind).map(item =>
                 EntityLink({
-                    href: entityHref(KIND_FOLDER[group.kind], item),
+                    href: entityHref(group.kind, item),
                     name: item.name,
                     deprecated: item.deprecated,
                     beta: item.beta,
@@ -232,7 +216,7 @@ const UtilitiesChapter = (d: any): string =>
 const placedHref = (d: any, id: SymbolId): string | undefined => {
     const table: SymbolTable | undefined = d.symbols;
     const entry = table?.byId.get(id);
-    const link = table && entry && placedLink(table, entry, d.di, { duplicate: true });
+    const link = table && entry && placedLink(table, entry, d.di);
     return link ? hrefText(hrefFor(link.target, ROOT_DEPTH, link.anchor), 'bare') : undefined;
 };
 
@@ -279,7 +263,7 @@ const DependencyInjectionChapter = (d: any): string => {
                 label: t('tokens'),
                 links: (d.tokens ?? []).map((item: any) =>
                     EntityLink({
-                        href: entityHref(KIND_FOLDER.token, { ...item, kind: 'token' }),
+                        href: entityHref('token', item),
                         name: item.name,
                         deprecated: item.deprecated,
                         isToken: true,
@@ -324,19 +308,17 @@ const KINDS_WITH_API_TAB: ReadonlySet<EntityKind> = new Set<EntityKind>([
  * already encode the target row — never stack `#api` on top of `#name`).
  */
 /** A feature-folder entry may live on a provider or cluster page; link it there. */
-const placedEntityHref = (prefix: string, item: any): string => {
-    const kind = isPageKind(item.kind) ? item.kind : undefined;
-    const link =
-        kind &&
-        placeTarget({ type: 'symbol', kind, name: item.name }, item, Configuration.mainData);
-    const moved = link && (link.target.type !== 'symbol' || link.target.kind !== kind);
-    return moved
-        ? hrefText(hrefFor(link.target, ROOT_DEPTH, link.anchor), 'bare')
-        : entityHref(prefix, item);
+const placedEntityHref = (item: any): string => {
+    if (!isPageKind(item.kind)) {
+        return '';
+    }
+    const target = itemTarget(Configuration.mainData.symbols, item.kind, item);
+    const link = placeTarget(target, item, Configuration.mainData);
+    return link ? hrefText(hrefFor(link.target, ROOT_DEPTH, link.anchor), 'bare') : '';
 };
 
-const featureLinkHref = (prefix: string, item: any, defaultTab: 'api' | undefined): string => {
-    const base = placedEntityHref(prefix, item);
+const featureLinkHref = (item: any, defaultTab: 'api' | undefined): string => {
+    const base = placedEntityHref(item);
     if (defaultTab === 'api' && KINDS_WITH_API_TAB.has(item.kind) && !base.includes('#')) {
         return `${base}#api`;
     }
@@ -406,7 +388,7 @@ const EntityLink = (props: {
 const GroupTree = (props: {
     node: GroupNode;
     type: string;
-    hrefPrefix: string;
+    kind: PageKind;
     depth: number;
     groupDepth: number;
 }): string => {
@@ -443,14 +425,14 @@ const GroupTree = (props: {
                     GroupTree({
                         node: child,
                         type: props.type,
-                        hrefPrefix: props.hrefPrefix,
+                        kind: props.kind,
                         depth: props.depth + 1,
                         groupDepth: props.groupDepth
                     })
                 )}
                 {props.node.items.map((item: any) =>
                     EntityLink({
-                        href: entityHref(props.hrefPrefix, item),
+                        href: entityHref(props.kind, item),
                         name: item.name,
                         deprecated: item.deprecated,
                         isToken: item.isToken,
@@ -509,7 +491,7 @@ const FeatureEntityLink = (item: EntityWithKind, defaultTab?: 'api'): string =>
     (
         <li class="link cdx-feature-link" data-cdx-kind={item.kind}>
             <a
-                href={featureLinkHref(item.hrefPrefix, item as any, defaultTab)}
+                href={featureLinkHref(item as any, defaultTab)}
                 data-type="entity-link"
                 data-cdx-entity-type={item.kind}
                 data-cdx-selector={item.selector || undefined}
@@ -722,7 +704,7 @@ const EntitySection = (props: {
     type: string;
     iconHtml: string;
     labelKey: string;
-    hrefPrefix: string;
+    kind: PageKind;
     groupDepth?: number;
 }): string => {
     if (!props.items?.length) {
@@ -762,14 +744,14 @@ const EntitySection = (props: {
                                       GroupTree({
                                           node,
                                           type: props.type,
-                                          hrefPrefix: props.hrefPrefix,
+                                          kind: props.kind,
                                           depth: 0,
                                           groupDepth
                                       })
                                   )}
                                   {ungrouped.map(item =>
                                       EntityLink({
-                                          href: entityHref(props.hrefPrefix, item),
+                                          href: entityHref(props.kind, item),
                                           name: item.name,
                                           deprecated: item.deprecated,
                                           isToken: item.isToken,
@@ -786,7 +768,7 @@ const EntitySection = (props: {
                       })()
                     : props.items.map(item =>
                           EntityLink({
-                              href: entityHref(props.hrefPrefix, item),
+                              href: entityHref(props.kind, item),
                               name: item.name,
                               deprecated: item.deprecated,
                               isToken: item.isToken,
@@ -1116,7 +1098,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'components',
                                 iconHtml: IconComponent(),
                                 labelKey: 'components',
-                                hrefPrefix: KIND_FOLDER.component,
+                                kind: 'component',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {entities.length > 0 &&
@@ -1126,7 +1108,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'entities',
                                 iconHtml: IconEntity(),
                                 labelKey: 'entities',
-                                hrefPrefix: KIND_FOLDER.entity,
+                                kind: 'entity',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {directives.length > 0 &&
@@ -1136,7 +1118,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'directives',
                                 iconHtml: IconDirective(),
                                 labelKey: 'directives',
-                                hrefPrefix: KIND_FOLDER.directive,
+                                kind: 'directive',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.classes?.length > 0 &&
@@ -1146,7 +1128,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'classes',
                                 iconHtml: IconClass(),
                                 labelKey: 'classes',
-                                hrefPrefix: KIND_FOLDER.class,
+                                kind: 'class',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {injectables.length > 0 &&
@@ -1156,7 +1138,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'injectables',
                                 iconHtml: IconInjectable(),
                                 labelKey: 'injectables',
-                                hrefPrefix: KIND_FOLDER.injectable,
+                                kind: 'injectable',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {DependencyInjectionChapter(d)}
@@ -1167,7 +1149,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'interceptors',
                                 iconHtml: IconInterceptor(),
                                 labelKey: 'interceptors',
-                                hrefPrefix: KIND_FOLDER.interceptor,
+                                kind: 'interceptor',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.guards?.length > 0 &&
@@ -1177,7 +1159,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'guards',
                                 iconHtml: IconGuard(),
                                 labelKey: 'guards',
-                                hrefPrefix: KIND_FOLDER.guard,
+                                kind: 'guard',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.resolvers?.length > 0 &&
@@ -1187,7 +1169,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'resolvers',
                                 iconHtml: IconGuard(),
                                 labelKey: 'resolvers',
-                                hrefPrefix: KIND_FOLDER.resolver,
+                                kind: 'resolver',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.interfaces?.length > 0 &&
@@ -1197,7 +1179,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'interfaces',
                                 iconHtml: IconInterface(),
                                 labelKey: 'interfaces',
-                                hrefPrefix: KIND_FOLDER.interface,
+                                kind: 'interface',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {pipes.length > 0 &&
@@ -1207,7 +1189,7 @@ export const Menu = (props: MenuProps): string => {
                                 type: 'pipes',
                                 iconHtml: IconPipe(),
                                 labelKey: 'pipes',
-                                hrefPrefix: KIND_FOLDER.pipe,
+                                kind: 'pipe',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                     </>

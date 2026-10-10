@@ -38,7 +38,7 @@ export function buildEntityIndex(mainData: Record<string, unknown>): EntityIndex
     const index: EntityIndex = {};
     for (const name of names) {
         const entry = lookupEntry(table, name, 'entity-index', undefined, hidden);
-        const link = entry && placedLink(table, entry, di, { duplicate: true });
+        const link = entry && placedLink(table, entry, di);
         if (!entry || !link) {
             continue;
         }

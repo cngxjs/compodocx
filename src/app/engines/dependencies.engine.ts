@@ -70,10 +70,9 @@ export const REFERENCE_KINDS: ReadonlySet<TableKind> = new Set<TableKind>([
     'enumeration'
 ]);
 
-/** Entity decorated with its kind + href prefix for cross-kind sidebar rendering. */
+/** Entity decorated with its kind for cross-kind sidebar rendering. */
 export interface EntityWithKind {
     kind: TableKind;
-    hrefPrefix: string;
     name: string;
     file?: string;
     deprecated?: boolean;
@@ -82,7 +81,6 @@ export interface EntityWithKind {
     beta?: boolean;
     factoryKind?: string;
     selector?: string;
-    duplicateName?: string;
     description?: string;
     inputsClass?: unknown[];
     outputsClass?: unknown[];
