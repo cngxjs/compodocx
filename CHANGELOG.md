@@ -22,6 +22,11 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **One search result per provider and feature function.** Search lists every provider and feature function of a feature type page as its own result, linking to its section.
 - **Undocumented exports are listed in the build log.** Symbols that are exported from their file but reach no entry point get no page, no menu entry and no row in the coverage report; links to them render as code. The build prints them once, with file and line, after the `Semantic analysis:` line.
 - **llm-md export.** A "Public tokens" section follows "Public functions", and symbols that reach no entry point are left out of every section.
+- **Features derived from the code.** Every documented symbol belongs to a feature: its entry point, then a feature key below it. The key comes from the `features` config (file globs), an `@feature <key>` tag, the imports between the folders of an entry point (folders that import each other form one feature; a folder imported by half of the others makes the whole entry point one feature), or, in apps, the first folder below `src/app` (descending into `features`, `pages` and `domains`, see `featureContainers`). Files in role folders such as `di/`, `routes/` or `components/` join the feature their file name starts with (`featureRoleFolders`). The build log prints one `Features:` line with the detector counts. See "Features" in docs/configuration.md.
+- **Feature pages.** Each feature has a page at `features/<entry point>/<feature>.html` with the import path, the README of the feature folder, the features of an entry point, its members by role, links to their Theming tabs, and the features of other entry points it builds on or that extend it. New template override `feature`.
+- **Features in the JSON export.** Each symbol entry can carry `feature: { entryPoint, key }`, and `semantic.features` lists every feature with its detector, README path, `buildsOn` and `extendedBy`.
+- **`compodocx migrate jsdoc <dir>`** removes `@category` and `@docsKind` tags from `.ts` sources (`--dry-run`, `--json`).
+- **Search facets `feature` and `entryPoint`.** The search palette shows the feature of a result.
 
 ### Changed
 
@@ -29,10 +34,12 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **JSON export schema 3 (breaking for export consumers).** `modules` and `entryComponents` are removed. Component style sources move into a shared top-level `styleSources` map; `themeStyleSources` now lists keys into it, and inline styles get a per-component key (`<component file>#inline-<n>`) instead of a shared `<inline-style-N>`. `compodocx diff` and the llm-md export follow.
 - **Standalone imports link without module pages.** The overview always shows the standalone dependency graph. On component pages, imports link to documented components, directives and pipes, Angular API symbols link to angular.dev, anything else stays plain text.
 - **Routes tree root.** The root node of the routes data is `{ name: '<root>', kind: 'root' }`.
-- **`groupBy` defaults to `'folder'`** when unset (it was `'none'` for projects with NgModules).
 - **Utilities and Dependency Injection replace Miscellaneous (breaking).** The Miscellaneous chapter, its four collection pages and the `miscellaneous/` folder are gone; symbol pages move to `functions/`, `variables/`, `typealiases/`, `enumerations/`, `resolvers/` and `providers/`, and the page of a feature type replaces its interface or type alias page. No redirects are written. The page overrides `miscellaneous-*` are renamed to `utilities`, `function`, `variable`, `typealias` and `enumeration`. MIGRATION.md lists every moved URL and renamed override.
 - **Badges from the analysis.** Provider, Feature and Injection context badges come from the project analysis; the badges guessed from name prefixes (`provideX`, `withX`, `injectX`, `createX`) are gone. `factoryKind` stays in the JSON export.
 - **Documentation coverage counts documented symbols only.** Symbols that reach no entry point are left out of the coverage report, its JSON and the coverage threshold.
+- **The feature layout is the default (breaking).** `menuLayout` defaults to `'feature'`: one Features chapter with the entry points as a tree of their import path, each feature below its entry point and the primary members of each feature below it, plus the `references.html` portal. Set `menuLayout: 'type'` for one chapter per kind; its chapters are grouped by feature too.
+- **Breadcrumbs, references and search from features.** Symbol pages show entry point and feature in their breadcrumb in both layouts, `references.html` has one section per feature, and pages carry `feature` / `entryPoint` search facets instead of `bucket` / `tier`.
+- **JSON export schema 4 (breaking for export consumers).** `category` and `docsKind` are removed from every entry and member; `schemaVersion` is 4. `compodocx diff` compares schema 4 exports only.
 
 - **One generation pipeline.** Every run (one-shot build, coverage test, watch rebuilds) now goes through a single sequence of phases with one table of prepare steps, instead of two hand-maintained queues and a callback chain. The generated output is byte-identical to before; CLI flags, defaults and the export schema are unchanged.
 - **Programmatic entry point is `runCompodocx` (breaking for API users).** The `Application` and `CliApplication` exports are removed. `runCompodocx` is exported as experimental; the CLI remains the supported entry point. See [MIGRATION.md](MIGRATION.md).
@@ -44,6 +51,9 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **i18n keys** `module`, `modules`, `bootstrap`, `declarations`, `entrycomponents` and `no-svg`.
 - **`referencedBy` in the JSON export.** The field came from a text search for the symbol name; use `usedBy`.
 - **`toggleMenuItems` values `miscellaneous` and `tokens`.** They are ignored with a warning; use `utilities` and `dependency-injection`.
+- **`@category` and `@docsKind`.** Both tags are ignored; a build that still finds them logs one warning listing every location. `@docsKind primary` promotions and the Primary badge are gone; `compodocx migrate jsdoc` strips the tags.
+- **Category pages.** The `categories/` pages and the `bucket-landing` template override are gone; feature pages replace them. A `bucket-landing` override file, like the renamed `miscellaneous-*` files, is ignored with a warning.
+- **`groupBy`, `groupDepth` and `featureLibraryScope`.** The config keys are ignored with a warning; the `--groupBy` and `--groupDepth` flags are dropped with a warning.
 
 ### Fixed
 

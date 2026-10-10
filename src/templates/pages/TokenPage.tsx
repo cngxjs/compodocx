@@ -5,8 +5,8 @@ import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { ExternalLinks } from '../blocks/ExternalLinks';
 import { ReferencedBySection, SymbolChips } from '../blocks/ReferencedBySection';
 import { RelatedSection } from '../blocks/RelatedSection';
+import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
 import { IconToken } from '../components/Icons';
-import { PrimaryBadge } from '../components/PrimaryBadge';
 import { WcagBadge } from '../components/WcagBadge';
 import {
     codeWrap,
@@ -15,7 +15,6 @@ import {
     pagefindFilterBlock,
     pagefindMetaBlock,
     parseDescription,
-    resolveBucketSegments,
     t
 } from '../helpers';
 import { symbolFacts } from '../helpers/symbol-facts';
@@ -66,20 +65,20 @@ const Section = (props: SectionProps): string => {
 const tokenSignature = (item: any, tokenType: string): string =>
     `${item.tokenClass ?? 'InjectionToken'}<${tokenType}>`;
 
-const Hero = (item: any, _depth: number): string => {
-    const segments = resolveBucketSegments(item);
-    const breadcrumbLabel = item.category || segments?.[0] || t('tokens');
+const Hero = (item: any, depth: number): string => {
+    const feature = entityFeature('token', item);
+    const breadcrumbLabel = t('tokens');
     const lib = deriveLibFromBucket(item.file) ?? '';
     const meta = pagefindMetaBlock({
         kind: 'token',
-        category: item.category,
+        feature: feature?.feature.label,
         description: item.description
     });
     const filter = pagefindFilterBlock({
         kind: 'token',
         lib,
-        bucket: item.category || undefined,
-        docsKind: 'primary'
+        feature: feature?.feature.label,
+        entryPoint: feature?.feature.entryPoint
     });
     const tokenType = (item.tokenType as string | undefined)?.trim();
     return (
@@ -91,15 +90,9 @@ const Hero = (item: any, _depth: number): string => {
             </div>
             <nav aria-label="Breadcrumb">
                 <ol class="cdx-breadcrumb">
-                    {segments
-                        ? segments.map((s, i) =>
-                              i === segments.length - 1 ? (
-                                  <li aria-current="page">{s}</li>
-                              ) : (
-                                  <li>{s}</li>
-                              )
-                          )
-                        : [<li aria-current="page">{breadcrumbLabel}</li>]}
+                    {FeatureCrumbs(feature, depth) ?? (
+                        <li aria-current="page">{breadcrumbLabel}</li>
+                    )}
                     <li aria-current="page">{item.name}</li>
                 </ol>
             </nav>
@@ -110,7 +103,6 @@ const Hero = (item: any, _depth: number): string => {
                 <span class="cdx-badge cdx-badge--entity-token" title={t('token')}>
                     {t('token')}
                 </span>
-                {PrimaryBadge({ docsKind: item.docsKind })}
                 {item.deprecated ? (
                     <span class="cdx-badge cdx-badge--deprecated">{t('deprecated')}</span>
                 ) : (

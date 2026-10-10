@@ -22,6 +22,7 @@ const tmp = temporaryDir();
 describe('CLI class-level JSDoc tags on library Components', () => {
     const distFolder = `${tmp.name}-class-jsdoc-lib`;
     let apiStatusFile: string;
+    let stdout: string;
 
     beforeAll(() => {
         tmp.create(distFolder);
@@ -40,7 +41,13 @@ describe('CLI class-level JSDoc tags on library Components', () => {
             throw new Error('error');
         }
 
+        stdout = ls.stdout.toString();
         apiStatusFile = read(`${distFolder}/${pageOf('component', 'ApiStatusComponent')}`);
+    });
+
+    it('lists the ignored @category tag in the build notice', () => {
+        expect(stdout).to.contain('@category / @docsKind tag');
+        expect(stdout).to.match(/libs\/my-lib\/core\/src\/api-status\.component\.ts:18 @category/);
     });
 
     afterAll(() => tmp.clean(distFolder));

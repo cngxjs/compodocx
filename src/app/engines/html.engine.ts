@@ -5,7 +5,6 @@ import { Layout } from '../../templates/Layout';
 import { AdditionalPage } from '../../templates/pages/AdditionalPage';
 import { ApiReferencePage } from '../../templates/pages/ApiReferencePage';
 import { AppConfigPage } from '../../templates/pages/AppConfigPage';
-import { BucketLandingPage } from '../../templates/pages/BucketLandingPage';
 import { ClassPage } from '../../templates/pages/ClassPage';
 import { ClusterPage } from '../../templates/pages/ClusterPage';
 import { ComponentPage } from '../../templates/pages/ComponentPage';
@@ -13,6 +12,7 @@ import { CoverageReport } from '../../templates/pages/CoverageReport';
 import { DependencyInjectionPage } from '../../templates/pages/DependencyInjectionPage';
 import { DirectivePage } from '../../templates/pages/DirectivePage';
 import { EntityDetailPage } from '../../templates/pages/EntityDetailPage';
+import { FeaturePage } from '../../templates/pages/FeaturePage';
 import { GuardPage } from '../../templates/pages/GuardPage';
 import { InjectablePage } from '../../templates/pages/InjectablePage';
 import { InterceptorPage } from '../../templates/pages/InterceptorPage';
@@ -71,7 +71,7 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     coverage: 'coverage-report',
     'unit-test': 'unit-test-report',
     'additional-page': 'additional-page',
-    'bucket-landing': 'bucket-landing',
+    feature: 'feature',
     'api-reference': 'api-reference'
 };
 
@@ -169,8 +169,8 @@ export class HtmlEngine {
                 return ComponentPage(data);
             case 'app-config':
                 return AppConfigPage(data);
-            case 'bucket-landing':
-                return BucketLandingPage(data);
+            case 'feature':
+                return FeaturePage(data);
             case 'api-reference':
                 return ApiReferencePage(data);
             default:

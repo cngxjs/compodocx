@@ -10,8 +10,7 @@ import { logger } from './logger';
  * the second extractor's warn is a no-op.
  *
  * `kind` should be a discriminator string that uniquely identifies the
- * warn category (e.g. `'wcag:invalid'`, `'github:invalid'`,
- * `'docsKind:duplicate'`).
+ * warn category (e.g. `'wcag:invalid'`, `'github:invalid'`).
  */
 const warned = new WeakMap<object, Set<string>>();
 

@@ -5,11 +5,11 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { AngularDependencies } from '../../../../src/app/compiler/angular-dependencies';
 
 /**
- * The custom tag set (`@docsKind`, `@wcag`, `@since`, `@github`, `@selector`,
+ * The custom tag set (`@wcag`, `@since`, `@github`, `@selector`,
  * `@relatedTo`) is extracted into the IO object for every entity kind, but the
  * shape-building blocks in `angular-dependencies/index.ts` copy those fields
  * per kind. Class and injectable blocks had drifted — class dropped `since`,
- * injectable dropped `docsKind`/`wcagLevel`/`a11yNote`/`taggedSelector`/
+ * injectable dropped `wcagLevel`/`a11yNote`/`taggedSelector`/
  * `relatedTo`. This spec pins that all three reference fields survive on both
  * shapes, mirroring the directive/component pipelines.
  */
@@ -82,7 +82,9 @@ export class PlainService {
         const cls = result.classes.find((c: any) => c.name === 'DataSource');
         expect(cls).toBeDefined();
         expect(cls.since).toBe('0.1.0');
-        expect(cls.docsKind).toBe('primary');
+        // @category and @docsKind are no longer read.
+        expect(cls.docsKind).toBeUndefined();
+        expect(cls.category).toBeUndefined();
         expect(cls.wcagLevel).toBe('AA');
         expect(cls.githubUrl).toBe('https://github.com/cngxjs/cngx/blob/main/data-source.ts');
         expect(cls.taggedSelector).toBe('cngx-data-source');
@@ -103,7 +105,8 @@ export class PlainService {
         const inj = result.injectables.find((i: any) => i.name === 'Alerter');
         expect(inj).toBeDefined();
         expect(inj.since).toBe('0.1.0');
-        expect(inj.docsKind).toBe('primary');
+        expect(inj.docsKind).toBeUndefined();
+        expect(inj.category).toBeUndefined();
         expect(inj.wcagLevel).toBe('AA');
         expect(inj.githubUrl).toBe('https://github.com/cngxjs/cngx/blob/main/alerter.ts');
         expect(inj.taggedSelector).toBe('cngx-alerter');

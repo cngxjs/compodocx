@@ -26,8 +26,8 @@ export const KIND_LABELS: Record<TableKind, string> = {
 
 /**
  * Compact 1–2 character identifier used inside the pastel
- * `.cdx-ref-kind-icon` letter-box that appears in API Reference rows,
- * API Reference filter chips, and the bucket-landing filter chips. The
+ * `.cdx-ref-kind-icon` letter-box that appears in API Reference rows and
+ * API Reference filter chips. The
  * letter is decorative — the full label travels alongside as visible
  * text and is also exposed via the chip's `title` attribute for
  * screen-reader users.
@@ -100,7 +100,8 @@ export function firstSentence(html: unknown): string | undefined {
  */
 export interface PagefindMetaInput {
     readonly kind?: TableKind | 'cluster';
-    readonly category?: string;
+    /** Label of the symbol's feature; the search palette shows it. */
+    readonly feature?: string;
     readonly description?: string;
 }
 
@@ -108,7 +109,7 @@ export interface PagefindMetaInput {
  * Render a Pagefind-discoverable meta block as a string fragment of hidden
  * spans. Each span carries one `data-pagefind-meta` attribute:
  *
- *   - `kind` and `category` use the literal `key:value` form (short, safe
+ *   - `kind` and `feature` use the literal `key:value` form (short, safe
  *     values, no commas or colons in real-world content).
  *   - `description` uses the inner-text form so values containing commas,
  *     colons, or quotes survive without escaping the `data-pagefind-meta`
@@ -132,12 +133,10 @@ export function pagefindMetaBlock(input: PagefindMetaInput): string {
         const label = escapeAttr(kindLabel);
         parts.push(`<span hidden data-pagefind-meta="kind:${label}"></span>`);
     }
-    if (typeof input.category === 'string') {
-        const trimmed = input.category.trim();
-        if (trimmed) {
-            const value = escapeAttr(trimmed);
-            parts.push(`<span hidden data-pagefind-meta="category:${value}"></span>`);
-        }
+    if (input.feature?.trim()) {
+        parts.push(
+            `<span hidden data-pagefind-meta="feature:${escapeAttr(input.feature.trim())}"></span>`
+        );
     }
     const excerpt = firstSentence(input.description);
     if (excerpt) {
@@ -168,23 +167,22 @@ function escapeText(value: string): string {
  * is emitted per dimension so each carries exactly one `dim:value` pair.
  */
 export interface PagefindFilterInput {
-    readonly kind?: TableKind | 'Bucket' | 'Module' | 'Provider';
+    readonly kind?: TableKind | 'Module' | 'Provider';
     readonly lib?: string;
-    readonly bucket?: string;
-    /** `primary` for promoted symbols, `reference` for everything else. */
-    readonly docsKind?: 'primary' | 'reference';
+    /** Label of the symbol's feature. */
+    readonly feature?: string;
+    /** Import path of the symbol's entry point. */
+    readonly entryPoint?: string;
     readonly wcag?: 'A' | 'AA' | 'AAA';
 }
 
-/** Map an TableKind to its facet-UI label. Non-entity rows (Bucket,
- *  Module) are passed through verbatim. */
-function kindFilterLabel(
-    kind: TableKind | 'Bucket' | 'Module' | 'Provider' | undefined
-): string | undefined {
+/** Map an TableKind to its facet-UI label. Non-entity rows (Module,
+ *  Provider) are passed through verbatim. */
+function kindFilterLabel(kind: TableKind | 'Module' | 'Provider' | undefined): string | undefined {
     if (!kind) {
         return undefined;
     }
-    if (kind === 'Bucket' || kind === 'Module' || kind === 'Provider') {
+    if (kind === 'Module' || kind === 'Provider') {
         return kind;
     }
     return KIND_LABELS[kind];
@@ -211,11 +209,11 @@ export function pagefindFilterBlock(input: PagefindFilterInput): string {
     if (input.lib?.trim()) {
         spans.push(filterSpan('lib', input.lib.trim()));
     }
-    if (input.bucket?.trim()) {
-        spans.push(filterSpan('bucket', input.bucket.trim()));
+    if (input.feature?.trim()) {
+        spans.push(filterSpan('feature', input.feature.trim()));
     }
-    if (input.docsKind) {
-        spans.push(filterSpan('tier', input.docsKind));
+    if (input.entryPoint?.trim()) {
+        spans.push(filterSpan('entryPoint', input.entryPoint.trim()));
     }
     if (input.wcag) {
         spans.push(filterSpan('wcag', input.wcag));

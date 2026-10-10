@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { err, isErr, mapResult, ok, type Result, sequenceAsync } from '../../lib';
@@ -6,7 +7,8 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import RouterParserUtil from '../../utils/router-parser.util';
 import { formatLegacyNotice } from '../compiler/legacy-scan';
-import { analyzeProject, formatSemanticSummary } from '../compiler/semantic';
+import { findRemovedTags, formatRemovedTagNotice } from '../compiler/removed-tags';
+import { analyzeProject, formatFeatureSummary, formatSemanticSummary } from '../compiler/semantic';
 import { buildDiView, formatHiddenList } from '../di';
 import DependenciesEngine from '../engines/dependencies.engine';
 import ExportEngine from '../engines/export.engine';
@@ -18,6 +20,7 @@ import { buildSymbolTable } from '../links';
 import { copyAssetsFolder, copyResources, finalizeOutput } from '../page-generator';
 import { crawlDependencies, crawlMicroDependencies } from '../services/dependencies';
 import type { RunContext, RunMode, Stage } from './context';
+import { deriveFeatures } from './features';
 import { type Halt, halt } from './halt';
 import { countsFromDiff, countsFromEngine, runPrepareStages, selectPrepareStages } from './stages';
 
@@ -222,13 +225,40 @@ const withSemantic = (ctx: RunContext): RunContext => {
     return { ...ctx, semantic: analyzed.value };
 };
 
-/** Index the engine's symbols once it holds the current crawl, then place them. */
+/** `@category` / `@docsKind` tags still written in the documented files. */
+const removedTagFindings = (files: readonly string[]) =>
+    files.flatMap(file => {
+        const absolute = path.resolve(cwd, file);
+        const text = fs.readFileSync(absolute, 'utf8');
+        return findRemovedTags(path.relative(cwd, absolute).split(path.sep).join('/'), text);
+    });
+
+/**
+ * Index the engine's symbols once it holds the current crawl, place them and
+ * derive their features; the feature model joins the semantic state.
+ */
 const withSymbols = (ctx: RunContext): RunContext => {
+    const { mainData } = ctx.config;
     const symbols = buildSymbolTable(DependenciesEngine, { semantic: ctx.semantic?.model, cwd });
     const di = buildDiView(symbols, ctx.semantic?.model);
-    ctx.config.mainData.symbols = symbols;
-    ctx.config.mainData.di = di;
-    return { ...ctx, symbols, di };
+    mainData.symbols = symbols;
+    mainData.di = di;
+    if (!ctx.semantic) {
+        return { ...ctx, symbols, di };
+    }
+    const detection = deriveFeatures(ctx.semantic.model, symbols, mainData, ctx.files, cwd);
+    const semantic = {
+        ...ctx.semantic,
+        model: { ...ctx.semantic.model, features: detection.model }
+    };
+    mainData.semantic = semantic.model;
+    if (ctx.mode !== 'diff') {
+        for (const warning of detection.warnings) {
+            logger.warn(warning);
+        }
+        logger.info(formatFeatureSummary(detection.model));
+    }
+    return { ...ctx, symbols, di, semantic };
 };
 
 /** The crawler parses nothing the semantic program already holds. */
@@ -252,27 +282,14 @@ const crawl: Stage = async current => {
     for (const line of formatLegacyNotice(dependenciesData.legacyFindings)) {
         logger.warn(line);
     }
-
-    if (!mainData.groupBy) {
-        mainData.groupBy = 'folder';
+    if (ctx.mode !== 'diff') {
+        const notice = formatRemovedTagNotice(removedTagFindings(ctx.files));
+        if (notice.length > 0) {
+            logger.warn(notice.join('\n'));
+        }
     }
 
     DependenciesEngine.init(dependenciesData);
-
-    // Inject category groupings for sidebar navigation (used by menu partial)
-    mainData.categorizedComponents = DependenciesEngine.categorizedComponents;
-    mainData.categorizedDirectives = DependenciesEngine.categorizedDirectives;
-    mainData.categorizedInjectables = DependenciesEngine.categorizedInjectables;
-    mainData.categorizedTokens = DependenciesEngine.categorizedTokens;
-    mainData.categorizedPipes = DependenciesEngine.categorizedPipes;
-    mainData.categorizedClasses = DependenciesEngine.categorizedClasses;
-    mainData.categorizedInterfaces = DependenciesEngine.categorizedInterfaces;
-    mainData.categorizedGuards = DependenciesEngine.categorizedGuards;
-    mainData.categorizedInterceptors = DependenciesEngine.categorizedInterceptors;
-    mainData.categorizedEntities = DependenciesEngine.categorizedEntities;
-    mainData.categorizedByFeature = DependenciesEngine.categorizedByFeature;
-    mainData.categorizedByFeaturePrimary = DependenciesEngine.categorizedByFeaturePrimary;
-    mainData.categorizedByFeatureReference = DependenciesEngine.categorizedByFeatureReference;
 
     mainData.routesLength = RouterParserUtil.routesLength();
 

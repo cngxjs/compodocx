@@ -68,10 +68,10 @@ These file names correspond to page contexts. Place them in `partials/` inside y
 | `resolver.js` | Functional resolver page at `resolvers/<name>.html`. Receives `data.resolver` |
 | `dependency-injection.js` | Dependency Injection landing page, `dependency-injection.html`: feature types with their providers and feature functions, other providers, tokens |
 | `di-cluster.js` | Page of a feature type at `providers/<FeatureType>.html`. Receives `data.cluster = { featureType, providers, features, tokens }`, each list holding the same entity objects the symbol pages get. Member sections use the anchor `<FeatureType>--<name>`. A provider without a feature type (`providers/<name>.html`) has no override of its own |
-| `bucket-landing.js` | Auto-generated landing page per `@category` / folder bucket at `categories/<bucket-id>.html`. Only emitted under `menuLayout: 'feature'`. Receives `data.bucketLanding = { bucket, segments, depth, items }` (v0.6.0+) |
-| `api-reference.js` | Single-page exhaustive symbol portal at `references.html`. Only emitted under `menuLayout: 'feature'`. Receives `data.categorizedByFeature` (the EXHAUSTIVE per-bucket dict, not the curated primary subset) (v0.6.0+) |
+| `feature.js` | Page of a feature at `features/<entry point>/<feature>.html` (both layouts). Receives `data.feature = { id, label, entryPoint, importPath, detector, segments, parent, readme: { file, html }, members: { components, directives, pipes, services, configuration, utilities, constants, types, classes }, subFeatures, buildsOn, extendedBy }`; members are symbol table entries (`ref.kind`, `ref.name`, `data` the engine object), `parent`, `subFeatures`, `buildsOn` and `extendedBy` are cards `{ id, label, entryPoint, segments, memberCount, summary }` |
+| `api-reference.js` | Single-page exhaustive symbol portal at `references.html`. Only emitted under `menuLayout: 'feature'`. Sections come from the feature model on `data.semantic.features`, one per feature, keyed by the feature's page path (`forms/select`, `forms/select/menu`) |
 | `app-config.js` | Application configuration page |
-| `menu.js` | Sidebar navigation menu. Under `menuLayout: 'feature'` also receives `data.menuLayout`, `data.categorizedByFeature` (legacy flat), `data.categorizedByFeaturePrimary` (curated Features chapter), `data.categorizedByFeatureReference` (exhaustive per-bucket reference dict), `data.featuresName`, `data.referencesName` |
+| `menu.js` | Sidebar navigation menu. Receives the main data, including `data.menuLayout`, the symbol table (`data.symbols`) and the feature model (`data.semantic.features`) |
 | `version-switcher.js` | Topbar version-switcher dropdown (multi-version mode only). Receives the manifest URL and current label |
 
 Block-level overrides replace a region inside a page rather than the whole page:
@@ -166,7 +166,7 @@ data.component.sourceCode // source code string
 // ... etc.
 ```
 
-For the menu override, `data` contains the full main data with all modules, components, directives, etc. `data.menuLayout` reflects the configured sidebar layout (`'type'` or `'feature'`); when `'feature'`, `data.categorizedByFeature` is a `Record<string, EntityWithKind[]>` keyed by folder/`@category`, where each item carries `kind` (e.g. `'component'`, `'directive'`, `'injectable'`) and `hrefPrefix` (the URL segment for its detail page). A `menu.js` override that wants to honor the feature layout can branch on `data.menuLayout` and render either the per-kind chapters or the cross-kind feature tree.
+For the menu override, `data` contains the full main data with all components, directives, etc. `data.menuLayout` reflects the configured sidebar layout (`'feature'` or `'type'`); the feature model (`data.semantic.features`: features, `featureOf` by symbol, family links) drives both.
 
 ## Migrating from Handlebars templates
 

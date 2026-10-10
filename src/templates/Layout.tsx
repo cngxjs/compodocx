@@ -9,6 +9,8 @@ export type PageData = {
     readonly depth: number;
     readonly context: string;
     readonly name: string;
+    /** Title of the page when `name` is an internal id (feature pages). */
+    readonly displayName?: string;
     readonly filename?: string;
     readonly theme?: string;
     readonly customLogo?: string;
@@ -286,7 +288,7 @@ const pageTitle = (data: PageData): string => {
     if (!data.context || data.context === 'readme' || data.context === 'getting-started') {
         return base;
     }
-    const name = data.name || data.filename || '';
+    const name = data.displayName || data.name || data.filename || '';
     if (!name) {
         return base;
     }

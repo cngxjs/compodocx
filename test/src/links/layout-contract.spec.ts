@@ -83,17 +83,20 @@ describe('page layout contract', () => {
         expect(hrefText(hrefFor({ type: 'root', page: 'index' }, 0))).toBe('./index.html');
     });
 
-    it('nests bucket landing pages below categories/', () => {
-        expect(pageLocation({ type: 'bucket', segments: ['ui'] })).toEqual({
-            path: 'categories',
-            filename: 'ui',
+    it('places feature pages below features/ by import path segments', () => {
+        expect(pageLocation({ type: 'feature', segments: ['forms', 'select'] })).toEqual({
+            path: 'features/forms',
+            filename: 'select',
+            depth: 2
+        });
+        expect(pageLocation({ type: 'feature', segments: ['admin'] })).toEqual({
+            path: 'features',
+            filename: 'admin',
             depth: 1
         });
-        expect(pageLocation({ type: 'bucket', segments: ['ui', 'feedback', 'toast'] })).toEqual({
-            path: 'categories/ui/feedback',
-            filename: 'toast',
-            depth: 3
-        });
+        expect(
+            hrefText(hrefFor({ type: 'feature', segments: ['common', 'interactive', 'menu'] }, 1))
+        ).toBe('../features/common/interactive/menu.html');
     });
 
     it('nests additional pages below their folder by slug', () => {

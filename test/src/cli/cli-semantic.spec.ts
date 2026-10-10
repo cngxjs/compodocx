@@ -1,8 +1,11 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { shell, temporaryDir } from '../helpers';
-import { clusterPage, pageOf, rootPage } from '../helpers/pages';
+import { clusterPage, featurePage, pageOf, rootPage } from '../helpers/pages';
 import { readKindPages } from './paths';
+
+/** The type layout this suite asserts (the default is the feature layout). */
+const TYPE_LAYOUT = path.resolve('test/fixtures/type-layout.compodocxrc.json');
 
 const tmp = temporaryDir();
 const TSCONFIG = './test/fixtures/semantic-library/tsconfig.json';
@@ -34,6 +37,8 @@ describe('CLI semantic analysis', () => {
         data = JSON.parse(fs.readFileSync(path.join(jsonFolder, 'documentation.json'), 'utf8'));
         shell('node', [
             './bin/index-cli.js',
+            '-c',
+            TYPE_LAYOUT,
             '-p',
             TSCONFIG,
             '--disableSearch',
@@ -50,7 +55,13 @@ describe('CLI semantic analysis', () => {
     it('exits 0 and logs the semantic summary', () => {
         expect(status).to.equal(0);
         expect(stdout).to.contain(
-            'Semantic analysis: 4 entry points, 4 providers, 2 feature functions, 8+3 use the injection context (1 unresolved), 1 exported symbols reach no entry point'
+            'Semantic analysis: 5 entry points, 4 providers, 2 feature functions, 8+3 use the injection context (1 unresolved), 1 exported symbols reach no entry point'
+        );
+    });
+
+    it('logs which detectors decided the features', () => {
+        expect(stdout).to.contain(
+            'Features: 8 in 5 entry points (config 0, tag 0, cohesion 3, entry point 4, folder 1), 1 family links'
         );
     });
 
@@ -71,6 +82,7 @@ describe('CLI semantic analysis', () => {
         expect(data.semantic.summary.providers).to.equal(4);
         expect(data.semantic.entryPoints.map((e: any) => e.importPath)).to.deep.equal([
             '@sem/core',
+            '@sem/core/select',
             '@sem/core/tokens',
             '@sem/testing',
             '@sem/ui'
@@ -84,7 +96,7 @@ describe('CLI semantic analysis', () => {
         ].join('\n');
         expect(page).to.contain('provideFoo');
         expect(page).not.to.contain('usesInjectionContext');
-        expect(page).not.to.contain('@sem/core/tokens');
+        expect(page).not.to.contain('exportedBy');
     });
 
     it('documents providers and features on one page per feature type', () => {
@@ -108,6 +120,41 @@ describe('CLI semantic analysis', () => {
         expect(utilities).to.contain('>formatFoo<');
     });
 
+    it('writes one page per feature, the glued entry point as one page with its README', () => {
+        const exists = (segments: string[]) =>
+            fs.existsSync(path.join(htmlFolder, featurePage(segments)));
+        for (const segments of [['core', 'select'], ['core'], ['ui', 'foo-panel'], ['env']]) {
+            expect(exists(segments), segments.join('/')).to.equal(true);
+        }
+        expect(exists(['core', 'select', 'shared'])).to.equal(false);
+        // di/ and routes/ are role folders: their foo.* files join foo, and the
+        // entry point with a single feature is its root feature.
+        expect(exists(['core', 'di'])).to.equal(false);
+        expect(exists(['core', 'foo'])).to.equal(false);
+        const select = fs.readFileSync(
+            path.join(htmlFolder, featurePage(['core', 'select'])),
+            'utf8'
+        );
+        expect(select).to.contain("import { ... } from '@sem/core/select';");
+        expect(select).to.contain('A single-select built from small parts');
+        expect(select).to.contain(`href="../../${pageOf('component', 'SemSelectListbox')}"`);
+    });
+
+    it('lists feature members by role and links providers to their feature type page', () => {
+        const core = fs.readFileSync(path.join(htmlFolder, featurePage(['core'])), 'utf8');
+        expect(core).to.contain('id="configuration"');
+        expect(core).to.contain('id="utilities"');
+        expect(core).to.contain(`href="../${clusterPage('FooFeature')}#FooFeature--provideFoo"`);
+        expect(core).to.contain(`href="../${pageOf('function', 'formatFoo')}"`);
+        expect(core).to.contain(`href="../${pageOf('guard', 'fooReadyGuard')}"`);
+        const panel = fs.readFileSync(
+            path.join(htmlFolder, featurePage(['ui', 'foo-panel'])),
+            'utf8'
+        );
+        expect(panel).to.contain('A panel that configures foo for everything rendered inside it.');
+        expect(panel).to.contain('id="components-and-directives"');
+    });
+
     it('adds a Dependency Injection chapter and landing page', () => {
         const landing = fs.readFileSync(
             path.join(htmlFolder, rootPage('dependency-injection')),
@@ -123,7 +170,8 @@ describe('CLI semantic analysis', () => {
             path.join(htmlFolder, pageOf('provider', 'provideFooLimit')),
             'utf8'
         );
-        expect(provider).to.contain(`href="../${rootPage('dependency-injection')}"`);
+        // Breadcrumb: entry point > feature, the feature linked to its page.
+        expect(provider).to.contain(`href="../${featurePage(['core'])}"`);
     });
 
     it('links provider calls in a component providers array', () => {

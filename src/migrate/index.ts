@@ -1,7 +1,7 @@
 /**
  * `compodocx migrate <subcommand>` — CLI dispatcher.
  *
- * Wires the four subcommands behind a small commander instance that's
+ * Wires the five subcommands behind a small commander instance that's
  * created lazily on demand (the migrate path is rarely the user's primary
  * use-case, so we don't want to pay its setup cost on every invocation).
  *
@@ -16,6 +16,7 @@ import pkg from '../../package.json';
 import { type CssMode, isMarkupOrCode, isStylesheet, rewriteCss } from './css';
 import { realFs } from './fs-adapter';
 import { inspectProject } from './inspect';
+import { migrateJsdoc } from './jsdoc';
 import {
     printBanner,
     printDetail,
@@ -191,6 +192,42 @@ const runCss = async (target: string, mode: CssMode, flags: CommonFlags): Promis
     return exitCodeOf(worst);
 };
 
+const runJsdoc = async (target: string, flags: CommonFlags): Promise<number> => {
+    const fs = realFs();
+    const root = path.resolve(target);
+    if (!fs.isDirectory(root) && !fs.isFile(root)) {
+        printError(`migrate jsdoc: not found: ${target}`);
+        return 2;
+    }
+    const result = migrateJsdoc(root, fs, flags.dryRun === true);
+    if (flags.json) {
+        console.log(
+            JSON.stringify(
+                {
+                    scanned: result.scanned,
+                    removed: result.removed,
+                    files: result.files.map(file => ({
+                        file: path.relative(process.cwd(), file.file) || file.file,
+                        removed: file.removed
+                    }))
+                },
+                null,
+                2
+            )
+        );
+        return 0;
+    }
+    for (const file of result.files) {
+        printLine(
+            `${path.relative(process.cwd(), file.file) || file.file}: ${file.removed} tag(s)`
+        );
+    }
+    printSummaryLine(
+        `Summary: ${result.removed} @category / @docsKind tags removed in ${result.files.length} of ${result.scanned} files${flags.dryRun ? ' (dry-run, not written)' : ''}.`
+    );
+    return 0;
+};
+
 const printInspectReport = (report: InspectReport, suppressWarnings: boolean): void => {
     const where = path.relative(process.cwd(), report.project) || report.project;
     printHeading(`Inspect ${where}: ${report.findings.length} finding(s)`);
@@ -269,6 +306,18 @@ export const runMigrateCli = async (argv: readonly string[]): Promise<number> =>
         .action(async (target: string, opts: CommonFlags & { aggressive?: boolean }) => {
             const mode: CssMode = opts.aggressive ? 'aggressive' : 'conservative';
             exitCode = await runCss(target, mode, opts);
+        });
+
+    program
+        .command('jsdoc <dir>')
+        .description(
+            'Remove the @category and @docsKind tags compodocx no longer reads from .ts sources.'
+        )
+        .option('--dry-run', 'Report the tags without writing to disk')
+        .option('--json', 'Emit a machine-readable JSON report')
+        .option('--no-warnings', 'Accepted for symmetry; the report has no warnings')
+        .action(async (dir: string, opts: CommonFlags) => {
+            exitCode = await runJsdoc(dir, opts);
         });
 
     program

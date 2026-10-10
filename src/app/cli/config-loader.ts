@@ -8,6 +8,7 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { parseJsonIndent } from '../../utils/json-indent.util';
 import { logger } from '../../utils/logger';
 import { parseMaxVersionsShown } from '../../utils/max-versions-shown.util';
+import { isFeatureKey } from '../compiler/semantic/features';
 import I18nEngine from '../engines/i18n.engine';
 import { STACKBLITZ_POST_LIMIT } from '../engines/stackblitz/constants';
 import type { ConfigurationFileInterface } from '../interfaces/configuration-file.interface';
@@ -17,6 +18,14 @@ const COSMICONFIG_MODULE_NAME = 'compodoc';
 
 /** Menu keys of chapters that no longer exist; they warn and are dropped. */
 const REMOVED_MENU_ITEMS: readonly string[] = ['modules', 'miscellaneous', 'tokens'];
+
+/** Config keys that no longer have an effect, with the reason; each one present warns once. */
+const IGNORED_CONFIG_KEYS: Readonly<Record<string, string>> = {
+    groupBy: 'the sidebar groups symbols by feature',
+    groupDepth: 'the sidebar groups symbols by feature',
+    featureLibraryScope:
+        'each feature lists its primary members, or its whole surface when it has none'
+};
 
 export interface LoadConfigOptions {
     readonly explicitConfigPath?: string;
@@ -74,6 +83,58 @@ export function loadConfigFile(opts: LoadConfigOptions): ConfigFileResult {
     return ok({ config, explorerResult });
 }
 
+const isStringList = (value: unknown): value is string[] =>
+    Array.isArray(value) && value.every(item => typeof item === 'string');
+
+/**
+ * `features`, `featureContainers`, `featureUtilityFolders` and `featureRoleFolders` from the config
+ * file. Invalid entries warn once each and are ignored; the run goes on.
+ */
+export function applyFeatureConfig(
+    configFile: Partial<ConfigurationFileInterface>,
+    mainData: MainDataInterface
+): void {
+    const { features, featureContainers, featureUtilityFolders, featureRoleFolders } = configFile;
+    if (features !== undefined) {
+        if (features === null || typeof features !== 'object' || Array.isArray(features)) {
+            logger.warn('features: expected an object of file glob -> feature key; ignored');
+        } else {
+            const valid: Record<string, string> = {};
+            for (const [glob, key] of Object.entries(features)) {
+                if (typeof key === 'string' && isFeatureKey(key)) {
+                    valid[glob] = key;
+                } else {
+                    logger.warn(
+                        `features: ignoring "${glob}": "${String(key)}" (expected one segment [a-z0-9][a-z0-9-]*)`
+                    );
+                }
+            }
+            mainData.features = valid;
+        }
+    }
+    if (featureContainers !== undefined) {
+        if (isStringList(featureContainers)) {
+            mainData.featureContainers = featureContainers;
+        } else {
+            logger.warn('featureContainers: expected a list of folder names; ignored');
+        }
+    }
+    if (featureUtilityFolders !== undefined) {
+        if (isStringList(featureUtilityFolders)) {
+            mainData.featureUtilityFolders = featureUtilityFolders;
+        } else {
+            logger.warn('featureUtilityFolders: expected a list of folder names; ignored');
+        }
+    }
+    if (featureRoleFolders !== undefined) {
+        if (isStringList(featureRoleFolders)) {
+            mainData.featureRoleFolders = featureRoleFolders;
+        } else {
+            logger.warn('featureRoleFolders: expected a list of folder names; ignored');
+        }
+    }
+}
+
 /**
  * Merge config-file values and CLI flags onto `Configuration.mainData`.
  *
@@ -85,7 +146,7 @@ export function loadConfigFile(opts: LoadConfigOptions): ConfigFileResult {
  * Side-effects allowed:
  *  - `process.exit(1)` for invalid `--jsonIndent` / `--maxVersionsShown` /
  *    missing custom-theme file / `--tsconfig` boolean.
- *  - `process.exit(2)` for invalid `menuLayout` / `featureLibraryScope` / `collapsedAll` / `featuresName` / `referencesName` config.
+ *  - `process.exit(2)` for invalid `menuLayout` / `collapsedAll` / `featuresName` / `referencesName` config.
  *  - Mutates `logger.silent` and `logger.routeToStderr`.
  *  - Mutates `I18nEngine` via the language-availability warning.
  *
@@ -741,18 +802,10 @@ export function applyConfigToMainData(
         mainData.stackblitzTemplate = programOptions.stackblitzTemplate;
     }
 
-    if (configFile.groupBy) {
-        mainData.groupBy = configFile.groupBy;
-    }
-    if (programOptions.groupBy) {
-        mainData.groupBy = programOptions.groupBy;
-    }
-
-    if (configFile.groupDepth) {
-        mainData.groupDepth = Number(configFile.groupDepth);
-    }
-    if (programOptions.groupDepth && programOptions.groupDepth !== '2') {
-        mainData.groupDepth = Number(programOptions.groupDepth);
+    for (const [key, reason] of Object.entries(IGNORED_CONFIG_KEYS)) {
+        if ((configFile as Record<string, unknown>)[key] !== undefined) {
+            logger.warn(`${key} is ignored: ${reason}`);
+        }
     }
 
     if (configFile.menuLayout !== undefined) {
@@ -764,16 +817,7 @@ export function applyConfigToMainData(
         mainData.menuLayout = layout;
     }
 
-    if (configFile.featureLibraryScope !== undefined) {
-        const featureLibraryScope = configFile.featureLibraryScope;
-        if (!COMPODOC_DEFAULTS.featureLibraryScopesSupported.includes(featureLibraryScope)) {
-            logger.error(
-                `Invalid featureLibraryScope value "${featureLibraryScope}". Expected "primary", "auto" or "all".`
-            );
-            process.exit(2);
-        }
-        mainData.featureLibraryScope = featureLibraryScope;
-    }
+    applyFeatureConfig(configFile, mainData);
 
     if (configFile.featuresName !== undefined) {
         if (typeof configFile.featuresName !== 'string') {

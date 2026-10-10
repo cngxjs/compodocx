@@ -87,24 +87,24 @@ describe('pagefindMetaBlock', () => {
         expect(out).toContain('data-pagefind-meta="kind:Type Alias"');
     });
 
-    it('omits category span when empty or whitespace-only', () => {
-        expect(pagefindMetaBlock({ kind: 'component', category: '' })).toBe(
+    it('omits feature span when empty or whitespace-only', () => {
+        expect(pagefindMetaBlock({ kind: 'component', feature: '' })).toBe(
             '<span hidden data-pagefind-meta="kind:Component"></span>'
         );
-        expect(pagefindMetaBlock({ kind: 'component', category: '   ' })).toBe(
+        expect(pagefindMetaBlock({ kind: 'component', feature: '   ' })).toBe(
             '<span hidden data-pagefind-meta="kind:Component"></span>'
         );
     });
 
-    it('emits a trimmed category in literal `key:value` form when set', () => {
+    it('emits a trimmed feature label in literal `key:value` form when set', () => {
         expect(
             pagefindMetaBlock({
                 kind: 'component',
-                category: '  ui/feedback/toast  '
+                feature: '  ui/feedback/toast  '
             })
         ).toBe(
             '<span hidden data-pagefind-meta="kind:Component"></span>' +
-                '<span hidden data-pagefind-meta="category:ui/feedback/toast"></span>'
+                '<span hidden data-pagefind-meta="feature:ui/feedback/toast"></span>'
         );
     });
 
@@ -139,9 +139,9 @@ describe('pagefindMetaBlock', () => {
         ).toContain('<span hidden data-pagefind-meta="description">Foo bar &amp; "baz"</span>');
     });
 
-    it('escapes attribute quotes in kind / category values', () => {
-        expect(pagefindMetaBlock({ kind: 'component', category: 'a"b' })).toContain(
-            'data-pagefind-meta="category:a&quot;b"'
+    it('escapes attribute quotes in kind / feature values', () => {
+        expect(pagefindMetaBlock({ kind: 'component', feature: 'a"b' })).toContain(
+            'data-pagefind-meta="feature:a&quot;b"'
         );
     });
 
@@ -149,12 +149,12 @@ describe('pagefindMetaBlock', () => {
         expect(
             pagefindMetaBlock({
                 kind: 'component',
-                category: 'ui/feedback/toast',
+                feature: 'ui/feedback/toast',
                 description: '<p>Toast component.</p>'
             })
         ).toBe(
             '<span hidden data-pagefind-meta="kind:Component"></span>' +
-                '<span hidden data-pagefind-meta="category:ui/feedback/toast"></span>' +
+                '<span hidden data-pagefind-meta="feature:ui/feedback/toast"></span>' +
                 '<span hidden data-pagefind-meta="description">Toast component</span>'
         );
     });
@@ -192,27 +192,29 @@ describe('pagefindFilterBlock', () => {
         );
     });
 
-    it('passes through non-EntityKind labels (Bucket, Module) verbatim', () => {
-        expect(pagefindFilterBlock({ kind: 'Bucket' })).toContain(
-            'data-pagefind-filter="kind:Bucket"'
+    it('passes through non-EntityKind labels (Module, Provider) verbatim', () => {
+        expect(pagefindFilterBlock({ kind: 'Provider' })).toContain(
+            'data-pagefind-filter="kind:Provider"'
         );
         expect(pagefindFilterBlock({ kind: 'Module' })).toContain(
             'data-pagefind-filter="kind:Module"'
         );
     });
 
-    it('omits whitespace-only lib / bucket dimensions', () => {
-        const out = pagefindFilterBlock({ kind: 'pipe', lib: '   ', bucket: '' });
+    it('omits whitespace-only lib / feature dimensions', () => {
+        const out = pagefindFilterBlock({ kind: 'pipe', lib: '   ', feature: '' });
         expect(out).not.toContain('lib:');
-        expect(out).not.toContain('bucket:');
+        expect(out).not.toContain('feature:');
         expect(out).toContain('kind:Pipe');
     });
 
-    it('emits docsKind under the canonical `tier` facet dimension', () => {
-        const primary = pagefindFilterBlock({ docsKind: 'primary' });
-        const reference = pagefindFilterBlock({ docsKind: 'reference' });
-        expect(primary).toContain('data-pagefind-filter="tier:primary"');
-        expect(reference).toContain('data-pagefind-filter="tier:reference"');
+    it('emits the feature and the entry point as facet dimensions', () => {
+        const out = pagefindFilterBlock({ feature: 'select', entryPoint: '@x/forms/select' });
+        expect(out).toBe(
+            '<span hidden data-pagefind-filter="feature:select"></span>' +
+                '<span hidden data-pagefind-filter="entryPoint:@x/forms/select"></span>'
+        );
+        expect(out).not.toContain('tier:');
     });
 
     it('escapes attribute-significant characters in values', () => {
@@ -224,15 +226,15 @@ describe('pagefindFilterBlock', () => {
         const out = pagefindFilterBlock({
             kind: 'interface',
             lib: 'ui',
-            bucket: 'ui/feedback/toast',
-            docsKind: 'reference',
+            feature: 'toast',
+            entryPoint: '@x/ui/feedback',
             wcag: 'AA'
         });
         expect(out).toBe(
             '<span hidden data-pagefind-filter="kind:Interface"></span>' +
                 '<span hidden data-pagefind-filter="lib:ui"></span>' +
-                '<span hidden data-pagefind-filter="bucket:ui/feedback/toast"></span>' +
-                '<span hidden data-pagefind-filter="tier:reference"></span>' +
+                '<span hidden data-pagefind-filter="feature:toast"></span>' +
+                '<span hidden data-pagefind-filter="entryPoint:@x/ui/feedback"></span>' +
                 '<span hidden data-pagefind-filter="wcag:AA"></span>'
         );
     });
@@ -241,14 +243,14 @@ describe('pagefindFilterBlock', () => {
         const out = pagefindFilterBlock({
             kind: 'interface',
             lib: 'ui',
-            bucket: 'ui/feedback/toast',
-            docsKind: 'reference',
+            feature: 'toast',
+            entryPoint: '@x/ui/feedback',
             wcag: 'AA'
         });
         expect(out).not.toContain('data-pagefind-filter-kind=');
         expect(out).not.toContain('data-pagefind-filter-lib=');
-        expect(out).not.toContain('data-pagefind-filter-bucket=');
-        expect(out).not.toContain('data-pagefind-filter-tier=');
+        expect(out).not.toContain('data-pagefind-filter-feature=');
+        expect(out).not.toContain('data-pagefind-filter-entryPoint=');
         expect(out).not.toContain('data-pagefind-filter-wcag=');
     });
 });

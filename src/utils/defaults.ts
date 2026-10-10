@@ -62,13 +62,5 @@ export const COMPODOC_DEFAULTS = {
     },
     coverageTestShowOnlyFailed: false,
     language: 'en-US',
-    maxSearchResults: 15,
-    /**
-     * Which buckets get a node in the Features/Libraries chapter under
-     * `menuLayout: 'feature'` and what they list. See `prepareFeatureGroups`
-     * in `dependencies.engine.ts`. `'auto'` (default) makes pure
-     * function/interface/type-alias libraries first-class.
-     */
-    featureLibraryScope: 'auto',
-    featureLibraryScopesSupported: ['primary', 'auto', 'all']
+    maxSearchResults: 15
 };

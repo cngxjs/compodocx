@@ -3,12 +3,14 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import type { FeatureModel } from '../../../src/app/compiler/semantic/features';
 import {
     factKey,
     type SemanticModel,
     type SymbolFacts
 } from '../../../src/app/compiler/semantic/model';
 import {
+    exportSemantic,
     miscellaneousWithFacts,
     withSemanticFacts
 } from '../../../src/app/engines/export-json.engine';
@@ -82,6 +84,27 @@ describe('export-json typed snapshot — todomvc fixture', () => {
 
     it('writes schemaVersion = EXPORT_SCHEMA_VERSION', () => {
         expect(snapshot.schemaVersion).toBe(EXPORT_SCHEMA_VERSION);
+    });
+
+    it('writes no category or docsKind field on any entry or member (schema 4)', () => {
+        expect(EXPORT_SCHEMA_VERSION).toBe(4);
+        const keys: string[] = [];
+        const walk = (value: unknown): void => {
+            if (Array.isArray(value)) {
+                value.forEach(walk);
+            } else if (value && typeof value === 'object') {
+                for (const [key, child] of Object.entries(value)) {
+                    // Raw JSDoc nodes keep their tag names; only compodocx fields count.
+                    if (key !== 'jsdoctags') {
+                        keys.push(key);
+                        walk(child);
+                    }
+                }
+            }
+        };
+        walk(snapshot);
+        expect(keys).not.toContain('category');
+        expect(keys).not.toContain('docsKind');
     });
 
     it('writes a valid ISO 8601 generatedAt timestamp', () => {
@@ -321,5 +344,73 @@ describe('export-json semantic facts', () => {
         };
         expect(misc.variables[0].usedBy).toEqual([{ name: 'value', file: 'src/a.ts' }]);
         expect(misc.typealiases[0].usedBy).toEqual([{ name: 'type', file: 'src/a.ts' }]);
+    });
+
+    const features: FeatureModel = {
+        features: [
+            {
+                id: '@lib/foo#',
+                entryPoint: '@lib/foo',
+                key: '',
+                label: 'foo',
+                root: 'src',
+                detector: 'entry-point',
+                readme: 'src/README.md'
+            },
+            {
+                id: '@lib/ui#panel',
+                entryPoint: '@lib/ui',
+                key: 'panel',
+                label: 'panel',
+                root: 'ui/panel',
+                detector: 'cohesion'
+            },
+            { id: '#app', key: 'app', label: 'app', root: 'app', detector: 'folder' }
+        ],
+        featureOf: new Map([['src/foo.ts#provideFoo', '@lib/foo#']]),
+        families: [{ from: '@lib/ui#panel', to: '@lib/foo#', reason: 'wraps', edges: 3 }]
+    };
+
+    it('writes the feature of a symbol next to its other facts', () => {
+        const withFeatures = { ...model([facts({ entryPoint: '@lib/foo' })]), features };
+        expect(withSemanticFacts(entry, withFeatures)).toEqual({
+            ...entry,
+            entryPoint: '@lib/foo',
+            feature: { entryPoint: '@lib/foo', key: '' }
+        });
+    });
+
+    it('lists every feature with its builds on and extended by links', () => {
+        const semantic = exportSemantic({ ...model([]), features });
+        expect(semantic.features).toEqual([
+            {
+                id: '@lib/foo#',
+                entryPoint: '@lib/foo',
+                key: '',
+                label: 'foo',
+                detector: 'entry-point',
+                readme: 'src/README.md',
+                buildsOn: [],
+                extendedBy: ['@lib/ui#panel']
+            },
+            {
+                id: '@lib/ui#panel',
+                entryPoint: '@lib/ui',
+                key: 'panel',
+                label: 'panel',
+                detector: 'cohesion',
+                buildsOn: ['@lib/foo#'],
+                extendedBy: []
+            },
+            {
+                id: '#app',
+                key: 'app',
+                label: 'app',
+                detector: 'folder',
+                buildsOn: [],
+                extendedBy: []
+            }
+        ]);
+        expect(exportSemantic(model([]))).not.toHaveProperty('features');
     });
 });

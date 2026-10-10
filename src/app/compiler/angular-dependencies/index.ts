@@ -146,7 +146,6 @@ export class AngularDependencies extends FrameworkDependencies {
             file: file,
             deprecated: IO.deprecated,
             deprecationMessage: IO.deprecationMessage,
-            category: IO.category || '',
             type: 'class',
             sourceCode: srcFile.getText(),
             storybookUrl: IO.storybookUrl || '',
@@ -156,7 +155,6 @@ export class AngularDependencies extends FrameworkDependencies {
             docsUrl: IO.docsUrl || '',
             ...(IO.aiGenerated && { aiGenerated: IO.aiGenerated }),
             ...(IO.since && { since: IO.since }),
-            ...(IO.docsKind === 'primary' && { docsKind: 'primary' as const }),
             ...(IO.wcagLevel && { wcagLevel: IO.wcagLevel }),
             ...(IO.a11yNote && { a11yNote: IO.a11yNote }),
             ...(IO.taggedSelector && { taggedSelector: IO.taggedSelector }),
@@ -409,7 +407,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                 methods: IO.methods,
                                 deprecated: IO.deprecated,
                                 deprecationMessage: IO.deprecationMessage,
-                                category: IO.category || '',
                                 description: IO.description,
                                 rawdescription: IO.rawdescription,
                                 sourceCode: srcFile.getText(),
@@ -427,7 +424,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                 ...(IO.stackblitzUrl && { stackblitzUrl: IO.stackblitzUrl }),
                                 ...(IO.githubUrl && { githubUrl: IO.githubUrl }),
                                 ...(IO.docsUrl && { docsUrl: IO.docsUrl }),
-                                ...(IO.docsKind === 'primary' && { docsKind: 'primary' as const }),
                                 ...(IO.wcagLevel && { wcagLevel: IO.wcagLevel }),
                                 ...(IO.a11yNote && { a11yNote: IO.a11yNote }),
                                 ...(IO.taggedSelector && { taggedSelector: IO.taggedSelector }),
@@ -464,7 +460,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                 type: 'pipe',
                                 deprecated: IO.deprecated,
                                 deprecationMessage: IO.deprecationMessage,
-                                category: IO.category || '',
                                 description: IO.description,
                                 rawdescription: IO.rawdescription,
                                 properties: IO.properties,
@@ -583,7 +578,6 @@ export class AngularDependencies extends FrameworkDependencies {
                             file: file,
                             deprecated: IO.deprecated,
                             deprecationMessage: IO.deprecationMessage,
-                            category: IO.category || '',
                             type: 'interface',
                             sourceCode: srcFile.getText(),
                             storybookUrl: IO.storybookUrl || '',
@@ -591,7 +585,6 @@ export class AngularDependencies extends FrameworkDependencies {
                             stackblitzUrl: IO.stackblitzUrl || '',
                             githubUrl: IO.githubUrl || '',
                             docsUrl: IO.docsUrl || '',
-                            ...(IO.docsKind === 'primary' && { docsKind: 'primary' as const }),
                             ...(IO.wcagLevel && { wcagLevel: IO.wcagLevel }),
                             ...(IO.a11yNote && { a11yNote: IO.a11yNote }),
                             ...(IO.taggedSelector && { taggedSelector: IO.taggedSelector }),
@@ -635,7 +628,6 @@ export class AngularDependencies extends FrameworkDependencies {
 
                         const deprecated = infos.deprecated;
                         const deprecationMessage = infos.deprecationMessage;
-                        const category = infos.category || '';
                         const functionDep: IFunctionDecDep = {
                             name,
                             file: file,
@@ -643,12 +635,10 @@ export class AngularDependencies extends FrameworkDependencies {
                             subtype: 'function',
                             deprecated,
                             deprecationMessage,
-                            category,
                             description:
                                 this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
                                     node
                                 ),
-                            ...(infos.docsKind === 'primary' && { docsKind: 'primary' as const }),
                             ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
                             ...(infos.a11yNote && { a11yNote: infos.a11yNote })
                         };
@@ -710,7 +700,6 @@ export class AngularDependencies extends FrameworkDependencies {
 
                         const deprecated = infos.deprecated;
                         const deprecationMessage = infos.deprecationMessage;
-                        const category = infos.category || '';
                         const enumDeps: IEnumDecDep = {
                             name,
                             childs: infos.members,
@@ -718,13 +707,11 @@ export class AngularDependencies extends FrameworkDependencies {
                             subtype: 'enum',
                             deprecated,
                             deprecationMessage,
-                            category,
                             description:
                                 this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
                                     node
                                 ),
                             file: file,
-                            ...(infos.docsKind === 'primary' && { docsKind: 'primary' as const }),
                             ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
                             ...(infos.a11yNote && { a11yNote: infos.a11yNote })
                         };
@@ -745,7 +732,6 @@ export class AngularDependencies extends FrameworkDependencies {
 
                         const deprecated = infos.deprecated;
                         const deprecationMessage = infos.deprecationMessage;
-                        const category = infos.category || '';
                         const typeAliasDeps: ITypeAliasDecDep = {
                             name,
                             ctype: 'miscellaneous',
@@ -754,12 +740,10 @@ export class AngularDependencies extends FrameworkDependencies {
                             file: file,
                             deprecated,
                             deprecationMessage,
-                            category,
                             description:
                                 this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
                                     node
                                 ),
-                            ...(infos.docsKind === 'primary' && { docsKind: 'primary' as const }),
                             ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
                             ...(infos.a11yNote && { a11yNote: infos.a11yNote })
                         };
@@ -843,7 +827,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                     const name = infos.name;
                                     const deprecated = infos.deprecated;
                                     const deprecationMessage = infos.deprecationMessage;
-                                    const category = infos.category || '';
                                     const deps: any = {
                                         name,
                                         ctype: 'miscellaneous',
@@ -851,10 +834,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                         file: file,
                                         deprecated,
                                         deprecationMessage,
-                                        category,
-                                        ...(infos.docsKind === 'primary' && {
-                                            docsKind: 'primary' as const
-                                        }),
                                         ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
                                         ...(infos.a11yNote && { a11yNote: infos.a11yNote })
                                     };
@@ -896,7 +875,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                             providers,
                                             deprecated: deps.deprecated || false,
                                             deprecationMessage: deps.deprecationMessage || '',
-                                            category: deps.category || '',
                                             since: infos.since || '',
                                             zoneless: isZoneless
                                         };
@@ -943,7 +921,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                             methods: [],
                                             deprecated: deps.deprecated || false,
                                             deprecationMessage: deps.deprecationMessage || '',
-                                            category: deps.category || '',
                                             description: deps.description || '',
                                             rawdescription: deps.rawdescription || '',
                                             sourceCode: '',
@@ -962,9 +939,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                             ...(factory && { factory }),
                                             since: infos.since || '',
                                             githubUrl: infos.githubUrl || '',
-                                            ...(infos.docsKind === 'primary' && {
-                                                docsKind: 'primary' as const
-                                            }),
                                             ...(infos.wcagLevel && {
                                                 wcagLevel: infos.wcagLevel
                                             }),
@@ -1020,7 +994,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                             methods: [],
                                             deprecated: deps.deprecated || false,
                                             deprecationMessage: deps.deprecationMessage || '',
-                                            category: deps.category || '',
                                             description: deps.description || '',
                                             rawdescription: deps.rawdescription || '',
                                             sourceCode: srcFile.getText(),
@@ -1132,7 +1105,6 @@ export class AngularDependencies extends FrameworkDependencies {
                         const name = infos.name;
                         const deprecated = infos.deprecated;
                         const deprecationMessage = infos.deprecationMessage;
-                        const category = infos.category || '';
                         const deps: ITypeAliasDecDep = {
                             name,
                             ctype: 'miscellaneous',
@@ -1141,12 +1113,10 @@ export class AngularDependencies extends FrameworkDependencies {
                             file: file,
                             deprecated,
                             deprecationMessage,
-                            category,
                             description:
                                 this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
                                     node
                                 ),
-                            ...(infos.docsKind === 'primary' && { docsKind: 'primary' as const }),
                             ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
                             ...(infos.a11yNote && { a11yNote: infos.a11yNote })
                         };
@@ -1170,7 +1140,6 @@ export class AngularDependencies extends FrameworkDependencies {
                         const name = infos.name;
                         const deprecated = infos.deprecated;
                         const deprecationMessage = infos.deprecationMessage;
-                        const category = infos.category || '';
                         const functionDep: IFunctionDecDep = {
                             name,
                             ctype: 'miscellaneous',
@@ -1178,12 +1147,10 @@ export class AngularDependencies extends FrameworkDependencies {
                             file: file,
                             deprecated,
                             deprecationMessage,
-                            category,
                             description:
                                 this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
                                     node
                                 ),
-                            ...(infos.docsKind === 'primary' && { docsKind: 'primary' as const }),
                             ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
                             ...(infos.a11yNote && { a11yNote: infos.a11yNote })
                         };
@@ -1213,7 +1180,6 @@ export class AngularDependencies extends FrameworkDependencies {
                         const name = infos.name;
                         const deprecated = infos.deprecated;
                         const deprecationMessage = infos.deprecationMessage;
-                        const category = infos.category || '';
                         const enumDeps: IEnumDecDep = {
                             name,
                             childs: infos.members,
@@ -1221,13 +1187,11 @@ export class AngularDependencies extends FrameworkDependencies {
                             subtype: 'enum',
                             deprecated,
                             deprecationMessage,
-                            category,
                             description:
                                 this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
                                     node
                                 ),
                             file: file,
-                            ...(infos.docsKind === 'primary' && { docsKind: 'primary' as const }),
                             ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
                             ...(infos.a11yNote && { a11yNote: infos.a11yNote })
                         };

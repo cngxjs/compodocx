@@ -92,18 +92,22 @@ test.describe('Utilities page', () => {
     });
 
     test.describe('Symbol pages', () => {
-        test('breadcrumb links back to the utilities page and group', async ({ page }) => {
+        test('breadcrumb links the feature page of the symbol', async ({ page }) => {
             await page.goto(rootUrl('utilities'));
             const href = await page.locator('#variables table a').first().getAttribute('href');
             await page.goto(new URL(href as string, page.url()).pathname);
             const crumbs = page.locator('.cdx-breadcrumb a');
-            await expect(crumbs).toHaveCount(2);
-            await expect(crumbs.nth(1)).toHaveAttribute('href', /utilities\.html#variables$/);
+            await expect(crumbs).toHaveCount(1);
+            await expect(crumbs.first()).toHaveAttribute('href', /features\/[^/]+\.html$/);
         });
 
-        test('class page breadcrumb has no dead links', async ({ page }) => {
+        test('class page breadcrumb links to an existing feature page', async ({ page }) => {
             await page.goto(pageUrl('class', 'Todo'));
-            await expect(page.locator('.cdx-breadcrumb a')).toHaveCount(0);
+            const crumb = page.locator('.cdx-breadcrumb a');
+            await expect(crumb).toHaveCount(1);
+            const href = await crumb.getAttribute('href');
+            await page.goto(new URL(href as string, page.url()).pathname);
+            await expect(page.locator('.cdx-entity-hero[data-cdx-feature]')).toBeVisible();
         });
     });
 });

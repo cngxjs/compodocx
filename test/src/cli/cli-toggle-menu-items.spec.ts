@@ -1,4 +1,8 @@
+import * as path from 'node:path';
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
+
+/** The type layout this suite asserts (the default is the feature layout). */
+const TYPE_LAYOUT = path.resolve('test/fixtures/type-layout.compodocxrc.json');
 
 const tmp = temporaryDir();
 
@@ -10,6 +14,8 @@ describe('CLI toggle menu items', () => {
             tmp.create(distFolder);
             const ls = shell('node', [
                 './bin/index-cli.js',
+                '-c',
+                TYPE_LAYOUT,
                 '--no-multiVersion',
                 '-p',
                 './test/fixtures/todomvc-ng2/src/tsconfig.json',

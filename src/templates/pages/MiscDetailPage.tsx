@@ -4,6 +4,7 @@ import { hrefFor, hrefText } from '../../app/links/layout';
 import { ParamsTable } from '../blocks/ParamsTable';
 import { ReferencedBySection } from '../blocks/ReferencedBySection';
 import { DiBadges } from '../components/DiBadges';
+import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
 import { IconEnum, IconFile, IconFunction, IconTypealias, IconVariable } from '../components/Icons';
 import { WcagBadge } from '../components/WcagBadge';
 import {
@@ -16,7 +17,6 @@ import {
     pagefindFilterBlock,
     pagefindMetaBlock,
     parseDescription,
-    resolveBucketSegments,
     t
 } from '../helpers';
 import { symbolFacts } from '../helpers/symbol-facts';
@@ -378,16 +378,17 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
     const meta = META[props.kind];
     const item = props.item;
     const tabs = buildTabs(props);
+    const feature = entityFeature(props.kind, item);
     const searchMeta = pagefindMetaBlock({
         kind: props.kind,
-        category: item.category,
+        feature: feature?.feature.label,
         description: item.description
     });
     const searchFilters = pagefindFilterBlock({
         kind: props.kind,
-        lib: deriveLibFromBucket(item.category || item.file),
-        bucket: item.category,
-        docsKind: item.docsKind === 'primary' ? 'primary' : 'reference',
+        lib: deriveLibFromBucket(item.file),
+        feature: feature?.feature.label,
+        entryPoint: feature?.feature.entryPoint,
         wcag: item.wcagLevel
     });
     return (
@@ -401,9 +402,9 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                 <nav aria-label="Breadcrumb">
                     <ol class="cdx-breadcrumb">
                         {(() => {
-                            const segments = resolveBucketSegments(item);
-                            if (segments) {
-                                return segments.map(seg => <li>{seg}</li>);
+                            const crumbs = FeatureCrumbs(feature, props.depth ?? 1);
+                            if (crumbs) {
+                                return crumbs;
                             }
                             if (props.parent) {
                                 const href = hrefText(
@@ -450,9 +451,6 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                 </h1>
                 <div class="cdx-entity-hero-badges">
                     <span class={`cdx-badge ${meta.badge}`}>{meta.label}</span>
-                    {item.category && (
-                        <span class="cdx-badge cdx-badge--outline">{item.category}</span>
-                    )}
                     {item.deprecated && (
                         <span class="cdx-badge cdx-badge--deprecated">{t('deprecated')}</span>
                     )}

@@ -39,8 +39,8 @@ import {
     EmptyIconPalette,
     EmptyIconTree
 } from '../components/EmptyStateIcons';
+import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
 import { IconComponent, IconFile } from '../components/Icons';
-import { PrimaryBadge } from '../components/PrimaryBadge';
 import { WcagBadge } from '../components/WcagBadge';
 import {
     deriveLibFromBucket,
@@ -54,7 +54,6 @@ import {
     pagefindMetaBlock,
     parseDescription,
     relativeUrl,
-    resolveBucketSegments,
     t
 } from '../helpers';
 
@@ -382,16 +381,17 @@ export const ComponentPage = (data: any): string => {
           })()
         : null;
 
+    const feature = entityFeature('component', c);
     const searchMeta = pagefindMetaBlock({
         kind: 'component',
-        category: c.category,
+        feature: feature?.feature.label,
         description: c.description
     });
     const searchFilters = pagefindFilterBlock({
         kind: 'component',
-        lib: deriveLibFromBucket(c.category || c.file),
-        bucket: c.category,
-        docsKind: c.docsKind === 'primary' ? 'primary' : 'reference',
+        lib: deriveLibFromBucket(c.file),
+        feature: feature?.feature.label,
+        entryPoint: feature?.feature.entryPoint,
         wcag: c.wcagLevel
     });
 
@@ -408,12 +408,7 @@ export const ComponentPage = (data: any): string => {
                 </div>
                 <nav aria-label="Breadcrumb">
                     <ol class="cdx-breadcrumb">
-                        {(() => {
-                            const segments = resolveBucketSegments(c);
-                            return segments
-                                ? segments.map(seg => <li>{seg}</li>)
-                                : ((<li>{t('components')}</li>) as string);
-                        })()}
+                        {FeatureCrumbs(feature, 1) ?? ((<li>{t('components')}</li>) as string)}
                         <li aria-current="page">{c.name}</li>
                     </ol>
                 </nav>
@@ -429,7 +424,6 @@ export const ComponentPage = (data: any): string => {
                 )}
                 <div class="cdx-entity-hero-badges">
                     <span class="cdx-badge cdx-badge--entity-component">Component</span>
-                    {PrimaryBadge({ docsKind: c.docsKind })}
                     {c.zoneless ? <span class="cdx-badge cdx-badge--zoneless">Zoneless</span> : ''}
                     {(() => {
                         const cd = String(c.changeDetection ?? '');

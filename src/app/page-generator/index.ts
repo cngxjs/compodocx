@@ -7,13 +7,16 @@ export {
     finalizeOutput,
     type OutputContext
 } from './asset-copier';
-export { BucketLandingPageGenerator } from './bucket-landing-page-generator';
 export { ClassPageGenerator } from './class-page-generator';
 export { ComponentPageGenerator } from './component-page-generator';
 export { CoveragePageGenerator } from './coverage-page-generator';
 export { DiPageGenerator } from './di-page-generator';
 export { DirectivePageGenerator } from './directive-page-generator';
 export { EntityPageGenerator } from './entity-page-generator';
+export {
+    createFeaturePageGenerator,
+    type FeaturePageGenerator
+} from './feature-page-generator';
 export { GuardPageGenerator } from './guard-page-generator';
 export { InjectablePageGenerator } from './injectable-page-generator';
 export { InterceptorPageGenerator } from './interceptor-page-generator';

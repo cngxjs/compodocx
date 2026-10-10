@@ -1,4 +1,9 @@
 import { COMPODOC_DEFAULTS } from '../utils/defaults';
+import {
+    DEFAULT_FEATURE_CONTAINERS,
+    DEFAULT_FEATURE_ROLE_FOLDERS,
+    DEFAULT_FEATURE_UTILITY_FOLDERS
+} from './compiler/semantic/features';
 import { isMovedPage } from './di/model';
 
 import {
@@ -138,23 +143,11 @@ export class Configuration implements ConfigurationInterface {
         playgroundVendorPackages: {},
         playgroundFiles: {},
         appConfig: [],
-        categorizedComponents: {},
-        categorizedDirectives: {},
-        categorizedInjectables: {},
-        categorizedTokens: {},
-        categorizedPipes: {},
-        categorizedClasses: {},
-        categorizedInterfaces: {},
-        categorizedGuards: {},
-        categorizedInterceptors: {},
-        categorizedEntities: {},
-        categorizedByFeature: {},
-        categorizedByFeaturePrimary: {},
-        categorizedByFeatureReference: {},
-        groupBy: '',
-        groupDepth: 2,
-        menuLayout: 'type',
-        featureLibraryScope: 'auto',
+        menuLayout: 'feature',
+        features: {},
+        featureContainers: [...DEFAULT_FEATURE_CONTAINERS],
+        featureUtilityFolders: [...DEFAULT_FEATURE_UTILITY_FOLDERS],
+        featureRoleFolders: [...DEFAULT_FEATURE_ROLE_FOLDERS],
         featuresName: 'Features',
         referencesName: 'References',
         collapsedAll: false,

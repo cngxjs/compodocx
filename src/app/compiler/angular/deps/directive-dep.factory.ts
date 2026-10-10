@@ -33,7 +33,6 @@ export class DirectiveDepFactory {
 
             deprecated: IO.deprecated,
             deprecationMessage: IO.deprecationMessage,
-            category: IO.category || '',
 
             // Custom JSDoc tags
             signal: IO.signal || false,
@@ -57,7 +56,6 @@ export class DirectiveDepFactory {
             playgrounds: IO.playgrounds || [],
             slots: IO.slots || [],
             exampleUrls: this.helper.getComponentExampleUrls(srcFile.getText()),
-            ...(IO.docsKind === 'primary' && { docsKind: 'primary' as const }),
             ...(IO.wcagLevel && { wcagLevel: IO.wcagLevel }),
             ...(IO.a11yNote && { a11yNote: IO.a11yNote }),
             ...(IO.taggedSelector && { taggedSelector: IO.taggedSelector }),
@@ -149,7 +147,6 @@ export interface IDirectiveDep extends IDep {
 
     deprecated: boolean;
     deprecationMessage: string;
-    category?: string;
 
     // Custom JSDoc tags
     signal?: boolean;

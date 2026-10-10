@@ -42,12 +42,10 @@ export class ClassHelper {
     private initializeDocumentationFields(): {
         deprecated: boolean;
         deprecationMessage: string;
-        category: string;
     } {
         return {
             deprecated: false,
-            deprecationMessage: '',
-            category: ''
+            deprecationMessage: ''
         };
     }
 

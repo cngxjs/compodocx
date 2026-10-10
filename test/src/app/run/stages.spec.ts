@@ -55,7 +55,7 @@ const ALL_KEYS = [
     'interface',
     'appConfig',
     'utilities',
-    'bucketLanding',
+    'feature',
     'apiReference',
     'documentationCoverage',
     'unitTestCoverage',
@@ -91,7 +91,7 @@ describe('prepare stage table', () => {
         expect(keys(context('full'), EMPTY)).toEqual([
             'component',
             'appConfig',
-            'bucketLanding',
+            'feature',
             'apiReference',
             'documentationCoverage',
             'playgroundFiles',

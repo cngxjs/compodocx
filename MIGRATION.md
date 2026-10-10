@@ -47,6 +47,45 @@ The rest of this document only matters if:
 - Your CSS or downstream tooling targets compodoc's emitted class names.
 - You scraped or post-processed the generated HTML.
 
+## Breaking change in 0.9.0: features replace category buckets
+
+compodocx groups symbols by feature: an entry point (the import path), then a feature key below it, derived from the code. The sidebar, the breadcrumbs, `references.html` and search use it. `@category` and `@docsKind` are no longer read.
+
+The feature layout is the default. To keep one chapter per kind:
+
+```json
+{ "menuLayout": "type" }
+```
+
+Tags:
+
+- Run `compodocx migrate jsdoc <dir>` to remove `@category` and `@docsKind` from your sources (`--dry-run` lists them first). Until then every build logs one warning with their locations.
+- To put a symbol into a different feature, use `@feature <key>` on the symbol or a `features` entry in the config file (`{ "features": { "projects/forms/select/src/**": "select" } }`). The key is relative to the symbol's entry point; it cannot move a symbol into another entry point.
+- Topic groupings that `@category` expressed inside one feature have no replacement yet.
+
+Configuration:
+
+| Removed | Now |
+|-|-|
+| `groupBy`, `--groupBy` | Ignored with a warning; both layouts group by feature |
+| `groupDepth`, `--groupDepth` | Ignored with a warning |
+| `featureLibraryScope` | Ignored with a warning; a feature lists its primary members, or its whole surface when it has none |
+| `menuLayout` default `'type'` | Default `'feature'` |
+
+New: `features`, `featureContainers` (app folders whose sub-folders are features, default `features`, `pages`, `domains`), `featureUtilityFolders` (folders that belong to the entry point's root feature) and `featureRoleFolders` (folders such as `di/`, `routes/` or `components/` whose files join the feature their file name starts with). See "Features" in docs/configuration.md for the detection rules.
+
+Pages: `categories/<bucket>.html` is gone. Every feature has a page at `features/<entry point>/<feature>.html`, an app feature at `features/<feature>.html`; the entry point's import path loses a scope that all entry points share. No redirects are written.
+
+Template overrides: `bucket-landing` is removed (a file with that name is ignored with a warning). The new `feature` context targets feature pages (`data.feature`, see docs/custom-templates.md). `menu` and `api-reference` overrides read the feature model from `data.semantic.features`; `data.categorizedByFeature*` and the `data.categorized*` kind groups are gone.
+
+JSON export (schema 4):
+
+- `schemaVersion` is 4. `compodocx diff` accepts schema 4 only; re-export older files.
+- `category` and `docsKind` are removed from every entry and member.
+- Symbol entries can carry `feature: { entryPoint, key }`; `semantic.features` lists each feature with `id`, `entryPoint`, `key`, `label`, `detector`, `readme`, `buildsOn` and `extendedBy`.
+
+Search: the `bucket` and `tier` facets are replaced by `feature` and `entryPoint`.
+
 ## Breaking change in 0.9.0: dependency injection and utilities pages
 
 The Miscellaneous chapter and the `miscellaneous/` output folder are gone. Functions, constants, type aliases and enumerations each get a page of their own, providers and feature functions move to a Dependency Injection chapter.
@@ -379,11 +418,11 @@ Stable contract for `--templates`. Data shapes documented inline in the correspo
 
 ### Page-level
 
-`overview`, `markdown`, `component`, `component-detail`, `controller`, `entity`, `directive`, `injectable`, `interceptor`, `guard`, `pipe`, `class`, `interface`, `resolver`, `token`, `routes`, `utilities`, `function`, `variable`, `typealias`, `enumeration`, `dependency-injection`, `di-cluster`, `additional-page`, `package-dependencies`, `package-properties`, `coverage-report`, `unit-test-report`, `menu`, `app-config`, `bucket-landing`
+`overview`, `markdown`, `component`, `component-detail`, `controller`, `entity`, `directive`, `injectable`, `interceptor`, `guard`, `pipe`, `class`, `interface`, `resolver`, `token`, `routes`, `utilities`, `function`, `variable`, `typealias`, `enumeration`, `dependency-injection`, `di-cluster`, `additional-page`, `package-dependencies`, `package-properties`, `coverage-report`, `unit-test-report`, `menu`, `app-config`, `feature`
 
 `function`, `variable`, `typealias` and `enumeration` target the page every such symbol gets (`functions/<name>.html` and so on); the page object carries the symbol under the same key (`data.function`, ...). `resolver` targets `resolvers/<name>.html` (`data.resolver`). `utilities` and `dependency-injection` target the two landing pages. `di-cluster` targets the page of a feature type, `providers/<FeatureType>.html`: `data.cluster = { featureType, providers, features, tokens }`, each list holding the same entity objects the symbol pages get. A provider without a feature type has no override of its own.
 
-The `bucket-landing` context (v0.6.0+) targets the auto-generated `categories/<bucket-id>.html` pages emitted under `menuLayout: 'feature'`. Data: `data.bucketLanding = { bucket: string, segments: string[], depth: number, items: EntityWithKind[] }`. Both leaf and intermediate folder nodes get pages; intermediate buckets aggregate items from every descendant leaf.
+The `feature` context targets the page of a feature, `features/<entry point>/<feature>.html`: `data.feature = { id, label, entryPoint, importPath, detector, segments, parent, readme, members, subFeatures, buildsOn, extendedBy }`, see docs/custom-templates.md.
 
 ### Block-level
 
@@ -394,6 +433,7 @@ The `referenced-by` block (v0.6.0+) renders the "Used by" chip list: the declara
 ### Removed / not overridable
 
 - `modules`, `module` - removed in v0.9.0 together with the module pages.
+- `bucket-landing` - removed in v0.9.0 together with the `categories/` pages; see "Breaking change in 0.9.0: features replace category buckets".
 - `miscellaneous-functions`, `miscellaneous-variables`, `miscellaneous-typealiases`, `miscellaneous-enumerations`, `miscellaneous-function`, `miscellaneous-variable`, `miscellaneous-typealias`, `miscellaneous-enumeration` - renamed in v0.9.0, see the table in "Breaking change in 0.9.0: dependency injection and utilities pages".
 - `search-results`, `search-input` - Pagefind replaces Lunr and ships its own UI shell. No override hook.
 - `breadcrumbs` - replaced by inline rendering in the entity hero. Override the page-level template if you need to change breadcrumb markup.

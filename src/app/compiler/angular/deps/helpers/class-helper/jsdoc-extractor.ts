@@ -13,9 +13,6 @@ export class JsdocExtractor {
     private readonly jsdocParserUtil = new JsdocParserUtil();
 
     public checkForDeprecation(tags: any[], result: { [key in string | number]: any }) {
-        // See JsdocTags.checkForDeprecation for the rationale behind the
-        // pass-local docsKind counter — same dual-extractor problem.
-        let docsKindCount = 0;
         tags.forEach(tag => {
             if (tag.tagName?.text) {
                 if (tag.tagName.text.indexOf('deprecated') > -1) {
@@ -23,27 +20,6 @@ export class JsdocExtractor {
                     // tag.comment becomes a NodeArray (not a string) when the
                     // JSDoc has an inline {@link X}; parseJSDocNode flattens both shapes.
                     result.deprecationMessage = this.jsdocParserUtil.parseJSDocNode(tag) || '';
-                }
-                if (tag.tagName.text === 'category') {
-                    // Take only the first line of the comment (category name)
-                    const raw = (this.jsdocParserUtil.parseJSDocNode(tag) || '').trim();
-                    result.category = raw.split('\n')[0].trim();
-                }
-                if (tag.tagName.text === 'docsKind') {
-                    const raw = (this.jsdocParserUtil.parseJSDocNode(tag) || '').trim();
-                    const value = raw.split('\n')[0].trim().toLowerCase();
-                    if (value === 'primary') {
-                        docsKindCount++;
-                        if (docsKindCount > 1) {
-                            warnOnce(
-                                result,
-                                'docsKind:duplicate',
-                                `Multiple @docsKind primary tags on entity "${result.name || '?'}". First-wins, dropping subsequent.`
-                            );
-                        } else {
-                            result.docsKind = 'primary';
-                        }
-                    }
                 }
                 if (tag.tagName.text === 'wcag') {
                     const raw = (this.jsdocParserUtil.parseJSDocNode(tag) || '').trim();

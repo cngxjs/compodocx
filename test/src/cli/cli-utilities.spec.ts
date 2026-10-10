@@ -1,7 +1,10 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { hrefTo, pageOf, rootPage } from '../helpers/pages';
+import { featurePage, hrefTo, pageOf, rootPage } from '../helpers/pages';
+
+/** The type layout this suite asserts (the default is the feature layout). */
+const TYPE_LAYOUT = path.resolve('test/fixtures/type-layout.compodocxrc.json');
 
 const tmp = temporaryDir();
 
@@ -9,6 +12,7 @@ describe('CLI utilities', () => {
     const distFolder = `${tmp.name}-misc-detail`;
     const fixtureFolder = `${tmp.name}-misc-detail-fixture`;
     let utilities = '';
+    let stdout = '';
 
     const tsconfigContent = {
         compilerOptions: {
@@ -91,6 +95,8 @@ describe('CLI utilities', () => {
 
         const ls = shell('node', [
             './bin/index-cli.js',
+            '-c',
+            TYPE_LAYOUT,
             '--no-multiVersion',
             '-p',
             path.join(fixtureFolder, 'tsconfig.json'),
@@ -103,6 +109,7 @@ describe('CLI utilities', () => {
             throw new Error('error');
         }
 
+        stdout = ls.stdout.toString();
         utilities = read(`${distFolder}/${rootPage('utilities')}`);
     });
 
@@ -111,7 +118,7 @@ describe('CLI utilities', () => {
         tmp.clean(fixtureFolder);
     });
 
-    it('generates a detail page for every @category-tagged miscellaneous symbol', () => {
+    it('generates a detail page for every miscellaneous symbol', () => {
         // A provider without a feature type gets its page in the providers folder.
         expect(exists(`${distFolder}/${pageOf('provider', 'provideToaster')}`)).to.be.true;
         expect(exists(`${distFolder}/${pageOf('function', 'provideToaster')}`)).to.be.false;
@@ -143,15 +150,16 @@ describe('CLI utilities', () => {
         const detail = read(`${distFolder}/${pageOf('function', 'helperFn')}`);
         expect(detail).to.match(/<h1[^>]*class="cdx-entity-hero-name">[\s\S]*?helperFn/);
         expect(detail).to.contain('Untagged helper.');
-        // Breadcrumb chain: Utilities > Functions > helperFn
+        // Breadcrumb: the feature (the app's root feature here) > helperFn
         expect(detail).to.contain('class="cdx-breadcrumb"');
-        expect(detail).to.contain(`href="../${rootPage('utilities')}#functions"`);
+        expect(detail).to.contain(`href="../${featurePage(['app'])}"`);
 
         const provider = read(`${distFolder}/${pageOf('provider', 'provideToaster')}`);
         expect(provider).to.match(/<h1[^>]*class="cdx-entity-hero-name">[\s\S]*?provideToaster/);
         expect(provider).to.contain('Provides the toaster feature');
-        // Category badge surfaced on the hero
-        expect(provider).to.contain('Toast');
+        // @category is no longer read: no category badge, a build notice instead.
+        expect(provider).not.to.contain('cdx-badge--outline">Toast');
+        expect(stdout).to.contain('@category / @docsKind tags are ignored');
     });
 
     it('detail pages use the singular template context (override hook stable)', () => {

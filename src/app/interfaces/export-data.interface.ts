@@ -26,7 +26,7 @@ export type ExportRoute = RouteInterface;
  * other place in `src/` writes a numeric literal as the schema version
  * instead of importing this constant.
  */
-export const EXPORT_SCHEMA_VERSION = 3 as const;
+export const EXPORT_SCHEMA_VERSION = 4 as const;
 
 export type ExportSchemaVersion = typeof EXPORT_SCHEMA_VERSION;
 
@@ -50,7 +50,6 @@ export interface ExportArg {
     dotDotDotToken?: boolean;
     deprecated?: boolean;
     deprecationMessage?: string;
-    category?: string;
     description?: string;
     defaultValue?: string;
 }
@@ -62,7 +61,6 @@ export interface ExportProperty {
     optional?: boolean;
     deprecated?: boolean;
     deprecationMessage?: string;
-    category?: string;
     description?: string;
     rawdescription?: string;
     line?: number;
@@ -82,7 +80,6 @@ export interface ExportMethod {
     line?: number;
     deprecated?: boolean;
     deprecationMessage?: string;
-    category?: string;
     description?: string;
     rawdescription?: string;
     modifierKind?: number[];
@@ -164,6 +161,29 @@ export interface ExportSemanticFacts {
     usedBy?: ExportSymbolRef[];
     di?: ExportDiFacts;
     token?: ExportTokenFacts;
+    /** The feature the symbol belongs to; `key` `''` is the entry point's root feature. */
+    feature?: ExportFeatureRef;
+}
+
+export interface ExportFeatureRef {
+    entryPoint?: string;
+    key: string;
+}
+
+/** A feature: entry point plus a key below it, with the features it builds on. */
+export interface ExportFeature {
+    /** `${entryPoint ?? ''}#${key}`. */
+    id: string;
+    entryPoint?: string;
+    key: string;
+    label: string;
+    detector: 'config' | 'tag' | 'cohesion' | 'entry-point' | 'folder';
+    /** README of the feature, relative to the working directory. */
+    readme?: string;
+    /** Ids of features in other entry points this one uses. */
+    buildsOn: string[];
+    /** Ids of features in other entry points that use this one. */
+    extendedBy: string[];
 }
 
 export interface ExportSemanticSummary {
@@ -181,6 +201,7 @@ export interface ExportSemantic {
         source: 'ng-package' | 'tsconfig-paths';
     }[];
     summary: ExportSemanticSummary;
+    features?: ExportFeature[];
 }
 
 export interface ExportEntityCommon extends ExportSemanticFacts {
@@ -188,7 +209,6 @@ export interface ExportEntityCommon extends ExportSemanticFacts {
     name: string;
     file?: string;
     type?: string;
-    category?: string;
     description?: string;
     rawdescription?: string;
     sourceCode?: string;
@@ -344,7 +364,6 @@ export interface ExportFunction extends ExportSemanticFacts {
     subtype?: string;
     deprecated?: boolean;
     deprecationMessage?: string;
-    category?: string;
     description?: string;
     factoryKind?: 'provider' | 'feature' | 'inject' | 'factory';
     returnType?: string;
@@ -366,7 +385,6 @@ export interface ExportEnumeration extends ExportSemanticFacts {
     subtype?: string;
     deprecated?: boolean;
     deprecationMessage?: string;
-    category?: string;
     description?: string;
     childs?: ExportEnumMember[];
 }
@@ -379,7 +397,6 @@ export interface ExportTypeAlias extends ExportSemanticFacts {
     rawtype?: string;
     deprecated?: boolean;
     deprecationMessage?: string;
-    category?: string;
     description?: string;
     kind?: number;
 }
@@ -391,7 +408,6 @@ export interface ExportVariable extends ExportSemanticFacts {
     subtype?: string;
     deprecated?: boolean;
     deprecationMessage?: string;
-    category?: string;
     type?: string;
     defaultValue?: string;
     description?: string;

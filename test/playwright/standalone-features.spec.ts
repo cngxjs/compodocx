@@ -33,15 +33,16 @@ test.describe('Sidebar', () => {
         expect(html).toContain('cdx-badge--beta');
     });
 
-    test('category grouping under injectables', async ({ page }) => {
+    test('injectables grouped by feature', async ({ page }) => {
         await page.goto('/');
         const html = await page.content();
-        expect(html).toContain('Configuration');
-        expect(html).toContain('Services');
+        expect(html).toContain('injectables-group-users');
+        expect(html).toContain('injectables-group-settings');
+        expect(html).toContain('injectables-group-admin-settings');
     });
 });
 
-// ─── Navigation Grouping (folder-based hierarchy) ───────
+// ─── Navigation Grouping (by feature) ───────
 
 test.describe('Navigation Grouping', () => {
     test('folder groups rendered as nested tree in sidebar', async ({ page }) => {
@@ -51,17 +52,18 @@ test.describe('Navigation Grouping', () => {
         expect(html).toContain('chapter inner');
         // Specific folder group IDs present
         expect(html).toContain('components-group-dashboard');
-        expect(html).toContain('components-group-features');
+        expect(html).toContain('components-group-admin');
         expect(html).toContain('components-group-settings');
         expect(html).toContain('components-group-users');
     });
 
-    test('nested folder structure: features > admin', async ({ page }) => {
+    test('folders below a container folder are features of their own', async ({ page }) => {
         await page.goto('/');
         const html = await page.content();
-        // Intermediate container nodes exist (depth 3+ merges into parent due to groupDepth=2)
-        expect(html).toContain('components-group-features');
-        expect(html).toContain('components-group-features/admin');
+        // src/app/features/admin and src/app/features/admin-settings
+        expect(html).toContain('components-group-admin');
+        expect(html).toContain('components-group-admin-settings');
+        expect(html).not.toContain('components-group-features');
     });
 
     test('folder group names capitalized', async ({ page }) => {
@@ -69,8 +71,8 @@ test.describe('Navigation Grouping', () => {
         // Check that group buttons show capitalized names
         const dashboardBtn = page.locator('button:has-text("Dashboard")').first();
         await expect(dashboardBtn).toBeVisible();
-        const featuresBtn = page.locator('button:has-text("Features")').first();
-        await expect(featuresBtn).toBeVisible();
+        const adminBtn = page.locator('button:has-text("Admin")').first();
+        await expect(adminBtn).toBeVisible();
     });
 
     test('count badges on groups with items', async ({ page }) => {
@@ -80,18 +82,21 @@ test.describe('Navigation Grouping', () => {
         expect(countBadges.length).toBeGreaterThanOrEqual(3);
     });
 
-    test('explicit @category overrides folder grouping', async ({ page }) => {
+    test('@category no longer groups: a tagged component stays in its feature', async ({
+        page
+    }) => {
         await page.goto('/');
-        const html = await page.content();
-        // BreadcrumbComponent has @category Navigation
-        expect(html).toContain('Navigation');
-        expect(html).toContain('BreadcrumbComponent');
+        // BreadcrumbComponent carries @category Navigation and sits at the app root.
+        const link = page.locator('[id="components-group-app"] a:has-text("BreadcrumbComponent")');
+        await expect(link).toHaveCount(1);
+        expect(await page.content()).not.toContain('components-group-Navigation');
     });
 
-    test('ungrouped root-level components render flat', async ({ page }) => {
+    test('components at the app root sit in the app root feature', async ({ page }) => {
         await page.goto('/');
-        // Root-level components (no folder) should be direct links, not inside .chapter.inner
-        const appLink = page.locator('#components-links > li.link > a:has-text("AppComponent")');
+        const appLink = page.locator(
+            '[id="components-group-app"] > li.link > a:has-text("AppComponent")'
+        );
         await expect(appLink).toHaveCount(1);
     });
 
@@ -123,33 +128,29 @@ test.describe('Navigation Grouping', () => {
         expect(hasIn).not.toBe(hasInAfter);
     });
 
-    test('deep groups beyond groupDepth start collapsed', async ({ page }) => {
+    test('feature groups start expanded', async ({ page }) => {
         await page.goto('/');
         await page.evaluate(() => localStorage.removeItem('compodoc-sidebar-state'));
         await page.reload();
 
-        // With default groupDepth=2, depth >= 2 should start collapsed (no .in class)
-        // features/admin/ui/ui-settings is at depth 3
-        const deepGroup = page.locator('#components-group-features\\/admin\\/ui\\/ui-settings');
-        const count = await deepGroup.count();
-        if (count > 0) {
-            const isOpen = await deepGroup.evaluate(el => el.classList.contains('in'));
-            expect(isOpen).toBe(false);
-        }
+        // Groups of the first two levels start expanded.
+        const group = page.locator('[id="components-group-admin"]');
+        await expect(group).toHaveCount(1);
+        expect(await group.evaluate(el => el.classList.contains('in'))).toBe(true);
     });
 
-    test('directives grouped under shared > directives', async ({ page }) => {
+    test('directives grouped under the shared feature', async ({ page }) => {
         await page.goto('/');
         const html = await page.content();
         expect(html).toContain('directives-group-shared');
-        expect(html).toContain('directives-group-shared/directives');
+        expect(html).not.toContain('directives-group-shared/directives');
     });
 
-    test('pipes grouped under shared > pipes', async ({ page }) => {
+    test('pipes grouped under the shared feature', async ({ page }) => {
         await page.goto('/');
         const html = await page.content();
         expect(html).toContain('pipes-group-shared');
-        expect(html).toContain('pipes-group-shared/pipes');
+        expect(html).not.toContain('pipes-group-shared/pipes');
     });
 
     test('depth-based CSS indentation applied', async ({ page }) => {
@@ -619,7 +620,7 @@ test.describe('Keyboard navigation', () => {
 
 test.describe('Entity preview panel', () => {
     test('n/p shows preview panel below focused sidebar entity', async ({ page }) => {
-        await page.goto(pageUrl('injectable', 'UserService'));
+        await page.goto(pageUrl('component', 'UserCardComponent'));
         await page.keyboard.press('n');
         const preview = page.locator('.cdx-entity-preview');
         await expect(preview).toBeVisible();

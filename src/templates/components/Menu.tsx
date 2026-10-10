@@ -1,6 +1,6 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
-import { type DiView, foldClusterMembers, hasOwnPage, isHiddenItem } from '../../app/di/model';
+import { type DiView, hasOwnPage } from '../../app/di/model';
 import {
     buildGroupTree,
     type EntityKind,
@@ -22,6 +22,12 @@ import { placedLink, placeTarget } from '../../app/links/resolve';
 import type { SymbolId, TableKind } from '../../app/links/symbol-id';
 import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { t } from '../helpers';
+import {
+    appRootPath,
+    featureGroups,
+    featurePagePaths,
+    groupItemsByFeature
+} from '../helpers/feature-info';
 import { isToggled } from '../helpers/menu-helpers';
 import {
     IconBarChart,
@@ -32,7 +38,9 @@ import {
     IconCube,
     IconDirective,
     IconEntity,
+    IconEnum,
     IconFolder,
+    IconFunction,
     IconGitBranch,
     IconGrid,
     IconGuard,
@@ -44,7 +52,9 @@ import {
     IconPipe,
     IconPodium,
     IconSettings,
-    IconToken
+    IconToken,
+    IconTypealias,
+    IconVariable
 } from './Icons';
 
 /** Menu types come in plural form (`components`, `directives`, `classes`).
@@ -94,6 +104,9 @@ const duplicateNameOf = (item: any): string | undefined => {
 /** Entity link href with duplicateName fallback. */
 const entityHref = (prefix: string, item: any): string =>
     pageFile(prefix, duplicateNameOf(item) ?? item.name);
+
+/** Folder groups shallower than this start expanded (unless `collapsedAll`). */
+const GROUP_EXPAND_DEPTH = 2;
 
 /** Root-relative link to a top-level page; the client router adds the depth prefix. */
 const rootHref = (page: string): string =>
@@ -478,6 +491,14 @@ const kindIconHtml = (kind: TableKind): string => {
             return IconInterceptor();
         case 'entity':
             return IconEntity();
+        case 'function':
+            return IconFunction();
+        case 'variable':
+            return IconVariable();
+        case 'typealias':
+            return IconTypealias();
+        case 'enumeration':
+            return IconEnum();
         default:
             return '';
     }
@@ -523,15 +544,16 @@ const FeatureEntityLink = (item: EntityWithKind, defaultTab?: 'api'): string =>
  *  No `<a>` nested in `<button>` — HTML5 forbids it; row + sibling
  *  anchor keeps the markup valid and the a11y tree clean.
  *
- *  The bucket landing page exists for EVERY non-empty node — leaves and
- *  intermediate folders alike — so any label that renders here is
- *  guaranteed to resolve.
+ *  A node whose path is a feature's page links its label there; a folder
+ *  of the import path without a feature of its own (`forms` above
+ *  `forms/select`) has a plain label.
  */
 const FeatureGroupTree = (props: {
     node: GroupNode;
     depth: number;
     groupDepth: number;
     idPrefix: string;
+    pages: ReadonlySet<string>;
     defaultTab?: 'api';
 }): string => {
     const hasContent = props.node.items.length > 0 || props.node.children.length > 0;
@@ -540,9 +562,14 @@ const FeatureGroupTree = (props: {
     }
     const id = `${props.idPrefix}${props.node.fullPath}`;
     const startExpanded = !isCollapsedAll() && props.depth < props.groupDepth;
-    const labelHref = pagePath(
-        pageLocation({ type: 'bucket', segments: props.node.fullPath.split('/').filter(Boolean) })
-    );
+    const labelHref = props.pages.has(props.node.fullPath)
+        ? pagePath(
+              pageLocation({
+                  type: 'feature',
+                  segments: props.node.fullPath.split('/').filter(Boolean)
+              })
+          )
+        : undefined;
     const labelText = props.node.name.charAt(0).toUpperCase() + props.node.name.slice(1);
     return (
         <li
@@ -563,14 +590,20 @@ const FeatureGroupTree = (props: {
                 aria-controls={id}
                 aria-label={`Toggle ${labelText} group`}
             >
-                <a
-                    class="cdx-bucket-link"
-                    href={labelHref}
-                    data-cdx-bucket-link="true"
-                    data-type="chapter-link"
-                >
-                    <span class="link-name">{labelText}</span>
-                </a>
+                {labelHref ? (
+                    <a
+                        class="cdx-bucket-link"
+                        href={labelHref}
+                        data-cdx-bucket-link="true"
+                        data-type="chapter-link"
+                    >
+                        <span class="link-name">{labelText}</span>
+                    </a>
+                ) : (
+                    <span class="cdx-bucket-link">
+                        <span class="link-name">{labelText}</span>
+                    </span>
+                )}
                 {props.node.items.length > 0 && (
                     <span class="cdx-badge cdx-badge--count cdx-bucket-count">
                         {props.node.items.length}
@@ -585,6 +618,7 @@ const FeatureGroupTree = (props: {
                         depth: props.depth + 1,
                         groupDepth: props.groupDepth,
                         idPrefix: props.idPrefix,
+                        pages: props.pages,
                         defaultTab: props.defaultTab
                     })
                 )}
@@ -597,15 +631,18 @@ const FeatureGroupTree = (props: {
 };
 
 /**
- * Cross-kind chapter for `menuLayout: 'feature'`. Renders nothing when the
- * `groups` dict is empty. The same component renders both the Primary
- * ("Features") and Reference chapters — `chapterKey` drives the id prefix,
- * collapse state, and label.
+ * The Features chapter of `menuLayout: 'feature'`: the entry points as a
+ * tree of their import path segments, each feature below its entry point
+ * and its members below it. `groups` is keyed by feature page path;
+ * `pages` holds the paths that have a feature page and `first` the path
+ * listed first (an app's root feature). Renders nothing without groups.
  */
 type FeatureSectionProps = {
     groups?: Record<string, EntityWithKind[]>;
+    pages: ReadonlySet<string>;
+    first?: string;
     groupDepth: number;
-    chapterKey: 'features' | 'references';
+    chapterKey: 'features';
     label: string;
     defaultTab?: 'api';
 };
@@ -641,7 +678,11 @@ const FeatureSection = (props: FeatureSectionProps): string => {
     }
     const id = `${props.chapterKey}-links`;
     const idPrefix = `${props.chapterKey}-group-`;
-    const tree = buildGroupTree(groups as unknown as Record<string, any[]>);
+    const sorted = buildGroupTree(groups as unknown as Record<string, any[]>);
+    const tree = [
+        ...sorted.filter(node => node.fullPath === props.first),
+        ...sorted.filter(node => node.fullPath !== props.first)
+    ];
     return (
         <li class={`chapter ${props.chapterKey}`}>
             <button
@@ -663,6 +704,7 @@ const FeatureSection = (props: FeatureSectionProps): string => {
                         depth: 0,
                         groupDepth: props.groupDepth,
                         idPrefix,
+                        pages: props.pages,
                         defaultTab: props.defaultTab
                     })
                 )}
@@ -761,18 +803,18 @@ const EntitySection = (props: {
     ) as string;
 };
 
-const MENU_LISTS: readonly (readonly [string, string, TableKind])[] = [
-    ['components', 'categorizedComponents', 'component'],
-    ['directives', 'categorizedDirectives', 'directive'],
-    ['injectables', 'categorizedInjectables', 'injectable'],
-    ['tokens', 'categorizedTokens', 'token'],
-    ['pipes', 'categorizedPipes', 'pipe'],
-    ['classes', 'categorizedClasses', 'class'],
-    ['interfaces', 'categorizedInterfaces', 'interface'],
-    ['guards', 'categorizedGuards', 'guard'],
-    ['interceptors', 'categorizedInterceptors', 'interceptor'],
-    ['resolvers', 'categorizedResolvers', 'resolver'],
-    ['entities', 'categorizedEntities', 'entity']
+const MENU_LISTS: readonly (readonly [string, TableKind])[] = [
+    ['components', 'component'],
+    ['directives', 'directive'],
+    ['injectables', 'injectable'],
+    ['tokens', 'token'],
+    ['pipes', 'pipe'],
+    ['classes', 'class'],
+    ['interfaces', 'interface'],
+    ['guards', 'guard'],
+    ['interceptors', 'interceptor'],
+    ['resolvers', 'resolver'],
+    ['entities', 'entity']
 ];
 
 const MISC_LISTS: readonly (readonly [string, EntityKind])[] = [
@@ -856,20 +898,11 @@ const withoutHidden = (d: any): any => {
         return d;
     }
     const keep = (kind: TableKind) => (item: any) => hasOwnPage(view, kind as EntityKind, item);
-    const keepOwnKind = (item: any) => !isHiddenItem(view, item.kind, item);
     const list = (items: any[] | undefined, test: (item: any) => boolean) =>
         items && cached(view, items, () => items.filter(test));
-    const groups = (record: Record<string, any[]> | undefined, test: (item: any) => boolean) =>
-        record &&
-        cached(view, record, () =>
-            Object.fromEntries(
-                Object.entries(record).map(([key, items]) => [key, items.filter(test)])
-            )
-        );
     const copy: any = { ...d };
-    for (const [name, categorized, kind] of MENU_LISTS) {
+    for (const [name, kind] of MENU_LISTS) {
         copy[name] = list(d[name], keep(kind));
-        copy[categorized] = groups(d[categorized], keep(kind));
     }
     if (d.miscellaneous) {
         copy.miscellaneous = cached(view, d.miscellaneous, () => {
@@ -880,23 +913,13 @@ const withoutHidden = (d: any): any => {
             return misc;
         });
     }
-    const folders = (record: Record<string, any[]> | undefined) =>
-        record &&
-        cached(view, record, () =>
-            Object.fromEntries(
-                Object.entries(record).map(([key, items]) => [
-                    key,
-                    foldClusterMembers(items.filter(keepOwnKind), view, d.symbols)
-                ])
-            )
-        );
-    copy.categorizedByFeature = folders(d.categorizedByFeature);
-    copy.categorizedByFeaturePrimary = folders(d.categorizedByFeaturePrimary);
     return copy;
 };
 
 export const Menu = (props: MenuProps): string => {
     const d = withoutHidden(withFunctionalKinds(props.data));
+    const byFeature = (items: any[] | undefined, kind: TableKind) =>
+        groupItemsByFeature(d.semantic, d.symbols, kind, items);
 
     const components = d.components ?? [];
     const directives = d.directives ?? [];
@@ -1052,24 +1075,25 @@ export const Menu = (props: MenuProps): string => {
                     </li>
                 )}
 
-                {/* Feature-folder layout renders ONE curated cross-kind chapter ("Features":
-                    organisms — components, directives, pipes, injectables, classes, guards,
-                    interceptors, entities, plus any reference-kind symbol promoted via
-                    @docsKind primary). The exhaustive reference surface lives on the
-                    `references.html` portal page (linked below as a top-level chapter, not a
-                    tree). That keeps the sidebar scannable and matches angular.dev/api. */}
-                {(d.menuLayout ?? 'type') === 'feature' ? (
+                {/* Feature layout: ONE Features chapter, entry points > features > the
+                    primary members of each feature (its whole surface when it has no primary
+                    member). The exhaustive reference surface lives on the `references.html`
+                    portal page, linked below as a top-level chapter, not a tree. */}
+                {(d.menuLayout ?? 'feature') === 'feature' ? (
                     <>
                         {CachedFeatureSection(
                             {
-                                groups: d.categorizedByFeaturePrimary,
-                                groupDepth: d.groupDepth,
+                                groups: featureGroups(d.semantic, d.symbols, d.di, 'primary'),
+                                pages: featurePagePaths(d.semantic),
+                                first: appRootPath(d.semantic),
+                                groupDepth: GROUP_EXPAND_DEPTH,
                                 chapterKey: 'features',
                                 label: d.featuresName || t('features')
                             },
                             d.symbols
                         )}
-                        {Object.keys(d.categorizedByFeature ?? {}).length > 0 && (
+                        {Object.keys(featureGroups(d.semantic, d.symbols, d.di, 'all')).length >
+                            0 && (
                             <li class="chapter references">
                                 <a
                                     data-type="chapter-link"
@@ -1088,107 +1112,111 @@ export const Menu = (props: MenuProps): string => {
                         {components.length > 0 &&
                             EntitySection({
                                 items: components,
-                                categorized: d.categorizedComponents,
+                                categorized: byFeature(components, 'component'),
                                 type: 'components',
                                 iconHtml: IconComponent(),
                                 labelKey: 'components',
                                 hrefPrefix: KIND_FOLDER.component,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {entities.length > 0 &&
                             EntitySection({
                                 items: entities,
+                                categorized: byFeature(entities, 'entity'),
                                 type: 'entities',
                                 iconHtml: IconEntity(),
                                 labelKey: 'entities',
                                 hrefPrefix: KIND_FOLDER.entity,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {directives.length > 0 &&
                             EntitySection({
                                 items: directives,
-                                categorized: d.categorizedDirectives,
+                                categorized: byFeature(directives, 'directive'),
                                 type: 'directives',
                                 iconHtml: IconDirective(),
                                 labelKey: 'directives',
                                 hrefPrefix: KIND_FOLDER.directive,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.classes?.length > 0 &&
                             EntitySection({
                                 items: d.classes,
-                                categorized: d.categorizedClasses,
+                                categorized: byFeature(d.classes, 'class'),
                                 type: 'classes',
                                 iconHtml: IconClass(),
                                 labelKey: 'classes',
                                 hrefPrefix: KIND_FOLDER.class,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {injectables.length > 0 &&
                             EntitySection({
                                 items: injectables,
-                                categorized: d.categorizedInjectables,
+                                categorized: byFeature(injectables, 'injectable'),
                                 type: 'injectables',
                                 iconHtml: IconInjectable(),
                                 labelKey: 'injectables',
                                 hrefPrefix: KIND_FOLDER.injectable,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {DependencyInjectionChapter(d)}
                         {d.interceptors?.length > 0 &&
                             EntitySection({
                                 items: d.interceptors,
-                                categorized: d.categorizedInterceptors,
+                                categorized: byFeature(d.interceptors, 'interceptor'),
                                 type: 'interceptors',
                                 iconHtml: IconInterceptor(),
                                 labelKey: 'interceptors',
                                 hrefPrefix: KIND_FOLDER.interceptor,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.guards?.length > 0 &&
                             EntitySection({
                                 items: d.guards,
-                                categorized: d.categorizedGuards,
+                                categorized: byFeature(d.guards, 'guard'),
                                 type: 'guards',
                                 iconHtml: IconGuard(),
                                 labelKey: 'guards',
                                 hrefPrefix: KIND_FOLDER.guard,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.resolvers?.length > 0 &&
                             EntitySection({
                                 items: d.resolvers,
+                                categorized: byFeature(d.resolvers, 'resolver'),
                                 type: 'resolvers',
                                 iconHtml: IconGuard(),
                                 labelKey: 'resolvers',
                                 hrefPrefix: KIND_FOLDER.resolver,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {d.interfaces?.length > 0 &&
                             EntitySection({
                                 items: d.interfaces,
-                                categorized: d.categorizedInterfaces,
+                                categorized: byFeature(d.interfaces, 'interface'),
                                 type: 'interfaces',
                                 iconHtml: IconInterface(),
                                 labelKey: 'interfaces',
                                 hrefPrefix: KIND_FOLDER.interface,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {pipes.length > 0 &&
                             EntitySection({
                                 items: pipes,
-                                categorized: d.categorizedPipes,
+                                categorized: byFeature(pipes, 'pipe'),
                                 type: 'pipes',
                                 iconHtml: IconPipe(),
                                 labelKey: 'pipes',
                                 hrefPrefix: KIND_FOLDER.pipe,
-                                groupDepth: d.groupDepth
+                                groupDepth: GROUP_EXPAND_DEPTH
                             })}
                     </>
                 )}
 
                 {/* Utilities: functions, constants, type aliases and enums. Feature mode lists them in References. */}
-                {d.miscellaneous && (d.menuLayout ?? 'type') !== 'feature' && UtilitiesChapter(d)}
+                {d.miscellaneous &&
+                    (d.menuLayout ?? 'feature') !== 'feature' &&
+                    UtilitiesChapter(d)}
 
                 {/* Routes */}
                 {!d.disableRoutesGraph && d.routes && (

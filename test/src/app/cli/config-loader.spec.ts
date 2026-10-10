@@ -79,9 +79,17 @@ const makeMainData = (): MainDataInterface => {
         maxSearchResults: 15,
         stackblitz: false,
         stackblitzTemplate: '',
-        groupBy: '',
-        groupDepth: 2,
         menuLayout: 'type',
+        features: {},
+        featureContainers: ['features', 'pages', 'domains'],
+        featureUtilityFolders: [
+            'internal',
+            'i18n',
+            'utils',
+            'testing',
+            '__test-helpers',
+            'examples'
+        ],
         collapsedAll: false,
         language: 'en-US',
         watch: false,
@@ -239,31 +247,85 @@ describe('applyConfigToMainData', () => {
         expect(mainData.menuLayout).toBe('feature');
     });
 
-    it('featureLibraryScope propagates from config', () => {
+    it('warns that featureLibraryScope is ignored', () => {
         const mainData = makeMainData();
-        const program = makeProgram();
-        applyConfigToMainData(mainData, { featureLibraryScope: 'primary' }, program, {
-            cwd: '/tmp/test'
-        });
-        expect(mainData.featureLibraryScope).toBe('primary');
+        applyConfigToMainData(
+            mainData,
+            { featureLibraryScope: 'primary' } as never,
+            makeProgram(),
+            {
+                cwd: '/tmp/test'
+            }
+        );
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'featureLibraryScope is ignored: each feature lists its primary members, or its whole surface when it has none'
+        );
+        expect(mainData).not.toHaveProperty('featureLibraryScope');
     });
 
-    it('invalid featureLibraryScope exits with code 2', () => {
+    it('warns that groupBy and groupDepth are ignored', () => {
         const mainData = makeMainData();
-        const program = makeProgram();
-        const exitSpy = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
-            throw new Error(`process.exit(${code})`);
-        }) as never);
-        expect(() =>
-            applyConfigToMainData(
-                mainData,
-                { featureLibraryScope: 'invalid' as unknown as 'auto' },
-                program,
-                { cwd: '/tmp/test' }
-            )
-        ).toThrow(/process\.exit\(2\)/);
-        expect(exitSpy).toHaveBeenCalledWith(2);
-        exitSpy.mockRestore();
+        applyConfigToMainData(
+            mainData,
+            { groupBy: 'folder', groupDepth: 3 } as never,
+            makeProgram(),
+            { cwd: '/tmp/test' }
+        );
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'groupBy is ignored: the sidebar groups symbols by feature'
+        );
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'groupDepth is ignored: the sidebar groups symbols by feature'
+        );
+        expect(mainData).not.toHaveProperty('groupBy');
+    });
+
+    it('keeps valid feature globs and warns about invalid keys', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(
+            mainData,
+            {
+                features: {
+                    'projects/forms/select/**': 'select',
+                    'projects/forms/chips/**': 'Chips Group',
+                    'projects/forms/list/**': 'list/item'
+                }
+            },
+            makeProgram(),
+            { cwd: '/tmp/test' }
+        );
+        expect(mainData.features).toEqual({ 'projects/forms/select/**': 'select' });
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledTimes(2);
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            expect.stringContaining('"projects/forms/chips/**": "Chips Group"')
+        );
+    });
+
+    it('takes feature container and utility folder lists, ignoring non-lists with a warning', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(
+            mainData,
+            {
+                featureContainers: ['modules'],
+                featureUtilityFolders: 'helpers' as unknown as string[],
+                featureRoleFolders: ['di']
+            },
+            makeProgram(),
+            { cwd: '/tmp/test' }
+        );
+        expect(mainData.featureContainers).toEqual(['modules']);
+        expect(mainData.featureRoleFolders).toEqual(['di']);
+        expect(mainData.featureUtilityFolders).toEqual([
+            'internal',
+            'i18n',
+            'utils',
+            'testing',
+            '__test-helpers',
+            'examples'
+        ]);
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'featureUtilityFolders: expected a list of folder names; ignored'
+        );
     });
 
     it('collapsedAll: true propagates from config', () => {

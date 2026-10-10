@@ -241,23 +241,15 @@ export interface MainDataInterface {
      */
     playgroundFiles: Record<string, FileRefBundle>;
     appConfig: any[];
-    categorizedComponents: Record<string, unknown[]>;
-    categorizedDirectives: Record<string, unknown[]>;
-    categorizedInjectables: Record<string, unknown[]>;
-    categorizedTokens?: Record<string, unknown[]>;
-    categorizedPipes: Record<string, unknown[]>;
-    categorizedClasses: Record<string, unknown[]>;
-    categorizedInterfaces: Record<string, unknown[]>;
-    categorizedGuards: Record<string, unknown[]>;
-    categorizedInterceptors: Record<string, unknown[]>;
-    categorizedEntities: Record<string, unknown[]>;
-    categorizedByFeature: Record<string, unknown[]>;
-    categorizedByFeaturePrimary: Record<string, unknown[]>;
-    categorizedByFeatureReference: Record<string, unknown[]>;
-    groupBy: 'folder' | 'category' | 'none' | '';
-    groupDepth: number;
     menuLayout: 'type' | 'feature';
-    featureLibraryScope: 'primary' | 'auto' | 'all';
+    /** Glob over cwd-relative file paths -> feature key. */
+    features: Record<string, string>;
+    /** App folders whose children are features. */
+    featureContainers: string[];
+    /** Entry point folders that belong to the root feature. */
+    featureUtilityFolders: string[];
+    /** Entry point and app folders named after a role; their files join the feature they name. */
+    featureRoleFolders: string[];
     featuresName: string;
     referencesName: string;
     collapsedAll: boolean;

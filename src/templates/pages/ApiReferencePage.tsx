@@ -1,6 +1,6 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
-import { type DiView, withoutHiddenItems } from '../../app/di/model';
+import type { DiView } from '../../app/di/model';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import type { EntityKind, EntityWithKind } from '../../app/engines/dependencies.engine';
 import { hrefFor, hrefText, isPageKind } from '../../app/links/layout';
@@ -17,22 +17,20 @@ import {
     relativeUrl,
     t
 } from '../helpers';
+import { featureGroups } from '../helpers/feature-info';
 
 /**
  * Single-page API reference portal, emitted at `references.html` under
- * `menuLayout: 'feature'`. Replaces the per-bucket sidebar tree the
- * legacy References chapter used to render — the same exhaustive
- * symbol surface is laid out as bucket sections on one page, filtered
- * client-side. Mirrors the angular.dev/api experience.
+ * `menuLayout: 'feature'`: the exhaustive symbol surface laid out as one
+ * section per feature (entry point, then feature), filtered client-side.
+ * Mirrors the angular.dev/api experience.
  *
- * Each bucket section lists every public symbol that falls into the
- * bucket regardless of kind. Items are anchors pointing at the
- * symbol's existing detail page — this page introduces no new URL
- * targets, only a new entry point.
+ * Each section lists every documented symbol of the feature regardless
+ * of kind, keyed by the feature's page path (`forms/select`,
+ * `forms/select/menu`). Items link to where the symbol is documented.
  */
 
 interface BucketItem extends EntityWithKind {
-    readonly docsKind?: 'primary';
     readonly wcagLevel?: 'A' | 'AA' | 'AAA';
 }
 
@@ -117,11 +115,6 @@ const RefItem = (item: BucketItem, depth: number, bucket: string): string => {
 
 const sortBucketItems = (items: readonly BucketItem[]): BucketItem[] => {
     return [...items].sort((a, b) => {
-        const ap = a.docsKind === 'primary' ? 0 : 1;
-        const bp = b.docsKind === 'primary' ? 0 : 1;
-        if (ap !== bp) {
-            return ap - bp;
-        }
         const ak = (KIND_LABELS[a.kind] ?? a.kind).toLowerCase();
         const bk = (KIND_LABELS[b.kind] ?? b.kind).toLowerCase();
         if (ak !== bk) {
@@ -218,9 +211,7 @@ const BucketOption = (bucket: string): string =>
 
 /**
  * Top-level page renderer. Receives the page-data envelope (mainData ∪
- * page); the exhaustive bucket dict lives on
- * `data.categorizedByFeature`. Reads `data.referencesName` for the page
- * heading override (falls back to the localised `references` key).
+ * page); the sections come from the feature model (`data.semantic`).
  */
 /** Whether the DI view has anything for `dependency-injection.html`. */
 const hasDiLanding = (view: DiView | undefined): boolean =>
@@ -265,10 +256,10 @@ export const ApiReferencePage = (data: any): string => {
         return custom;
     }
 
-    const buckets = withoutHiddenItems(
-        (data.categorizedByFeature ?? {}) as Record<string, BucketItem[]>,
-        data.di
-    );
+    const buckets = featureGroups(data.semantic, data.symbols, data.di, 'all') as Record<
+        string,
+        BucketItem[]
+    >;
     const bucketKeys = Object.keys(buckets).sort();
     const depth = 0;
     const heading = t('api-reference');
@@ -311,7 +302,7 @@ export const ApiReferencePage = (data: any): string => {
     const showStabilityRow = hasExperimental || hasDeprecated;
 
     const searchMeta = pagefindMetaBlock({
-        description: `${heading} — ${totalItems} symbols across ${bucketKeys.length} buckets`
+        description: `${heading} — ${totalItems} symbols across ${bucketKeys.length} features`
     });
 
     return (
@@ -321,7 +312,7 @@ export const ApiReferencePage = (data: any): string => {
                 <h1 class="cdx-ref-hero-title">{heading}</h1>
                 <p class="cdx-ref-hero-subtitle">
                     {totalItems} {t('members').toLowerCase()} · {bucketKeys.length}{' '}
-                    {t('categories').toLowerCase()}
+                    {t('features').toLowerCase()}
                 </p>
                 {LandingLinks(data)}
             </div>
@@ -355,9 +346,9 @@ export const ApiReferencePage = (data: any): string => {
                         <select
                             class="cdx-ref-bucket-select"
                             data-cdx-ref-bucket-select
-                            aria-label={t('category')}
+                            aria-label={t('features')}
                         >
-                            <option value="">{t('all-categories')}</option>
+                            <option value="">{t('all-features')}</option>
                             {bucketKeys.map(BucketOption)}
                         </select>
                         <button

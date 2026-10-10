@@ -251,10 +251,32 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
         )
         .option('--stackblitz', 'Enable StackBlitz integration for examples')
         .option('--stackblitzTemplate [template]', 'StackBlitz project template ID for examples')
-        .option(
-            '--groupBy [strategy]',
-            'Sidebar grouping strategy: folder, category, none (default: auto-detect)'
-        )
-        .option('--groupDepth [depth]', 'Max folder depth for group names', '2')
         .allowExcessArguments();
 }
+
+/** Flags that no longer exist; the CLI drops them with a warning instead of failing. */
+export const REMOVED_FLAGS: readonly string[] = ['--groupBy', '--groupDepth'];
+
+/**
+ * `argv` without the removed flags (and a value following one), plus the
+ * flags that were dropped.
+ */
+export const stripRemovedFlags = (
+    argv: readonly string[]
+): { readonly argv: string[]; readonly removed: string[] } => {
+    const kept: string[] = [];
+    const removed: string[] = [];
+    for (let i = 0; i < argv.length; i++) {
+        const [flag, inline] = argv[i].split('=');
+        if (!REMOVED_FLAGS.includes(flag)) {
+            kept.push(argv[i]);
+            continue;
+        }
+        removed.push(flag);
+        const next = argv[i + 1];
+        if (inline === undefined && next !== undefined && !next.startsWith('-')) {
+            i++;
+        }
+    }
+    return { argv: kept, removed };
+};

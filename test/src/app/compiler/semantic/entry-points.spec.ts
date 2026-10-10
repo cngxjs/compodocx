@@ -34,6 +34,7 @@ describe('semantic entry points', () => {
         const ngPackage = model.entryPoints.filter(e => e.source === 'ng-package');
         expect(ngPackage.map(e => [e.importPath, e.file])).toEqual([
             ['@sem/core', `${REL}/projects/core/src/public-api.ts`],
+            ['@sem/core/select', `${REL}/projects/core/select/src/public-api.ts`],
             ['@sem/core/tokens', `${REL}/projects/core/tokens/src/public-api.ts`],
             ['@sem/ui', `${REL}/projects/ui/src/public-api.ts`]
         ]);

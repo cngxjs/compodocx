@@ -129,7 +129,7 @@
             "items": {
                 "$id": "/properties/toggleMenuItems/items",
                 "type": "string",
-                "title": "Close by default items in the menu values : ['all'] or one of these ['components','directives','entities','classes','injectables','dependency-injection','guards','interfaces','interceptors','pipes','utilities','additionalPages','features'] (features applies under menuLayout: 'feature')",
+                "title": "Close by default items in the menu values : ['all'] or one of these ['components','directives','entities','classes','injectables','dependency-injection','guards','interfaces','interceptors','pipes','resolvers','utilities','additionalPages','features'] (features applies under menuLayout: 'feature')",
                 "default": "",
                 "examples": ["all"]
             }
@@ -490,35 +490,45 @@
             "default": "",
             "examples": [""]
         },
-        "groupBy": {
-            "$id": "/properties/groupBy",
-            "type": "string",
-            "title": "Sidebar grouping strategy: folder, category, none (default: auto-detect)",
-            "default": "",
-            "examples": ["folder", "category", "none"]
-        },
-        "groupDepth": {
-            "$id": "/properties/groupDepth",
-            "type": "integer",
-            "title": "Max folder depth for group names when using folder grouping",
-            "default": 2,
-            "examples": [2]
-        },
         "menuLayout": {
             "$id": "/properties/menuLayout",
             "type": "string",
             "enum": ["type", "feature"],
-            "title": "Sidebar layout (config-only, no CLI flag). 'type' groups by Angular artefact kind (default), 'feature' groups every kind together by folder/@category and splits the sidebar into Features (organisms) and References (type shapes)",
-            "default": "type",
-            "examples": ["type", "feature"]
+            "title": "Sidebar layout (config-only, no CLI flag). 'feature' (default) lists the entry points and their features with the primary members of each, the full surface on references.html; 'type' keeps one chapter per Angular artefact kind, grouped by feature",
+            "default": "feature",
+            "examples": ["feature", "type"]
         },
-        "featureLibraryScope": {
-            "$id": "/properties/featureLibraryScope",
-            "type": "string",
-            "enum": ["primary", "auto", "all"],
-            "title": "Under menuLayout: 'feature', which folder/@category buckets get a node in the Features/Libraries chapter and what they list (config-only, no CLI flag). 'primary' = only buckets with a class-like or @docsKind-promoted symbol (legacy). 'auto' (default) = buckets with no class-like symbol fall back to their full reference surface, so pure function/interface/type-alias libraries are first-class while class-like libraries stay curated. 'all' = every bucket lists its complete surface.",
-            "default": "auto",
-            "examples": ["auto", "primary", "all"]
+        "features": {
+            "$id": "/properties/features",
+            "type": "object",
+            "additionalProperties": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+            "title": "Feature keys by file glob (config-only). Keys are globs over file paths relative to the working directory, values a feature key (one segment, lower case, digits and dashes) relative to the file's entry point or app root. The first matching glob in object order wins; it never moves a symbol into another entry point. Overrides @feature tags and the detected features.",
+            "default": {},
+            "examples": [{ "projects/forms/select/src/**": "select" }]
+        },
+        "featureContainers": {
+            "$id": "/properties/featureContainers",
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "App folders whose sub-folders are the features (config-only): src/app/features/admin gives the feature 'admin'.",
+            "default": ["features", "pages", "domains"],
+            "examples": [["features", "pages", "domains"]]
+        },
+        "featureUtilityFolders": {
+            "$id": "/properties/featureUtilityFolders",
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Folders below an entry point that belong to its root feature instead of forming a feature of their own (config-only).",
+            "default": ["internal", "i18n", "utils", "testing", "__test-helpers", "examples"],
+            "examples": [["internal", "i18n", "utils", "testing", "__test-helpers", "examples"]]
+        },
+        "featureRoleFolders": {
+            "$id": "/properties/featureRoleFolders",
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Folders named after a role (config-only). A file in one joins the feature its file name starts with (foo.providers.ts joins the feature 'foo' of the same entry point or app), else the root feature. Such a folder never becomes a feature of its own. [] turns the rule off.",
+            "default": ["config", "di", "providers", "services", "components", "directives", "pipes", "models", "types", "interfaces", "tokens", "routes", "guards", "interceptors", "resolvers", "state", "store"],
+            "examples": [["di", "routes"]]
         },
         "featuresName": {
             "$id": "/properties/featuresName",
@@ -537,7 +547,7 @@
         "collapsedAll": {
             "$id": "/properties/collapsedAll",
             "type": "boolean",
-            "title": "Force every sidebar chapter AND every nested folder group to start collapsed on first load (config-only). Overrides toggleMenuItems and groupDepth-driven expansion.",
+            "title": "Force every sidebar chapter AND every nested folder group to start collapsed on first load (config-only). Overrides toggleMenuItems and the default expansion of the first two group levels.",
             "default": false,
             "examples": [false]
         },

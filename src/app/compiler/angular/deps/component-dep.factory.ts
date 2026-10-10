@@ -43,7 +43,6 @@ export class ComponentDepFactory {
 
             deprecated: IO.deprecated,
             deprecationMessage: IO.deprecationMessage,
-            category: IO.category || '',
 
             // Custom JSDoc tags (Phase 4.6)
             signal: IO.signal || false,
@@ -62,7 +61,6 @@ export class ComponentDepFactory {
             docsUrl: IO.docsUrl || '',
             slots: IO.slots || [],
             playgrounds: IO.playgrounds || [],
-            ...(IO.docsKind === 'primary' && { docsKind: 'primary' as const }),
             ...(IO.wcagLevel && { wcagLevel: IO.wcagLevel }),
             ...(IO.a11yNote && { a11yNote: IO.a11yNote }),
             ...(IO.taggedSelector && { taggedSelector: IO.taggedSelector }),
@@ -193,7 +191,6 @@ export interface IComponentDep extends IDep {
 
     deprecated: boolean;
     deprecationMessage: string;
-    category?: string;
 
     // Custom JSDoc tags
     signal?: boolean;

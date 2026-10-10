@@ -7,13 +7,14 @@ import {
     AdditionalPageGenerator,
     ApiReferencePageGenerator,
     AppConfigPageGenerator,
-    BucketLandingPageGenerator,
     ClassPageGenerator,
     ComponentPageGenerator,
     CoveragePageGenerator,
+    createFeaturePageGenerator,
     DiPageGenerator,
     DirectivePageGenerator,
     EntityPageGenerator,
+    type FeaturePageGenerator,
     GuardPageGenerator,
     InjectablePageGenerator,
     InterceptorPageGenerator,
@@ -59,7 +60,7 @@ export interface Generators {
     readonly interface: InterfacePageGenerator;
     readonly appConfig: AppConfigPageGenerator;
     readonly utilities: MiscellaneousPageGenerator;
-    readonly bucketLanding: BucketLandingPageGenerator;
+    readonly feature: FeaturePageGenerator;
     readonly apiReference: ApiReferencePageGenerator;
     readonly coverage: CoveragePageGenerator;
     readonly additional: AdditionalPageGenerator;
@@ -89,7 +90,7 @@ export const createGenerators = (): Generators => {
         interface: new InterfacePageGenerator(navTabs),
         appConfig: new AppConfigPageGenerator(),
         utilities: new MiscellaneousPageGenerator(),
-        bucketLanding: new BucketLandingPageGenerator(),
+        feature: createFeaturePageGenerator(),
         apiReference: new ApiReferencePageGenerator(),
         coverage: new CoveragePageGenerator(),
         additional: new AdditionalPageGenerator(),

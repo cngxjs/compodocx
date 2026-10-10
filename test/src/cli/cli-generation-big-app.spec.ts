@@ -1,6 +1,10 @@
+import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
 import { hrefTo, pageOf } from '../helpers/pages';
 import { hasKindPages, readKindPages } from './paths';
+
+/** The type layout this suite asserts (the default is the feature layout). */
+const TYPE_LAYOUT = path.resolve('test/fixtures/type-layout.compodocxrc.json');
 
 const tmp = temporaryDir();
 
@@ -37,6 +41,8 @@ describe('CLI simple generation - big app', () => {
             'node',
             [
                 '../bin/index-cli.js',
+                '-c',
+                TYPE_LAYOUT,
                 '--no-multiVersion',
                 '-p',
                 './src/tsconfig.json',

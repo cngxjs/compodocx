@@ -4,7 +4,9 @@ import traverse from 'neotraverse/legacy';
 import pkg from '../../../package.json';
 import { logger } from '../../utils/logger';
 import type { StyleSource } from '../../utils/theme-doc-parser';
+import type { FamilyLink, Feature, FeatureModel } from '../compiler/semantic/features';
 import {
+    compareText,
     type DeclarationSpace,
     type DiFacts,
     factKey,
@@ -19,6 +21,8 @@ import {
     type ExportComponent,
     type ExportData,
     type ExportDiFacts,
+    type ExportFeature,
+    type ExportFeatureRef,
     type ExportSemantic,
     type ExportSemanticFacts,
     type ExportStyleSource,
@@ -89,8 +93,18 @@ const exportToken = (token: TokenFacts): ExportTokenFacts => ({
     ...nonEmpty('injectedBy', token.injectedBy)
 });
 
+const exportFeatureRef = (feature: Feature | undefined): { feature?: ExportFeatureRef } =>
+    feature
+        ? {
+              feature: {
+                  ...(feature.entryPoint ? { entryPoint: feature.entryPoint } : {}),
+                  key: feature.key
+              }
+          }
+        : {};
+
 /** The export fields of one symbol's facts; empty lists and `false` are left out. */
-export const exportSemanticFacts = (facts: SymbolFacts): ExportSemanticFacts => {
+export const exportSemanticFacts = (facts: SymbolFacts, feature?: Feature): ExportSemanticFacts => {
     const di = exportDi(facts.di);
     return {
         ...(facts.entryPoint ? { entryPoint: facts.entryPoint } : {}),
@@ -98,8 +112,26 @@ export const exportSemanticFacts = (facts: SymbolFacts): ExportSemanticFacts => 
         ...(facts.notExported ? { notExported: true as const } : {}),
         ...nonEmpty('usedBy', facts.usedBy),
         ...(di ? { di } : {}),
-        ...(facts.token ? { token: exportToken(facts.token) } : {})
+        ...(facts.token ? { token: exportToken(facts.token) } : {}),
+        ...exportFeatureRef(feature)
     };
+};
+
+/** The feature of a symbol, by its fact key. */
+const featuresById = new WeakMap<FeatureModel, ReadonlyMap<string, Feature>>();
+
+const featureOfKey = (model: SemanticModel, key: string): Feature | undefined => {
+    const features = model.features;
+    const id = features?.featureOf.get(key);
+    if (!features || id === undefined) {
+        return undefined;
+    }
+    let byId = featuresById.get(features);
+    if (!byId) {
+        byId = new Map(features.features.map(feature => [feature.id, feature]));
+        featuresById.set(features, byId);
+    }
+    return byId.get(id);
 };
 
 type SymbolEntry = { name?: string; file?: string };
@@ -113,11 +145,13 @@ export const withSemanticFacts = <T extends SymbolEntry>(
     model: SemanticModel,
     space: DeclarationSpace = 'value'
 ): T => {
-    const facts =
+    const key =
         entry.file && entry.name
-            ? model.facts.get(factKey({ name: entry.name, file: entry.file, space }))
+            ? factKey({ name: entry.name, file: entry.file, space })
             : undefined;
-    const fields = facts ? exportSemanticFacts(facts) : {};
+    const facts = key === undefined ? undefined : model.facts.get(key);
+    const feature = key === undefined ? undefined : featureOfKey(model, key);
+    const fields = facts ? exportSemanticFacts(facts, feature) : exportFeatureRef(feature);
     return Object.keys(fields).length > 0 ? { ...entry, ...fields } : entry;
 };
 
@@ -186,6 +220,34 @@ export const factsJoiner =
     ): T[] | undefined =>
         model ? mapEntries(entries, model, space) : entries;
 
+/** Every feature with its family links in both directions. */
+export const exportFeatures = (model: FeatureModel): ExportFeature[] => {
+    const linked =
+        (pick: (link: FamilyLink) => string, match: (link: FamilyLink) => string) =>
+        (id: string): string[] =>
+            [...new Set(model.families.filter(link => match(link) === id).map(pick))].sort(
+                compareText
+            );
+    const buildsOn = linked(
+        link => link.to,
+        link => link.from
+    );
+    const extendedBy = linked(
+        link => link.from,
+        link => link.to
+    );
+    return model.features.map(feature => ({
+        id: feature.id,
+        ...(feature.entryPoint ? { entryPoint: feature.entryPoint } : {}),
+        key: feature.key,
+        label: feature.label,
+        detector: feature.detector,
+        ...(feature.readme ? { readme: feature.readme } : {}),
+        buildsOn: buildsOn(feature.id),
+        extendedBy: extendedBy(feature.id)
+    }));
+};
+
 export const exportSemantic = (model: SemanticModel): ExportSemantic => ({
     entryPoints: model.entryPoints.map(entry => ({
         importPath: entry.importPath,
@@ -198,7 +260,8 @@ export const exportSemantic = (model: SemanticModel): ExportSemantic => ({
         features: model.summary.features,
         injectionContext: { ...model.summary.injectionContext },
         notExported: model.summary.notExported
-    }
+    },
+    ...(model.features ? { features: exportFeatures(model.features) } : {})
 });
 
 export class ExportJsonEngine {
