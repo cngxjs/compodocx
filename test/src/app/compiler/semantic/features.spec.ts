@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
     DEFAULT_FEATURE_CONTAINERS,
+    DEFAULT_FEATURE_ROLE_FOLDERS,
     DEFAULT_FEATURE_UTILITY_FOLDERS,
     detectFeatures,
     type EntryPoint,
@@ -19,7 +20,8 @@ const lib = (importPath: string, root: string): EntryPoint => ({
 const CONFIG: FeatureConfig = {
     features: {},
     containers: DEFAULT_FEATURE_CONTAINERS,
-    utilityFolders: DEFAULT_FEATURE_UTILITY_FOLDERS
+    utilityFolders: DEFAULT_FEATURE_UTILITY_FOLDERS,
+    roleFolders: DEFAULT_FEATURE_ROLE_FOLDERS
 };
 
 interface Case {
@@ -143,12 +145,12 @@ describe('feature detection', () => {
         const core = lib('@x/core', 'p/core');
         const tokens = lib('@x/core/tokens', 'p/core/tokens');
         const r = detect({
-            files: ['p/core/src/di/a.ts', 'p/core/src/foo/a.ts', 'p/core/tokens/src/tokens.ts'],
+            files: ['p/core/src/dialog/a.ts', 'p/core/src/foo/a.ts', 'p/core/tokens/src/tokens.ts'],
             entryPoints: [core, tokens]
         });
         expect(r.of('p/core/tokens/src/tokens.ts')).toBe('@x/core/tokens#');
         expect(r.model.features.map(x => x.id)).toEqual([
-            '@x/core#di',
+            '@x/core#dialog',
             '@x/core#foo',
             '@x/core/tokens#'
         ]);
@@ -183,5 +185,41 @@ describe('feature detection', () => {
         expect(r.of('w/ui/src/lib/version.ts')).toBe('#ui');
         expect(r.of('w/env/environment.ts')).toBe('#env');
         expect(r.model.features.find(x => x.id === '#env')?.entryPoint).toBeUndefined();
+    });
+
+    it('puts files of role folders into the feature their name starts with', () => {
+        const r = detect({
+            files: [
+                f('toast', 'toast'),
+                f('di', 'toast.providers'),
+                f('routes', 'toast.routes'),
+                f('alert', 'alert')
+            ],
+            entryPoints: [SELECT]
+        });
+        expect(r.of(f('di', 'toast.providers'))).toBe('@x/select#toast');
+        expect(r.of(f('routes', 'toast.routes'))).toBe('@x/select#toast');
+        expect(r.model.features.map(x => x.key)).toEqual(['alert', 'toast']);
+    });
+
+    it('keeps role folder files without a matching feature in the root feature, in libraries and apps', () => {
+        const lib = detect({
+            files: [f('config', 'select-config'), f('panel', 'panel'), f('chips', 'chips')],
+            entryPoints: [SELECT],
+            config: {}
+        });
+        expect(lib.of(f('config', 'select-config'))).toBe('@x/select#');
+        expect(lib.model.features.map(x => x.key)).toEqual(['', 'chips', 'panel']);
+        const app = detect({
+            files: [
+                'app/src/app/admin/admin.ts',
+                'app/src/app/services/admin.service.ts',
+                'app/src/app/services/log.service.ts'
+            ],
+            dirs: ['app/src/app']
+        });
+        expect(app.of('app/src/app/services/admin.service.ts')).toBe('#admin');
+        expect(app.of('app/src/app/services/log.service.ts')).toBe('#');
+        expect(app.model.features.map(x => x.id)).toEqual(['#', '#admin']);
     });
 });

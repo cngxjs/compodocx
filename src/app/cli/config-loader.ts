@@ -87,14 +87,14 @@ const isStringList = (value: unknown): value is string[] =>
     Array.isArray(value) && value.every(item => typeof item === 'string');
 
 /**
- * `features`, `featureContainers` and `featureUtilityFolders` from the config
+ * `features`, `featureContainers`, `featureUtilityFolders` and `featureRoleFolders` from the config
  * file. Invalid entries warn once each and are ignored; the run goes on.
  */
 export function applyFeatureConfig(
     configFile: Partial<ConfigurationFileInterface>,
     mainData: MainDataInterface
 ): void {
-    const { features, featureContainers, featureUtilityFolders } = configFile;
+    const { features, featureContainers, featureUtilityFolders, featureRoleFolders } = configFile;
     if (features !== undefined) {
         if (features === null || typeof features !== 'object' || Array.isArray(features)) {
             logger.warn('features: expected an object of file glob -> feature key; ignored');
@@ -124,6 +124,13 @@ export function applyFeatureConfig(
             mainData.featureUtilityFolders = featureUtilityFolders;
         } else {
             logger.warn('featureUtilityFolders: expected a list of folder names; ignored');
+        }
+    }
+    if (featureRoleFolders !== undefined) {
+        if (isStringList(featureRoleFolders)) {
+            mainData.featureRoleFolders = featureRoleFolders;
+        } else {
+            logger.warn('featureRoleFolders: expected a list of folder names; ignored');
         }
     }
 }

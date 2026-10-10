@@ -56,6 +56,12 @@ export interface FeatureConfig {
     readonly containers: readonly string[];
     /** Folders below an entry point that belong to its root feature. */
     readonly utilityFolders: readonly string[];
+    /**
+     * Folders named after a role (`di`, `routes`, ...): a file in one joins the
+     * feature its file name starts with (`foo.providers.ts` -> `foo`), else the
+     * root feature.
+     */
+    readonly roleFolders: readonly string[];
 }
 
 /** File system questions, paths relative to the cwd. */
@@ -83,6 +89,26 @@ export interface FeatureDetection {
 }
 
 export const DEFAULT_FEATURE_CONTAINERS: readonly string[] = ['features', 'pages', 'domains'];
+export const DEFAULT_FEATURE_ROLE_FOLDERS: readonly string[] = [
+    'config',
+    'di',
+    'providers',
+    'services',
+    'components',
+    'directives',
+    'pipes',
+    'models',
+    'types',
+    'interfaces',
+    'tokens',
+    'routes',
+    'guards',
+    'interceptors',
+    'resolvers',
+    'state',
+    'store'
+];
+
 export const DEFAULT_FEATURE_UTILITY_FOLDERS: readonly string[] = [
     'internal',
     'i18n',
@@ -259,7 +285,12 @@ interface Placement {
     readonly root: string;
     /** Root-feature label of the entry point or app. */
     readonly rootLabel: string;
+    /** File name stem of a file in a role folder, resolved once every feature is known. */
+    readonly role?: string;
 }
+
+/** `foo.providers.ts` -> `foo`. */
+const fileStem = (file: string): string => posix.basename(file).split('.')[0];
 
 const lastSegment = (importPath: string): string => importPath.split('/').pop() ?? importPath;
 
@@ -296,6 +327,8 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
         }
     };
     const utility = new Set(config.utilityFolders);
+    const roles = new Set(config.roleFolders);
+    const foldable = new Set([...utility, ...roles]);
     const containers = new Set(config.containers);
     const barrels = new Set(entryPoints.map(entry => entry.file));
     const globs = Object.entries(config.features).map(([glob, key]) => ({
@@ -359,7 +392,7 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
             c = cohesionOf(
                 segments.get(importPath) ?? new Set(),
                 pairs.get(importPath) ?? new Map(),
-                utility
+                foldable
             );
             cohesion.set(importPath, c);
         }
@@ -392,6 +425,15 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
         const folder = inApp && containers.has(segs[0]) && segs.length > 1 ? segs[1] : segs[0];
         if (folder === undefined) {
             return { key: '', detector: 'folder', root: base, rootLabel: appLabel };
+        }
+        if (roles.has(folder)) {
+            return {
+                key: '',
+                detector: 'folder',
+                root: base,
+                rootLabel: appLabel,
+                role: fileStem(file)
+            };
         }
         return {
             key: keyOfFolder(folder),
@@ -437,6 +479,9 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
         }
         const c = cohesionFor(o.entry.importPath);
         const segment = segmentOf(o, symbol.file);
+        if (roles.has(segment)) {
+            return { ...scope, key: '', detector: 'entry-point', role: fileStem(symbol.file) };
+        }
         const component = c.glued ? '' : c.componentOf(segment);
         if (component === '') {
             return { ...scope, key: '', detector: 'entry-point' };
@@ -492,6 +537,26 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
         if (next) {
             placements.set(symbolKey, { ...p, key: next });
         }
+    }
+
+    // A file in a role folder joins the feature of its entry point (or app)
+    // that its file name names; otherwise it stays in the root feature.
+    const named = new Map<FeatureId, Placement>();
+    for (const p of placements.values()) {
+        const id = featureId(p.entryPoint, p.key);
+        if (p.role === undefined && p.key !== '' && !named.has(id)) {
+            named.set(id, p);
+        }
+    }
+    for (const [symbolKey, { role, ...p }] of placements) {
+        if (role === undefined) {
+            continue;
+        }
+        const target = named.get(featureId(p.entryPoint, keyOfFolder(role)));
+        placements.set(
+            symbolKey,
+            target ? { ...p, key: target.key, detector: target.detector, root: target.root } : p
+        );
     }
 
     // An entry point whose symbols all sit in one cohesion feature is its root feature.

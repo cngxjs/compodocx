@@ -87,7 +87,8 @@ export const deriveFeatures = (
         config: {
             features: mainData.features,
             containers: mainData.featureContainers,
-            utilityFolders: mainData.featureUtilityFolders
+            utilityFolders: mainData.featureUtilityFolders,
+            roleFolders: mainData.featureRoleFolders
         },
         fs: nodeFeatureFs(cwd)
     });

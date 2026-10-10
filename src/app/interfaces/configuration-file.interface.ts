@@ -78,6 +78,7 @@ export interface ConfigurationFileInterface {
     features: Record<string, string>;
     featureContainers: string[];
     featureUtilityFolders: string[];
+    featureRoleFolders: string[];
     collapsedAll: boolean;
     shikiTheme: string;
 }

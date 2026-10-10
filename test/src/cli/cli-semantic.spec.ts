@@ -61,7 +61,7 @@ describe('CLI semantic analysis', () => {
 
     it('logs which detectors decided the features', () => {
         expect(stdout).to.contain(
-            'Features: 10 in 5 entry points (config 0, tag 0, cohesion 6, entry point 3, folder 1), 1 family links'
+            'Features: 8 in 5 entry points (config 0, tag 0, cohesion 3, entry point 4, folder 1), 1 family links'
         );
     });
 
@@ -123,10 +123,14 @@ describe('CLI semantic analysis', () => {
     it('writes one page per feature, the glued entry point as one page with its README', () => {
         const exists = (segments: string[]) =>
             fs.existsSync(path.join(htmlFolder, featurePage(segments)));
-        for (const segments of [['core', 'select'], ['core', 'di'], ['ui', 'foo-panel'], ['env']]) {
+        for (const segments of [['core', 'select'], ['core'], ['ui', 'foo-panel'], ['env']]) {
             expect(exists(segments), segments.join('/')).to.equal(true);
         }
         expect(exists(['core', 'select', 'shared'])).to.equal(false);
+        // di/ and routes/ are role folders: their foo.* files join foo, and the
+        // entry point with a single feature is its root feature.
+        expect(exists(['core', 'di'])).to.equal(false);
+        expect(exists(['core', 'foo'])).to.equal(false);
         const select = fs.readFileSync(
             path.join(htmlFolder, featurePage(['core', 'select'])),
             'utf8'
@@ -137,10 +141,12 @@ describe('CLI semantic analysis', () => {
     });
 
     it('lists feature members by role and links providers to their feature type page', () => {
-        const di = fs.readFileSync(path.join(htmlFolder, featurePage(['core', 'di'])), 'utf8');
-        expect(di).to.contain('id="configuration"');
-        expect(di).to.contain('id="utilities"');
-        expect(di).to.contain(`href="../../${clusterPage('FooFeature')}#FooFeature--provideFoo"`);
+        const core = fs.readFileSync(path.join(htmlFolder, featurePage(['core'])), 'utf8');
+        expect(core).to.contain('id="configuration"');
+        expect(core).to.contain('id="utilities"');
+        expect(core).to.contain(`href="../${clusterPage('FooFeature')}#FooFeature--provideFoo"`);
+        expect(core).to.contain(`href="../${pageOf('function', 'formatFoo')}"`);
+        expect(core).to.contain(`href="../${pageOf('guard', 'fooReadyGuard')}"`);
         const panel = fs.readFileSync(
             path.join(htmlFolder, featurePage(['ui', 'foo-panel'])),
             'utf8'
@@ -165,7 +171,7 @@ describe('CLI semantic analysis', () => {
             'utf8'
         );
         // Breadcrumb: entry point > feature, the feature linked to its page.
-        expect(provider).to.contain(`href="../${featurePage(['core', 'di'])}"`);
+        expect(provider).to.contain(`href="../${featurePage(['core'])}"`);
     });
 
     it('links provider calls in a component providers array', () => {

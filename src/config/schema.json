@@ -522,6 +522,14 @@
             "default": ["internal", "i18n", "utils", "testing", "__test-helpers", "examples"],
             "examples": [["internal", "i18n", "utils", "testing", "__test-helpers", "examples"]]
         },
+        "featureRoleFolders": {
+            "$id": "/properties/featureRoleFolders",
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Folders named after a role (config-only). A file in one joins the feature its file name starts with (foo.providers.ts joins the feature 'foo' of the same entry point or app), else the root feature. Such a folder never becomes a feature of its own. [] turns the rule off.",
+            "default": ["config", "di", "providers", "services", "components", "directives", "pipes", "models", "types", "interfaces", "tokens", "routes", "guards", "interceptors", "resolvers", "state", "store"],
+            "examples": [["di", "routes"]]
+        },
         "featuresName": {
             "$id": "/properties/featuresName",
             "type": "string",

@@ -50,18 +50,19 @@ test.describe('Feature pages', () => {
         ).toHaveText('select-field');
     });
 
-    test('a sub-feature links its entry point; the symbol breadcrumb names entry point and feature', async ({
-        page
-    }) => {
+    test('role folders join the feature they name; the breadcrumb links it', async ({ page }) => {
+        // di/foo.inject.ts sits in a role folder and joins foo; @sem/core then
+        // has one feature, its root feature.
         await page.goto(pageUrl('function', 'createStore'));
         const crumbs = page.locator('.cdx-breadcrumb li');
+        await expect(crumbs).toHaveCount(2);
         await expect(crumbs.nth(0)).toHaveText('core');
-        await expect(crumbs.nth(1)).toHaveText('di');
-        await crumbs.nth(1).locator('a').click();
-        await expect(
-            page.locator('.cdx-entity-hero[data-cdx-feature="@sem/core#di"]')
-        ).toBeVisible();
+        await crumbs.nth(0).locator('a').click();
+        await expect(page.locator('.cdx-entity-hero[data-cdx-feature="@sem/core#"]')).toBeVisible();
         await expect(page.locator('h2#configuration')).toHaveCount(1);
+        await expect(
+            page.locator('tr[data-cdx-feature-member] a', { hasText: 'formatFoo' })
+        ).toHaveCount(1);
     });
 
     test('the search palette shows the feature of a result', async ({ page }) => {

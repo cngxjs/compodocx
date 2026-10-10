@@ -1,6 +1,7 @@
 import { COMPODOC_DEFAULTS } from '../utils/defaults';
 import {
     DEFAULT_FEATURE_CONTAINERS,
+    DEFAULT_FEATURE_ROLE_FOLDERS,
     DEFAULT_FEATURE_UTILITY_FOLDERS
 } from './compiler/semantic/features';
 import { isMovedPage } from './di/model';
@@ -146,6 +147,7 @@ export class Configuration implements ConfigurationInterface {
         features: {},
         featureContainers: [...DEFAULT_FEATURE_CONTAINERS],
         featureUtilityFolders: [...DEFAULT_FEATURE_UTILITY_FOLDERS],
+        featureRoleFolders: [...DEFAULT_FEATURE_ROLE_FOLDERS],
         featuresName: 'Features',
         referencesName: 'References',
         collapsedAll: false,

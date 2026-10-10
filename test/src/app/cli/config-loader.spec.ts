@@ -307,12 +307,14 @@ describe('applyConfigToMainData', () => {
             mainData,
             {
                 featureContainers: ['modules'],
-                featureUtilityFolders: 'helpers' as unknown as string[]
+                featureUtilityFolders: 'helpers' as unknown as string[],
+                featureRoleFolders: ['di']
             },
             makeProgram(),
             { cwd: '/tmp/test' }
         );
         expect(mainData.featureContainers).toEqual(['modules']);
+        expect(mainData.featureRoleFolders).toEqual(['di']);
         expect(mainData.featureUtilityFolders).toEqual([
             'internal',
             'i18n',

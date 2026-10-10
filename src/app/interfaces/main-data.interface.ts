@@ -248,6 +248,8 @@ export interface MainDataInterface {
     featureContainers: string[];
     /** Entry point folders that belong to the root feature. */
     featureUtilityFolders: string[];
+    /** Entry point and app folders named after a role; their files join the feature they name. */
+    featureRoleFolders: string[];
     featuresName: string;
     referencesName: string;
     collapsedAll: boolean;
