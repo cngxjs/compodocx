@@ -8,6 +8,8 @@ import FileEngine from '../engines/file.engine';
 import { runPagefindIndex } from '../engines/search-indexer.engine';
 import { updateVersionsManifest } from '../engines/versions-manifest.engine';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
+import { REDIRECTS_FILE } from '../links/layout';
+import { REDIRECTS_SCHEMA_VERSION, type RedirectsFile } from '../links/redirects';
 import { type Halt, halt } from '../run/halt';
 
 const cwd = process.cwd();
@@ -146,6 +148,12 @@ export const finalizeOutput = async (ctx: OutputContext): Promise<Result<void, H
         runPagefindIndex(mainData.output);
     }
 
+    // Old page paths of earlier layouts, next to this version's pages (the
+    // version switcher follows them).
+    if (mainData.redirects) {
+        writeRedirects(mainData.output, mainData.redirects, mainData.jsonIndent);
+    }
+
     // Multi-version: append/update this version's entry in
     // <versionsRoot>/versions.json. Runs after Pagefind so an indexing
     // failure doesn't leave a stale manifest behind. The manifest stores a
@@ -174,4 +182,17 @@ export const finalizeOutput = async (ctx: OutputContext): Promise<Result<void, H
             ' theme'
     );
     return ok(undefined);
+};
+
+/** `redirects.json` in the output folder: old page path -> current page path. */
+const writeRedirects = (
+    output: string,
+    redirects: Readonly<Record<string, string>>,
+    indent: number | undefined
+): void => {
+    const file: RedirectsFile = { schemaVersion: REDIRECTS_SCHEMA_VERSION, redirects };
+    FileEngine.writeSync(
+        path.join(output, REDIRECTS_FILE),
+        `${JSON.stringify(file, null, indent ?? 0)}\n`
+    );
 };

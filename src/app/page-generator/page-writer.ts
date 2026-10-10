@@ -3,16 +3,58 @@ import { logger } from '../../utils/logger';
 import Configuration, { pageOutputPath } from '../configuration';
 import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
-import { hrefFor, hrefText, ROOT_DEPTH } from '../links/layout';
+import type { PageInterface } from '../interfaces/page.interface';
+import { featureSegments } from '../links/feature-paths';
+import { hrefFor, hrefText, pageLocation, pagePath, ROOT_DEPTH } from '../links/layout';
+import { buildRedirects, type Redirects, rewriteLegacyLinks } from '../links/redirects';
 import { placedLink } from '../links/resolve';
 import type { TableKind } from '../links/symbol-id';
 import { entryInFile } from '../links/symbol-table';
 
 export class PageWriter {
+    private legacy?: { readonly redirects: Redirects; readonly pages: ReadonlySet<string> };
+
+    /**
+     * The redirect map of this run (old page paths of earlier layouts) and
+     * the pages it is written next to, built once on the first page.
+     */
+    private legacyLinks(): { readonly redirects: Redirects; readonly pages: ReadonlySet<string> } {
+        if (this.legacy) {
+            return this.legacy;
+        }
+        const { mainData } = Configuration;
+        const additional = mainData.additionalPages.flatMap((page: PageInterface) => [
+            page,
+            ...((page as { children?: PageInterface[] }).children ?? [])
+        ]);
+        const pages = new Set([...Configuration.pages, ...additional].map(pageOutputPath));
+        const features = mainData.semantic?.features?.features ?? [];
+        const utilities = pagePath(pageLocation({ type: 'root', page: 'utilities' }));
+        const redirects = mainData.symbols
+            ? buildRedirects({
+                  table: mainData.symbols,
+                  di: mainData.di,
+                  features: featureSegments(features).segments.values(),
+                  pages,
+                  utilities: pages.has(utilities) ? utilities : undefined
+              })
+            : {};
+        mainData.redirects = redirects;
+        this.legacy = { redirects, pages };
+        return this.legacy;
+    }
+
     public processPage(page): Promise<void> {
         logger.info('Process page', page.name);
 
-        const htmlData = HtmlEngine.render(Configuration.mainData, page);
+        const { redirects, pages } = this.legacyLinks();
+        const htmlData = rewriteLegacyLinks(
+            HtmlEngine.render(Configuration.mainData, page),
+            pageOutputPath(page),
+            page.depth ?? ROOT_DEPTH,
+            redirects,
+            pages
+        );
         let finalPath = Configuration.mainData.output;
 
         if (Configuration.mainData.output.lastIndexOf('/') === -1) {
@@ -25,6 +67,7 @@ export class PageWriter {
     }
 
     public async processPages(): Promise<void> {
+        this.legacy = undefined;
         this.buildDependencyGraph();
         this.buildEntityIndex();
         Configuration.mainData.generatedAt = new Date().toISOString();

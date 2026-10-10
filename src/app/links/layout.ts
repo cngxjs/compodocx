@@ -46,6 +46,9 @@ export const KIND_FOLDER = {
     provider: 'providers'
 } as const satisfies Record<PageKind, string>;
 
+/** The redirect map of a version, next to its pages (old page path -> current page path). */
+export const REDIRECTS_FILE = 'redirects.json';
+
 /** File name of a feature page inside the feature's folder. */
 export const FEATURE_INDEX = 'index';
 
