@@ -295,6 +295,7 @@ export const createFeaturePageGenerator = () => ({
             Configuration.addPage({
                 path: location.path,
                 name: `feature:${feature.id}`,
+                displayName: feature.label,
                 id: `feature:${feature.id}`,
                 filename: location.filename,
                 context: 'feature',

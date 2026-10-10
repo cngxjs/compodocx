@@ -164,14 +164,14 @@ describe('feature page', () => {
     it('lists the sub-features of an entry point with member count and README summary', () => {
         const html = render(ROOT);
         expect(html).toContain(
-            `<tr data-cdx-feature-card="${MENU}"><td><a href="../${featurePage(['select', 'menu'])}">menu</a></td><td>1</td><td>Menu <em>parts</em>.</td></tr>`
+            `<tr data-cdx-feature-card="${MENU}"><td><a href="../${featurePage(['select', 'menu'])}"><code>menu</code></a></td><td>1</td><td>Menu <em>parts</em>.</td></tr>`
         );
         expect(render(MENU)).not.toContain('data-cdx-feature-card');
     });
 
     it('links the features of other entry points that extend this one', () => {
         expect(render(ROOT)).toContain(
-            `<tr data-cdx-feature-related="${FIELD}"><td><a href="../${featurePage(['ui', 'field'])}">field</a></td><td><code>@x/ui</code></td></tr>`
+            `<tr data-cdx-feature-related="${FIELD}"><td><a href="../${featurePage(['ui', 'field'])}"><code>field</code></a></td><td>@x/ui</td></tr>`
         );
         expect(render(MENU)).not.toContain('id="extended-by"');
     });
@@ -180,7 +180,7 @@ describe('feature page', () => {
         const html = render(FIELD);
         expect(sectionIds(html)).toEqual(['builds-on']);
         expect(html).toContain(
-            `<tr data-cdx-feature-related="${ROOT}"><td><a href="../../${featurePage(['select'])}">select</a></td><td><code>@x/select</code></td></tr>`
+            `<tr data-cdx-feature-related="${ROOT}"><td><a href="../../${featurePage(['select'])}"><code>select</code></a></td><td>@x/select</td></tr>`
         );
     });
 });

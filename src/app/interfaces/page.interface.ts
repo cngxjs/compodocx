@@ -1,5 +1,7 @@
 export interface PageInterface {
     name: string;
+    /** Page title when `name` is an internal id. */
+    displayName?: string;
     id: string;
     navTabs?: any[];
     filename?: string;
@@ -17,6 +19,8 @@ export interface PageInterface {
     depth?: number;
     pageType?: string;
     component?: any;
+    /** Data of a feature page (`FeaturePageData`). */
+    feature?: unknown;
     markdown?: string;
     childrenLength?: number;
     children?: any[];

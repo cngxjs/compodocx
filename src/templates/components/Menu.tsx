@@ -38,7 +38,9 @@ import {
     IconCube,
     IconDirective,
     IconEntity,
+    IconEnum,
     IconFolder,
+    IconFunction,
     IconGitBranch,
     IconGrid,
     IconGuard,
@@ -50,7 +52,9 @@ import {
     IconPipe,
     IconPodium,
     IconSettings,
-    IconToken
+    IconToken,
+    IconTypealias,
+    IconVariable
 } from './Icons';
 
 /** Menu types come in plural form (`components`, `directives`, `classes`).
@@ -487,6 +491,14 @@ const kindIconHtml = (kind: TableKind): string => {
             return IconInterceptor();
         case 'entity':
             return IconEntity();
+        case 'function':
+            return IconFunction();
+        case 'variable':
+            return IconVariable();
+        case 'typealias':
+            return IconTypealias();
+        case 'enumeration':
+            return IconEnum();
         default:
             return '';
     }

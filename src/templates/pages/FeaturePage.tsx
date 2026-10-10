@@ -127,7 +127,9 @@ const SubFeatures = (cards: readonly FeatureCard[], depth: number): string => {
                             (
                                 <tr data-cdx-feature-card={card.id}>
                                     <td>
-                                        <a href={featureHref(card.segments, depth)}>{card.label}</a>
+                                        <a href={featureHref(card.segments, depth)}>
+                                            <code>{card.label}</code>
+                                        </a>
                                     </td>
                                     <td>{String(card.memberCount)}</td>
                                     <td>{(card.summary ?? '') as string}</td>
@@ -166,9 +168,11 @@ const Related = (
                             (
                                 <tr data-cdx-feature-related={card.id}>
                                     <td>
-                                        <a href={featureHref(card.segments, depth)}>{card.label}</a>
+                                        <a href={featureHref(card.segments, depth)}>
+                                            <code>{card.label}</code>
+                                        </a>
                                     </td>
-                                    <td>{card.entryPoint ? <code>{card.entryPoint}</code> : ''}</td>
+                                    <td>{card.entryPoint ?? ''}</td>
                                 </tr>
                             ) as string
                     )}
