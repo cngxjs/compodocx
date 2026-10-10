@@ -203,11 +203,3 @@ export function memberAnchor(member: string | undefined, owner?: string): string
 /** The `href` string: prefix, path and `#anchor`. */
 export const hrefText = (href: Href, style: PrefixStyle = 'relative'): string =>
     `${relativePrefix(href.fromDepth, style)}${href.path}${href.anchor ? `#${href.anchor}` : ''}`;
-
-const FOLDER_KIND: ReadonlyMap<string, PageKind> = new Map(
-    Object.entries(KIND_FOLDER).map(([kind, folder]) => [folder, kind as PageKind])
-);
-
-/** The symbol kind whose folder a root-relative path starts with. */
-export const kindOfPath = (path: string): PageKind | undefined =>
-    FOLDER_KIND.get(path.replace(/^(\.\.?\/)+/, '').split('/')[0]);

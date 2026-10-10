@@ -4,6 +4,9 @@ import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
 import { hrefFor, hrefText, pagePath, ROOT_DEPTH } from '../links/layout';
+import { placedLink } from '../links/resolve';
+import type { TableKind } from '../links/symbol-id';
+import { entryInFile } from '../links/symbol-table';
 
 export class PageWriter {
     public processPage(page): Promise<void> {
@@ -46,6 +49,12 @@ export class PageWriter {
         const injectables = (Configuration.mainData.injectables as any[]) ?? [];
 
         // Build a name→type+url lookup for all known entities
+        const { symbols, di } = Configuration.mainData;
+        const urlOf = (kind: TableKind, item: any): string | undefined => {
+            const entry = symbols && entryInFile(symbols, kind, item.name, item.file);
+            const link = entry && placedLink(symbols, entry, di);
+            return link && hrefText(hrefFor(link.target, ROOT_DEPTH, link.anchor));
+        };
         const entityMap = new Map<string, { type: string; url?: string }>();
         const graphKinds = [
             ['component', components],
@@ -55,10 +64,7 @@ export class PageWriter {
         ] as const;
         for (const [kind, list] of graphKinds) {
             for (const item of list) {
-                const url = hrefText(
-                    hrefFor({ type: 'symbol', kind, name: item.name }, ROOT_DEPTH)
-                );
-                entityMap.set(item.name, { type: kind, url });
+                entityMap.set(item.name, { type: kind, url: urlOf(kind, item) });
             }
         }
 

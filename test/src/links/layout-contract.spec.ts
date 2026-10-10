@@ -3,7 +3,6 @@ import {
     folderDepth,
     hrefFor,
     hrefText,
-    kindOfPath,
     memberAnchor,
     type PageTarget,
     pageLocation,
@@ -160,13 +159,6 @@ describe('page layout contract', () => {
             'components/Foo.html'
         );
         expect(hrefText(hrefFor(symbol('variable', 'X'), 0), 'bare')).toBe('variables/X.html');
-    });
-
-    it('maps a path back to the kind of its folder', () => {
-        expect(kindOfPath('components/Foo.html')).toBe('component');
-        expect(kindOfPath('../classes/Foo.html')).toBe('class');
-        expect(kindOfPath('./entities/Foo.html')).toBe('entity');
-        expect(kindOfPath('miscellaneous/functions.html')).toBeUndefined();
     });
 
     it('builds member anchors that are valid ids', () => {

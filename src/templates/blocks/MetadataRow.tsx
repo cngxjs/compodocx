@@ -1,5 +1,4 @@
 import Html from '@kitajs/html';
-import { kindOfPath } from '../../app/links/layout';
 import { t } from '../helpers';
 import { resolveType } from '../helpers/link-type';
 
@@ -73,16 +72,7 @@ function resolveChip(
     if (resolved.href.startsWith('https://angular.dev')) {
         return { href: resolved.href, target: resolved.target, type: 'module' };
     }
-    // Extract the entity folder from the href path: "../<folder>/Name.html"
-    const m = resolved.href.match(/\.\.\/([a-z]+)\//);
-    if (!m) {
-        return { href: resolved.href, target: resolved.target };
-    }
-    const raw = m[1];
-    // The kind whose folder the link points into; 'miscellaneous' (no kind
-    // folder) passes through as is.
-    const type = kindOfPath(raw) ?? raw;
-    return { href: resolved.href, target: resolved.target, type };
+    return { href: resolved.href, target: resolved.target, type: resolved.kind };
 }
 
 /** Single metadata row: `<dt>label</dt><dd>value</dd>` inside a `cdx-metadata-row`. */

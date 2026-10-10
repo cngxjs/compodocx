@@ -1,6 +1,6 @@
 import Configuration from '../../app/configuration';
 import DependenciesEngine from '../../app/engines/dependencies.engine';
-import { hrefFor, hrefText, isUtilityKind } from '../../app/links/layout';
+import { hrefFor, hrefText, isUtilityKind, type PageKind } from '../../app/links/layout';
 import { placeTarget, targetOfData } from '../../app/links/resolve';
 import BasicTypeUtil from '../../utils/basic-type.util';
 import ExtendsMerger from '../../utils/extends-merger.util';
@@ -10,6 +10,8 @@ export type ResolvedType = {
     readonly href: string;
     readonly target: string;
     readonly indexKey: string;
+    /** The kind of the page an internal type links to (`provider` for a DI page). */
+    readonly kind?: PageKind;
 };
 
 /**
@@ -50,8 +52,9 @@ export const resolveType = (
                 return null;
             }
             const href = hrefText(hrefFor(link.target, depth, link.anchor));
+            const kind = link.target.type === 'symbol' ? link.target.kind : 'provider';
             // `indexKey` is the indexed access shown next to the name, not the section anchor.
-            return { ...resolved, href, indexKey: anchor ?? '' };
+            return { ...resolved, href, indexKey: anchor ?? '', kind };
         }
 
         return {
