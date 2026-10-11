@@ -52,7 +52,7 @@ These file names correspond to page contexts. Place them in `partials/` inside y
 | `class.js` | Class detail |
 | `interface.js` | Interface detail |
 | `entity.js` | Entity detail |
-| `token.js` | `InjectionToken` / `HttpContextToken` detail page at `tokens/<name>.html` (v0.6.0+) |
+| `token.js` | `InjectionToken` / `HttpContextToken` detail page (in its feature folder) (v0.6.0+) |
 | `routes.js` | Routes page |
 | `markdown.js` | Markdown pages (readme, changelog, etc.) |
 | `additional-page.js` | Additional documentation pages |
@@ -61,14 +61,14 @@ These file names correspond to page contexts. Place them in `partials/` inside y
 | `package-dependencies.js` | Package dependencies page |
 | `package-properties.js` | Package properties page |
 | `utilities.js` | Utilities landing page, `utilities.html`: functions, constants, type aliases and enumerations in four groups |
-| `function.js` | Function page at `functions/<name>.html`. Receives `data.function` |
-| `variable.js` | Constant page at `variables/<name>.html`. Receives `data.variable` |
-| `typealias.js` | Type alias page at `typealiases/<name>.html`. Receives `data.typealias` |
-| `enumeration.js` | Enumeration page at `enumerations/<name>.html`. Receives `data.enumeration` |
-| `resolver.js` | Functional resolver page at `resolvers/<name>.html`. Receives `data.resolver` |
+| `function.js` | Function page (in the function's feature folder). Receives `data.function` |
+| `variable.js` | Constant page (in its feature folder). Receives `data.variable` |
+| `typealias.js` | Type alias page (in its feature folder). Receives `data.typealias` |
+| `enumeration.js` | Enumeration page (in its feature folder). Receives `data.enumeration` |
+| `resolver.js` | Functional resolver page (in its feature folder). Receives `data.resolver` |
 | `dependency-injection.js` | Dependency Injection landing page, `dependency-injection.html`: feature types with their providers and feature functions, other providers, tokens |
-| `di-cluster.js` | Page of a feature type at `providers/<FeatureType>.html`. Receives `data.cluster = { featureType, providers, features, tokens }`, each list holding the same entity objects the symbol pages get. Member sections use the anchor `<FeatureType>--<name>`. A provider without a feature type (`providers/<name>.html`) has no override of its own |
-| `feature.js` | Page of a feature at `features/<entry point>/<feature>.html` (both layouts). Receives `data.feature = { id, label, entryPoint, importPath, detector, segments, parent, readme: { file, html }, members: { components, directives, pipes, services, configuration, utilities, constants, types, classes }, subFeatures, buildsOn, extendedBy }`; members are symbol table entries (`ref.kind`, `ref.name`, `data` the engine object), `parent`, `subFeatures`, `buildsOn` and `extendedBy` are cards `{ id, label, entryPoint, segments, memberCount, summary }` |
+| `di-cluster.js` | Page of a feature type (`<FeatureType>.html` in its feature folder). Receives `data.cluster = { featureType, providers, features, tokens }`, each list holding the same entity objects the symbol pages get. Member sections use the anchor `<FeatureType>--<name>`. A provider without a feature type (its own page) has no override of its own |
+| `feature.js` | Page of a feature, `<entry point>/<feature>/index.html` (both layouts). Receives `data.feature = { id, label, entryPoint, importPath, detector, segments, parent, readme: { file, html }, members: { components, directives, pipes, services, configuration, utilities, constants, types, classes }, subFeatures, buildsOn, extendedBy }`; members are symbol table entries (`ref.kind`, `ref.name`, `data` the engine object), `parent`, `subFeatures`, `buildsOn` and `extendedBy` are cards `{ id, label, entryPoint, segments, memberCount, summary }` |
 | `api-reference.js` | Single-page exhaustive symbol portal at `references.html`. Only emitted under `menuLayout: 'feature'`. Sections come from the feature model on `data.semantic.features`, one per feature, keyed by the feature's page path (`forms/select`, `forms/select/menu`) |
 | `app-config.js` | Application configuration page |
 | `menu.js` | Sidebar navigation menu. Receives the main data, including `data.menuLayout`, the symbol table (`data.symbols`) and the feature model (`data.semantic.features`) |
@@ -107,14 +107,14 @@ module.exports = function(data, helpers) {
     helpers.t('key')                    // translate an i18n key
 
     // Type resolution and links
-    helpers.linkTypeHtml('MyService')   // renders <code><a href="...">MyService</a></code>
-    helpers.resolveType('MyService')    // returns { href, raw, target } or null
+    helpers.linkTypeHtml('MyService', { depth: data.depth })  // <code><a href="...">MyService</a></code>
+    helpers.resolveType('MyService', undefined, data.depth)   // { href, raw, target, kind } or null
 
     // Descriptions with @link resolution
     helpers.parseDescription(text, depth)
 
     // Function/method signatures with type links
-    helpers.functionSignature(methodObj)
+    helpers.functionSignature(methodObj, data.depth)
 
     // JSDoc extraction
     helpers.extractJsdocParams(jsdocTags)      // @param tags as structured objects
@@ -143,11 +143,13 @@ module.exports = function(data, helpers) {
 
 ## Data object
 
+Pages sit at different depths: symbol pages live in the folder of their feature (`forms/select/SelectPanel.html` is depth 2), feature pages are `index.html` in that folder, root pages are depth 0. Build every relative link from `data.depth` (`helpers.relativeUrl(data.depth, 'index.html')`) and pass it to the type-link helpers; never assume a page is one folder deep.
+
 The `data` object contains the full page context. Its shape depends on the page type. Common fields:
 
 ```js
 data.context              // page type: 'component', 'directive', etc.
-data.depth                // nesting depth (0 = root, 1 = one level deep)
+data.depth                // folder depth of the page: 0 at the root, one per folder (a page in forms/select/ is 2)
 data.navTabs              // available tabs for this page
 data.documentationMainName // project name
 data.disableFilePath      // boolean: hide file paths?
@@ -182,9 +184,9 @@ If you have existing `.hbs` custom templates, convert them to `.js`:
 | `{{#unless x}}...{{/unless}}` | `${!x ? \`...\` : ''}` |
 | `{{#each items}}...{{/each}}` | `${items.map(item => \`...\`).join('')}` |
 | `{{t "key"}}` | `${helpers.t('key')}` |
-| `{{> link-type type=x}}` | `${helpers.linkTypeHtml(x)}` |
+| `{{> link-type type=x}}` | `${helpers.linkTypeHtml(x, { depth: data.depth })}` |
 | `{{parseDescription desc depth}}` | `${helpers.parseDescription(desc, depth)}` |
-| `{{{functionSignature method}}}` | `${helpers.functionSignature(method)}` |
+| `{{{functionSignature method}}}` | `${helpers.functionSignature(method, data.depth)}` |
 | `{{#compare a "===" b}}...{{/compare}}` | `${a === b ? \`...\` : ''}` |
 | `{{modifKind kind}}` | `${helpers.modifKind(kind)}` |
 

@@ -47,6 +47,30 @@ The rest of this document only matters if:
 - Your CSS or downstream tooling targets compodoc's emitted class names.
 - You scraped or post-processed the generated HTML.
 
+## Breaking change in 0.9.0: page URLs grouped by entry point and feature
+
+Pages no longer sit in one folder per kind. Each symbol page lives in the folder of its feature: the entry point's import path without a scope all entry points share, then the feature key. Apps use the feature folders below `src/app`.
+
+| Before | Now |
+|-|-|
+| `components/SelectPanel.html` (any kind folder: `directives/`, `injectables/`, `classes/`, `interfaces/`, `functions/`, `variables/`, `typealiases/`, `enumerations/`, `tokens/`, `guards/`, `interceptors/`, `resolvers/`, `entities/`, `pipes/`) | `forms/select/SelectPanel.html` (library entry point `@acme/forms/select`), `admin/UserListComponent.html` (app feature `admin`) |
+| `providers/<FeatureType>.html`, `providers/<name>.html` | the feature type's or the provider's page in its feature folder |
+| `features/forms/select.html` | `forms/select/index.html` |
+| `Todo-1.html`, `Todo-2.html` (same-name copies) | `Todo-2.html`, `Todo-3.html` in the same folder (the first copy by source path keeps `Todo.html`); a same-name symbol of another kind is `<name>-<kind>.html` |
+| `functions/Unnamed function.html` | `Unnamed-function.html` (characters outside `A-Z a-z 0-9 . _ -` become `-`) |
+
+Root pages (`index.html`, `overview.html`, `utilities.html`, `dependency-injection.html`, `references.html`, `coverage.html`, ...) and `additional-documentation/` keep their paths. A feature folder never takes the name of a root folder (`js`, `styles`, `images`, `assets`, `pagefind`, `additional-documentation`); such a feature gets `-2`. Without project analysis facts (a tsconfig the analysis cannot read) pages keep their kind folders.
+
+Old URLs: every version's output holds `redirects.json`:
+
+```json
+{ "schemaVersion": 1, "redirects": { "components/SelectPanel.html": "forms/select/SelectPanel.html" } }
+```
+
+It covers the kind folders (with their old `-1`, `-2` names), `providers/`, `miscellaneous/` pages and collection anchors, `features/` and `categories/` pages. No stub pages are written; a web server can use the map for HTTP redirects. The version switcher follows the target version's map, and for a version built before the map existed it reads the current version's map backwards. `versions.json` is unchanged (schema 1). Links in README and additional-page markdown that still point at an old page are rewritten to its new place.
+
+Custom templates: pages are no longer all one folder deep. Build links with `data.depth` (`helpers.relativeUrl(data.depth)`), and pass it to the type-link helpers: `helpers.linkTypeHtml(type, { depth: data.depth })`, `helpers.functionSignature(method, data.depth)`. `compodocx migrate templates` writes these arguments for converted Handlebars templates.
+
 ## Breaking change in 0.9.0: features replace category buckets
 
 compodocx groups symbols by feature: an entry point (the import path), then a feature key below it, derived from the code. The sidebar, the breadcrumbs, `references.html` and search use it. `@category` and `@docsKind` are no longer read.
@@ -74,7 +98,7 @@ Configuration:
 
 New: `features`, `featureContainers` (app folders whose sub-folders are features, default `features`, `pages`, `domains`), `featureUtilityFolders` (folders that belong to the entry point's root feature) and `featureRoleFolders` (folders such as `di/`, `routes/` or `components/` whose files join the feature their file name starts with). See "Features" in docs/configuration.md for the detection rules.
 
-Pages: `categories/<bucket>.html` is gone. Every feature has a page at `features/<entry point>/<feature>.html`, an app feature at `features/<feature>.html`; the entry point's import path loses a scope that all entry points share. No redirects are written.
+Pages: `categories/<bucket>.html` is gone. Every feature has a page, `index.html` in the feature's folder (see "page URLs grouped by entry point and feature" above); `redirects.json` maps the old `categories/` pages whose path matches a feature.
 
 Template overrides: `bucket-landing` is removed (a file with that name is ignored with a warning). The new `feature` context targets feature pages (`data.feature`, see docs/custom-templates.md). `menu` and `api-reference` overrides read the feature model from `data.semantic.features`; `data.categorizedByFeature*` and the `data.categorized*` kind groups are gone.
 
@@ -90,19 +114,15 @@ Search: the `bucket` and `tier` facets are replaced by `feature` and `entryPoint
 
 The Miscellaneous chapter and the `miscellaneous/` output folder are gone. Functions, constants, type aliases and enumerations each get a page of their own, providers and feature functions move to a Dependency Injection chapter.
 
-New URLs (no redirects are written; in multi-version output the version switcher falls back to the version root for a page that moved):
+Where the pages went (every page lives in its feature folder, see "page URLs grouped by entry point and feature" above; `redirects.json` maps each old URL, and the version switcher follows it):
 
 | Before | Now |
 |-|-|
-| `miscellaneous/functions.html#name`, `miscellaneous/functions/<name>.html` | `functions/<name>.html` |
-| `miscellaneous/variables.html#name`, `miscellaneous/variables/<name>.html` | `variables/<name>.html` |
-| `miscellaneous/typealiases.html#name`, `miscellaneous/typealiases/<name>.html` | `typealiases/<name>.html` |
-| `miscellaneous/enumerations.html#name`, `miscellaneous/enumerations/<name>.html` | `enumerations/<name>.html` |
-| page of a provider or feature function with a feature type | section `#<FeatureType>--<name>` on `providers/<FeatureType>.html` |
-| page of a provider without a feature type | `providers/<name>.html` |
-| `interfaces/<FeatureType>.html`, `typealiases/<FeatureType>.html` | `providers/<FeatureType>.html` (its first section is the type definition) |
-| a `ResolveFn` constant | `resolvers/<name>.html` |
-| a guard or interceptor declared as a function | `guards/<name>.html`, `interceptors/<name>.html` |
+| `miscellaneous/functions.html#name`, `miscellaneous/functions/<name>.html` (and the same for variables, type aliases, enumerations) | the symbol's own page |
+| page of a provider or feature function with a feature type | section `#<FeatureType>--<name>` on the page of the feature type |
+| page of a provider without a feature type | its own page |
+| `interfaces/<FeatureType>.html`, `typealiases/<FeatureType>.html` | the page of the feature type (its first section is the type definition) with its providers and feature functions |
+| a `ResolveFn` constant, a guard or interceptor declared as a function | its own page, listed under Resolvers, Guards or Interceptors |
 
 Landing pages: `utilities.html` and `dependency-injection.html`. Under `menuLayout: 'feature'` both are linked from the header of `references.html`, and a bucket lists a feature type page once instead of each of its members.
 
