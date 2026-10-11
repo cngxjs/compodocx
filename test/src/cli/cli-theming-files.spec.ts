@@ -63,6 +63,7 @@ describe('CLI Theming tab generation', () => {
                     `/// @type Length\n` +
                     `/// @default 8px 12px\n` +
                     `/// @group container\n` +
+                    `/// @todo pick a dense value\n` +
                     `$btn-padding: 8px 12px !default;\n`
             );
 
@@ -155,6 +156,13 @@ describe('CLI Theming tab generation', () => {
             expect(indexIdx).to.be.greaterThan(-1);
             expect(memberIdx).to.be.greaterThan(-1);
             expect(indexIdx).to.be.lessThan(memberIdx);
+        });
+
+        it('reports an unknown style-comment tag once, with its location', () => {
+            expect(stdoutString).to.contain('Style comments: 1 unknown tag ignored (@todo x1)');
+            expect(stdoutString).to.match(/themed\/button\.component\.scss:9 @todo/);
+            const descriptions = componentHtml.match(/cdx-io-member-desc[\s\S]*?<\/div>/g) ?? [];
+            expect(descriptions.join('')).to.not.contain('pick a dense value');
         });
 
         it('renders the description for each documented token', () => {

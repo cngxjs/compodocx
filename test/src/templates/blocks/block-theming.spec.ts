@@ -247,6 +247,29 @@ describe('BlockTheming', () => {
         expect(html).to.not.include('cdx-io-member-name');
     });
 
+    it('renders @relatedTo names as Related chips, unresolved ones as code', () => {
+        const html = BlockTheming({
+            tokens: [makeToken({ relatedTo: ['NoSuchSymbol'] })],
+            depth: 1
+        });
+        expect(html).to.include('cdx-theming-related');
+        expect(html).to.include('<code>NoSuchSymbol</code>');
+    });
+
+    it('omits the Related row for tokens without @relatedTo', () => {
+        expect(BlockTheming({ tokens: [makeToken()] })).to.not.include('cdx-theming-related');
+    });
+
+    it('passes the resolved related names to the `block-theming-token` override', () => {
+        let seen: unknown;
+        registerCustomTemplate('block-theming-token', (data: any) => {
+            seen = data.related;
+            return '<div></div>';
+        });
+        BlockTheming({ tokens: [makeToken({ relatedTo: ['NoSuchSymbol'] })], depth: 1 });
+        expect(seen).to.deep.equal([{ name: 'NoSuchSymbol' }]);
+    });
+
     it('handles undefined tokens prop as empty list', () => {
         const html = BlockTheming({ tokens: undefined as any });
         expect(html).to.include('data-compodoc="block-theming"');

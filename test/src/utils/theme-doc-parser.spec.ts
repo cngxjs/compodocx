@@ -5,11 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     collectStyleSources,
     collectThemeTokens,
+    formatUnknownStyleTagNotice,
     groupThemeTokens,
     parseCssTokens,
     parseDocBody,
     parseScssTokens,
-    parseStyleSource
+    parseStyleSource,
+    unknownStyleTags
 } from '../../../src/utils/theme-doc-parser';
 
 describe('Utils - theme-doc-parser', () => {
@@ -260,7 +262,7 @@ describe('Utils - theme-doc-parser', () => {
             expect(tokens[0].description).to.contain('{@link OtherToken}');
         });
 
-        it('preserves unknown tags as plain description text (no error)', () => {
+        it('drops unknown tags from the description and records them with their line', () => {
             const source = [
                 '/**',
                 ' * Token.',
@@ -268,8 +270,60 @@ describe('Utils - theme-doc-parser', () => {
                 ' */',
                 ':host { --x: 1; }'
             ].join('\n');
-            const { tokens } = parseCssTokens(source, 'x.css');
-            expect(tokens[0].description).to.contain('@customField sentinel');
+            const result = parseCssTokens(source, 'x.css');
+            expect(result.tokens[0].description).to.equal('Token.');
+            expect(result.unknownTags).to.deep.equal([
+                { file: 'x.css', line: 3, tag: 'customField' }
+            ]);
+        });
+
+        it('reads @relatedTo on a token, comma or space separated', () => {
+            const source = [
+                '/**',
+                ' * Token.',
+                ' * @relatedTo FooButton, FooCard BarDirective',
+                ' */',
+                ':host { --x: 1; }'
+            ].join('\n');
+            const result = parseCssTokens(source, 'x.css');
+            expect(result.tokens[0].relatedTo).to.deep.equal(['FooButton', 'FooCard', 'BarDirective']);
+            expect(result.tokens[0].description).to.equal('Token.');
+            expect(result.unknownTags).to.deep.equal([]);
+        });
+
+        it('leaves relatedTo off a token without the tag', () => {
+            const source = ['/**', ' * Token.', ' */', ':host { --x: 1; }'].join('\n');
+            expect(parseCssTokens(source, 'x.css').tokens[0]).to.not.have.property('relatedTo');
+        });
+
+        it('reports none of the known token tags as unknown', () => {
+            const source = [
+                '/**',
+                ' * Token.',
+                ' * @type <length>',
+                ' * @default 1px',
+                ' * @group Size',
+                ' * @example',
+                ' * .a { --x: 2px; }',
+                ' * @since 1.0.0',
+                ' * @deprecated use --y',
+                ' * @see --y',
+                ' * @relatedTo Foo',
+                ' */',
+                ':host { --x: 1px; }'
+            ].join('\n');
+            const result = parseCssTokens(source, 'x.css');
+            expect(result.unknownTags).to.deep.equal([]);
+            const token = result.tokens[0];
+            expect([token.type, token.defaultValue, token.group, token.since]).to.deep.equal([
+                '<length>',
+                '1px',
+                'Size',
+                '1.0.0'
+            ]);
+            expect(token.deprecated).to.equal('use --y');
+            expect(token.see).to.deep.equal(['--y']);
+            expect(token.examples).to.deep.equal(['.a { --x: 2px; }']);
         });
 
         it('skips a JSDoc block that is followed by something other than a target', () => {
@@ -335,6 +389,66 @@ describe('Utils - theme-doc-parser', () => {
             ].join('\n');
             const result = parseCssTokens(source, 'x.css');
             expect(result.overview).to.deep.equal(['First paragraph.', 'Second paragraph.']);
+        });
+    });
+
+    describe('file-level tags', () => {
+        it('reads @themes and @relatedTo from the @overview block', () => {
+            const source = [
+                '/**',
+                ' * Intro.',
+                ' * @overview',
+                ' * @themes FooCard, FooTooltip',
+                ' * @themes FooBadge',
+                ' * @relatedTo FooButton',
+                ' */',
+                ':host { --x: 1; }'
+            ].join('\n');
+            const result = parseCssTokens(source, 'x.css');
+            expect(result.overview).to.deep.equal(['Intro.']);
+            expect(result.themes).to.deep.equal(['FooCard', 'FooTooltip', 'FooBadge']);
+            expect(result.relatedTo).to.deep.equal(['FooButton']);
+            expect(result.tokens).to.deep.equal([]);
+        });
+
+        it('reads @themes from a SassDoc block that has no @overview', () => {
+            const source = ['/// @themes FooCard', '', '@mixin theme($t) {}'].join('\n');
+            const result = parseScssTokens(source, 'x.scss');
+            expect(result.themes).to.deep.equal(['FooCard']);
+            expect(result.overview).to.deep.equal([]);
+        });
+
+        it('records other tags of an @overview block as unknown', () => {
+            const source = ['/**', ' * Intro.', ' * @overview', ' * @author Someone', ' */'].join('\n');
+            const result = parseCssTokens(source, 'x.css');
+            expect(result.overview).to.deep.equal(['Intro.']);
+            expect(result.unknownTags).to.deep.equal([{ file: 'x.css', line: 4, tag: 'author' }]);
+        });
+
+        it('reports the line of an unknown tag in a SassDoc block', () => {
+            const source = ['$a: 1;', '/// Token.', '/// @todo later', '$x: 1px;'].join('\n');
+            const result = parseScssTokens(source, 'x.scss');
+            expect(result.unknownTags).to.deep.equal([{ file: 'x.scss', line: 3, tag: 'todo' }]);
+        });
+    });
+
+    describe('unknown tag notice', () => {
+        it('counts each tag and lists every location', () => {
+            const tags = unknownStyleTags([
+                { file: 'a.css', content: '/**\n * A.\n * @todo x\n */\n:host { --a: 1; }', language: 'css' },
+                { file: 'a.css', content: '/**\n * A.\n * @todo x\n */\n:host { --a: 1; }', language: 'css' },
+                { file: 'b.scss', content: '/// B.\n/// @todo y\n/// @foo z\n$b: 1;', language: 'scss' }
+            ]);
+            expect(formatUnknownStyleTagNotice(tags)).to.deep.equal([
+                'Style comments: 3 unknown tags ignored (@todo x2, @foo x1)',
+                '  a.css:3 @todo',
+                '  b.scss:2 @todo',
+                '  b.scss:3 @foo'
+            ]);
+        });
+
+        it('is empty without findings', () => {
+            expect(formatUnknownStyleTagNotice([])).to.deep.equal([]);
         });
     });
 

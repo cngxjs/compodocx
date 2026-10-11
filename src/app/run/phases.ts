@@ -6,6 +6,11 @@ import AngularVersionUtil from '../../utils/angular-version.util';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import RouterParserUtil from '../../utils/router-parser.util';
+import {
+    formatUnknownStyleTagNotice,
+    type StyleSource,
+    unknownStyleTags
+} from '../../utils/theme-doc-parser';
 import { formatLegacyNotice } from '../compiler/legacy-scan';
 import { findRemovedTags, formatRemovedTagNotice } from '../compiler/removed-tags';
 import { analyzeProject, formatFeatureSummary, formatSemanticSummary } from '../compiler/semantic';
@@ -321,6 +326,18 @@ const microCrawl: Stage = async current => {
     return proceed(withSymbols({ ...ctx, diff }));
 };
 
+/** One notice per run for tags the style-comment parser does not read. */
+const logUnknownStyleTags = (ctx: RunContext): void => {
+    const components = (ctx.config.mainData.components ?? []) as {
+        themeStyleSources?: StyleSource[];
+    }[];
+    const sources = components.flatMap(component => component.themeStyleSources ?? []);
+    const notice = formatUnknownStyleTagNotice(unknownStyleTags(sources));
+    if (notice.length > 0) {
+        logger.warn(notice.join('\n'));
+    }
+};
+
 const prepare: Stage = async ctx => {
     const isDiff = ctx.mode === 'diff';
     if (isDiff) {
@@ -334,6 +351,9 @@ const prepare: Stage = async ctx => {
         }
         logger.error(prepared.message.error);
         return err(halt(1, 'prepare'));
+    }
+    if (!isDiff) {
+        logUnknownStyleTags(ctx);
     }
     return proceed(ctx);
 };

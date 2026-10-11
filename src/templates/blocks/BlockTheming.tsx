@@ -5,6 +5,7 @@ import { markedAcl } from '../../utils/marked.acl';
 import type { StyleSource, ThemeToken, ThemeTokenGroup } from '../../utils/theme-doc-parser';
 import { groupThemeTokens } from '../../utils/theme-doc-parser';
 import { isThemingSection, t } from '../helpers';
+import { type RelatedEntry, resolveRelated } from './RelatedSection';
 
 type BlockThemingProps = {
     readonly tokens: ThemeToken[];
@@ -77,8 +78,29 @@ const renderSeeLinks = (token: ThemeToken): string => {
     return `<p class="cdx-theming-see">${t('see')}: ${items}</p>`;
 };
 
+/** `@relatedTo` chips of a token; unresolved names render as code. */
+const renderRelated = (related: readonly RelatedEntry[]): string => {
+    if (related.length === 0) {
+        return '';
+    }
+    const items = related
+        .map(entry => {
+            const name = Html.escapeHtml(entry.name) as string;
+            return entry.href
+                ? `<a class="cdx-related-pill" href="${Html.escapeHtml(entry.href) as string}">${name}</a>`
+                : `<code>${name}</code>`;
+        })
+        .join(' ');
+    return `<p class="cdx-theming-see cdx-theming-related">${t('related')}: ${items}</p>`;
+};
+
 const renderTokenRow = (token: ThemeToken, depth?: number): string => {
-    const custom = renderCustomTemplate('block-theming-token', { token, depth });
+    const related = (token.relatedTo ?? []).map(name => resolveRelated(name, depth ?? 0));
+    const custom = renderCustomTemplate('block-theming-token', {
+        token,
+        depth,
+        ...(related.length > 0 && { related })
+    });
     if (custom !== null) {
         return custom;
     }
@@ -122,6 +144,7 @@ const renderTokenRow = (token: ThemeToken, depth?: number): string => {
         deprecatedReason +
         renderExamples(token) +
         renderSeeLinks(token) +
+        renderRelated(related) +
         `</div>`
     );
 };

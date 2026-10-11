@@ -258,7 +258,7 @@ export interface ExportComponent extends ExportEntityCommon {
     themeTokens?: ThemeToken[];
     /** Keys into the top-level `styleSources` map, in collection order. */
     themeStyleSources?: string[];
-    themeOverview?: string[];
+    themeOverview?: string;
     jsdoctags?: JsdocTagInterface[];
     route?: string;
     group?: string;

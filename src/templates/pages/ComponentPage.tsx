@@ -643,7 +643,8 @@ export const ComponentPage = (data: any): string => {
                             {BlockTheming({
                                 tokens: c.themeTokens,
                                 styleSources: c.themeStyleSources,
-                                overview: c.themeOverview
+                                overview: c.themeOverview,
+                                depth
                             })}
                         </div>
                     )}
