@@ -154,7 +154,7 @@ Controls sidebar behavior and entity page tab configuration.
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
-| toggleMenuItems | `--toggleMenuItems` | string[] | `['all']` | Sidebar sections that start collapsed. Pass `'all'` to collapse everything, or a comma-separated list of specific sections: `components`, `directives`, `entities`, `classes`, `injectables`, `dependency-injection`, `guards`, `interfaces`, `interceptors`, `pipes`, `resolvers`, `utilities`, `additionalPages`, and `features` (the Features chapter under `menuLayout: 'feature'`; References is a single top-level link with no collapsible tree, so it is not a valid key). `miscellaneous` and `tokens` are ignored with a warning |
+| toggleMenuItems | `--toggleMenuItems` | string[] | `['all']` | Sidebar sections that start collapsed. Pass `'all'` to collapse everything, or a comma-separated list of specific sections: `components`, `directives`, `entities`, `classes`, `injectables`, `dependency-injection`, `guards`, `interfaces`, `interceptors`, `pipes`, `resolvers`, `utilities`, `styles` (the Style files chapter under `menuLayout: 'type'`), `additionalPages`, and `features` (the Features chapter under `menuLayout: 'feature'`; References is a single top-level link with no collapsible tree, so it is not a valid key). `miscellaneous` and `tokens` are ignored with a warning |
 | navTabConfig | `--navTabConfig` | object[] | `[]` | Customize the order and labels of entity page tabs. Array of `{ id, label }` objects. Available tab IDs: `info` (overview/metadata), `readme` (component README), `source` (source code), `templateData` (component template), `styleData` (component styles), `tree` (DOM tree), `example` (live examples). Tabs not listed are hidden. If empty (default), all applicable tabs are shown in their default order |
 
 ## Coverage
@@ -194,6 +194,7 @@ Controls how symbols are organized in the sidebar. Both layouts group symbols by
 | featureContainers | _config-only_ | string[] | `['features', 'pages', 'domains']` | App folders whose sub-folders are the features: `src/app/features/admin` gives the feature `admin` |
 | featureUtilityFolders | _config-only_ | string[] | `['internal', 'i18n', 'utils', 'testing', '__test-helpers', 'examples']` | Folders below an entry point that belong to its root feature instead of forming a feature of their own |
 | featureRoleFolders | _config-only_ | string[] | `['config', 'di', 'providers', 'services', 'components', 'directives', 'pipes', 'models', 'types', 'interfaces', 'tokens', 'routes', 'guards', 'interceptors', 'resolvers', 'state', 'store']` | Folders named after a role. A file in one joins the feature its file name starts with (`di/toast.providers.ts` joins `toast` of the same entry point or app), otherwise the root feature; such a folder never becomes a feature of its own. `[]` turns the rule off |
+| styleFiles | _config-only_ | string[] | `[]` | Globs of free-standing `.css` / `.scss` files to document, relative to the config file's folder (the `-p` tsconfig folder without a config file). Braces work (`*.{css,scss}`). `node_modules`, `dist`, `.git` and the output folder are never matched; matches of another file type warn once and are ignored; a file a component already reads through `styleUrl` / `styleUrls` stays on that component's Theming tab. A value that is not a list of non-empty strings warns and is ignored. Style files join features like symbols. See [Style files](#style-files) |
 
 ## Features
 
@@ -423,15 +424,15 @@ The Info, API and Theming tabs accept config-file-only string arrays that opt re
 |-|-|-|-|
 | infoTabSections | string[] | `[]` | Override the section list for the Info tab. Empty means all defaults render. Available IDs: `import`, `deprecated`, `description`, `examples`, `metadata`, `extends`, `host`, `dependencies`, `providers`, `viewProviders`, `relationships` |
 | apiTabSections | string[] | `[]` | Override the section list for the API tab. Empty means all defaults render. Available IDs: `index`, `inputs`, `outputs`, `derivedState`, `effects`, `properties`, `methods`, `accessors`, `indexSignatures`, `hostBindings`, `hostListeners` |
-| themingTabSections | string[] | `[]` | Override the section list for the Theming tab. Empty means all defaults render. Available IDs: `overview`, `index`, `tokens`, `source` |
+| themingTabSections | string[] | `[]` | Override the section list for the Theming tab. Empty means all defaults render. Available IDs: `overview`, `index`, `tokens`, `mixins`, `source` (the default order) |
 
 These are config-file only (no CLI flag). An explicit non-empty list replaces the default in full -- list every region you want, in the order you want them.
 
 ## Theming Tab
 
-Components grow a **Theming** tab when the parser finds documented theme tokens inside their `styleUrls` or inline `styles[]`. Tokens are described with a small inline-doc convention -- no separate manifest, no companion files. The same convention works for SCSS variables, CSS custom properties, and `@property` at-rules.
+Components grow a **Theming** tab when the parser finds documented theme tokens or mixins inside their `styleUrls` or inline `styles[]`, or when a style file listed in [`styleFiles`](#style-files) themes them with `@themes`; directives get the tab from `@themes` files. Tokens are described with a small inline-doc convention -- no separate manifest, no companion files. The same convention works for SCSS variables, CSS custom properties, and `@property` at-rules.
 
-> Authoring a stylesheet from scratch or retrofitting an existing one? See `docs/theming-tokens-authoring-guide.md` for copy-paste recipes, anti-patterns, and a verification loop.
+> Authoring a stylesheet from scratch or retrofitting an existing one? See [the theming tokens authoring guide](theming-tokens-authoring-guide.md) for copy-paste recipes, `@themes`, `@relatedTo`, documented mixins, anti-patterns, and a verification loop.
 
 ### SCSS variables -- SassDoc `///` blocks
 
@@ -489,14 +490,47 @@ The doc block can sit directly above the property OR above a wrapping selector t
 | `@since` | version string | Adds a "since" pill next to the token name |
 | `@deprecated` | optional reason | Strikes through the token name and renders the reason as muted prose |
 | `@see` | URL or token name (`--other-token`, `$other-var`), repeatable | Cross-link footer. Token references resolve to in-page anchors |
+| `@relatedTo` | `Name[, Name]` | On a token: a "Related" row linking the named symbols (unresolved names render as code). At file level: a Related section on the style page |
+| `@themes` | `Name[, Name...]`, file level, repeatable | Links a [style file](#style-files) to the components and directives it themes, resolved like `{@link}` names. Written in the `@overview` block or in a block of its own (a block carrying `@themes` never documents the declaration after it) |
 
-Unknown tags are preserved verbatim in the description -- the parser does not error on conventions you add yourself.
+Documented SCSS mixins and functions: a `///` block directly above `@mixin name(...)` or `@function name(...)` with `@param` (SassDoc `@param {Type} $name [default] - text` or plain `@param $name text`), `@content`, `@return`, `@example`, `@since`, `@deprecated`, `@see` and `@relatedTo`. Parameters come from the signature, so a parameter without a `@param` line is still listed. Private names (`_x`, `-x`) and undocumented mixins are not shown. They render in the **Mixins** section of the Theming tab and on the style page.
+
+Unknown tags are dropped, not added to the description. Tags inside an `@overview` block other than `@themes` and `@relatedTo` count as unknown. The build logs them once per run and exits with code 0:
+
+```text
+Style comments: 2 unknown tags ignored (@todo x1, @note x1)
+  src/theming/button.css:14 @todo
+  src/theming/button.css:31 @note
+```
 
 ### Source resolution
 
 For each component, compodocx reads the `@Component` decorator's `styleUrls` relative to the component file and parses each entry. Inline `styles[]` strings are parsed identically. SCSS files have their top-level `@import` and `@use` rules followed **one level deep**, so you can keep tokens in a partial like `_tokens.scss` and re-export from the component stylesheet. Deeper transitive resolution is intentionally out of scope.
 
-Components without documented tokens get no Theming tab. Other entity kinds (services, directives, classes, ...) never carry styling output and never produce a Theming tab.
+Components without documented tokens or mixins get no Theming tab. Directives get one only from style files that name them in `@themes`. Other entity kinds (services, classes, ...) never produce a Theming tab.
+
+### Style files
+
+`styleFiles` (config-only, see [Sidebar Grouping](#sidebar-grouping)) lists free-standing `.css` / `.scss` files: theme bridges, directive assets, global token sheets.
+
+```json
+{ "styleFiles": ["projects/*/theming/**/*.css", "projects/themes/**/*.{css,scss}"] }
+```
+
+A matched file is documented when it has an `@overview`, at least one documented token (a description, `@type` or `@group`; an undocumented `@property` alone does not count) or a documented SCSS mixin or function. Files without documented content get no page and no export entry. The build log prints:
+
+```text
+Style files: 12 (5 pages, 6 linked to 8 symbols, 1 without documented content)
+1 style files have no documented tokens, mixins or overview: projects/themes/legacy.css
+```
+
+The second line names the first five files, then `...`.
+
+- **Linking.** `@themes Name[, Name...]` (comma or space separated, several lines add up) links the file to the components and directives it themes. Its tokens, overview (under a sub-heading with the file name) and source join each target's Theming tab, which names the linked files ("Style files: x.css", linked to the file's page when it has one). A name that is not found, is another kind or names several components or directives logs one warning per file, for example `Style file <file>: @themes X not found; @themes Y is not a component or directive`. There is no matching by selector, token name or file name.
+- **Pages.** A file that themes no symbol, themes two or more, or has documented mixins gets a page, `<file name>.html` in its feature folder (`stylesheets/` without project analysis facts): file name, CSS/SCSS badge, entry point and feature breadcrumb, import line, then Overview, Theming (the symbols it themes), Tokens, Mixins and Source (when `source` is in `themingTabSections` and `disableSourceCode` is off). A file that themes exactly one symbol and has no mixins shows on that symbol's tab only. The import line comes from the nearest `package.json` `exports` entry that maps the file exactly or through one `*` pattern (`@use '<name>/<subpath>';` for SCSS, `@import '<name>/<subpath>';` for CSS) and is left out otherwise.
+- **Features and navigation.** Style files are placed into features like symbols (they never move a symbol); a folder holding only style files can become a feature of its own. The feature layout lists style pages after a feature's primary members, the type layout has a **Style files** chapter (`toggleMenuItems` key `styles`), `references.html` lists them under their feature, and search shows them as kind "Style". Feature pages list their style pages (first sentence of the overview, token and mixin counts) and their components and directives with a Theming tab.
+- **Design tokens page.** `design-tokens.html` collects the documented tokens of every style file that themes no symbol, grouped by `@group` (the default group first, then by name), with name, type, default, description and the defining file. Token anchors are `token-<name>` and group anchors `group-<slug>`; a name defined again in a later file gets `-2` and one warning. The page is generated only when such tokens exist and is linked from the Features chapter, the Style files chapter, `references.html` and the feature pages that feed it.
+- **Exports.** The JSON export lists documented files under the optional top-level `styleFiles` (`file`, `language`, `overview`, `tokens`, `mixins`, `themes`, `relatedTo`, `feature`), their sources join `styleSources`, and themed directives carry `themeTokens`, `themeOverview` and `themeStyleSources`. `compodocx diff` does not compare `styleFiles`. The llm-md export adds a "Design tokens" section.
 
 ## JSDoc Tags
 
@@ -521,3 +555,5 @@ Compodocx recognizes these custom JSDoc tags on any entity or member:
 | `@slot <name> <description>` | Adds a row to the component's Slots section in the Info tab |
 | `@overview` (in CSS / SCSS) | Prose intro at the top of the Theming tab |
 | `@group <name>` (on a CSS / SCSS token) | Groups the token under this heading on the Theming tab |
+| `@themes <Name>` (in a CSS / SCSS style file) | Links the file to the components and directives it themes, see [Style files](#style-files) |
+| `@relatedTo <Name>` (in CSS / SCSS) | Related-symbol links on a token, mixin or style page |
