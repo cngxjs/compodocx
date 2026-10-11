@@ -52,6 +52,8 @@ export interface FeaturePageData {
     readonly buildsOn: readonly FeatureCard[];
     /** Features of other entry points that use this one. */
     readonly extendedBy: readonly FeatureCard[];
+    /** Style pages of the feature, in file order. */
+    readonly styles: readonly SymbolEntry[];
 }
 
 type Section = keyof FeatureMembers;
@@ -59,7 +61,7 @@ type Section = keyof FeatureMembers;
 /** The section of a member, from its kind and its place in the DI view. */
 const sectionOf = (entry: SymbolEntry, view: DiView | undefined): Section | undefined => {
     const placement = placementOf(view, entry.id).type;
-    if (placement === 'hidden') {
+    if (placement === 'hidden' || entry.ref.kind === 'style') {
         return undefined;
     }
     if (placement !== 'own' || entry.ref.kind === 'token') {
@@ -196,6 +198,16 @@ export const featurePages = (
         return [];
     }
     const members = featureMembers(semantic, table, view);
+    const styles = new Map<FeatureId, SymbolEntry[]>();
+    for (const entry of table.byId.values()) {
+        const id = model.featureOf.get(factKey(toSymbolKey(entry.ref)));
+        if (entry.ref.kind === 'style' && id !== undefined) {
+            styles.set(id, [...(styles.get(id) ?? []), entry]);
+        }
+    }
+    for (const list of styles.values()) {
+        list.sort((a, b) => (a.ref.file < b.ref.file ? -1 : 1));
+    }
     const { segments } = featureSegments(model.features);
     const byFolder = new Map<string, readonly string[]>();
     for (const f of model.features) {
@@ -265,7 +277,8 @@ export const featurePages = (
                       .map(card)
                 : [],
             buildsOn: linked(model.families.filter(l => l.from === feature.id).map(l => l.to)),
-            extendedBy: linked(model.families.filter(l => l.to === feature.id).map(l => l.from))
+            extendedBy: linked(model.families.filter(l => l.to === feature.id).map(l => l.from)),
+            styles: styles.get(feature.id) ?? []
         };
     });
 };

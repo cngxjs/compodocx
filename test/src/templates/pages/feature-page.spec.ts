@@ -9,8 +9,10 @@ import {
 } from '../../../../src/app/compiler/semantic/model';
 import { buildDiView } from '../../../../src/app/di';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
-import { buildSymbolTable } from '../../../../src/app/links';
+import { buildSymbolTable, withStyleEntries } from '../../../../src/app/links';
 import { featurePages } from '../../../../src/app/page-generator/feature-page-generator';
+import { themeResolver } from '../../../../src/app/run/styles';
+import { buildStyleModel, hasStylePage, resolveThemes } from '../../../../src/app/styles';
 import { FeaturePage } from '../../../../src/templates/pages/FeaturePage';
 import { featurePage, pageOf } from '../../helpers/pages';
 
@@ -182,5 +184,84 @@ describe('feature page', () => {
         expect(html).toContain(
             `<tr data-cdx-feature-related="${ROOT}"><td><a href="../../${featurePage(['select'])}"><code>select</code></a></td><td>@x/select</td></tr>`
         );
+    });
+});
+
+describe('FeaturePage - Theming section with style files', () => {
+    const KIT = '@x/kit#';
+    const kitEngine = {
+        components: [{ name: 'KitCard', file: 'kit/card.ts' }],
+        directives: [{ name: 'KitHighlight', file: 'kit/highlight.ts' }]
+    };
+    const base = buildSymbolTable(kitEngine as never, { cwd: '/' });
+    const styles = resolveThemes(
+        buildStyleModel([
+            {
+                file: 'kit/theming/highlight.css',
+                content:
+                    '/**\n * Highlight.\n * @overview\n * @themes KitHighlight\n */\n' +
+                    '/**\n * Background.\n */\n:root { --hl: 1; }\n'
+            },
+            {
+                file: 'kit/theming/tokens.css',
+                content:
+                    '/**\n * Global tokens.\n * @overview\n */\n/**\n * Gap.\n */\n:root { --gap: 1px; }\n'
+            }
+        ]),
+        themeResolver(base)
+    ).model;
+    const symbols = withStyleEntries(base, styles.files.filter(hasStylePage));
+    const kitSemantic: SemanticModel = {
+        ...emptyModel(),
+        features: {
+            features: [
+                {
+                    id: KIT,
+                    entryPoint: '@x/kit',
+                    key: '',
+                    label: 'kit',
+                    root: 'kit',
+                    detector: 'entry-point'
+                }
+            ],
+            featureOf: new Map([
+                ['kit/card.ts#KitCard', KIT],
+                ['kit/highlight.ts#KitHighlight', KIT],
+                ['kit/theming/tokens.css#tokens', KIT]
+            ]),
+            families: []
+        }
+    };
+    const renderKit = (withStyles: boolean): string => {
+        const table = withStyles ? symbols : base;
+        const page = featurePages(kitSemantic, table, undefined, () => undefined)[0];
+        return FeaturePage({
+            feature: page,
+            symbols: table,
+            semantic: kitSemantic,
+            styles: withStyles ? styles : undefined,
+            depth: page.segments.length
+        }).replace(/ __(self|source)="[^"]*"/g, '');
+    };
+
+    it('lists the style pages of the feature with summary and token count', () => {
+        const html = renderKit(true);
+        expect(html).toMatch(
+            /data-cdx-feature-member="style"><a href="[^"]*tokens\.html"><code>tokens\.css<\/code>/
+        );
+        expect(html).toContain('Global tokens');
+        expect(html).not.toContain('id="utilities"');
+    });
+
+    it('lists a directive themed by a linked file and links the design tokens page', () => {
+        const html = renderKit(true);
+        expect(html).toMatch(/href="[^"]*KitHighlight\.html#theming"/);
+        expect(html).toMatch(
+            /class="cdx-feature-design-tokens"><a href="[^"]*design-tokens\.html"/
+        );
+    });
+
+    it('renders no Theming section without style files and no themed member', () => {
+        expect(renderKit(false)).not.toContain('id="theming"');
     });
 });
