@@ -193,6 +193,7 @@ export const TRANSLATION_EN_US = {
     'mixin-content': 'Content block',
     'style-files': 'Style files',
     'style-file': 'Style file',
+    'design-tokens': 'Design tokens',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Total',

@@ -196,6 +196,7 @@ export const TRANSLATION_DE_DE = {
     'mixin-content': 'Content-Block',
     'style-files': 'Style-Dateien',
     'style-file': 'Style-Datei',
+    'design-tokens': 'Design-Tokens',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Gesamt',

@@ -193,6 +193,7 @@ export const TRANSLATION_ZH_CN = {
     'mixin-content': '内容块',
     'style-files': '样式文件',
     'style-file': '样式文件',
+    'design-tokens': '设计令牌',
     token: 'Token',
     tokens: 'Tokens',
     total: '总计',

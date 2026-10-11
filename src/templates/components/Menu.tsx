@@ -21,6 +21,7 @@ import {
 import { itemTarget, placedLink, placeTarget } from '../../app/links/resolve';
 import type { SymbolId, TableKind } from '../../app/links/symbol-id';
 import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
+import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
 import { t } from '../helpers';
 import {
     appRootPath,
@@ -630,6 +631,8 @@ type FeatureSectionProps = {
     chapterKey: 'features';
     label: string;
     defaultTab?: 'api';
+    /** List the design tokens page first. */
+    designTokens?: boolean;
 };
 
 /**
@@ -643,6 +646,7 @@ const CachedFeatureSection = (props: FeatureSectionProps, scope: object | undefi
         props.chapterKey,
         props.label,
         props.defaultTab,
+        props.designTokens,
         isCollapsedAll(),
         chapterOpen(props.chapterKey)
     ]);
@@ -683,6 +687,7 @@ const FeatureSection = (props: FeatureSectionProps): string => {
                 {chevron()}
             </button>
             <ul class={`links collapse${chapterOpen(props.chapterKey) ? ' in' : ''}`} id={id}>
+                {props.designTokens ? DesignTokensLink() : ''}
                 {tree.map(node =>
                     FeatureGroupTree({
                         node,
@@ -709,6 +714,8 @@ const EntitySection = (props: {
     labelKey: string;
     kind: PageKind;
     groupDepth?: number;
+    /** Rendered first in the chapter list. */
+    leadHtml?: string;
 }): string => {
     if (!props.items?.length) {
         return '';
@@ -732,6 +739,7 @@ const EntitySection = (props: {
                 {chevron()}
             </button>
             <ul class={`links collapse${chapterOpen(props.type) ? ' in' : ''}`} id={id}>
+                {props.leadHtml ?? ''}
                 {hasCats
                     ? (() => {
                           const tree = buildGroupTree(props.categorized!);
@@ -900,6 +908,22 @@ const withoutHidden = (d: any): any => {
     }
     return copy;
 };
+
+/** Whether the run has a design tokens page. */
+const hasDesignTokens = (d: any): boolean => unlinkedTokenFiles(d.styles?.files ?? []).length > 0;
+
+/** Sidebar link to the design tokens page. */
+const DesignTokensLink = (): string =>
+    (
+        <li class="link cdx-feature-link" data-cdx-kind="style">
+            <a href={rootHref('design-tokens')} data-type="chapter-link">
+                <span class="cdx-feature-kind-icon" aria-hidden="true">
+                    {IconPalette()}
+                </span>
+                <span class="cdx-menu-item-name">{t('design-tokens')}</span>
+            </a>
+        </li>
+    ) as string;
 
 /** The style pages of the table as sidebar items, in file order. */
 const styleMenuItems = (table: SymbolTable | undefined): any[] =>
@@ -1083,7 +1107,8 @@ export const Menu = (props: MenuProps): string => {
                                 first: appRootPath(d.semantic),
                                 groupDepth: GROUP_EXPAND_DEPTH,
                                 chapterKey: 'features',
-                                label: d.featuresName || t('features')
+                                label: d.featuresName || t('features'),
+                                designTokens: hasDesignTokens(d)
                             },
                             d.symbols
                         )}
@@ -1213,7 +1238,8 @@ export const Menu = (props: MenuProps): string => {
                                 iconHtml: IconPalette(),
                                 labelKey: 'style-files',
                                 kind: 'style',
-                                groupDepth: GROUP_EXPAND_DEPTH
+                                groupDepth: GROUP_EXPAND_DEPTH,
+                                leadHtml: hasDesignTokens(d) ? DesignTokensLink() : undefined
                             })}
                     </>
                 )}

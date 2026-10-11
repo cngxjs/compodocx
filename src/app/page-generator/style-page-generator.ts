@@ -8,8 +8,16 @@ import Configuration from '../configuration';
 import { hrefFor, hrefText, pageLocation } from '../links/layout';
 import { placedLink, symbolTarget } from '../links/resolve';
 import type { SymbolId } from '../links/symbol-id';
+import { symbolId } from '../links/symbol-id';
 import type { SymbolEntry } from '../links/symbol-table';
-import { type PackageManifest, type StyleFile, styleImportLine } from '../styles';
+import { styleFileName } from '../links/symbol-table';
+import {
+    designTokens,
+    formatDuplicateTokens,
+    type PackageManifest,
+    type StyleFile,
+    styleImportLine
+} from '../styles';
 
 /** A symbol the style file themes: its name and, unless hidden, its page. */
 export interface StyleThemeLink {
@@ -131,5 +139,61 @@ export const createStylePageGenerator = () => ({
         return Promise.resolve(true);
     }
 });
+
+/** The rows of the design tokens page, each linking its file's style page. */
+export const designTokenRows = (files: readonly StyleFile[], depth: number) => {
+    const { symbols } = Configuration.mainData;
+    const tokens = designTokens(files);
+    const groups = tokens.groups.map(group => ({
+        name: group.name,
+        id: group.id,
+        tokens: group.tokens.map(({ token, id, file }) => {
+            const page = symbols?.byId.get(
+                symbolId({ kind: 'style', file, name: styleFileName(file) })
+            );
+            return {
+                id,
+                name: token.name,
+                type: token.type,
+                defaultValue: token.defaultValue,
+                description: token.description,
+                deprecated: token.deprecated,
+                file,
+                ...(page ? { href: hrefText(hrefFor(symbolTarget(page), depth)) } : {})
+            };
+        })
+    }));
+    return { groups, tokens };
+};
+
+/** The root page with the tokens of every style file that themes no symbol. */
+export const createDesignTokensPageGenerator = () => ({
+    prepare: (): Promise<true> => {
+        const files = Configuration.mainData.styles?.files ?? [];
+        const location = pageLocation({ type: 'root', page: 'design-tokens' });
+        const { groups, tokens } = designTokenRows(files, location.depth);
+        if (groups.length === 0) {
+            return Promise.resolve(true);
+        }
+        logger.info('Prepare design tokens page');
+        const duplicates = formatDuplicateTokens(tokens);
+        if (duplicates) {
+            logger.warn(duplicates);
+        }
+        Configuration.addPage({
+            path: location.path,
+            name: 'design-tokens',
+            id: 'design-tokens',
+            filename: location.filename,
+            context: 'design-tokens',
+            groups,
+            depth: location.depth,
+            pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
+        });
+        return Promise.resolve(true);
+    }
+});
+
+export type DesignTokensPageGenerator = ReturnType<typeof createDesignTokensPageGenerator>;
 
 export type StylePageGenerator = ReturnType<typeof createStylePageGenerator>;

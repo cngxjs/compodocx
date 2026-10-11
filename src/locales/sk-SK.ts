@@ -194,6 +194,7 @@ export const TRANSLATION_SK_SK = {
     'mixin-content': 'Blok obsahu',
     'style-files': 'Súbory štýlov',
     'style-file': 'Súbor štýlov',
+    'design-tokens': 'Dizajnové tokeny',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Celkom',

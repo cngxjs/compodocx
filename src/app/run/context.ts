@@ -10,8 +10,10 @@ import {
     ClassPageGenerator,
     ComponentPageGenerator,
     CoveragePageGenerator,
+    createDesignTokensPageGenerator,
     createFeaturePageGenerator,
     createStylePageGenerator,
+    type DesignTokensPageGenerator,
     DiPageGenerator,
     DirectivePageGenerator,
     EntityPageGenerator,
@@ -65,6 +67,7 @@ export interface Generators {
     readonly utilities: MiscellaneousPageGenerator;
     readonly feature: FeaturePageGenerator;
     readonly style: StylePageGenerator;
+    readonly designTokens: DesignTokensPageGenerator;
     readonly apiReference: ApiReferencePageGenerator;
     readonly coverage: CoveragePageGenerator;
     readonly additional: AdditionalPageGenerator;
@@ -96,6 +99,7 @@ export const createGenerators = (): Generators => {
         utilities: new MiscellaneousPageGenerator(),
         feature: createFeaturePageGenerator(),
         style: createStylePageGenerator(),
+        designTokens: createDesignTokensPageGenerator(),
         apiReference: new ApiReferencePageGenerator(),
         coverage: new CoveragePageGenerator(),
         additional: new AdditionalPageGenerator(),

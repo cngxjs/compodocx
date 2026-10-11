@@ -10,6 +10,7 @@ import { ClusterPage } from '../../templates/pages/ClusterPage';
 import { ComponentPage } from '../../templates/pages/ComponentPage';
 import { CoverageReport } from '../../templates/pages/CoverageReport';
 import { DependencyInjectionPage } from '../../templates/pages/DependencyInjectionPage';
+import { DesignTokensPage } from '../../templates/pages/DesignTokensPage';
 import { DirectivePage } from '../../templates/pages/DirectivePage';
 import { EntityDetailPage } from '../../templates/pages/EntityDetailPage';
 import { FeaturePage } from '../../templates/pages/FeaturePage';
@@ -74,6 +75,7 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     'additional-page': 'additional-page',
     feature: 'feature',
     style: 'style',
+    'design-tokens': 'design-tokens',
     'api-reference': 'api-reference'
 };
 
@@ -175,6 +177,8 @@ export class HtmlEngine {
                 return FeaturePage(data);
             case 'style':
                 return StylePage(data);
+            case 'design-tokens':
+                return DesignTokensPage(data);
             case 'api-reference':
                 return ApiReferencePage(data);
             default:

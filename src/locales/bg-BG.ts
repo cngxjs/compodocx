@@ -195,6 +195,7 @@ export const TRANSLATION_BG_BG = {
     'mixin-content': 'Блок със съдържание',
     'style-files': 'Файлове със стилове',
     'style-file': 'Файл със стилове',
+    'design-tokens': 'Дизайн токени',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Общо',

@@ -194,6 +194,7 @@ export const TRANSLATION_KA_GE = {
     'mixin-content': 'შიგთავსის ბლოკი',
     'style-files': 'სტილის ფაილები',
     'style-file': 'სტილის ფაილი',
+    'design-tokens': 'დიზაინის ტოკენები',
     token: 'Token',
     tokens: 'Tokens',
     total: 'სულ',

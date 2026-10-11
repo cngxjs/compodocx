@@ -2,7 +2,7 @@ import { err, ok, type Result, sequenceAsync } from '../../lib';
 import { logger } from '../../utils/logger';
 import DependenciesEngine from '../engines/dependencies.engine';
 import type { DependenciesData } from '../services/dependencies';
-import { hasStylePage } from '../styles';
+import { hasStylePage, unlinkedTokenFiles } from '../styles';
 import type { RunContext } from './context';
 import { type Halt, halt } from './halt';
 
@@ -151,6 +151,11 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
         key: 'style',
         when: ctx => (ctx.config.mainData.styles?.files ?? []).some(hasStylePage),
         run: step(ctx => ctx.generators.style.prepare())
+    },
+    {
+        key: 'designTokens',
+        when: ctx => unlinkedTokenFiles(ctx.config.mainData.styles?.files ?? []).length > 0,
+        run: step(ctx => ctx.generators.designTokens.prepare())
     },
     { key: 'apiReference', when: always, run: step(ctx => ctx.generators.apiReference.prepare()) },
     {

@@ -195,6 +195,7 @@ export const TRANSLATION_FR_FR = {
     'mixin-content': 'Bloc de contenu',
     'style-files': 'Fichiers de style',
     'style-file': 'Fichier de style',
+    'design-tokens': 'Jetons de design',
     token: 'Token',
     tokens: 'Tokens',
     'table-of-contents': 'Table des matières',

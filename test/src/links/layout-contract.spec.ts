@@ -165,6 +165,17 @@ describe('page layout contract', () => {
         expect(symbolFolder('style')).not.toEqual(['styles']);
     });
 
+    it('writes the design tokens page at the output root', () => {
+        expect(pageLocation({ type: 'root', page: 'design-tokens' })).toEqual({
+            path: '',
+            filename: 'design-tokens',
+            depth: 0
+        });
+        expect(hrefText(hrefFor({ type: 'root', page: 'design-tokens' }, 2))).toBe(
+            '../../design-tokens.html'
+        );
+    });
+
     it('puts root pages at the output root', () => {
         expect(pageLocation({ type: 'root', page: 'app-config' })).toEqual({
             path: '',

@@ -194,6 +194,7 @@ export const TRANSLATION_PL_PL = {
     'mixin-content': 'Blok treści',
     'style-files': 'Pliki stylów',
     'style-file': 'Plik stylów',
+    'design-tokens': 'Tokeny projektowe',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Suma',

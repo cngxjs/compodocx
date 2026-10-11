@@ -57,6 +57,7 @@ const ALL_KEYS = [
     'utilities',
     'feature',
     'style',
+    'designTokens',
     'apiReference',
     'documentationCoverage',
     'unitTestCoverage',
@@ -89,8 +90,8 @@ const keys = (ctx: RunContext, counts: SourceCounts) =>
 
 describe('prepare stage table', () => {
     it('runs the style stage only when a style file gets a page', () => {
-        const linkedOnce = { hasContent: true, themes: ['component:a.ts#A'], mixins: [] };
-        const unlinked = { hasContent: true, themes: [], mixins: [] };
+        const linkedOnce = { hasContent: true, themes: ['component:a.ts#A'], mixins: [], tokens: [] };
+        const unlinked = { hasContent: true, themes: [], mixins: [], tokens: [] };
         expect(keys(context('full', { styles: { files: [linkedOnce] } }), EMPTY)).not.toContain(
             'style'
         );
@@ -110,12 +111,23 @@ describe('prepare stage table', () => {
         ]);
     });
 
-    it('selects all 25 stages in table order for a full run with every kind', () => {
+    it('selects all 26 stages in table order for a full run with every kind', () => {
         const ctx = context('full', {
             unitTestCoverage: 'coverage.json',
             includes: 'docs',
             di: { clusters: [{}], plainProviders: [], tokens: [] },
-            styles: { files: [{ hasContent: true, themes: [], mixins: [] }] }
+            styles: {
+                files: [
+                    {
+                        hasContent: true,
+                        themes: [],
+                        mixins: [],
+                        tokens: [
+                            { description: 'x', group: '', type: '', kind: 'css-custom-property' }
+                        ]
+                    }
+                ]
+            }
         });
         expect(keys(ctx, EVERY_KIND)).toEqual(ALL_KEYS);
         expect(PREPARE_STAGES.map(stage => stage.key)).toEqual(ALL_KEYS);
@@ -159,7 +171,18 @@ describe('prepare stage table', () => {
             unitTestCoverage: 'coverage.json',
             includes: 'docs',
             di: { clusters: [{}], plainProviders: [], tokens: [] },
-            styles: { files: [{ hasContent: true, themes: [], mixins: [] }] }
+            styles: {
+                files: [
+                    {
+                        hasContent: true,
+                        themes: [],
+                        mixins: [],
+                        tokens: [
+                            { description: 'x', group: '', type: '', kind: 'css-custom-property' }
+                        ]
+                    }
+                ]
+            }
         });
         const selected = keys(ctx, EVERY_KIND);
         expect(selected).not.toContain('unitTestCoverage');

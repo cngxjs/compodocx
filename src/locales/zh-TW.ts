@@ -193,6 +193,7 @@ export const TRANSLATION_ZH_TW = {
     'mixin-content': '內容區塊',
     'style-files': '樣式檔案',
     'style-file': '樣式檔案',
+    'design-tokens': '設計權杖',
     token: 'Token',
     tokens: 'Tokens',
     total: '總計',

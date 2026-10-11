@@ -24,6 +24,8 @@ export interface PageInterface {
     /** Data of a style page (`StylePageData`) and its table entry. */
     style?: unknown;
     styleEntry?: unknown;
+    /** Token groups of the design tokens page. */
+    groups?: unknown;
     markdown?: string;
     childrenLength?: number;
     children?: any[];

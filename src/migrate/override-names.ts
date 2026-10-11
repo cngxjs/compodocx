@@ -21,6 +21,7 @@ export const PAGE_LEVEL_OVERRIDES: readonly string[] = [
     'component',
     'coverage-report',
     'dependency-injection',
+    'design-tokens',
     'di-cluster',
     'directive',
     'entity',

@@ -10,7 +10,9 @@ test.describe('Style files', () => {
     }) => {
         await page.goto('/index.html');
         await expect(
-            page.locator('.cdx-feature-link[data-cdx-kind="style"] a', { hasText: 'tokens' })
+            page.locator('.cdx-feature-link[data-cdx-kind="style"] .cdx-menu-item-name', {
+                hasText: /^tokens$/
+            })
         ).toHaveCount(1);
         await page.goto(pageUrl('style', 'tokens'));
         await expect(page.locator('.cdx-entity-hero-name')).toHaveText('tokens');
