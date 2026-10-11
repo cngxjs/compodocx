@@ -1,0 +1,12 @@
+/* Minimal reset for kit hosts. */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Remove default margins. */
+body {
+    margin: 0;
+}

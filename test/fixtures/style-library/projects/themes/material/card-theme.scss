@@ -1,0 +1,29 @@
+@use 'sass:map';
+@use './bridge';
+
+/// Maps a Material theme onto the card and tooltip tokens.
+///
+/// @overview
+/// @themes StyCard, StyTooltip
+
+/// Emits the card and tooltip tokens for a Material theme.
+///
+/// @param {Map} $theme - Material theme map.
+/// @param {Number} $elevation [1] - Shadow level of the card.
+/// @example scss
+///   @include card-theme.theme($my-theme);
+@mixin theme($theme, $elevation: 1) {
+    .sty-card {
+        --sty-card-bg: #{bridge.color($theme, 'surface')};
+        --sty-card-elevation: #{$elevation};
+    }
+    .sty-tooltip {
+        --sty-tooltip-bg: #{bridge.color($theme, 'inverse-surface')};
+    }
+}
+
+@mixin color($theme) {
+    .sty-card {
+        --sty-card-bg: #{bridge.color($theme, 'surface')};
+    }
+}
