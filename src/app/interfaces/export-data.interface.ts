@@ -1,4 +1,4 @@
-import type { ThemeToken } from '../../utils/theme-doc-parser';
+import type { StyleMixin, ThemeToken } from '../../utils/theme-doc-parser';
 import type {
     HostDirectiveEntry,
     ProviderEntry
@@ -269,6 +269,11 @@ export interface ExportComponent extends ExportEntityCommon {
 }
 
 export interface ExportDirective extends ExportEntityCommon {
+    /** Tokens of the style files that theme the directive (`@themes`). */
+    themeTokens?: ThemeToken[];
+    /** Keys into the top-level `styleSources` map, in collection order. */
+    themeStyleSources?: string[];
+    themeOverview?: string;
     selector?: string;
     standalone?: boolean;
     signal?: boolean;
@@ -502,10 +507,29 @@ export interface ExportData {
      */
     styleSources?: Record<string, ExportStyleSource>;
     /**
+     * Free-standing style files matched by `styleFiles` that have documented
+     * content. Their sources are in `styleSources`, keyed by file.
+     */
+    styleFiles?: ExportStyleFile[];
+    /**
      * Entry points and counts of the semantic analysis. Absent when the
      * analysis did not run (no tsconfig, or the tsconfig could not be read).
      */
     semantic?: ExportSemantic;
+}
+
+/** A free-standing style file with documented content. */
+export interface ExportStyleFile {
+    /** Relative to the working directory, forward slashes. */
+    file: string;
+    language: 'css' | 'scss';
+    overview?: string;
+    tokens: ThemeToken[];
+    mixins?: StyleMixin[];
+    /** Components and directives the file themes (`@themes`). */
+    themes?: ExportSymbolRef[];
+    relatedTo?: string[];
+    feature?: ExportFeatureRef;
 }
 
 export interface ExportStyleSource {
