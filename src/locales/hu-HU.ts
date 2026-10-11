@@ -193,6 +193,7 @@ export const TRANSLATION_HU_HU = {
     theming: 'Témák',
     mixins: 'Mixinek',
     'mixin-content': 'Tartalomblokk',
+    'style-files': 'Stílusfájlok',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Összesen',

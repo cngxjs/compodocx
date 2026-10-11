@@ -191,6 +191,7 @@ export const TRANSLATION_ZH_TW = {
     theming: '主題',
     mixins: '混入',
     'mixin-content': '內容區塊',
+    'style-files': '樣式檔案',
     token: 'Token',
     tokens: 'Tokens',
     total: '總計',

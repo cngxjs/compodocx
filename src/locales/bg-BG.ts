@@ -193,6 +193,7 @@ export const TRANSLATION_BG_BG = {
     theming: 'Теми',
     mixins: 'Миксини',
     'mixin-content': 'Блок със съдържание',
+    'style-files': 'Файлове със стилове',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Общо',

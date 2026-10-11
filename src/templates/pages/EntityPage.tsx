@@ -155,6 +155,8 @@ export type EntityInfoProps = {
     readonly showTokenBadge?: boolean;
     readonly showJsdocBadges?: boolean;
     readonly contextLine?: string;
+    /** Rendered Theming tab content (directives). */
+    readonly themingHtml?: string;
     readonly relationships?: {
         incoming: Array<{
             name: string;
@@ -667,6 +669,7 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
                 entityName: e.name,
                 entityFile: e.file,
                 entitySourceCode: e.sourceCode,
+                themingContent: props.themingHtml,
                 playgrounds: props.playgrounds,
                 playgroundFiles: props.playgroundFiles,
                 playgroundResolver: props.playgroundResolver,

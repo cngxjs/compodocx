@@ -192,6 +192,7 @@ export const TRANSLATION_JA_JP = {
     theming: 'テーマ',
     mixins: 'ミックスイン',
     'mixin-content': 'コンテンツブロック',
+    'style-files': 'スタイルファイル',
     token: 'Token',
     tokens: 'Tokens',
     total: '合計',

@@ -192,6 +192,7 @@ export const TRANSLATION_KA_GE = {
     theming: 'თემები',
     mixins: 'მიქსინები',
     'mixin-content': 'შიგთავსის ბლოკი',
+    'style-files': 'სტილის ფაილები',
     token: 'Token',
     tokens: 'Tokens',
     total: 'სულ',

@@ -1,7 +1,11 @@
 import { hasAnyApiSections } from '../../templates/helpers/tab-helpers';
+import { hasTheming, themingFor } from '../../templates/helpers/theming';
 import { COMPODOC_CONSTANTS } from '../../utils/constants';
-import { styleMixins } from '../../utils/theme-doc-parser';
 import Configuration from '../configuration';
+
+/** Directives keep their own kind; every other symbol is looked up as a component. */
+const themingKind = (dependency: { type?: unknown }): 'component' | 'directive' =>
+    dependency.type === 'directive' ? 'directive' : 'component';
 
 export class NavTabsResolver {
     public resolve(dependency): Array<any> {
@@ -69,9 +73,7 @@ export class NavTabsResolver {
             }
             if (
                 customTab.id === 'theming' &&
-                (!dependency.themeTokens || dependency.themeTokens.length === 0) &&
-                !dependency.themeOverview &&
-                styleMixins(dependency.themeStyleSources ?? []).length === 0
+                !hasTheming(themingFor(dependency, themingKind(dependency), Configuration.mainData))
             ) {
                 return;
             }

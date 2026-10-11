@@ -192,6 +192,7 @@ export const TRANSLATION_PL_PL = {
     theming: 'Motywy',
     mixins: 'Mixiny',
     'mixin-content': 'Blok treści',
+    'style-files': 'Pliki stylów',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Suma',

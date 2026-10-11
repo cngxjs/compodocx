@@ -193,6 +193,7 @@ export const TRANSLATION_FR_FR = {
     theming: 'Theming',
     mixins: 'Mixins',
     'mixin-content': 'Bloc de contenu',
+    'style-files': 'Fichiers de style',
     token: 'Token',
     tokens: 'Tokens',
     'table-of-contents': 'Table des matières',

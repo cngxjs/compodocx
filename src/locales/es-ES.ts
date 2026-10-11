@@ -193,6 +193,7 @@ export const TRANSLATION_ES_ES = {
     theming: 'Theming',
     mixins: 'Mixins',
     'mixin-content': 'Bloque de contenido',
+    'style-files': 'Archivos de estilo',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Total',

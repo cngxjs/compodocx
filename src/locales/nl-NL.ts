@@ -193,6 +193,7 @@ export const TRANSLATION_NL_NL = {
     theming: 'Theming',
     mixins: 'Mixins',
     'mixin-content': 'Inhoudsblok',
+    'style-files': 'Stijlbestanden',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Totaal',

@@ -191,6 +191,7 @@ export const TRANSLATION_EN_US = {
     theming: 'Theming',
     mixins: 'Mixins',
     'mixin-content': 'Content block',
+    'style-files': 'Style files',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Total',

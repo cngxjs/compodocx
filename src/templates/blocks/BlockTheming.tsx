@@ -19,6 +19,8 @@ type BlockThemingProps = {
     readonly overview?: string;
     /** Documented SCSS mixins and functions; rendered after the tokens. */
     readonly mixins?: readonly StyleMixin[];
+    /** Style files that theme the symbol (`@themes`), named above the overview. */
+    readonly linked?: readonly { readonly label: string; readonly href?: string }[];
     readonly depth?: number;
 };
 
@@ -308,6 +310,21 @@ const renderMixins = (mixins: readonly StyleMixin[], depth?: number): string => 
     );
 };
 
+const renderLinked = (linked: readonly { label: string; href?: string }[]): string => {
+    if (linked.length === 0) {
+        return '';
+    }
+    const items = linked
+        .map(file => {
+            const label = Html.escapeHtml(file.label) as string;
+            return file.href
+                ? `<a href="${Html.escapeHtml(file.href) as string}"><code>${label}</code></a>`
+                : `<code>${label}</code>`;
+        })
+        .join(', ');
+    return `<p class="cdx-theming-see cdx-theming-linked">${t('style-files')}: ${items}</p>`;
+};
+
 const renderSourcePanel = (sources: StyleSource[]): string => {
     if (!sources || sources.length === 0) {
         return '';
@@ -340,6 +357,7 @@ export const BlockTheming = (props: BlockThemingProps): string => {
     const styleSources = props.styleSources ?? [];
     const overview = (props.overview ?? '').trim();
     const mixins = props.mixins ?? [];
+    const linked = props.linked ?? [];
     const groups = groupThemeTokens(tokens);
 
     const overrideArgs = {
@@ -347,13 +365,15 @@ export const BlockTheming = (props: BlockThemingProps): string => {
         styleSources,
         overview,
         depth: props.depth,
-        ...(mixins.length > 0 && { mixins })
+        ...(mixins.length > 0 && { mixins }),
+        ...(linked.length > 0 && { linked })
     };
     const custom = renderCustomTemplate('block-theming', overrideArgs);
     if (custom !== null) {
         return custom;
     }
 
+    const linkedHtml = renderLinked(linked);
     const overviewHtml =
         isThemingSection('overview') && overview
             ? `<div class="cdx-theming-overview cdx-prose">${markedAcl(overview) as string}</div>`
@@ -367,6 +387,7 @@ export const BlockTheming = (props: BlockThemingProps): string => {
 
     return (
         <section data-compodoc="block-theming">
+            {linkedHtml}
             {overviewHtml}
             {indexHtml}
             {tokensHtml}

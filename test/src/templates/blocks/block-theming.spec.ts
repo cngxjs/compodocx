@@ -318,6 +318,21 @@ describe('BlockTheming', () => {
         expect(seen).to.deep.equal([mixin]);
     });
 
+    it('names the linked style files above the overview, linking those with a page', () => {
+        const html = BlockTheming({
+            tokens: [makeToken()],
+            overview: 'Intro.',
+            linked: [{ label: 'a.css', href: '../a.html' }, { label: 'b.css' }]
+        });
+        expect(html).to.include('cdx-theming-linked');
+        expect(html).to.include('<a href="../a.html"><code>a.css</code></a>');
+        expect(html).to.include('<code>b.css</code>');
+        expect(html.indexOf('cdx-theming-linked')).to.be.lessThan(
+            html.indexOf('cdx-theming-overview')
+        );
+        expect(BlockTheming({ tokens: [makeToken()] })).to.not.include('cdx-theming-linked');
+    });
+
     it('handles undefined tokens prop as empty list', () => {
         const html = BlockTheming({ tokens: undefined as any });
         expect(html).to.include('data-compodoc="block-theming"');
