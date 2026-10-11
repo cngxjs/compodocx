@@ -191,6 +191,8 @@ export const TRANSLATION_PT_BR = {
     styles: 'Estilos',
     template: 'Modelo',
     theming: 'Theming',
+    mixins: 'Mixins',
+    'mixin-content': 'Bloco de conteúdo',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Total',

@@ -192,6 +192,8 @@ export const TRANSLATION_DE_DE = {
     styles: 'Stile',
     template: 'Vorlage',
     theming: 'Theming',
+    mixins: 'Mixins',
+    'mixin-content': 'Content-Block',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Gesamt',

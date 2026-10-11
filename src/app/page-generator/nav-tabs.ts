@@ -1,5 +1,6 @@
 import { hasAnyApiSections } from '../../templates/helpers/tab-helpers';
 import { COMPODOC_CONSTANTS } from '../../utils/constants';
+import { styleMixins } from '../../utils/theme-doc-parser';
 import Configuration from '../configuration';
 
 export class NavTabsResolver {
@@ -69,7 +70,8 @@ export class NavTabsResolver {
             if (
                 customTab.id === 'theming' &&
                 (!dependency.themeTokens || dependency.themeTokens.length === 0) &&
-                !dependency.themeOverview
+                !dependency.themeOverview &&
+                styleMixins(dependency.themeStyleSources ?? []).length === 0
             ) {
                 return;
             }

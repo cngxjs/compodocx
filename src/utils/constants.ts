@@ -129,6 +129,7 @@ export const DEFAULT_API_SECTIONS: ReadonlyArray<string> = [
  * - `overview` → markdown intro harvested from `@overview` doc blocks
  * - `index`    → navigable list of every documented token (mirror of API index)
  * - `tokens`   → the actual `cdx-io-member` rows, grouped by `@group`
+ * - `mixins`   → documented SCSS mixins and functions
  * - `source`   → collapsible `<details>` panel listing the raw style files
  *
  * Override with `themingTabSections` in the config file to drop or reorder
@@ -138,6 +139,7 @@ export const DEFAULT_THEMING_SECTIONS: ReadonlyArray<string> = [
     'overview',
     'index',
     'tokens',
+    'mixins',
     'source'
 ];
 

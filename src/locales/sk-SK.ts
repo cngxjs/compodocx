@@ -190,6 +190,8 @@ export const TRANSLATION_SK_SK = {
     styles: 'Štýly',
     template: 'Šablóna',
     theming: 'Motívy',
+    mixins: 'Mixiny',
+    'mixin-content': 'Blok obsahu',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Celkom',

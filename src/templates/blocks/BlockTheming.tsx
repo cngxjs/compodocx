@@ -2,7 +2,12 @@ import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { highlightCode } from '../../app/engines/syntax-highlight.engine';
 import { markedAcl } from '../../utils/marked.acl';
-import type { StyleSource, ThemeToken, ThemeTokenGroup } from '../../utils/theme-doc-parser';
+import type {
+    StyleMixin,
+    StyleSource,
+    ThemeToken,
+    ThemeTokenGroup
+} from '../../utils/theme-doc-parser';
 import { groupThemeTokens } from '../../utils/theme-doc-parser';
 import { isThemingSection, t } from '../helpers';
 import { type RelatedEntry, resolveRelated } from './RelatedSection';
@@ -12,6 +17,8 @@ type BlockThemingProps = {
     readonly styleSources?: StyleSource[];
     /** Markdown intro harvested from `@overview` blocks; rendered above the index. */
     readonly overview?: string;
+    /** Documented SCSS mixins and functions; rendered after the tokens. */
+    readonly mixins?: readonly StyleMixin[];
     readonly depth?: number;
 };
 
@@ -24,7 +31,7 @@ const slugifyId = (raw: string): string =>
 
 const tokenAnchor = (token: ThemeToken): string => `theme-${slugifyId(token.name)}`;
 
-const renderBadges = (token: ThemeToken): string => {
+const renderBadges = (token: Pick<ThemeToken, 'since' | 'deprecated'>): string => {
     const badges: string[] = [];
     if (token.since) {
         badges.push(
@@ -46,7 +53,7 @@ const renderBadges = (token: ThemeToken): string => {
     return badges.join('');
 };
 
-const renderExamples = (token: ThemeToken): string =>
+const renderExamples = (token: { readonly examples: readonly string[] }): string =>
     token.examples
         .map(example => {
             const fence = example.match(/^```(\w+)\n([\s\S]*?)\n```$/);
@@ -59,7 +66,7 @@ const renderExamples = (token: ThemeToken): string =>
         })
         .join('');
 
-const renderSeeLinks = (token: ThemeToken): string => {
+const renderSeeLinks = (token: { readonly see: readonly string[] }): string => {
     if (token.see.length === 0) {
         return '';
     }
@@ -208,6 +215,99 @@ const renderIndex = (groups: ThemeTokenGroup[]): string => {
     );
 };
 
+const mixinAnchor = (mixin: StyleMixin): string => `theme-${mixin.kind}-${slugifyId(mixin.name)}`;
+
+/** `name($a, $b: 1)` as declared, defaults included. */
+const mixinSignature = (mixin: StyleMixin): string =>
+    `${mixin.name}(${mixin.params
+        .map(param => `$${param.name}${param.default ? `: ${param.default}` : ''}`)
+        .join(', ')})`;
+
+const renderMixinParams = (mixin: StyleMixin): string => {
+    if (mixin.params.length === 0) {
+        return '';
+    }
+    const rows = mixin.params
+        .map(param => {
+            const type = param.type
+                ? ` <span class="cdx-io-member-type"><code>${Html.escapeHtml(param.type) as string}</code></span>`
+                : '';
+            const fallback = param.default
+                ? ` <span class="cdx-io-member-default-label">${t('default-value')}</span> <code>${
+                      Html.escapeHtml(param.default) as string
+                  }</code>`
+                : '';
+            const desc = param.description
+                ? `<div class="cdx-prose">${markedAcl(param.description) as string}</div>`
+                : '';
+            return `<li><code>$${Html.escapeHtml(param.name) as string}</code>${type}${fallback}${desc}</li>`;
+        })
+        .join('');
+    return `<div class="cdx-theming-params"><h5>${t('parameters')}</h5>` + `<ul>${rows}</ul></div>`;
+};
+
+const renderMixin = (mixin: StyleMixin, depth?: number): string => {
+    const related = mixin.relatedTo.map(name => resolveRelated(name, depth ?? 0));
+    const custom = renderCustomTemplate('block-theming-mixin', { mixin, depth, related });
+    if (custom !== null) {
+        return custom;
+    }
+    const id = mixinAnchor(mixin);
+    const name = Html.escapeHtml(mixin.name) as string;
+    const deprecated = mixin.deprecated !== null;
+    const badges = renderBadges(mixin);
+    const contentHtml =
+        mixin.content !== null
+            ? `<p class="cdx-theming-mixin-content">${t('mixin-content')}${
+                  mixin.content ? `: ${markedAcl(mixin.content) as string}` : ''
+              }</p>`
+            : '';
+    const returnsHtml = mixin.returns
+        ? `<p class="cdx-theming-mixin-returns">${t('returns')}: ${markedAcl(mixin.returns) as string}</p>`
+        : '';
+    return (
+        `<div class="cdx-io-member cdx-io-member--theming cdx-io-member--theming-${mixin.kind}${
+            deprecated ? ' cdx-io-member--deprecated' : ''
+        }" id="${id}" data-compodoc="block-theming-mixin">` +
+        `<div class="cdx-io-member-title">` +
+        `<span class="cdx-io-member-name${deprecated ? ' cdx-member-name--deprecated' : ''}">${
+            deprecated ? `<s>${name}</s>` : name
+        }<a class="cdx-member-permalink" href="#${id}">#</a></span>` +
+        `<span class="cdx-io-member-type"><code>@${mixin.kind}</code></span>` +
+        `</div>` +
+        (badges ? `<div class="cdx-io-member-badges">${badges}</div>` : '') +
+        `<div class="cdx-theming-mixin-signature"><code>${
+            Html.escapeHtml(mixinSignature(mixin)) as string
+        }</code></div>` +
+        (mixin.description
+            ? `<div class="cdx-io-member-desc cdx-prose">${markedAcl(mixin.description) as string}</div>`
+            : '') +
+        (mixin.deprecated
+            ? `<p class="cdx-theming-deprecated">${markedAcl(mixin.deprecated) as string}</p>`
+            : '') +
+        renderMixinParams(mixin) +
+        contentHtml +
+        returnsHtml +
+        renderExamples(mixin) +
+        renderSeeLinks(mixin) +
+        renderRelated(related) +
+        `</div>`
+    );
+};
+
+const renderMixins = (mixins: readonly StyleMixin[], depth?: number): string => {
+    if (mixins.length === 0) {
+        return '';
+    }
+    return (
+        `<section class="cdx-content-section" data-compodoc="block-theming-mixins">` +
+        `<h3 class="cdx-section-heading" id="theme-mixins">${t('mixins')}` +
+        `<a class="cdx-member-permalink" href="#theme-mixins">#</a></h3>` +
+        mixins.map(mixin => renderMixin(mixin, depth)).join('') +
+        `</section>`
+    );
+};
+
 const renderSourcePanel = (sources: StyleSource[]): string => {
     if (!sources || sources.length === 0) {
         return '';
@@ -239,9 +339,16 @@ export const BlockTheming = (props: BlockThemingProps): string => {
     const tokens = props.tokens ?? [];
     const styleSources = props.styleSources ?? [];
     const overview = (props.overview ?? '').trim();
+    const mixins = props.mixins ?? [];
     const groups = groupThemeTokens(tokens);
 
-    const overrideArgs = { groups, styleSources, overview, depth: props.depth };
+    const overrideArgs = {
+        groups,
+        styleSources,
+        overview,
+        depth: props.depth,
+        ...(mixins.length > 0 && { mixins })
+    };
     const custom = renderCustomTemplate('block-theming', overrideArgs);
     if (custom !== null) {
         return custom;
@@ -255,6 +362,7 @@ export const BlockTheming = (props: BlockThemingProps): string => {
     const tokensHtml = isThemingSection('tokens')
         ? groups.map(group => renderGroup(group, props.depth)).join('')
         : '';
+    const mixinsHtml = isThemingSection('mixins') ? renderMixins(mixins, props.depth) : '';
     const sourceHtml = isThemingSection('source') ? renderSourcePanel(styleSources) : '';
 
     return (
@@ -262,6 +370,7 @@ export const BlockTheming = (props: BlockThemingProps): string => {
             {overviewHtml}
             {indexHtml}
             {tokensHtml}
+            {mixinsHtml}
             {sourceHtml}
         </section>
     ) as string;

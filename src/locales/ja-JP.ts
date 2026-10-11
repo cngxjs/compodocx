@@ -190,6 +190,8 @@ export const TRANSLATION_JA_JP = {
     styles: 'スタイル',
     template: 'テンプレート',
     theming: 'テーマ',
+    mixins: 'ミックスイン',
+    'mixin-content': 'コンテンツブロック',
     token: 'Token',
     tokens: 'Tokens',
     total: '合計',

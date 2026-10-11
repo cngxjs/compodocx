@@ -270,6 +270,54 @@ describe('BlockTheming', () => {
         expect(seen).to.deep.equal([{ name: 'NoSuchSymbol' }]);
     });
 
+    const mixin = {
+        name: 'theme',
+        kind: 'mixin' as const,
+        params: [{ name: 'theme', default: '', description: 'Theme map.', type: 'Map' }],
+        description: 'Emits the tokens.',
+        content: null,
+        returns: '',
+        examples: [],
+        since: '',
+        deprecated: null,
+        see: [],
+        relatedTo: [],
+        file: 'x.scss',
+        line: 3
+    };
+
+    it('renders a Mixins section after the tokens with signature and params', () => {
+        const html = BlockTheming({ tokens: [makeToken()], mixins: [mixin] });
+        expect(html).to.include('data-compodoc="block-theming-mixins"');
+        expect(html).to.include('id="theme-mixin-theme"');
+        expect(html).to.include('theme($theme)');
+        expect(html).to.include('<code>$theme</code>');
+        expect(html.indexOf('block-theming-token')).to.be.lessThan(
+            html.indexOf('block-theming-mixins')
+        );
+    });
+
+    it('omits the Mixins section without mixins or when "mixins" is not a section', () => {
+        expect(BlockTheming({ tokens: [makeToken()] })).to.not.include('block-theming-mixins');
+        Configuration.mainData.themingTabSections = ['tokens'];
+        expect(BlockTheming({ tokens: [makeToken()], mixins: [mixin] })).to.not.include(
+            'block-theming-mixins'
+        );
+    });
+
+    it('honours the `block-theming-mixin` override and passes mixins to `block-theming`', () => {
+        registerCustomTemplate('block-theming-mixin', (data: any) => `<i>${data.mixin.name}</i>`);
+        expect(BlockTheming({ tokens: [], mixins: [mixin] })).to.include('<i>theme</i>');
+        clearCustomTemplates();
+        let seen: unknown;
+        registerCustomTemplate('block-theming', (data: any) => {
+            seen = data.mixins;
+            return '';
+        });
+        BlockTheming({ tokens: [], mixins: [mixin] });
+        expect(seen).to.deep.equal([mixin]);
+    });
+
     it('handles undefined tokens prop as empty list', () => {
         const html = BlockTheming({ tokens: undefined as any });
         expect(html).to.include('data-compodoc="block-theming"');

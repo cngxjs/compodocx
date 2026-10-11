@@ -190,6 +190,8 @@ export const TRANSLATION_KA_GE = {
     styles: 'სტილები',
     template: 'შაბლონი',
     theming: 'თემები',
+    mixins: 'მიქსინები',
+    'mixin-content': 'შიგთავსის ბლოკი',
     token: 'Token',
     tokens: 'Tokens',
     total: 'სულ',

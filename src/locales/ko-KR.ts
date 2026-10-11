@@ -189,6 +189,8 @@ export const TRANSLATION_KO_KR = {
     styles: '스타일',
     template: '주형',
     theming: '테마',
+    mixins: '믹스인',
+    'mixin-content': '콘텐츠 블록',
     token: 'Token',
     tokens: 'Tokens',
     total: '합계',

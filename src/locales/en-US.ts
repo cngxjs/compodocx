@@ -189,6 +189,8 @@ export const TRANSLATION_EN_US = {
     styles: 'Styles',
     template: 'Template',
     theming: 'Theming',
+    mixins: 'Mixins',
+    'mixin-content': 'Content block',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Total',

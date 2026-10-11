@@ -286,7 +286,11 @@ describe('Utils - theme-doc-parser', () => {
                 ':host { --x: 1; }'
             ].join('\n');
             const result = parseCssTokens(source, 'x.css');
-            expect(result.tokens[0].relatedTo).to.deep.equal(['FooButton', 'FooCard', 'BarDirective']);
+            expect(result.tokens[0].relatedTo).to.deep.equal([
+                'FooButton',
+                'FooCard',
+                'BarDirective'
+            ]);
             expect(result.tokens[0].description).to.equal('Token.');
             expect(result.unknownTags).to.deep.equal([]);
         });
@@ -392,6 +396,103 @@ describe('Utils - theme-doc-parser', () => {
         });
     });
 
+    describe('documented mixins and functions', () => {
+        it('reads a SassDoc mixin with typed params, defaults and an example', () => {
+            const source = [
+                '/// Emits the card tokens.',
+                '///',
+                '/// @param {Map} $theme - Theme map.',
+                '/// @param {Number} $elevation [2] - Shadow level.',
+                '/// @example scss',
+                '///   @include card.theme($t);',
+                '@mixin theme($theme, $elevation: 1) {',
+                '    color: red;',
+                '}'
+            ].join('\n');
+            const [mixin] = parseScssTokens(source, 'x.scss').mixins;
+            expect(mixin.name).to.equal('theme');
+            expect(mixin.kind).to.equal('mixin');
+            expect(mixin.line).to.equal(7);
+            expect(mixin.description).to.equal('Emits the card tokens.');
+            expect(mixin.params).to.deep.equal([
+                { name: 'theme', default: '', description: 'Theme map.', type: 'Map' },
+                { name: 'elevation', default: '2', description: 'Shadow level.', type: 'Number' }
+            ]);
+            expect(mixin.examples).to.deep.equal(['```scss\n@include card.theme($t);\n```']);
+        });
+
+        it('accepts the plain `@param $name text` form', () => {
+            const source = ['/// Pads.', '/// @param $size the gap', '@mixin pad($size) {}'].join(
+                '\n'
+            );
+            const [mixin] = parseScssTokens(source, 'x.scss').mixins;
+            expect(mixin.params).to.deep.equal([
+                { name: 'size', default: '', description: 'the gap', type: '' }
+            ]);
+        });
+
+        it('lists signature params without a @param line, across a multi-line signature', () => {
+            const source = [
+                '/// Spacing helper.',
+                '@mixin space(',
+                '    $x,',
+                '    $map: (a: 1, b: 2),',
+                '    $rest...',
+                ') {}'
+            ].join('\n');
+            const [mixin] = parseScssTokens(source, 'x.scss').mixins;
+            expect(mixin.params.map(p => [p.name, p.default])).to.deep.equal([
+                ['x', ''],
+                ['map', '(a: 1, b: 2)'],
+                ['rest', '']
+            ]);
+        });
+
+        it('reads @content on a mixin and @return on a function', () => {
+            const source = [
+                '/// Wraps a block.',
+                '/// @content The wrapped rules.',
+                '@mixin wrap() { @content; }',
+                '',
+                '/// Reads a role.',
+                '/// @param $role - Role name.',
+                '/// @return {Color} The colour.',
+                '@function role($role) { @return $role; }'
+            ].join('\n');
+            const [wrap, role] = parseScssTokens(source, 'x.scss').mixins;
+            expect(wrap.content).to.equal('The wrapped rules.');
+            expect(wrap.returns).to.equal('');
+            expect(role.kind).to.equal('function');
+            expect(role.content).to.equal(null);
+            expect(role.returns).to.equal('{Color} The colour.');
+        });
+
+        it('skips private names and undocumented mixins', () => {
+            const source = [
+                '/// Private.',
+                '@mixin _hidden() {}',
+                '/// Private too.',
+                '@function -helper($x) { @return $x; }',
+                '@mixin undocumented() {}'
+            ].join('\n');
+            expect(parseScssTokens(source, 'x.scss').mixins).to.deep.equal([]);
+        });
+
+        it('records unknown tags of a mixin block and never documents a token with it', () => {
+            const source = ['/// Mixin.', '/// @group Nope', '@mixin m() {}', '$x: 1;'].join('\n');
+            const result = parseScssTokens(source, 'x.scss');
+            expect(result.mixins).to.have.length(1);
+            expect(result.tokens).to.deep.equal([]);
+            expect(result.unknownTags).to.deep.equal([{ file: 'x.scss', line: 2, tag: 'group' }]);
+        });
+
+        it('finds no mixins in CSS', () => {
+            expect(
+                parseStyleSource('/** A. */\n@mixin a() {}', 'x.css', 'css').mixins
+            ).to.deep.equal([]);
+        });
+    });
+
     describe('file-level tags', () => {
         it('reads @themes and @relatedTo from the @overview block', () => {
             const source = [
@@ -419,7 +520,9 @@ describe('Utils - theme-doc-parser', () => {
         });
 
         it('records other tags of an @overview block as unknown', () => {
-            const source = ['/**', ' * Intro.', ' * @overview', ' * @author Someone', ' */'].join('\n');
+            const source = ['/**', ' * Intro.', ' * @overview', ' * @author Someone', ' */'].join(
+                '\n'
+            );
             const result = parseCssTokens(source, 'x.css');
             expect(result.overview).to.deep.equal(['Intro.']);
             expect(result.unknownTags).to.deep.equal([{ file: 'x.css', line: 4, tag: 'author' }]);
@@ -435,9 +538,21 @@ describe('Utils - theme-doc-parser', () => {
     describe('unknown tag notice', () => {
         it('counts each tag and lists every location', () => {
             const tags = unknownStyleTags([
-                { file: 'a.css', content: '/**\n * A.\n * @todo x\n */\n:host { --a: 1; }', language: 'css' },
-                { file: 'a.css', content: '/**\n * A.\n * @todo x\n */\n:host { --a: 1; }', language: 'css' },
-                { file: 'b.scss', content: '/// B.\n/// @todo y\n/// @foo z\n$b: 1;', language: 'scss' }
+                {
+                    file: 'a.css',
+                    content: '/**\n * A.\n * @todo x\n */\n:host { --a: 1; }',
+                    language: 'css'
+                },
+                {
+                    file: 'a.css',
+                    content: '/**\n * A.\n * @todo x\n */\n:host { --a: 1; }',
+                    language: 'css'
+                },
+                {
+                    file: 'b.scss',
+                    content: '/// B.\n/// @todo y\n/// @foo z\n$b: 1;',
+                    language: 'scss'
+                }
             ]);
             expect(formatUnknownStyleTagNotice(tags)).to.deep.equal([
                 'Style comments: 3 unknown tags ignored (@todo x2, @foo x1)',

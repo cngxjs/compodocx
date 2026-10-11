@@ -1,6 +1,7 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
 import AngularApiUtil from '../../utils/angular-api.util';
+import { styleMixins } from '../../utils/theme-doc-parser';
 import { BlockAccessors } from '../blocks/BlockAccessors';
 import { BlockDerivedState } from '../blocks/BlockDerivedState';
 import { BlockHostBindings } from '../blocks/BlockHostBindings';
@@ -369,6 +370,7 @@ export const ComponentPage = (data: any): string => {
     const depth = data.depth;
     const base = relativeUrl(depth);
     const navTabs = data.navTabs;
+    const mixins = styleMixins(c.themeStyleSources ?? []);
     const hasStandaloneImports =
         c.standalone && c.imports?.length > 0 && !Configuration.mainData.disableDependenciesTab;
 
@@ -633,7 +635,7 @@ export const ComponentPage = (data: any): string => {
                 )}
 
                 {isTabEnabled(navTabs, 'theming') &&
-                    (c.themeTokens?.length > 0 || c.themeOverview) && (
+                    (c.themeTokens?.length > 0 || c.themeOverview || mixins.length > 0) && (
                         <div
                             class={`cdx-tab-panel${isInitialTab(navTabs, 'theming') ? ' active' : ''}`}
                             id="theming"
@@ -644,6 +646,7 @@ export const ComponentPage = (data: any): string => {
                                 tokens: c.themeTokens,
                                 styleSources: c.themeStyleSources,
                                 overview: c.themeOverview,
+                                mixins,
                                 depth
                             })}
                         </div>

@@ -191,6 +191,8 @@ export const TRANSLATION_HU_HU = {
     styles: 'Stílusok',
     template: 'Sablon',
     theming: 'Témák',
+    mixins: 'Mixinek',
+    'mixin-content': 'Tartalomblokk',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Összesen',

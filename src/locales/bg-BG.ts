@@ -191,6 +191,8 @@ export const TRANSLATION_BG_BG = {
     styles: 'Стилове',
     template: 'Шаблон',
     theming: 'Теми',
+    mixins: 'Миксини',
+    'mixin-content': 'Блок със съдържание',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Общо',

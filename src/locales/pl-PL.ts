@@ -190,6 +190,8 @@ export const TRANSLATION_PL_PL = {
     styles: 'Estilos',
     template: 'Modelo',
     theming: 'Motywy',
+    mixins: 'Mixiny',
+    'mixin-content': 'Blok treści',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Suma',

@@ -189,6 +189,8 @@ export const TRANSLATION_ZH_CN = {
     styles: '样式',
     template: '模板',
     theming: '主题',
+    mixins: '混入',
+    'mixin-content': '内容块',
     token: 'Token',
     tokens: 'Tokens',
     total: '总计',
