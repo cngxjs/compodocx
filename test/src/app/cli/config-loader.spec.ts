@@ -219,6 +219,34 @@ describe('applyConfigToMainData', () => {
         warn.mockRestore();
     });
 
+    it('reads styleFiles relative to the config file folder', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(
+            mainData,
+            { styleFiles: ['projects/*/theming/**/*.css'] },
+            makeProgram(),
+            { cwd: '/tmp/test', configDir: '/tmp/test/conf' }
+        );
+        expect(mainData.styleFiles).toEqual(['projects/*/theming/**/*.css']);
+        expect(mainData.styleFilesBase).toBe('/tmp/test/conf');
+    });
+
+    it('ignores styleFiles that is not a list of non-empty strings, with a warning', () => {
+        for (const styleFiles of ['a/*.css', ['ok/*.css', ''], [1]] as unknown[]) {
+            const mainData = makeMainData();
+            mainData.styleFiles = [];
+            const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
+            applyConfigToMainData(mainData, { styleFiles } as never, makeProgram(), {
+                cwd: '/tmp/test'
+            });
+            expect(mainData.styleFiles).toEqual([]);
+            expect(warn).toHaveBeenCalledWith(
+                'styleFiles: expected a list of non-empty glob strings; ignored'
+            );
+            warn.mockRestore();
+        }
+    });
+
     it('config-file value applies when CLI does not override', () => {
         const mainData = makeMainData();
         const program = makeProgram();

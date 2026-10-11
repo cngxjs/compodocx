@@ -288,4 +288,52 @@ describe('CLI Theming tab generation', () => {
             expect(componentHtml).to.contain('card.component.css');
         });
     });
+
+    describe('when styleFiles globs match free-standing style files', () => {
+        const styleDist = `${tmp.name}-style-files`;
+        const styleFixture = `${tmp.name}-style-files-fixture`;
+        let stdout: string;
+
+        beforeAll(() => {
+            tmp.create(styleDist);
+            fs.cpSync(path.resolve('test/fixtures/style-library'), styleFixture, {
+                recursive: true
+            });
+            const ls = shell('node', [
+                './bin/index-cli.js',
+                '-c',
+                path.join(styleFixture, '.compodocxrc.json'),
+                '-p',
+                path.join(styleFixture, 'tsconfig.json'),
+                '--disableSearch',
+                '--no-multiVersion',
+                '-d',
+                styleDist
+            ]);
+            if (hasStderrError(ls.stderr.toString())) {
+                console.error(`shell error: ${ls.stderr.toString()}`);
+                throw new Error('error');
+            }
+            stdout = ls.stdout.toString();
+        });
+
+        afterAll(() => {
+            tmp.clean(styleDist);
+            tmp.clean(styleFixture);
+        });
+
+        it('logs the matched, page and listed counts', () => {
+            expect(stdout).to.match(
+                /Style files: 5 \(\d+ pages, \d+ linked to \d+ symbols, 1 without documented content\)/
+            );
+        });
+
+        it('names the file without documented content and reports its unknown tag', () => {
+            expect(stdout).to.match(
+                /1 style files have no documented tokens, mixins or overview: \S*projects\/kit\/theming\/reset\.css/
+            );
+            expect(stdout).to.contain('Style comments: 1 unknown tag ignored (@todo x1)');
+            expect(stdout).to.match(/projects\/kit\/theming\/tokens\.css:\d+ @todo/);
+        });
+    });
 });

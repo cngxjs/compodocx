@@ -153,6 +153,8 @@ export class Configuration implements ConfigurationInterface {
         featureContainers: [...DEFAULT_FEATURE_CONTAINERS],
         featureUtilityFolders: [...DEFAULT_FEATURE_UTILITY_FOLDERS],
         featureRoleFolders: [...DEFAULT_FEATURE_ROLE_FOLDERS],
+        styleFiles: [],
+        styleFilesBase: '',
         featuresName: 'Features',
         referencesName: 'References',
         collapsedAll: false,

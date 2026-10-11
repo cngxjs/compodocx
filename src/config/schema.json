@@ -530,6 +530,14 @@
             "default": ["config", "di", "providers", "services", "components", "directives", "pipes", "models", "types", "interfaces", "tokens", "routes", "guards", "interceptors", "resolvers", "state", "store"],
             "examples": [["di", "routes"]]
         },
+        "styleFiles": {
+            "$id": "/properties/styleFiles",
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Globs of free-standing .css / .scss files to document (config-only), relative to the config file's folder (the tsconfig folder without a config file). node_modules, dist and the output folder are never matched. Files used as a component styleUrl stay on that component's Theming tab.",
+            "default": [],
+            "examples": [["projects/*/theming/**/*.css", "projects/themes/**/*.{css,scss}"]]
+        },
         "featuresName": {
             "$id": "/properties/featuresName",
             "type": "string",

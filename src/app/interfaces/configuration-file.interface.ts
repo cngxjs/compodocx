@@ -79,6 +79,7 @@ export interface ConfigurationFileInterface {
     featureContainers: string[];
     featureUtilityFolders: string[];
     featureRoleFolders: string[];
+    styleFiles: string[];
     collapsedAll: boolean;
     shikiTheme: string;
 }

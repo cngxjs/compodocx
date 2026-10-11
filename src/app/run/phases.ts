@@ -28,6 +28,7 @@ import type { RunContext, RunMode, Stage } from './context';
 import { deriveFeatures, placeInFeatures } from './features';
 import { type Halt, halt } from './halt';
 import { countsFromDiff, countsFromEngine, runPrepareStages, selectPrepareStages } from './stages';
+import { deriveStyles, logStyles } from './styles';
 
 // package.json is read from the process cwd, not from the tsconfig folder.
 const cwd = process.cwd();
@@ -248,8 +249,14 @@ const withSymbols = (ctx: RunContext): RunContext => {
     const di = buildDiView(symbols, ctx.semantic?.model);
     mainData.symbols = symbols;
     mainData.di = di;
+    const stylesRun = deriveStyles(mainData, DependenciesEngine.getComponents(), cwd);
+    const styles = stylesRun?.model;
+    mainData.styles = styles;
+    if (stylesRun && ctx.mode !== 'diff') {
+        logStyles(stylesRun);
+    }
     if (!ctx.semantic) {
-        return { ...ctx, symbols, di };
+        return { ...ctx, symbols, di, styles };
     }
     const detection = deriveFeatures(ctx.semantic.model, symbols, mainData, ctx.files, cwd);
     const semantic = {
@@ -265,7 +272,7 @@ const withSymbols = (ctx: RunContext): RunContext => {
         }
         logger.info(formatFeatureSummary(detection.model));
     }
-    return { ...ctx, symbols: placed, di, semantic };
+    return { ...ctx, symbols: placed, di, semantic, styles };
 };
 
 /** The crawler parses nothing the semantic program already holds. */
@@ -332,7 +339,10 @@ const logUnknownStyleTags = (ctx: RunContext): void => {
         themeStyleSources?: StyleSource[];
     }[];
     const sources = components.flatMap(component => component.themeStyleSources ?? []);
-    const notice = formatUnknownStyleTagNotice(unknownStyleTags(sources));
+    const notice = formatUnknownStyleTagNotice([
+        ...unknownStyleTags(sources),
+        ...(ctx.config.mainData.styles?.unknownTags ?? [])
+    ]);
     if (notice.length > 0) {
         logger.warn(notice.join('\n'));
     }

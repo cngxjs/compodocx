@@ -43,6 +43,8 @@ export type ConfigFileResult = Result<LoadedConfig, string>;
 
 export interface ApplySources {
     readonly cwd: string;
+    /** Folder of the config file, when one was loaded. */
+    readonly configDir?: string;
 }
 
 /**
@@ -85,6 +87,27 @@ export function loadConfigFile(opts: LoadConfigOptions): ConfigFileResult {
 
 const isStringList = (value: unknown): value is string[] =>
     Array.isArray(value) && value.every(item => typeof item === 'string');
+
+/**
+ * `styleFiles` from the config file: a list of non-empty glob strings,
+ * relative to the config file's folder. Anything else warns and is ignored.
+ */
+export function applyStyleFilesConfig(
+    configFile: Partial<ConfigurationFileInterface>,
+    mainData: MainDataInterface,
+    sources: ApplySources
+): void {
+    const { styleFiles } = configFile;
+    if (styleFiles === undefined) {
+        return;
+    }
+    if (!isStringList(styleFiles) || styleFiles.some(glob => glob.trim() === '')) {
+        logger.warn('styleFiles: expected a list of non-empty glob strings; ignored');
+        return;
+    }
+    mainData.styleFiles = styleFiles;
+    mainData.styleFilesBase = sources.configDir ?? '';
+}
 
 /**
  * `features`, `featureContainers`, `featureUtilityFolders` and `featureRoleFolders` from the config
@@ -818,6 +841,7 @@ export function applyConfigToMainData(
     }
 
     applyFeatureConfig(configFile, mainData);
+    applyStyleFilesConfig(configFile, mainData, sources);
 
     if (configFile.featuresName !== undefined) {
         if (typeof configFile.featuresName !== 'string') {
