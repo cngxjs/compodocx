@@ -249,7 +249,7 @@ const withSymbols = (ctx: RunContext): RunContext => {
     const di = buildDiView(symbols, ctx.semantic?.model);
     mainData.symbols = symbols;
     mainData.di = di;
-    const stylesRun = deriveStyles(mainData, DependenciesEngine.getComponents(), cwd);
+    const stylesRun = deriveStyles(mainData, DependenciesEngine.getComponents(), symbols, cwd);
     const styles = stylesRun?.model;
     mainData.styles = styles;
     if (stylesRun && ctx.mode !== 'diff') {

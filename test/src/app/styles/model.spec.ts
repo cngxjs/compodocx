@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest';
+import { buildSymbolTable } from '../../../../src/app/links';
+import { themeResolver } from '../../../../src/app/run/styles';
 import {
     buildStyleModel,
     formatListedNote,
     formatStyleSummary,
-    hasStylePage
+    formatThemeProblem,
+    hasStylePage,
+    resolveThemes
 } from '../../../../src/app/styles';
 
 const overviewOnly = '/**\n * Global reset.\n *\n * @overview\n */\n* { margin: 0; }\n';
@@ -63,5 +67,80 @@ describe('buildStyleModel', () => {
         expect(formatListedNote(model)).toBe(
             '1 style files have no documented tokens, mixins or overview: b.css'
         );
+    });
+});
+
+describe('@themes resolution', () => {
+    const table = buildSymbolTable(
+        {
+            components: [
+                { name: 'StyCard', file: 'kit/card.ts' },
+                { name: 'StyTwin', file: 'kit/a/twin.ts' }
+            ],
+            directives: [
+                { name: 'StyHighlight', file: 'kit/highlight.ts' },
+                { name: 'StyTwin', file: 'kit/b/twin.ts' }
+            ],
+            classes: [{ name: 'StyHelper', file: 'kit/helper.ts' }],
+            tokens: [{ name: 'STY_TOKEN', file: 'kit/tokens.ts' }]
+        },
+        { cwd: '/' }
+    );
+    const themed = (names: string) =>
+        buildStyleModel([
+            {
+                file: 'kit/theming/x.css',
+                content: `/**\n * X.\n * @overview\n * @themes ${names}\n */\n`
+            }
+        ]);
+
+    it('resolves components and directives and indexes the file by its targets', () => {
+        const { model, problems } = resolveThemes(
+            themed('StyCard, StyHighlight'),
+            themeResolver(table)
+        );
+        expect(problems).toEqual([]);
+        expect(model.files[0].themes).toEqual([
+            'component:kit/card.ts#StyCard',
+            'directive:kit/highlight.ts#StyHighlight'
+        ]);
+        expect([...model.byTarget]).toEqual([
+            ['component:kit/card.ts#StyCard', ['style:kit/theming/x.css']],
+            ['directive:kit/highlight.ts#StyHighlight', ['style:kit/theming/x.css']]
+        ]);
+        expect(hasStylePage(model.files[0])).toBe(true);
+    });
+
+    it('reports another kind and an unknown name, one warning for the file', () => {
+        const { model, problems } = resolveThemes(
+            themed('StyHelper STY_TOKEN NoSuch'),
+            themeResolver(table)
+        );
+        expect(model.files[0].themes).toEqual([]);
+        expect(problems.map(formatThemeProblem)).toEqual([
+            'Style file kit/theming/x.css: @themes NoSuch not found; @themes StyHelper, STY_TOKEN is not a component or directive'
+        ]);
+    });
+
+    it('uses the first of several same-name targets and says so', () => {
+        const { model, problems } = resolveThemes(themed('StyTwin'), themeResolver(table));
+        expect(model.files[0].themes).toEqual(['component:kit/a/twin.ts#StyTwin']);
+        expect(problems[0].ambiguous).toEqual(['StyTwin']);
+    });
+
+    it('renders a file that themes one symbol on its tab only, a mixin file always gets a page', () => {
+        const single = resolveThemes(themed('StyHighlight'), themeResolver(table)).model.files[0];
+        expect(hasStylePage(single)).toBe(false);
+        const withMixin = resolveThemes(
+            buildStyleModel([
+                {
+                    file: 'm.scss',
+                    content: '/// @themes StyCard\n\n/// Emits.\n@mixin theme($t) {}\n'
+                }
+            ]),
+            themeResolver(table)
+        ).model.files[0];
+        expect(withMixin.themes).toHaveLength(1);
+        expect(hasStylePage(withMixin)).toBe(true);
     });
 });

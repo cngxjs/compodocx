@@ -1,3 +1,4 @@
+import { isErr, type Result } from '../../lib';
 import {
     parseStyleSource,
     type StyleMixin,
@@ -97,6 +98,78 @@ export const buildStyleModel = (sources: readonly StyleSourceFile[]): StyleModel
         byTarget: new Map(),
         unknownTags: read.flatMap(file => file.unknownTags)
     };
+};
+
+/** Why a `@themes` name did not resolve. */
+export type ThemeMiss = 'not-found' | 'wrong-kind';
+
+/** The `@themes` names of one file that did not resolve. */
+export interface ThemeProblem {
+    readonly file: string;
+    readonly notFound: readonly string[];
+    readonly wrongKind: readonly string[];
+    /** Names several components or directives carry; the first by `{@link}` order is used. */
+    readonly ambiguous: readonly string[];
+}
+
+/** A resolved `@themes` name. */
+export interface ThemeHit {
+    readonly id: SymbolId;
+    /** Another component or directive has the same name. */
+    readonly ambiguous: boolean;
+}
+
+/**
+ * Resolve every file's `@themes` names (`resolve` returns the component or
+ * directive a name stands for) and index the files by the symbols they theme.
+ */
+export const resolveThemes = (
+    model: StyleModel,
+    resolve: (name: string) => Result<ThemeHit, ThemeMiss>
+): { readonly model: StyleModel; readonly problems: readonly ThemeProblem[] } => {
+    const problems: ThemeProblem[] = [];
+    const byTarget = new Map<SymbolId, string[]>();
+    const files = model.files.map(file => {
+        const themes: SymbolId[] = [];
+        const notFound: string[] = [];
+        const wrongKind: string[] = [];
+        const ambiguous: string[] = [];
+        for (const name of file.themeNames) {
+            const hit = resolve(name);
+            if (isErr(hit)) {
+                (hit.message === 'wrong-kind' ? wrongKind : notFound).push(name);
+                continue;
+            }
+            if (hit.value.ambiguous) {
+                ambiguous.push(name);
+            }
+            if (!themes.includes(hit.value.id)) {
+                themes.push(hit.value.id);
+                byTarget.set(hit.value.id, [...(byTarget.get(hit.value.id) ?? []), file.id]);
+            }
+        }
+        if (notFound.length > 0 || wrongKind.length > 0 || ambiguous.length > 0) {
+            problems.push({ file: file.file, notFound, wrongKind, ambiguous });
+        }
+        return { ...file, themes };
+    });
+    return { model: { ...model, files, byTarget }, problems };
+};
+
+/** One warning per file with unresolved `@themes` names. */
+export const formatThemeProblem = (problem: ThemeProblem): string => {
+    const parts = [
+        ...(problem.notFound.length > 0
+            ? [`@themes ${problem.notFound.join(', ')} not found`]
+            : []),
+        ...(problem.wrongKind.length > 0
+            ? [`@themes ${problem.wrongKind.join(', ')} is not a component or directive`]
+            : []),
+        ...(problem.ambiguous.length > 0
+            ? [`@themes ${problem.ambiguous.join(', ')} names several symbols; using the first`]
+            : [])
+    ];
+    return `Style file ${problem.file}: ${parts.join('; ')}`;
 };
 
 /**
