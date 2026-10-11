@@ -9,6 +9,7 @@ import DependenciesEngine from '../engines/dependencies.engine';
 import FileEngine from '../engines/file.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
+import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class ComponentPageGenerator {
@@ -39,14 +40,13 @@ export class ComponentPageGenerator {
                     component.themeTokens = themeResult.tokens;
                     component.themeStyleSources = themeResult.sources;
                     component.themeOverview = themeResult.overview;
-                    const location = pageLocation({
-                        type: 'symbol',
-                        kind: 'component',
-                        name: component.name
-                    });
+                    const location = pageLocation(
+                        itemTarget(Configuration.mainData.symbols, 'component', component)
+                    );
                     const page = {
                         path: location.path,
-                        name: component.name,
+                        name: location.filename,
+                        filename: location.filename,
                         id: component.id,
                         navTabs: this.navTabs.resolve(component),
                         context: 'component',
@@ -54,10 +54,6 @@ export class ComponentPageGenerator {
                         depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
-
-                    if (component.isDuplicate) {
-                        page.name += `-${component.duplicateId}`;
-                    }
                     Configuration.addPage(page);
 
                     const componentTemplateUrlPromise = new Promise(

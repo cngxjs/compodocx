@@ -17,6 +17,7 @@ describe('BlockProperty', () => {
 
     it('renders the default block-properties section with one row per property', () => {
         const html = BlockProperty({
+            depth: 1,
             properties: [{ name: 'count', type: 'number' }],
             file: 'foo.ts'
         });
@@ -31,6 +32,7 @@ describe('BlockProperty', () => {
             (data: any) => `<section id="custom-props">${data.properties.length}</section>`
         );
         const html = BlockProperty({
+            depth: 1,
             properties: [{ name: 'a' }, { name: 'b' }, { name: 'c' }],
             file: 'foo.ts'
         });

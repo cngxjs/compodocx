@@ -40,7 +40,7 @@ const Heading = (id: string, title: string, count: number): string =>
     ) as string;
 
 const entryLink = (ctx: Context, entry: SymbolEntry | undefined): string => {
-    const link = entry && placedLink(ctx.table, entry, ctx.view, { duplicate: true });
+    const link = entry && placedLink(ctx.table, entry, ctx.view);
     return entry && link
         ? ((
               <a href={hrefText(hrefFor(link.target, ctx.depth, link.anchor))}>

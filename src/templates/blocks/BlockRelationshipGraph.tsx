@@ -28,6 +28,7 @@ type BlockRelationshipGraphProps = {
     readonly incoming: RelationshipNode[];
     readonly outgoing: RelationshipNode[];
     readonly entityName: string;
+    readonly depth: number;
 };
 
 /** Normalise the compodoc entity type to the CSS token used by --color-cdx-entity-*. */
@@ -71,8 +72,8 @@ const iconFor = (type: string): string => {
 };
 
 /** Resolve an entity name to its generated docs URL, falling back to '#'. */
-const linkFor = (name: string): { href: string; target: string } => {
-    const resolved = resolveType(name);
+const linkFor = (name: string, depth: number): { href: string; target: string } => {
+    const resolved = resolveType(name, undefined, depth);
     if (resolved) {
         return { href: resolved.href, target: resolved.target };
     }
@@ -80,9 +81,9 @@ const linkFor = (name: string): { href: string; target: string } => {
 };
 
 /** Row rendered inside the "Used By" container — tall, description-friendly. */
-const IncomingRow = (node: RelationshipNode): string => {
+const IncomingRow = (node: RelationshipNode, depth: number): string => {
     const kind = normaliseType(node.type);
-    const link = linkFor(node.name);
+    const link = linkFor(node.name, depth);
     const label = node.subtype ?? kind;
     return (
         <a
@@ -104,9 +105,9 @@ const IncomingRow = (node: RelationshipNode): string => {
 };
 
 /** Row rendered inside the "Depends On" container — icon box + name + subtype. */
-const OutgoingRow = (node: RelationshipNode): string => {
+const OutgoingRow = (node: RelationshipNode, depth: number): string => {
     const kind = normaliseType(node.type);
-    const link = linkFor(node.name);
+    const link = linkFor(node.name, depth);
     const label = node.subtype ?? kind;
     return (
         <a
@@ -130,6 +131,7 @@ const RelationshipColumn = (props: {
     kind: 'incoming' | 'outgoing';
     title: string;
     items: RelationshipNode[];
+    depth: number;
     icon: string;
 }): string => {
     if (!props.items?.length) {
@@ -146,7 +148,9 @@ const RelationshipColumn = (props: {
             </h4>
             <div class={`cdx-rel-list cdx-rel-list--${props.kind}`}>
                 {props.items.map(n =>
-                    props.kind === 'incoming' ? IncomingRow(n) : OutgoingRow(n)
+                    props.kind === 'incoming'
+                        ? IncomingRow(n, props.depth)
+                        : OutgoingRow(n, props.depth)
                 )}
             </div>
         </div>
@@ -166,13 +170,15 @@ export const BlockRelationshipGraph = (props: BlockRelationshipGraphProps): stri
                     kind: 'incoming',
                     title: t('relationships-used-by') || 'Used by',
                     icon: IconArrowLeft(),
-                    items: props.incoming
+                    items: props.incoming,
+                    depth: props.depth
                 })}
                 {RelationshipColumn({
                     kind: 'outgoing',
                     title: t('relationships-depends-on') || 'Depends on',
                     icon: IconArrowRight(),
-                    items: props.outgoing
+                    items: props.outgoing,
+                    depth: props.depth
                 })}
             </div>
         </section>

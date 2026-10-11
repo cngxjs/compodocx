@@ -18,7 +18,7 @@ type BlockPropertyProps = {
     readonly file: string;
     readonly title?: string;
     readonly id?: string;
-    readonly depth?: number;
+    readonly depth: number;
     readonly navTabs?: any[];
 };
 
@@ -62,7 +62,9 @@ export const BlockProperty = (props: BlockPropertyProps): string => {
                                 </a>
                             </span>
                             {p.type && (
-                                <span class="cdx-io-member-type">{linkTypeHtml(p.type)}</span>
+                                <span class="cdx-io-member-type">
+                                    {linkTypeHtml(p.type, { depth: props.depth })}
+                                </span>
                             )}
                         </div>
                         <div class="cdx-io-member-badges">
@@ -97,14 +99,14 @@ export const BlockProperty = (props: BlockPropertyProps): string => {
                         )}
                         {p.description && (
                             <div class="cdx-io-member-desc">
-                                {parseDescription(p.description, props.depth ?? 0)}
+                                {parseDescription(p.description, props.depth)}
                             </div>
                         )}
                         {p.jsdoctags?.length > 0 && (
                             <div class="cdx-io-member-desc">
                                 {ParamsTable({
                                     jsdocTags: p.jsdoctags,
-                                    depth: props.depth ?? 0,
+                                    depth: props.depth,
                                     showOptional: false,
                                     showDefaultValue: false
                                 })}

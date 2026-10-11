@@ -13,7 +13,7 @@ const resolving = (types: Record<string, unknown>) =>
         .mockImplementation((name: string) => (types[name] as any) ?? undefined);
 
 const signatureWith = (type: string): string =>
-    functionSignature({ name: 'use', args: [{ name: 'value', type }] });
+    functionSignature({ name: 'use', args: [{ name: 'value', type }] }, 1);
 
 describe('functionSignature', () => {
     beforeEach(() => {
@@ -60,7 +60,7 @@ describe('functionSignature', () => {
 
     describe('arguments', () => {
         it('renders a method without arguments', () => {
-            expect(functionSignature({ name: 'myMethod', args: [] })).toBe('myMethod()');
+            expect(functionSignature({ name: 'myMethod', args: [] }, 1)).toBe('myMethod()');
         });
 
         it('links an internal type argument', () => {
@@ -71,10 +71,13 @@ describe('functionSignature', () => {
                     name: 'StatusType'
                 })
             });
-            const result = functionSignature({
-                name: 'setStatus',
-                args: [{ name: 'status', type: 'StatusType', optional: false }]
-            });
+            const result = functionSignature(
+                {
+                    name: 'setStatus',
+                    args: [{ name: 'status', type: 'StatusType', optional: false }]
+                },
+                1
+            );
             expect(result).toBe(
                 `setStatus(status: <a href="${hrefTo('typealias', 'StatusType', 1)}" target="_self">StatusType</a>)`
             );
@@ -87,10 +90,13 @@ describe('functionSignature', () => {
                     data: { name: 'ActivatedRoute', path: 'api/router/ActivatedRoute' }
                 }
             });
-            const result = functionSignature({
-                name: 'constructor',
-                args: [{ name: 'route', type: 'ActivatedRoute', optional: false }]
-            });
+            const result = functionSignature(
+                {
+                    name: 'constructor',
+                    args: [{ name: 'route', type: 'ActivatedRoute', optional: false }]
+                },
+                1
+            );
             expect(result).toContain(
                 '<a href="https://angular.dev/api/router/ActivatedRoute" target="_blank">ActivatedRoute</a>'
             );
@@ -100,10 +106,13 @@ describe('functionSignature', () => {
             resolving({});
             vi.spyOn(BasicTypeUtil, 'isKnownType').mockReturnValue(true);
             vi.spyOn(BasicTypeUtil, 'getTypeUrl').mockReturnValue('https://example.test/String');
-            const result = functionSignature({
-                name: 'setText',
-                args: [{ name: 'text', type: 'string', optional: false }]
-            });
+            const result = functionSignature(
+                {
+                    name: 'setText',
+                    args: [{ name: 'text', type: 'string', optional: false }]
+                },
+                1
+            );
             expect(result).toBe(
                 'setText(text: <a href="https://example.test/String" target="_blank">string</a>)'
             );
@@ -111,19 +120,25 @@ describe('functionSignature', () => {
 
         it('marks an optional argument', () => {
             resolving({});
-            const result = functionSignature({
-                name: 'myMethod',
-                args: [{ name: 'optional', type: 'string', optional: true }]
-            });
+            const result = functionSignature(
+                {
+                    name: 'myMethod',
+                    args: [{ name: 'optional', type: 'string', optional: true }]
+                },
+                1
+            );
             expect(result).toBe('myMethod(optional?: string)');
         });
 
         it('renders a rest parameter', () => {
             resolving({});
-            const result = functionSignature({
-                name: 'concat',
-                args: [{ name: 'items', type: 'string[]', dotDotDotToken: true }]
-            });
+            const result = functionSignature(
+                {
+                    name: 'concat',
+                    args: [{ name: 'items', type: 'string[]', dotDotDotToken: true }]
+                },
+                1
+            );
             expect(result).toBe('concat(...items: string[])');
         });
 
@@ -135,13 +150,16 @@ describe('functionSignature', () => {
                     name: 'StatusType'
                 })
             });
-            const result = functionSignature({
-                name: 'updateStatus',
-                args: [
-                    { name: 'status', type: 'StatusType', optional: false },
-                    { name: 'message', type: 'string', optional: false }
-                ]
-            });
+            const result = functionSignature(
+                {
+                    name: 'updateStatus',
+                    args: [
+                        { name: 'status', type: 'StatusType', optional: false },
+                        { name: 'message', type: 'string', optional: false }
+                    ]
+                },
+                1
+            );
             expect(result).toBe(
                 `updateStatus(status: <a href="${hrefTo('typealias', 'StatusType', 1)}" target="_self">StatusType</a>, message: string)`
             );
@@ -149,26 +167,29 @@ describe('functionSignature', () => {
 
         it('renders a method without a name', () => {
             resolving({});
-            expect(functionSignature({ args: [{ name: 'x', type: 'number' }] })).toBe(
+            expect(functionSignature({ args: [{ name: 'x', type: 'number' }] }, 1)).toBe(
                 '(x: number)'
             );
         });
 
         it('groups destructured parameters', () => {
             resolving({});
-            const result = functionSignature({
-                name: 'myMethod',
-                args: [
-                    { name: 'id', type: 'number', destructuredParameter: true },
-                    { name: 'name', type: 'string', destructuredParameter: true }
-                ]
-            });
+            const result = functionSignature(
+                {
+                    name: 'myMethod',
+                    args: [
+                        { name: 'id', type: 'number', destructuredParameter: true },
+                        { name: 'name', type: 'string', destructuredParameter: true }
+                    ]
+                },
+                1
+            );
             expect(result).toBe('myMethod(__namedParameters: {id: number, name: string})');
         });
 
         it('renders an argument without a type', () => {
             resolving({});
-            expect(functionSignature({ name: 'myMethod', args: [{ name: 'unknown' }] })).toBe(
+            expect(functionSignature({ name: 'myMethod', args: [{ name: 'unknown' }] }, 1)).toBe(
                 'myMethod(unknown)'
             );
         });
@@ -177,10 +198,13 @@ describe('functionSignature', () => {
     describe('function-typed arguments', () => {
         it('renders a callback without parameters', () => {
             resolving({});
-            const result = functionSignature({
-                name: 'on',
-                args: [{ name: 'callback', function: [] }]
-            });
+            const result = functionSignature(
+                {
+                    name: 'on',
+                    args: [{ name: 'callback', function: [] }]
+                },
+                1
+            );
             expect(result).toBe('on(callback: () => void)');
         });
 
@@ -192,20 +216,26 @@ describe('functionSignature', () => {
                     name: 'StatusType'
                 })
             });
-            const result = functionSignature({
-                name: 'on',
-                args: [{ name: 'handler', function: [{ name: 'status', type: 'StatusType' }] }]
-            });
+            const result = functionSignature(
+                {
+                    name: 'on',
+                    args: [{ name: 'handler', function: [{ name: 'status', type: 'StatusType' }] }]
+                },
+                1
+            );
             expect(result).toContain('handler: (status: ');
             expect(result).toContain(`href="${hrefTo('typealias', 'StatusType', 1)}"`);
         });
 
         it('renders unknown callback parameter types as text', () => {
             resolving({});
-            const result = functionSignature({
-                name: 'on',
-                args: [{ name: 'callback', function: [{ name: 'data', type: 'CustomType' }] }]
-            });
+            const result = functionSignature(
+                {
+                    name: 'on',
+                    args: [{ name: 'callback', function: [{ name: 'data', type: 'CustomType' }] }]
+                },
+                1
+            );
             expect(result).toBe('on(callback: (data: CustomType) => void)');
         });
     });

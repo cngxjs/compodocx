@@ -13,7 +13,7 @@ import {
 type BlockInputProps = {
     readonly element: any;
     readonly file: string;
-    readonly depth?: number;
+    readonly depth: number;
     readonly navTabs?: any[];
 };
 
@@ -52,7 +52,9 @@ export const BlockInput = (props: BlockInputProps): string => {
                                 </a>
                             </span>
                             {inp.type && (
-                                <span class="cdx-io-member-type">{linkTypeHtml(inp.type)}</span>
+                                <span class="cdx-io-member-type">
+                                    {linkTypeHtml(inp.type, { depth: props.depth })}
+                                </span>
                             )}
                         </div>
                         <div class="cdx-io-member-badges">
@@ -70,7 +72,7 @@ export const BlockInput = (props: BlockInputProps): string => {
                         </div>
                         {inp.description && (
                             <div class="cdx-io-member-desc">
-                                {parseDescription(inp.description, props.depth ?? 0)}
+                                {parseDescription(inp.description, props.depth)}
                             </div>
                         )}
                         {!isUndefined(inp.defaultValue) && (

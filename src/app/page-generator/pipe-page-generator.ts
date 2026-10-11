@@ -5,6 +5,7 @@ import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
+import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class PipePageGenerator {
@@ -25,14 +26,13 @@ export class PipePageGenerator {
                         const readme = MarkdownEngine.readNeighbourReadmeFile(pipe.file);
                         pipe.readme = markedAcl(readme);
                     }
-                    const location = pageLocation({
-                        type: 'symbol',
-                        kind: 'pipe',
-                        name: pipe.name
-                    });
+                    const location = pageLocation(
+                        itemTarget(Configuration.mainData.symbols, 'pipe', pipe)
+                    );
                     const page = {
                         path: location.path,
-                        name: pipe.name,
+                        name: location.filename,
+                        filename: location.filename,
                         id: pipe.id,
                         navTabs: this.navTabs.resolve(pipe),
                         context: 'pipe',
@@ -40,9 +40,6 @@ export class PipePageGenerator {
                         depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
-                    if (pipe.isDuplicate) {
-                        page.name += `-${pipe.duplicateId}`;
-                    }
                     Configuration.addPage(page);
                     i++;
                     loop();

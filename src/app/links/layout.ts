@@ -46,7 +46,24 @@ export const KIND_FOLDER = {
     provider: 'providers'
 } as const satisfies Record<PageKind, string>;
 
-export const FEATURE_FOLDER = 'features';
+/** The redirect map of a version, next to its pages (old page path -> current page path). */
+export const REDIRECTS_FILE = 'redirects.json';
+
+/** File name of a feature page inside the feature's folder. */
+export const FEATURE_INDEX = 'index';
+
+/**
+ * Folders the output root already holds (assets, additional pages, search
+ * index); a feature folder never takes one of these names.
+ */
+export const RESERVED_ROOT_FOLDERS: readonly string[] = [
+    'additional-documentation',
+    'assets',
+    'images',
+    'js',
+    'pagefind',
+    'styles'
+];
 
 /** Depth of the pages at the output root. */
 export const ROOT_DEPTH = 0;
@@ -63,9 +80,6 @@ export const isPageKind = (kind: string): kind is PageKind =>
 
 export const isUtilityKind = (kind: string): kind is UtilityKind => UTILITY_KINDS.has(kind);
 
-/** The `hrefPrefix` of a kind: its folder. */
-export const kindHrefPrefix = (kind: PageKind): string => KIND_FOLDER[kind];
-
 const last = (items: readonly string[]): string => items[items.length - 1] ?? '';
 
 export type PageTarget =
@@ -73,14 +87,21 @@ export type PageTarget =
           readonly type: 'symbol';
           readonly kind: PageKind;
           readonly name: string;
-          /** Page name of a same-name copy (`Todo-1`); used when set. */
-          readonly duplicateName?: string;
+          /** Folder segments: the symbol's feature (`symbolFolder` without one). */
+          readonly folder: readonly string[];
+          /** File name without `.html`, unique in its folder (`folderFileNames`). */
+          readonly file: string;
       }
     /** The page of a feature type with its providers and feature functions. */
-    | { readonly type: 'cluster'; readonly name: string }
+    | {
+          readonly type: 'cluster';
+          readonly name: string;
+          readonly folder: readonly string[];
+          readonly file: string;
+      }
     /** A top-level page: index, overview, routes, coverage, app-config, references, ... */
     | { readonly type: 'root'; readonly page: string }
-    /** The page of a feature: import path segments (scope dropped), then the key. */
+    /** The page of a feature, `index` in its folder: import path segments (scope dropped), then the key. */
     | { readonly type: 'feature'; readonly segments: readonly string[] }
     | {
           readonly type: 'additional';
@@ -128,43 +149,102 @@ export const relativePrefix = (depth: number, style: PrefixStyle = 'relative'): 
 
 const joinPath = (folder: string, file: string): string => (folder ? `${folder}/${file}` : file);
 
-/** Where a page is written. */
+/** The folder of a symbol page without a feature (no semantic facts): its kind folder. */
+export const symbolFolder = (kind: PageKind): readonly string[] => [KIND_FOLDER[kind]];
+
+/** A page file name from a symbol name: characters outside `[A-Za-z0-9._-]` become `-`. */
+export const safeFileName = (name: string): string => name.replace(/[^A-Za-z0-9._-]+/g, '-') || '-';
+
+/** File names a symbol page never takes: the feature page of a folder is `index`. */
+const RESERVED_FILE_NAMES: readonly string[] = ['index'];
+
+export interface FileNameRequest {
+    /** Symbol id; requests are ordered by it. */
+    readonly id: string;
+    readonly name: string;
+    readonly kind: string;
+}
+
+/**
+ * The file names of the symbol pages of one folder, by id. A name is made
+ * safe (`safeFileName`); names that clash ignoring case keep the bare name
+ * for the first symbol by id. Another clashing symbol gets `-<kind>` when it
+ * is the only one of its kind in the clash and that kind differs from the
+ * first one's, otherwise the next free `-2`, `-3`, ... `index` is reserved.
+ */
+export const folderFileNames = (
+    requests: readonly FileNameRequest[]
+): ReadonlyMap<string, string> => {
+    const ordered = [...requests].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    const clashes = new Map<string, FileNameRequest[]>();
+    for (const request of ordered) {
+        const key = safeFileName(request.name).toLowerCase();
+        clashes.set(key, [...(clashes.get(key) ?? []), request]);
+    }
+    const taken = new Set(RESERVED_FILE_NAMES);
+    const names = new Map<string, string>();
+    const take = (id: string, file: string): void => {
+        taken.add(file.toLowerCase());
+        names.set(id, file);
+    };
+    for (const request of ordered) {
+        const base = safeFileName(request.name);
+        if (!taken.has(base.toLowerCase())) {
+            take(request.id, base);
+            continue;
+        }
+        const group = clashes.get(base.toLowerCase()) ?? [];
+        const holder = group.find(other => names.get(other.id) === base);
+        const sameKind = group.filter(other => other.kind === request.kind && other !== holder);
+        const byKind = `${base}-${request.kind}`;
+        if (
+            holder?.kind !== request.kind &&
+            sameKind.length === 1 &&
+            !taken.has(byKind.toLowerCase())
+        ) {
+            take(request.id, byKind);
+            continue;
+        }
+        let n = 2;
+        while (taken.has(`${base}-${n}`.toLowerCase())) {
+            n++;
+        }
+        take(request.id, `${base}-${n}`);
+    }
+    return names;
+};
+
+/** Folder depth of a root-relative folder path (`''` for the root). */
+export const folderDepth = (path: string): number =>
+    path === '' ? ROOT_DEPTH : path.split('/').length;
+
+const located = (path: string, filename: string): PageLocation => ({
+    path,
+    filename,
+    depth: folderDepth(path)
+});
+
+/** Where a page is written. Its depth follows from the folder path. */
 export const pageLocation = (target: PageTarget): PageLocation => {
     switch (target.type) {
         case 'symbol':
-            return {
-                path: KIND_FOLDER[target.kind],
-                filename: target.duplicateName ?? target.name,
-                depth: 1
-            };
         case 'cluster':
-            return { path: KIND_FOLDER.provider, filename: target.name, depth: 1 };
+            return located(target.folder.join('/'), target.file);
         case 'root':
-            return { path: '', filename: target.page, depth: ROOT_DEPTH };
-        case 'feature': {
-            const parents = target.segments.slice(0, -1);
-            return {
-                path: [FEATURE_FOLDER, ...parents].join('/'),
-                filename: last(target.segments),
-                depth: target.segments.length
-            };
-        }
+            return located('', target.page);
+        case 'feature':
+            return located(target.segments.join('/'), FEATURE_INDEX);
         case 'additional': {
             const filename = last(target.slugs);
             const nested = target.slugs.map(slug => `/${slug}`).join('');
-            return {
-                path: `${target.folder}${nested}`.replace(`/${filename}`, ''),
-                filename,
-                depth: target.slugs.length
-            };
+            return located(`${target.folder}${nested}`.replace(`/${filename}`, ''), filename);
         }
         case 'asset': {
             const slash = target.path.lastIndexOf('/');
-            return {
-                path: slash === -1 ? '' : target.path.slice(0, slash),
-                filename: target.path.slice(slash + 1),
-                depth: target.path.split('/').length - 1
-            };
+            return located(
+                slash === -1 ? '' : target.path.slice(0, slash),
+                target.path.slice(slash + 1)
+            );
         }
     }
 };
@@ -205,11 +285,3 @@ export function memberAnchor(member: string | undefined, owner?: string): string
 /** The `href` string: prefix, path and `#anchor`. */
 export const hrefText = (href: Href, style: PrefixStyle = 'relative'): string =>
     `${relativePrefix(href.fromDepth, style)}${href.path}${href.anchor ? `#${href.anchor}` : ''}`;
-
-const FOLDER_KIND: ReadonlyMap<string, PageKind> = new Map(
-    Object.entries(KIND_FOLDER).map(([kind, folder]) => [folder, kind as PageKind])
-);
-
-/** The symbol kind whose folder a root-relative path starts with. */
-export const kindOfPath = (path: string): PageKind | undefined =>
-    FOLDER_KIND.get(path.replace(/^(\.\.?\/)+/, '').split('/')[0]);

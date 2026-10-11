@@ -1,21 +1,25 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { pageLocation, type UtilityKind } from '../../../src/app/links/layout';
+import type { UtilityKind } from '../../../src/app/links/layout';
 
-/** Folder of the symbol pages of a kind, e.g. the functions folder. */
-const kindFolder = (kind: UtilityKind): string =>
-    pageLocation({ type: 'symbol', kind, name: 'x' }).path;
-
-const pagesOf = (dist: string, kind: UtilityKind): string[] => {
-    const folder = path.join(dist, kindFolder(kind));
-    return fs.existsSync(folder)
-        ? fs
-              .readdirSync(folder)
-              .filter(name => name.endsWith('.html'))
-              .sort()
-              .map(name => path.join(folder, name))
+const htmlFiles = (dir: string): string[] =>
+    fs.existsSync(dir)
+        ? fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+              const full = path.join(dir, entry.name);
+              if (entry.isDirectory()) {
+                  return htmlFiles(full);
+              }
+              return entry.name.endsWith('.html') ? [full] : [];
+          })
         : [];
-};
+
+/** Symbol pages of a kind anywhere in the tree (pages live in their feature folder). */
+const pagesOf = (dist: string, kind: UtilityKind): string[] =>
+    htmlFiles(dist)
+        .filter(file =>
+            fs.readFileSync(file, 'utf8').includes(`COMPODOC_CURRENT_PAGE_CONTEXT = '${kind}'`)
+        )
+        .sort();
 
 /** Whether any symbol of a kind got a page. */
 export const hasKindPages = (dist: string, kind: UtilityKind): boolean =>

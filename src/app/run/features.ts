@@ -6,6 +6,7 @@ import {
     type FamilySymbol,
     type FeatureDetection,
     type FeatureFs,
+    type FeatureModel,
     type FeatureSymbol,
     factKey,
     linkFamilies,
@@ -13,7 +14,7 @@ import {
     type SemanticModel
 } from '../compiler/semantic';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
-import { type SymbolTable, toSymbolKey } from '../links';
+import { featureSegments, placeInFolders, type SymbolTable, toSymbolKey } from '../links';
 
 /** File system answers for the feature detection, paths relative to `cwd`. */
 export const nodeFeatureFs = (cwd: string): FeatureFs => {
@@ -94,4 +95,13 @@ export const deriveFeatures = (
     });
     const families = linkFamilies(detection.model, inputs.families);
     return { ...detection, model: { ...detection.model, families } };
+};
+
+/** The table with every symbol page in the folder of its feature (its page segments). */
+export const placeInFeatures = (symbols: SymbolTable, features: FeatureModel): SymbolTable => {
+    const { segments } = featureSegments(features.features);
+    return placeInFolders(symbols, entry => {
+        const feature = features.featureOf.get(factKey(toSymbolKey(entry.ref)));
+        return feature === undefined ? undefined : segments.get(feature);
+    });
 };

@@ -4,7 +4,10 @@ import {
     hrefFor,
     isPageKind,
     memberAnchor,
+    type PageKind,
     type PageTarget,
+    safeFileName,
+    symbolFolder,
     type UtilityKind
 } from './layout';
 import { presentationKind, type SymbolId } from './symbol-id';
@@ -18,15 +21,42 @@ import {
 
 export interface SymbolLinkOptions {
     readonly anchor?: string;
-    /** Link a same-name copy to its own `-N` page, not the first copy's. */
-    readonly duplicate?: boolean;
 }
 
-export const symbolTarget = (entry: SymbolEntry, options: SymbolLinkOptions = {}): PageTarget => ({
+/** The own page of a table entry. */
+export const symbolTarget = (entry: SymbolEntry): PageTarget => ({
     type: 'symbol',
     kind: entry.ref.kind,
     name: entry.ref.name,
-    duplicateName: options.duplicate ? entry.duplicateName : undefined
+    folder: entry.folder,
+    file: entry.fileName
+});
+
+/**
+ * The own page of an engine object of `kind`, through its table entry. An
+ * object the table does not hold keeps its safe name.
+ */
+export const itemTarget = (
+    table: SymbolTable | undefined,
+    kind: PageKind,
+    item: { readonly name?: unknown; readonly file?: unknown }
+): PageTarget => {
+    const name = String(item.name);
+    const entry =
+        table && kind !== 'provider'
+            ? entryInFile(table, kind, name, item.file as string | undefined)
+            : undefined;
+    return entry
+        ? symbolTarget(entry)
+        : { type: 'symbol', kind, name, folder: symbolFolder(kind), file: safeFileName(name) };
+};
+
+/** The page of a feature type (the cluster owner) with its providers and feature functions. */
+export const clusterTarget = (owner: SymbolEntry): PageTarget => ({
+    type: 'cluster',
+    name: owner.ref.name,
+    folder: owner.folder,
+    file: owner.fileName
 });
 
 /** A link destination: the page and the section on it. */
@@ -57,23 +87,24 @@ export const placedLink = (
                     type: 'symbol',
                     kind: 'provider',
                     name: entry.ref.name,
-                    duplicateName: options.duplicate ? entry.duplicateName : undefined
+                    folder: entry.folder,
+                    file: entry.fileName
                 },
                 anchor: options.anchor
             };
         case 'cluster-owner':
-            return { target: { type: 'cluster', name: entry.ref.name }, anchor: options.anchor };
+            return { target: clusterTarget(entry), anchor: options.anchor };
         case 'cluster': {
-            const owner = table.byId.get(placement.owner)?.ref.name;
+            const owner = table.byId.get(placement.owner);
             return owner
                 ? {
-                      target: { type: 'cluster', name: owner },
-                      anchor: memberAnchor(entry.ref.name, owner)
+                      target: clusterTarget(owner),
+                      anchor: memberAnchor(entry.ref.name, owner.ref.name)
                   }
                 : undefined;
         }
         default:
-            return { target: symbolTarget(entry, options), anchor: options.anchor };
+            return { target: symbolTarget(entry), anchor: options.anchor };
     }
 };
 
@@ -110,7 +141,7 @@ export const placeTarget = (
     if (!entry || placementOf(di, entry.id).type === 'own') {
         return { target, anchor };
     }
-    return placedLink(symbols, entry, di, { anchor, duplicate: !!target.duplicateName });
+    return placedLink(symbols, entry, di, { anchor });
 };
 
 /** Resolve a bare name with a lookup policy, then link it. */
@@ -122,7 +153,7 @@ export const hrefForName = (
     options: SymbolLinkOptions = {}
 ): Href | undefined => {
     const entry = lookupEntry(table, name, policy);
-    return entry && hrefFor(symbolTarget(entry, options), fromDepth, options.anchor);
+    return entry && hrefFor(symbolTarget(entry), fromDepth, options.anchor);
 };
 
 /** Kinds a function or constant is documented as when it is a guard, interceptor or resolver. */
@@ -140,7 +171,7 @@ const MISC_SUBTYPE: Readonly<Record<string, UtilityKind>> = {
  * `ctype`/`subtype` for miscellaneous symbols). Undefined for an object the
  * layout has no page for.
  */
-export const targetOfData = (data: unknown): PageTarget | undefined => {
+export const targetOfData = (data: unknown, table?: SymbolTable): PageTarget | undefined => {
     const item = data as {
         name?: string;
         type?: string;
@@ -152,12 +183,10 @@ export const targetOfData = (data: unknown): PageTarget | undefined => {
     }
     if (item.type === 'miscellaneous' || item.ctype === 'miscellaneous') {
         const kind = MISC_SUBTYPE[item.subtype ?? ''];
-        return kind
-            ? { type: 'symbol', kind: presentationKind(kind, item), name: item.name }
-            : undefined;
+        return kind ? itemTarget(table, presentationKind(kind, item), item) : undefined;
     }
     const kind = item.type ?? '';
-    return isPageKind(kind) ? { type: 'symbol', kind, name: item.name } : undefined;
+    return isPageKind(kind) ? itemTarget(table, kind, item) : undefined;
 };
 
 /**
@@ -184,13 +213,18 @@ export const targetOfCoverage = (
                   .map(k => entryInFile(table, k, row.name, row.filePath))
                   .find(e => e !== undefined)
             : undefined;
-        return {
-            type: 'symbol',
-            kind: entry?.ref.kind ?? kind,
-            name: row.name,
-            duplicateName: entry?.duplicateName
-        };
+        return entry
+            ? symbolTarget(entry)
+            : {
+                  type: 'symbol',
+                  kind,
+                  name: row.name,
+                  folder: symbolFolder(kind),
+                  file: safeFileName(row.name)
+              };
     }
     const kind = row.linktype === 'classe' ? 'class' : (row.linktype ?? '');
-    return isPageKind(kind) ? { type: 'symbol', kind, name: row.name } : undefined;
+    return isPageKind(kind)
+        ? itemTarget(options.table, kind, { name: row.name, file: row.filePath })
+        : undefined;
 };

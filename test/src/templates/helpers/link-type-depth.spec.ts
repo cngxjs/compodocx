@@ -5,9 +5,8 @@ import { resolveType } from '../../../../src/templates/helpers/link-type';
 import { hrefTo } from '../../helpers/pages';
 
 /**
- * Miscellaneous detail pages live at `miscellaneous/<collection>/<name>.html`
- * (depth 2). Type links rendered there must climb two directories; every
- * other caller keeps the depth-1 default.
+ * Type links climb from the page they are rendered on: every caller passes
+ * the depth of its page.
  */
 describe('Type links at page depth', () => {
     const internal = (data: Record<string, unknown>) => ({ source: 'internal', data }) as any;
@@ -33,8 +32,13 @@ describe('Type links at page depth', () => {
         vi.restoreAllMocks();
     });
 
-    it('resolveType keeps the ../ prefix by default', () => {
-        expect(resolveType('User')?.href).toBe(hrefTo('interface', 'User', 1));
+    it('resolveType prefixes ../ at depth 1', () => {
+        expect(resolveType('User', undefined, 1)?.href).toBe(hrefTo('interface', 'User', 1));
+    });
+
+    it('resolveType reports the kind of the linked page', () => {
+        expect(resolveType('User', undefined, 1)?.kind).toBe('interface');
+        expect(resolveType('Status', undefined, 1)?.kind).toBe('typealias');
     });
 
     it('resolveType climbs two levels at depth 2', () => {

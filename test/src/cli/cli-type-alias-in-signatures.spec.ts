@@ -1,5 +1,5 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { hrefTo, pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 import { hasKindPages, readKindPages } from './paths';
 
 const tmp = temporaryDir();
@@ -11,6 +11,9 @@ describe('CLI generation with type aliases in method signatures', () => {
 
     const tmpFolder = `${tmp.name}-type-alias-signatures`;
     const distFolder = `${tmpFolder}/documentation`;
+    const pages = pagesIn(distFolder);
+    /** Depth of the TypeAliasExample page the links are rendered on. */
+    const classDepth = () => pages.depthOf(pages.of('class', 'TypeAliasExample'));
 
     beforeAll(() => {
         tmp.create(tmpFolder);
@@ -33,7 +36,7 @@ describe('CLI generation with type aliases in method signatures', () => {
             throw new Error('error');
         }
         stdoutString = ls.stdout.toString();
-        typeAliasExampleClassFile = read(`${distFolder}/${pageOf('class', 'TypeAliasExample')}`);
+        typeAliasExampleClassFile = read(`${distFolder}/${pages.of('class', 'TypeAliasExample')}`);
         typeAliasesFile = readKindPages(distFolder, 'typealias');
     });
     afterAll(() => {
@@ -50,7 +53,7 @@ describe('CLI generation with type aliases in method signatures', () => {
     });
 
     it('should have generated TypeAliasExample class file', () => {
-        const isClassExists = exists(`${distFolder}/${pageOf('class', 'TypeAliasExample')}`);
+        const isClassExists = exists(`${distFolder}/${pages.of('class', 'TypeAliasExample')}`);
         expect(isClassExists).to.be.true;
     });
 
@@ -63,14 +66,14 @@ describe('CLI generation with type aliases in method signatures', () => {
         // This test verifies that type aliases in method parameters generate correct links
         // Instead of ../undefineds/StatusType.html, it should be ../miscellaneous/typealiases.html#StatusType
         expect(typeAliasExampleClassFile).to.contain(
-            `<a href="${hrefTo('typealias', 'StatusType', 1)}" target="_self">StatusType</a>`
+            `<a href="${pages.href('typealias', 'StatusType', classDepth())}" target="_self">StatusType</a>`
         );
     });
 
     it('should generate correct type alias links in method return types', () => {
         // Verify that return types with type aliases also get correct links
         expect(typeAliasExampleClassFile).to.contain(
-            `<a href="${hrefTo('typealias', 'StatusType', 1)}" target="_self" >StatusType</a>`
+            `<a href="${pages.href('typealias', 'StatusType', classDepth())}" target="_self" >StatusType</a>`
         );
     });
 
@@ -83,12 +86,14 @@ describe('CLI generation with type aliases in method signatures', () => {
     it('should generate correct links for complex type aliases', () => {
         // CallbackFunction is a type alias for a function
         expect(typeAliasExampleClassFile).to.contain(
-            `<a href="${hrefTo('typealias', 'CallbackFunction', 1)}" target="_self">CallbackFunction</a>`
+            `<a href="${pages.href('typealias', 'CallbackFunction', classDepth())}" target="_self">CallbackFunction</a>`
         );
     });
 
     it('should display type alias details in parameters table', () => {
         // The parameter details table should also have correct links
-        expect(typeAliasExampleClassFile).to.contain(`${hrefTo('typealias', 'StatusType', 1)}`);
+        expect(typeAliasExampleClassFile).to.contain(
+            `${pages.href('typealias', 'StatusType', classDepth())}`
+        );
     });
 });

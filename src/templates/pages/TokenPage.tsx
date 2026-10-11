@@ -150,7 +150,7 @@ export const TokenPage = (data: any): string => {
     if (!item) {
         return '';
     }
-    const depth = data.depth ?? 1;
+    const depth: number = data.depth;
     const tokenType = (item.tokenType as string | undefined)?.trim();
     const providedIn = (item.providedIn as string | undefined)?.trim();
     const factory = (item.factory as string | undefined)?.trim();

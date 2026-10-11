@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -23,6 +23,7 @@ describe('CLI Theming tab generation', () => {
     };
 
     describe('when a component has documented theme tokens in its style file', () => {
+        const pages = pagesIn(distFolder);
         let stdoutString: string;
         let componentHtml: string;
         let plainComponentHtml: string;
@@ -102,8 +103,8 @@ describe('CLI Theming tab generation', () => {
                 throw new Error('error');
             }
             stdoutString = ls.stdout.toString();
-            componentHtml = read(`${distFolder}/${pageOf('component', 'ButtonComponent')}`);
-            plainComponentHtml = read(`${distFolder}/${pageOf('component', 'PlainComponent')}`);
+            componentHtml = read(`${distFolder}/${pages.of('component', 'ButtonComponent')}`);
+            plainComponentHtml = read(`${distFolder}/${pages.of('component', 'PlainComponent')}`);
         });
 
         afterAll(() => {
@@ -181,7 +182,7 @@ describe('CLI Theming tab generation', () => {
         });
 
         it('does NOT render the theming tab on components without theme tokens', () => {
-            expect(exists(`${distFolder}/${pageOf('component', 'PlainComponent')}`)).to.be.true;
+            expect(exists(`${distFolder}/${pages.of('component', 'PlainComponent')}`)).to.be.true;
             expect(plainComponentHtml).to.not.contain('id="theming"');
             expect(plainComponentHtml).to.not.contain('data-compodoc="block-theming"');
         });
@@ -189,6 +190,7 @@ describe('CLI Theming tab generation', () => {
 
     describe('when a component uses Angular 21 singular `styleUrl`', () => {
         const singularDistFolder = `${tmp.name}-theming-tab-singular`;
+        const pages = pagesIn(singularDistFolder);
         const singularFixtureFolder = `${tmp.name}-theming-tab-singular-fixture`;
         let componentHtml: string;
 
@@ -253,7 +255,7 @@ describe('CLI Theming tab generation', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            componentHtml = read(`${singularDistFolder}/${pageOf('component', 'CardComponent')}`);
+            componentHtml = read(`${singularDistFolder}/${pages.of('component', 'CardComponent')}`);
         });
 
         afterAll(() => {

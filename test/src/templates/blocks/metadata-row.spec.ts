@@ -15,13 +15,14 @@ import {
 describe('MetadataRow — structured renderers', () => {
     describe('MetadataHostDirectivesRow', () => {
         it('returns an empty string for an empty array', () => {
-            expect(MetadataHostDirectivesRow([])).to.equal('');
+            expect(MetadataHostDirectivesRow([], 1)).to.equal('');
         });
 
         it('renders a directive with inputs and outputs', () => {
-            const html = MetadataHostDirectivesRow([
-                { name: 'HighlightDirective', inputs: ['color', 'hoverColor'], outputs: [] }
-            ]);
+            const html = MetadataHostDirectivesRow(
+                [{ name: 'HighlightDirective', inputs: ['color', 'hoverColor'], outputs: [] }],
+                1
+            );
 
             expect(html).to.include('cdx-host-dir-flat');
             expect(html).to.include('cdx-host-dir-entry');
@@ -34,9 +35,10 @@ describe('MetadataRow — structured renderers', () => {
         });
 
         it('renders a bare directive without inputs or outputs', () => {
-            const html = MetadataHostDirectivesRow([
-                { name: 'TooltipDirective', inputs: [], outputs: [] }
-            ]);
+            const html = MetadataHostDirectivesRow(
+                [{ name: 'TooltipDirective', inputs: [], outputs: [] }],
+                1
+            );
 
             expect(html).to.include('TooltipDirective');
             expect(html).to.not.include('>inputs:<');
@@ -44,10 +46,13 @@ describe('MetadataRow — structured renderers', () => {
         });
 
         it('preserves order across multiple directives', () => {
-            const html = MetadataHostDirectivesRow([
-                { name: 'First', inputs: [], outputs: [] },
-                { name: 'Second', inputs: [], outputs: [] }
-            ]);
+            const html = MetadataHostDirectivesRow(
+                [
+                    { name: 'First', inputs: [], outputs: [] },
+                    { name: 'Second', inputs: [], outputs: [] }
+                ],
+                1
+            );
 
             expect(html.indexOf('First')).to.be.lessThan(html.indexOf('Second'));
         });
@@ -175,11 +180,15 @@ describe('MetadataRow — structured renderers', () => {
 
     describe('MetadataProvidersRow', () => {
         it('returns an empty string for an empty array', () => {
-            expect(MetadataProvidersRow('providers', [])).to.equal('');
+            expect(MetadataProvidersRow('providers', [], 1)).to.equal('');
         });
 
         it('renders a bare class provider as a single-token block', () => {
-            const html = MetadataProvidersRow('providers', [{ name: 'ApiService', kind: 'class' }]);
+            const html = MetadataProvidersRow(
+                'providers',
+                [{ name: 'ApiService', kind: 'class' }],
+                1
+            );
 
             // Bare class providers render as one cdx-host-dir-object with
             // just the class name — no object braces, no provide: prefix.
@@ -189,14 +198,18 @@ describe('MetadataRow — structured renderers', () => {
         });
 
         it('renders a useClass provider with provide and useClass lines', () => {
-            const html = MetadataProvidersRow('providers', [
-                {
-                    name: 'ThemeService',
-                    kind: 'useClass',
-                    provide: 'ThemeService',
-                    useClass: 'AdminThemeService'
-                }
-            ]);
+            const html = MetadataProvidersRow(
+                'providers',
+                [
+                    {
+                        name: 'ThemeService',
+                        kind: 'useClass',
+                        provide: 'ThemeService',
+                        useClass: 'AdminThemeService'
+                    }
+                ],
+                1
+            );
 
             expect(html).to.include('>provide:<');
             expect(html).to.include('>useClass:<');
@@ -205,15 +218,19 @@ describe('MetadataRow — structured renderers', () => {
         });
 
         it('renders a useValue literal provider with the value as a plain token', () => {
-            const html = MetadataProvidersRow('providers', [
-                {
-                    name: 'APP_VERSION',
-                    kind: 'useValue',
-                    provide: 'APP_VERSION',
-                    useValue: "'2.0.0'",
-                    valueKind: 'literal'
-                }
-            ]);
+            const html = MetadataProvidersRow(
+                'providers',
+                [
+                    {
+                        name: 'APP_VERSION',
+                        kind: 'useValue',
+                        provide: 'APP_VERSION',
+                        useValue: "'2.0.0'",
+                        valueKind: 'literal'
+                    }
+                ],
+                1
+            );
 
             expect(html).to.include('>useValue:<');
             expect(html).to.include('cdx-host-dir-token">');
@@ -221,15 +238,19 @@ describe('MetadataRow — structured renderers', () => {
         });
 
         it('renders a useValue identifier provider with the value as a name', () => {
-            const html = MetadataProvidersRow('providers', [
-                {
-                    name: 'CONFIG',
-                    kind: 'useValue',
-                    provide: 'CONFIG',
-                    useValue: 'DEFAULT_CONFIG',
-                    valueKind: 'identifier'
-                }
-            ]);
+            const html = MetadataProvidersRow(
+                'providers',
+                [
+                    {
+                        name: 'CONFIG',
+                        kind: 'useValue',
+                        provide: 'CONFIG',
+                        useValue: 'DEFAULT_CONFIG',
+                        valueKind: 'identifier'
+                    }
+                ],
+                1
+            );
 
             // Identifier values should use cdx-host-dir-name (linkable token)
             // rather than the plain cdx-host-dir-token used for literals.
@@ -238,15 +259,19 @@ describe('MetadataRow — structured renderers', () => {
         });
 
         it('renders a useFactory provider with factory and deps lines', () => {
-            const html = MetadataProvidersRow('providers', [
-                {
-                    name: 'FEATURE_FLAGS',
-                    kind: 'useFactory',
-                    provide: 'FEATURE_FLAGS',
-                    factory: 'adminFeatureFlagsFactory',
-                    deps: ['API_BASE_URL', 'AUTH_CONFIG']
-                }
-            ]);
+            const html = MetadataProvidersRow(
+                'providers',
+                [
+                    {
+                        name: 'FEATURE_FLAGS',
+                        kind: 'useFactory',
+                        provide: 'FEATURE_FLAGS',
+                        factory: 'adminFeatureFlagsFactory',
+                        deps: ['API_BASE_URL', 'AUTH_CONFIG']
+                    }
+                ],
+                1
+            );
 
             expect(html).to.include('>useFactory:<');
             expect(html).to.include('adminFeatureFlagsFactory');
@@ -256,58 +281,74 @@ describe('MetadataRow — structured renderers', () => {
         });
 
         it('renders a useFactory provider without deps omitting the deps line', () => {
-            const html = MetadataProvidersRow('providers', [
-                {
-                    name: 'FEATURE_FLAGS',
-                    kind: 'useFactory',
-                    provide: 'FEATURE_FLAGS',
-                    factory: 'buildFlags'
-                }
-            ]);
+            const html = MetadataProvidersRow(
+                'providers',
+                [
+                    {
+                        name: 'FEATURE_FLAGS',
+                        kind: 'useFactory',
+                        provide: 'FEATURE_FLAGS',
+                        factory: 'buildFlags'
+                    }
+                ],
+                1
+            );
 
             expect(html).to.include('buildFlags');
             expect(html).to.not.include('>deps:<');
         });
 
         it('renders a useExisting provider aliasing to another token', () => {
-            const html = MetadataProvidersRow('providers', [
-                {
-                    name: 'AuditToken',
-                    kind: 'useExisting',
-                    provide: 'AuditToken',
-                    useExisting: 'ADMIN_AUDIT_CHANNEL'
-                }
-            ]);
+            const html = MetadataProvidersRow(
+                'providers',
+                [
+                    {
+                        name: 'AuditToken',
+                        kind: 'useExisting',
+                        provide: 'AuditToken',
+                        useExisting: 'ADMIN_AUDIT_CHANNEL'
+                    }
+                ],
+                1
+            );
 
             expect(html).to.include('>useExisting:<');
             expect(html).to.include('ADMIN_AUDIT_CHANNEL');
         });
 
         it('renders a multi: true flag on a useValue provider', () => {
-            const html = MetadataProvidersRow('providers', [
-                {
-                    name: 'MAX_RETRIES',
-                    kind: 'useValue',
-                    provide: 'MAX_RETRIES',
-                    useValue: '5',
-                    valueKind: 'literal',
-                    multi: true
-                }
-            ]);
+            const html = MetadataProvidersRow(
+                'providers',
+                [
+                    {
+                        name: 'MAX_RETRIES',
+                        kind: 'useValue',
+                        provide: 'MAX_RETRIES',
+                        useValue: '5',
+                        valueKind: 'literal',
+                        multi: true
+                    }
+                ],
+                1
+            );
 
             expect(html).to.include('>multi:<');
             expect(html).to.include('true');
         });
 
         it('renders a string-literal provide target verbatim without a link', () => {
-            const html = MetadataProvidersRow('providers', [
-                {
-                    name: "'AuditToken'",
-                    kind: 'useExisting',
-                    provide: "'AuditToken'",
-                    useExisting: 'ADMIN_AUDIT_CHANNEL'
-                }
-            ]);
+            const html = MetadataProvidersRow(
+                'providers',
+                [
+                    {
+                        name: "'AuditToken'",
+                        kind: 'useExisting',
+                        provide: "'AuditToken'",
+                        useExisting: 'ADMIN_AUDIT_CHANNEL'
+                    }
+                ],
+                1
+            );
 
             // String-literal names keep their surrounding quotes and render
             // as a plain token, not as a linkable cdx-host-dir-name anchor.
@@ -317,16 +358,20 @@ describe('MetadataRow — structured renderers', () => {
         });
 
         it('preserves source order across a mixed provider list', () => {
-            const html = MetadataProvidersRow('providers', [
-                { name: 'First', kind: 'class' },
-                {
-                    name: 'Second',
-                    kind: 'useClass',
-                    provide: 'Second',
-                    useClass: 'SecondImpl'
-                },
-                { name: 'Third', kind: 'class' }
-            ]);
+            const html = MetadataProvidersRow(
+                'providers',
+                [
+                    { name: 'First', kind: 'class' },
+                    {
+                        name: 'Second',
+                        kind: 'useClass',
+                        provide: 'Second',
+                        useClass: 'SecondImpl'
+                    },
+                    { name: 'Third', kind: 'class' }
+                ],
+                1
+            );
 
             const firstIdx = html.indexOf('First');
             const secondIdx = html.indexOf('Second');
@@ -336,9 +381,11 @@ describe('MetadataRow — structured renderers', () => {
         });
 
         it('accepts the viewProviders label and renders it through MetadataRow', () => {
-            const html = MetadataProvidersRow('viewProviders', [
-                { name: 'TodoStore', kind: 'class' }
-            ]);
+            const html = MetadataProvidersRow(
+                'viewProviders',
+                [{ name: 'TodoStore', kind: 'class' }],
+                1
+            );
 
             // humanLabel(viewProviders) → "View providers"
             expect(html).to.include('View providers');

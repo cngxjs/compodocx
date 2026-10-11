@@ -3,7 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     computeFallbackUrl,
     computeTargetUrl,
+    followRedirect,
     initVersionSwitcher,
+    invertRedirect,
     sliceForCap
 } from '../../../src/client/version-switcher';
 import { pageOf } from '../helpers/pages';
@@ -95,6 +97,35 @@ describe('computeFallbackUrl', () => {
             'v0.2.0/'
         );
         expect(url).toBeNull();
+    });
+});
+
+describe('redirect maps between layouts', () => {
+    const map = {
+        'components/Foo.html': 'forms/select/Foo.html',
+        'functions/pick.html': 'core/pick.html',
+        'miscellaneous/functions.html#pick': 'core/pick.html',
+        'miscellaneous/functions.html': 'utilities.html#functions'
+    };
+
+    it('follows the target version map from an old page to its new place', () => {
+        expect(followRedirect(map, 'components/Foo.html', '')).toBe('forms/select/Foo.html');
+        expect(followRedirect(map, 'miscellaneous/functions.html', '#pick')).toBe('core/pick.html');
+        expect(followRedirect(map, 'miscellaneous/functions.html', '#other')).toBe(
+            'utilities.html#functions'
+        );
+    });
+
+    it('inverts the current version map for a target that predates it, plain paths first', () => {
+        expect(invertRedirect(map, 'core/pick.html')).toEqual([
+            'functions/pick.html',
+            'miscellaneous/functions.html#pick'
+        ]);
+    });
+
+    it('leaves a page no map knows to the same-path try and the version root fallback', () => {
+        expect(followRedirect(map, 'overview.html', '')).toBeUndefined();
+        expect(invertRedirect(map, 'overview.html')).toEqual([]);
     });
 });
 

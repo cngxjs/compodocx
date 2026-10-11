@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { featureUrl, pageUrl } from './pages';
+import { featureUrl, hrefTo, pageUrl } from './pages';
 
 // Feature pages and the feature sidebar. Runs in two projects:
 // - `semantic` (semantic-library, type layout, search on): feature pages,
@@ -96,7 +96,7 @@ test.describe('Feature sidebar', () => {
         const adminSettings = page.locator('#features-links li[data-cdx-bucket="admin-settings"]');
         await expect(adminSettings.locator('> .cdx-bucket-row a.cdx-bucket-link')).toHaveAttribute(
             'href',
-            /features\/admin-settings\.html$/
+            hrefTo(featureUrl(['admin-settings']))
         );
         await expect(
             adminSettings.locator('li.cdx-feature-link[data-cdx-kind="injectable"]')

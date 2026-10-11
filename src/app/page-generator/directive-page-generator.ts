@@ -5,6 +5,7 @@ import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
+import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class DirectivePageGenerator {
@@ -28,14 +29,13 @@ export class DirectivePageGenerator {
                         const readme = MarkdownEngine.readNeighbourReadmeFile(directive.file);
                         directive.readme = markedAcl(readme);
                     }
-                    const location = pageLocation({
-                        type: 'symbol',
-                        kind: 'directive',
-                        name: directive.name
-                    });
+                    const location = pageLocation(
+                        itemTarget(Configuration.mainData.symbols, 'directive', directive)
+                    );
                     const page = {
                         path: location.path,
-                        name: directive.name,
+                        name: location.filename,
+                        filename: location.filename,
                         id: directive.id,
                         navTabs: this.navTabs.resolve(directive),
                         context: 'directive',
@@ -43,9 +43,6 @@ export class DirectivePageGenerator {
                         depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
-                    if (directive.isDuplicate) {
-                        page.name += `-${directive.duplicateId}`;
-                    }
                     Configuration.addPage(page);
                     i++;
                     loop();

@@ -5,6 +5,7 @@ import {
     ambiguousNames,
     buildSymbolTable,
     type EngineData,
+    entryInFile,
     lookupEntry,
     lookupName,
     type SymbolTable
@@ -144,12 +145,11 @@ describe('symbol table', () => {
         expect(index.Foo.href).toBe(pageOf('typealias', 'Foo'));
         expect(lookupName(table, 'Foo', 'entity-index')).toBe('typealias:src/foo.type.ts#Foo');
         expect(index.SettingsService.href).toBe(
-            pageOf('injectable', 'SettingsService', { duplicate: 'SettingsService-2' })
+            pageOf('injectable', 'SettingsService', { file: 'SettingsService-3' })
         );
         expect(
-            table.byId.get(lookupName(table, 'SettingsService', 'entity-index') as never)
-                ?.duplicateName
-        ).toBe('SettingsService-2');
+            table.byId.get(lookupName(table, 'SettingsService', 'entity-index') as never)?.fileName
+        ).toBe('SettingsService-3');
     });
 
     it('diff narrows by kind and takes the last copy', () => {
@@ -160,34 +160,35 @@ describe('symbol table', () => {
         expect(lookupName(table, 'Foo', 'diff', 'component')).toBeUndefined();
     });
 
-    it('carries duplicate names and overload counts', () => {
+    it('carries file names and overload counts', () => {
         const second = table.byId.get(
             'injectable:src/b/settings.service.ts#SettingsService' as never
         );
-        expect(second?.duplicateName).toBe('SettingsService-1');
+        expect(second?.fileName).toBe('SettingsService-2');
         const provide = table.byId.get('function:src/user.ts#provideUser' as never);
         expect(provide?.overloads).toBe(1);
         expect(table.byName.get('provideUser')).toHaveLength(2);
     });
 
-    it('numbers same-name misc symbols and tokens in the table, not on the engine objects', () => {
+    it('numbers same-name symbols in the table by id, not on the engine objects', () => {
         const data = {
             tokens: [item('LIMIT', 'src/a.ts'), item('LIMIT', 'src/b.ts')],
             miscellaneous: {
                 functions: [
+                    item('pick', 'src/c.ts'),
                     item('pick', 'src/a.ts'),
-                    item('pick', 'src/b.ts'),
-                    item('pick', 'src/c.ts')
+                    item('pick', 'src/b.ts')
                 ],
                 variables: [item('mode', 'src/a.ts')]
             }
         };
         const numbered = buildSymbolTable(data, { cwd: '/repo' });
-        const dup = (id: string) => numbered.byId.get(id as never)?.duplicateName;
-        expect(dup('function:src/a.ts#pick')).toBeUndefined();
-        expect(dup('function:src/b.ts#pick')).toBe('pick-1');
-        expect(dup('function:src/c.ts#pick')).toBe('pick-2');
-        expect(dup('token:src/b.ts#LIMIT')).toBe('LIMIT-1');
+        const file = (id: string) => numbered.byId.get(id as never)?.fileName;
+        expect(file('function:src/a.ts#pick')).toBe('pick');
+        expect(file('function:src/b.ts#pick')).toBe('pick-2');
+        expect(file('function:src/c.ts#pick')).toBe('pick-3');
+        expect(file('token:src/b.ts#LIMIT')).toBe('LIMIT-2');
+        expect(file('variable:src/a.ts#mode')).toBe('mode');
         for (const entry of [...data.tokens, ...data.miscellaneous.functions]) {
             expect(entry).not.toHaveProperty('isDuplicate');
             expect(entry).not.toHaveProperty('duplicateName');
@@ -219,13 +220,13 @@ describe('symbol table', () => {
 
     it('gives overloads of one function one page, no suffix', () => {
         const provide = table.byId.get('function:src/user.ts#provideUser' as never);
-        expect(provide?.duplicateName).toBeUndefined();
-        expect(lookupEntry(table, 'provideUser', 'doc-link')?.duplicateName).toBeUndefined();
+        expect(provide?.fileName).toBe('provideUser');
+        expect(lookupEntry(table, 'provideUser', 'doc-link')?.fileName).toBe('provideUser');
     });
 
-    it('keeps the engine duplicate name for the kinds the engine numbers', () => {
-        expect(lookupEntry(table, 'SettingsService', 'diff', 'injectable')?.duplicateName).toBe(
-            'SettingsService-2'
+    it('names same-name copies of the engine-numbered kinds by the same rule', () => {
+        expect(lookupEntry(table, 'SettingsService', 'diff', 'injectable')?.fileName).toBe(
+            'SettingsService-3'
         );
     });
 
@@ -266,5 +267,18 @@ describe('symbol table', () => {
 
     it('lists names that more than one symbol carries', () => {
         expect(ambiguousNames(table)).toEqual(['DEFAULT_PAGE_SIZE', 'Foo', 'SettingsService']);
+    });
+
+    it('finds an entry by file written as engine path, absolute, backslash or from another root', () => {
+        const own = buildSymbolTable(
+            { components: [item('App', 'src/app/app.ts'), item('Other', 'src/other/app.ts')] },
+            { cwd: process.cwd() }
+        );
+        const found = (file: string) => entryInFile(own, 'component', 'App', file)?.id;
+        expect(found('src/app/app.ts')).toBe('component:src/app/app.ts#App');
+        expect(found(`${process.cwd()}/src/app/app.ts`)).toBe('component:src/app/app.ts#App');
+        expect(found('src\\app\\app.ts')).toBe('component:src/app/app.ts#App');
+        expect(found('fixtures/demo/src/app/app.ts')).toBe('component:src/app/app.ts#App');
+        expect(found('src/elsewhere/app.ts')).toBeUndefined();
     });
 });

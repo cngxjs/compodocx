@@ -5,7 +5,8 @@ import {
     buildSymbolTable,
     type EngineData,
     lookupEntry,
-    policyKinds
+    policyKinds,
+    type SymbolTable
 } from '../app/links/symbol-table';
 
 export interface EntityIndexEntry {
@@ -23,7 +24,9 @@ const INDEX_KIND: Readonly<Record<string, string>> = { enumeration: 'enum' };
  * through the `entity-index` lookup policy. Hrefs are root-relative.
  */
 export function buildEntityIndex(mainData: Record<string, unknown>): EntityIndex {
-    const table = buildSymbolTable(mainData as EngineData);
+    // The run's table carries every page's folder; a bare engine snapshot (tests) builds one.
+    const table =
+        (mainData.symbols as SymbolTable | undefined) ?? buildSymbolTable(mainData as EngineData);
     const names = new Set<string>();
     for (const kind of policyKinds('entity-index')) {
         for (const entry of table.byId.values()) {
@@ -38,7 +41,7 @@ export function buildEntityIndex(mainData: Record<string, unknown>): EntityIndex
     const index: EntityIndex = {};
     for (const name of names) {
         const entry = lookupEntry(table, name, 'entity-index', undefined, hidden);
-        const link = entry && placedLink(table, entry, di, { duplicate: true });
+        const link = entry && placedLink(table, entry, di);
         if (!entry || !link) {
             continue;
         }

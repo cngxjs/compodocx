@@ -2,7 +2,7 @@ import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 
 // Characterises watch-mode rebuilds end to end: a real `-s -w` process on a
 // temp copy of the kitchen-sink fixture, driven by file edits. Every wait is
@@ -16,7 +16,6 @@ const WAIT_TIMEOUT = 30000;
 const IT_TIMEOUT = 60000;
 
 const COMPONENT_FILE = 'src/app/features/dashboard/dashboard.component.ts';
-const COMPONENT_PAGE = `${pageOf('component', 'DashboardComponent')}`;
 const TS_MARKER = 'Watch spec marker sentence for the dashboard.';
 const README_MARKER = 'Watch spec marker line for the readme.';
 
@@ -98,6 +97,10 @@ describe('CLI watch mode', () => {
     const readOut = (folder: string, file: string) =>
         fs.readFileSync(path.join(projectDir, folder, file), 'utf8');
 
+    /** The dashboard component page in a generated tree (its folder follows the feature). */
+    const componentPage = (folder: string) =>
+        pagesIn(path.join(projectDir, folder)).of('component', 'DashboardComponent');
+
     beforeAll(async () => {
         workDir = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'compodocx-watch-'));
         projectDir = path.join(workDir, 'ks');
@@ -155,7 +158,7 @@ describe('CLI watch mode', () => {
             );
             await waitForLog('Documentation generated in', 2);
 
-            expect(readOut('out', COMPONENT_PAGE)).to.contain(TS_MARKER);
+            expect(readOut('out', componentPage('out'))).to.contain(TS_MARKER);
         },
         IT_TIMEOUT
     );
@@ -178,8 +181,8 @@ describe('CLI watch mode', () => {
             );
             expect(fresh.status).to.equal(0);
 
-            const rebuilt = normaliseTimestamps(readOut('out', COMPONENT_PAGE));
-            const oneShot = normaliseTimestamps(readOut('out-fresh', COMPONENT_PAGE));
+            const rebuilt = normaliseTimestamps(readOut('out', componentPage('out')));
+            const oneShot = normaliseTimestamps(readOut('out-fresh', componentPage('out-fresh')));
             expect(rebuilt).to.equal(oneShot);
         },
         IT_TIMEOUT

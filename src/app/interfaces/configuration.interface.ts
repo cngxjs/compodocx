@@ -6,7 +6,7 @@ export interface ConfigurationInterface {
     pages: PageInterface[];
     addPage(page: PageInterface): void;
     addAdditionalPage(page: PageInterface): void;
-    hasPage(name: string): void;
+    hasPage(path: string): boolean;
     resetPages(): void;
     resetAdditionalPages(): void;
     resetRootMarkdownPages(): void;

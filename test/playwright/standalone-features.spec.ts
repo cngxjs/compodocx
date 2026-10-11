@@ -287,9 +287,9 @@ test.describe('Pipe page', () => {
 });
 
 // ─── Token pages ─────────────────────────────────────────
-// InjectionToken / HttpContextToken declarations are emitted at
-// `tokens/<name>.html` (not `injectables/`) — the new dedicated kind
-// route. The legacy injectable-flagged-as-token path is gone.
+// InjectionToken / HttpContextToken declarations get their own token page
+// in their feature's folder (not an injectable page). The legacy
+// injectable-flagged-as-token path is gone.
 
 test.describe('Token page', () => {
     test('API_BASE_URL: token badge in hero', async ({ page }) => {
@@ -505,7 +505,8 @@ test.describe('Dependency Graph — Component Tab', () => {
     });
 
     test('Dependencies tab not shown for components without imports', async ({ page }) => {
-        await page.goto(pageUrl('component', 'SettingsComponent'));
+        // Three features hold a SettingsComponent; take the one in src/app/settings.
+        await page.goto(pageUrl('component', 'SettingsComponent', { folder: ['settings'] }));
         const tab = page.getByRole('tab', { name: 'Dependencies' });
         await expect(tab).toHaveCount(0);
     });

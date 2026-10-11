@@ -196,7 +196,7 @@ describe('page-generator — orchestrator wiring', () => {
         config.mainData.symbols = buildSymbolTable({ miscellaneous: misc });
         await new MiscellaneousPageGenerator().prepare(misc);
         const picks = config.pages.filter(p => p.context === 'function');
-        expect(picks.map(p => p.filename)).toEqual(['pick', 'pick-1']);
+        expect(picks.map(p => p.filename)).toEqual(['pick', 'pick-2']);
         expect(misc.functions[2]).not.toHaveProperty('duplicateName');
     });
 

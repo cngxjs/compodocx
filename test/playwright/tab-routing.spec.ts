@@ -5,12 +5,12 @@ import { pageUrl } from './pages';
 // and the original bug where hash-only links to hidden panels did nothing.
 // Standalone fixture (port 4002), target: UserListComponent.
 
-const COMPONENT_PAGE = pageUrl('component', 'UserListComponent');
-const OTHER_PAGE = pageUrl('component', 'AppComponent');
+const COMPONENT_PAGE = (): string => pageUrl('component', 'UserListComponent');
+const OTHER_PAGE = (): string => pageUrl('component', 'AppComponent');
 
 test.describe('Full-page load deep-linking', () => {
     test('default URL loads with Info tab active', async ({ page }) => {
-        await page.goto(COMPONENT_PAGE);
+        await page.goto(COMPONENT_PAGE());
         const infoTab = page.locator('a#info-tab');
         await expect(infoTab).toHaveAttribute('aria-selected', 'true');
         const infoPanel = page.locator('#info.cdx-tab-panel');
@@ -18,7 +18,7 @@ test.describe('Full-page load deep-linking', () => {
     });
 
     test('#api hash activates the API tab', async ({ page }) => {
-        await page.goto(`${COMPONENT_PAGE}#api`);
+        await page.goto(`${COMPONENT_PAGE()}#api`);
         const apiTab = page.locator('a#api-tab');
         await expect(apiTab).toHaveAttribute('aria-selected', 'true');
         const apiPanel = page.locator('#api.cdx-tab-panel');
@@ -28,7 +28,7 @@ test.describe('Full-page load deep-linking', () => {
     });
 
     test('#ngOnInit hash activates API tab and scrolls member into view', async ({ page }) => {
-        await page.goto(`${COMPONENT_PAGE}#ngOnInit`);
+        await page.goto(`${COMPONENT_PAGE()}#ngOnInit`);
         // ngOnInit lives inside the API panel
         const apiTab = page.locator('a#api-tab');
         await expect(apiTab).toHaveAttribute('aria-selected', 'true');
@@ -38,7 +38,7 @@ test.describe('Full-page load deep-linking', () => {
     });
 
     test('#L10 hash activates Source tab and highlights line', async ({ page }) => {
-        await page.goto(`${COMPONENT_PAGE}#L10`);
+        await page.goto(`${COMPONENT_PAGE()}#L10`);
         const sourceTab = page.locator('a#source-tab');
         await expect(sourceTab).toHaveAttribute('aria-selected', 'true');
         const highlightedLine = page.locator('#source .line.cdx-line-highlight');
@@ -49,7 +49,7 @@ test.describe('Full-page load deep-linking', () => {
 
 test.describe('SPA navigation with hash', () => {
     test('SPA nav to component page lands on Info tab by default', async ({ page }) => {
-        await page.goto(OTHER_PAGE);
+        await page.goto(OTHER_PAGE());
         const sidebarLink = page.locator(
             `.menu a[data-type="entity-link"][href*="UserListComponent"]`
         );
@@ -60,7 +60,7 @@ test.describe('SPA navigation with hash', () => {
     });
 
     test('tab bar click sequence updates hash', async ({ page }) => {
-        await page.goto(COMPONENT_PAGE);
+        await page.goto(COMPONENT_PAGE());
 
         await page.locator('a#api-tab').click();
         await expect(page).toHaveURL(/#api$/);
@@ -81,7 +81,7 @@ test.describe('Cross-panel hash-only links (original bug)', () => {
     test('clicking a hash-only link to a member in another panel switches tabs', async ({
         page
     }) => {
-        await page.goto(COMPONENT_PAGE);
+        await page.goto(COMPONENT_PAGE());
         await expect(page.locator('a#info-tab')).toHaveAttribute('aria-selected', 'true');
 
         // Drop a link into the Info panel that points at a member in
@@ -106,7 +106,7 @@ test.describe('Cross-panel hash-only links (original bug)', () => {
     });
 
     test('API index entry link switches to API tab and scrolls to member', async ({ page }) => {
-        await page.goto(COMPONENT_PAGE);
+        await page.goto(COMPONENT_PAGE());
         const indexLink = page.locator('#api a.cdx-index-entry[href="#ngOnInit"]');
         // Check if the link exists (need to open API tab first)
         await page.locator('a#api-tab').click();

@@ -98,7 +98,8 @@ test.describe('Utilities page', () => {
             await page.goto(new URL(href as string, page.url()).pathname);
             const crumbs = page.locator('.cdx-breadcrumb a');
             await expect(crumbs).toHaveCount(1);
-            await expect(crumbs.first()).toHaveAttribute('href', /features\/[^/]+\.html$/);
+            // A feature page is the `index.html` of the feature's folder.
+            await expect(crumbs.first()).toHaveAttribute('href', /(?:^|\/)index\.html$/);
         });
 
         test('class page breadcrumb links to an existing feature page', async ({ page }) => {

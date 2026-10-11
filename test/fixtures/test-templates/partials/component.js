@@ -22,7 +22,7 @@ module.exports = function(data, helpers) {
     if (c.constructorObj) {
         html += `<section><h3 id="constructor">Constructor</h3>`;
         html += `<table class="table table-sm table-bordered"><tbody>`;
-        html += `<tr><td class="col-md-4"><code>${helpers.functionSignature(c.constructorObj)}</code></td></tr>`;
+        html += `<tr><td class="col-md-4"><code>${helpers.functionSignature(c.constructorObj, data.depth)}</code></td></tr>`;
         if (c.constructorObj.jsdoctags) {
             const params = helpers.extractJsdocParams(c.constructorObj.jsdoctags);
             if (params.length > 0) {
@@ -35,7 +35,7 @@ module.exports = function(data, helpers) {
                 for (const p of params) {
                     html += `<tr>`;
                     if (p.name) html += `<td><code>${p.name}</code></td>`;
-                    if (params.some(t => t.type)) html += `<td>${p.type ? helpers.linkTypeHtml(p.type) : ''}</td>`;
+                    if (params.some(t => t.type)) html += `<td>${p.type ? helpers.linkTypeHtml(p.type, { depth: data.depth }) : ''}</td>`;
                     html += `<td>${p.optional ? 'yes' : 'no'}</td>`;
                     if (params.some(t => t.comment)) html += `<td>${p.comment ? '<i>' + p.comment + '</i>' : ''}</td>`;
                     html += `</tr>`;

@@ -19,7 +19,7 @@ type EnumItem = {
 
 type BlockEnumProps = {
     readonly enums: EnumItem[];
-    readonly depth?: number;
+    readonly depth: number;
 };
 
 export const BlockEnum = (props: BlockEnumProps): string => {
@@ -52,7 +52,7 @@ export const BlockEnum = (props: BlockEnumProps): string => {
                         )}
                         {e.description && (
                             <div class="cdx-io-member-desc">
-                                {parseDescription(e.description, props.depth ?? 0)}
+                                {parseDescription(e.description, props.depth)}
                             </div>
                         )}
                         {members.length > 0 && (

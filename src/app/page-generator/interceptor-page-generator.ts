@@ -5,6 +5,7 @@ import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
+import { itemTarget } from '../links/resolve';
 import { enqueueFunctionalPages } from './functional-pages';
 import type { NavTabsResolver } from './nav-tabs';
 
@@ -29,14 +30,13 @@ export class InterceptorPageGenerator {
                         const readme = MarkdownEngine.readNeighbourReadmeFile(interceptor.file);
                         interceptor.readme = markedAcl(readme);
                     }
-                    const location = pageLocation({
-                        type: 'symbol',
-                        kind: 'interceptor',
-                        name: interceptor.name
-                    });
+                    const location = pageLocation(
+                        itemTarget(Configuration.mainData.symbols, 'interceptor', interceptor)
+                    );
                     const page = {
                         path: location.path,
-                        name: interceptor.name,
+                        name: location.filename,
+                        filename: location.filename,
                         id: interceptor.id,
                         navTabs: this.navTabs.resolve(interceptor),
                         context: 'interceptor',
@@ -44,9 +44,6 @@ export class InterceptorPageGenerator {
                         depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
-                    if (interceptor.isDuplicate) {
-                        page.name += `-${interceptor.duplicateId}`;
-                    }
                     Configuration.addPage(page);
                     i++;
                     loop();

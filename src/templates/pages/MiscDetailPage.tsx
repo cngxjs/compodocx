@@ -67,7 +67,7 @@ const META: Record<MiscDetailKind, MiscDetailMeta> = {
 export interface MiscDetailProps {
     readonly kind: MiscDetailKind;
     readonly item: any;
-    readonly depth?: number;
+    readonly depth: number;
     /** A line under the name, e.g. "Functional guard". */
     readonly contextLine?: string;
     /** The landing page the breadcrumb leads to; the Utilities group by default. */
@@ -163,7 +163,6 @@ const FunctionApi = (item: any, depth: number): string => {
                   children: ParamsTable({
                       jsdocTags: item.jsdoctags,
                       depth,
-                      typeLinkDepth: depth,
                       showOptional: true,
                       showDefaultValue: true
                   })
@@ -256,7 +255,7 @@ const EnumerationApi = (item: any): string => {
 };
 
 const ApiContent = (props: MiscDetailProps): string => {
-    const depth = props.depth ?? 1;
+    const depth = props.depth;
     switch (props.kind) {
         case 'function':
             return FunctionApi(props.item, depth);
@@ -298,7 +297,7 @@ export interface MiscTab {
 }
 
 const buildTabs = (props: MiscDetailProps): MiscTab[] => {
-    const depth = props.depth ?? 1;
+    const depth = props.depth;
     const tabs: MiscTab[] = [];
 
     const info = InfoContent(props.item, depth, props.kind);
@@ -402,16 +401,13 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                 <nav aria-label="Breadcrumb">
                     <ol class="cdx-breadcrumb">
                         {(() => {
-                            const crumbs = FeatureCrumbs(feature, props.depth ?? 1);
+                            const crumbs = FeatureCrumbs(feature, props.depth);
                             if (crumbs) {
                                 return crumbs;
                             }
                             if (props.parent) {
                                 const href = hrefText(
-                                    hrefFor(
-                                        { type: 'root', page: props.parent.page },
-                                        props.depth ?? 1
-                                    )
+                                    hrefFor({ type: 'root', page: props.parent.page }, props.depth)
                                 );
                                 return (
                                     <li>
@@ -422,16 +418,14 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                             return [
                                 (
                                     <li>
-                                        <a href={utilitiesHref(props.depth ?? 1)}>
-                                            {t('utilities')}
-                                        </a>
+                                        <a href={utilitiesHref(props.depth)}>{t('utilities')}</a>
                                     </li>
                                 ) as string,
                                 (
                                     <li>
                                         <a
                                             href={utilitiesHref(
-                                                props.depth ?? 1,
+                                                props.depth,
                                                 utilityGroupAnchor(props.kind)
                                             )}
                                         >

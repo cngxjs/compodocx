@@ -17,7 +17,7 @@ type BlockMethodProps = {
     readonly methods: any[];
     readonly file: string;
     readonly title?: string;
-    readonly depth?: number;
+    readonly depth: number;
     readonly navTabs?: any[];
 };
 
@@ -59,7 +59,9 @@ export const BlockMethod = (props: BlockMethodProps): string => {
                                 </a>
                             </span>
                             {m.returnType && (
-                                <span class="cdx-io-member-type">{linkTypeHtml(m.returnType)}</span>
+                                <span class="cdx-io-member-type">
+                                    {linkTypeHtml(m.returnType, { depth: props.depth })}
+                                </span>
                             )}
                         </div>
                         <div class="cdx-io-member-badges">
@@ -86,19 +88,19 @@ export const BlockMethod = (props: BlockMethodProps): string => {
                         )}
                         {m.args?.length > 0 && (
                             <pre class="cdx-derived-body">
-                                <code>{functionSignature(m)}</code>
+                                <code>{functionSignature(m, props.depth)}</code>
                             </pre>
                         )}
                         {m.description && (
                             <div class="cdx-io-member-desc">
-                                {parseDescription(m.description, props.depth ?? 0)}
+                                {parseDescription(m.description, props.depth)}
                             </div>
                         )}
                         {m.jsdoctags && hasJsdocParams(m.jsdoctags) && (
                             <div class="cdx-io-member-desc">
                                 {ParamsTable({
                                     jsdocTags: m.jsdoctags,
-                                    depth: props.depth ?? 0,
+                                    depth: props.depth,
                                     showOptional: true,
                                     showDefaultValue: true
                                 })}

@@ -1,7 +1,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { relativePrefix } from '../../../src/app/links/layout';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { featurePage, hrefTo, pageOf, rootPage } from '../helpers/pages';
+import { featurePage, pagesIn, rootPage } from '../helpers/pages';
 
 /** The type layout this suite asserts (the default is the feature layout). */
 const TYPE_LAYOUT = path.resolve('test/fixtures/type-layout.compodocxrc.json');
@@ -11,6 +12,7 @@ const tmp = temporaryDir();
 describe('CLI utilities', () => {
     const distFolder = `${tmp.name}-misc-detail`;
     const fixtureFolder = `${tmp.name}-misc-detail-fixture`;
+    const pages = pagesIn(distFolder);
     let utilities = '';
     let stdout = '';
 
@@ -120,41 +122,44 @@ describe('CLI utilities', () => {
 
     it('generates a detail page for every miscellaneous symbol', () => {
         // A provider without a feature type gets its page in the providers folder.
-        expect(exists(`${distFolder}/${pageOf('provider', 'provideToaster')}`)).to.be.true;
-        expect(exists(`${distFolder}/${pageOf('function', 'provideToaster')}`)).to.be.false;
-        expect(exists(`${distFolder}/${pageOf('variable', 'TOAST_TOKEN')}`)).to.be.true;
-        expect(exists(`${distFolder}/${pageOf('typealias', 'ToastConfig')}`)).to.be.true;
-        expect(exists(`${distFolder}/${pageOf('enumeration', 'ToastPosition')}`)).to.be.true;
+        expect(exists(`${distFolder}/${pages.of('provider', 'provideToaster')}`)).to.be.true;
+        expect(() => pages.of('function', 'provideToaster')).to.throw(/^0 /);
+        expect(exists(`${distFolder}/${pages.of('variable', 'TOAST_TOKEN')}`)).to.be.true;
+        expect(exists(`${distFolder}/${pages.of('typealias', 'ToastConfig')}`)).to.be.true;
+        expect(exists(`${distFolder}/${pages.of('enumeration', 'ToastPosition')}`)).to.be.true;
     });
 
     it('generates a page for untagged miscellaneous symbols too', () => {
-        expect(exists(`${distFolder}/${pageOf('function', 'helperFn')}`)).to.be.true;
-        expect(exists(`${distFolder}/${pageOf('variable', 'VERSION')}`)).to.be.true;
-        expect(exists(`${distFolder}/${pageOf('typealias', 'Maybe')}`)).to.be.true;
-        expect(exists(`${distFolder}/${pageOf('enumeration', 'Theme')}`)).to.be.true;
+        expect(exists(`${distFolder}/${pages.of('function', 'helperFn')}`)).to.be.true;
+        expect(exists(`${distFolder}/${pages.of('variable', 'VERSION')}`)).to.be.true;
+        expect(exists(`${distFolder}/${pages.of('typealias', 'Maybe')}`)).to.be.true;
+        expect(exists(`${distFolder}/${pages.of('enumeration', 'Theme')}`)).to.be.true;
     });
 
     it('lists every symbol on the utilities page, one table per group', () => {
         for (const id of ['functions', 'variables', 'typealiases', 'enumerations']) {
             expect(utilities).to.contain(`id="${id}"`);
         }
-        expect(utilities).to.not.contain(`href="${hrefTo('function', 'provideToaster', 0)}"`);
+        expect(utilities).to.not.contain(`href="${pages.href('provider', 'provideToaster', 0)}"`);
         expect(utilities).to.not.contain('<code>provideToaster</code>');
-        expect(utilities).to.contain(`href="${hrefTo('function', 'helperFn', 0)}"`);
-        expect(utilities).to.contain(`href="${hrefTo('variable', 'TOAST_TOKEN', 0)}"`);
-        expect(utilities).to.contain(`href="${hrefTo('typealias', 'Maybe', 0)}"`);
-        expect(utilities).to.contain(`href="${hrefTo('enumeration', 'Theme', 0)}"`);
+        expect(utilities).to.contain(`href="${pages.href('function', 'helperFn', 0)}"`);
+        expect(utilities).to.contain(`href="${pages.href('variable', 'TOAST_TOKEN', 0)}"`);
+        expect(utilities).to.contain(`href="${pages.href('typealias', 'Maybe', 0)}"`);
+        expect(utilities).to.contain(`href="${pages.href('enumeration', 'Theme', 0)}"`);
     });
 
     it('detail pages render the entity name in the hero and surface the description', () => {
-        const detail = read(`${distFolder}/${pageOf('function', 'helperFn')}`);
+        const detailFile = pages.of('function', 'helperFn');
+        const detail = read(`${distFolder}/${detailFile}`);
         expect(detail).to.match(/<h1[^>]*class="cdx-entity-hero-name">[\s\S]*?helperFn/);
         expect(detail).to.contain('Untagged helper.');
         // Breadcrumb: the feature (the app's root feature here) > helperFn
         expect(detail).to.contain('class="cdx-breadcrumb"');
-        expect(detail).to.contain(`href="../${featurePage(['app'])}"`);
+        expect(detail).to.contain(
+            `href="${relativePrefix(pages.depthOf(detailFile))}${featurePage(['app'])}"`
+        );
 
-        const provider = read(`${distFolder}/${pageOf('provider', 'provideToaster')}`);
+        const provider = read(`${distFolder}/${pages.of('provider', 'provideToaster')}`);
         expect(provider).to.match(/<h1[^>]*class="cdx-entity-hero-name">[\s\S]*?provideToaster/);
         expect(provider).to.contain('Provides the toaster feature');
         // @category is no longer read: no category badge, a build notice instead.
@@ -163,11 +168,14 @@ describe('CLI utilities', () => {
     });
 
     it('detail pages use the singular template context (override hook stable)', () => {
-        const detail = read(`${distFolder}/${pageOf('function', 'helperFn')}`);
+        const detailFile = pages.of('function', 'helperFn');
+        const detail = read(`${distFolder}/${detailFile}`);
         // A per-entity shell, not a list page.
         expect(detail).to.not.contain('data-compodoc="block-theming-index"');
-        // Per-entity pages live one level deep.
-        expect(detail).to.match(/href="\.\.\/styles\/compodocx\.css"/);
+        // Per-entity pages climb as many levels as their folder is deep.
+        expect(detail).to.contain(
+            `href="${relativePrefix(pages.depthOf(detailFile))}styles/compodocx.css"`
+        );
     });
 
     it('the Utilities chapter links the landing page and every symbol page', () => {
@@ -175,7 +183,7 @@ describe('CLI utilities', () => {
         const chapter =
             index.match(/id="utilities-links"[\s\S]*?<\/ul>\s*<\/li>\s*<\/ul>/)?.[0] ?? '';
         expect(chapter).to.contain(`href="${rootPage('utilities')}"`);
-        expect(chapter).to.contain(`href="${pageOf('function', 'helperFn')}"`);
+        expect(chapter).to.contain(`href="${pages.of('function', 'helperFn')}"`);
         expect(index).to.not.contain('id="miscellaneous-links"');
     });
 });

@@ -8,7 +8,7 @@ import {
 import { isInfoSection } from '../helpers';
 import { renderEntityPage } from './EntityPage';
 
-const DirectiveMetadata = (directive: any): string => {
+const DirectiveMetadata = (directive: any, depth: number): string => {
     if (!isInfoSection('metadata')) {
         return '';
     }
@@ -30,11 +30,11 @@ const DirectiveMetadata = (directive: any): string => {
     }
 
     if (directive.hostDirectives?.length > 0) {
-        rows.push(MetadataHostDirectivesRow(directive.hostDirectives));
+        rows.push(MetadataHostDirectivesRow(directive.hostDirectives, depth));
     }
 
-    rows.push(MetadataChipsRow('extends', (directive.extends as string[]) ?? []));
-    rows.push(MetadataChipsRow('implements', (directive.implements as string[]) ?? []));
+    rows.push(MetadataChipsRow('extends', (directive.extends as string[]) ?? [], depth));
+    rows.push(MetadataChipsRow('implements', (directive.implements as string[]) ?? [], depth));
 
     return MetadataSection({ rows }) + ContentSlotsSection(directive.slots);
 };
@@ -47,7 +47,7 @@ export const DirectivePage = (data: any): string =>
         depth: data.depth,
         navTabs: data.navTabs,
         disableFilePath: data.disableFilePath,
-        metadataHtml: DirectiveMetadata(data.directive),
+        metadataHtml: DirectiveMetadata(data.directive, data.depth),
         showExtends: false,
         showIndex: true,
         showConstructor: true,

@@ -5,6 +5,7 @@ import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
+import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
 
 export class InjectablePageGenerator {
@@ -28,14 +29,13 @@ export class InjectablePageGenerator {
                         const readme = MarkdownEngine.readNeighbourReadmeFile(injec.file);
                         injec.readme = markedAcl(readme);
                     }
-                    const location = pageLocation({
-                        type: 'symbol',
-                        kind: 'injectable',
-                        name: injec.name
-                    });
+                    const location = pageLocation(
+                        itemTarget(Configuration.mainData.symbols, 'injectable', injec)
+                    );
                     const page = {
                         path: location.path,
-                        name: injec.name,
+                        name: location.filename,
+                        filename: location.filename,
                         id: injec.id,
                         navTabs: this.navTabs.resolve(injec),
                         context: 'injectable',
@@ -43,9 +43,6 @@ export class InjectablePageGenerator {
                         depth: location.depth,
                         pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
                     };
-                    if (injec.isDuplicate) {
-                        page.name += `-${injec.duplicateId}`;
-                    }
                     Configuration.addPage(page);
                     i++;
                     loop();

@@ -1,5 +1,6 @@
 import { factKey, type SemanticModel } from '../compiler/semantic/model';
 import type { EntityKind } from '../engines/dependencies.engine';
+import { type FileNameRequest, folderFileNames, safeFileName, symbolFolder } from './layout';
 import {
     presentationKind,
     type SymbolId,
@@ -15,8 +16,10 @@ export interface SymbolEntry {
     readonly ref: SymbolRef;
     /** The engine object, by reference. Read only. */
     readonly data: unknown;
-    /** Page name of a same-name copy, e.g. `Todo-1`. */
-    readonly duplicateName?: string;
+    /** Folder of the symbol's page: its feature's segments, or `symbolFolder` without one. */
+    readonly folder: readonly string[];
+    /** File name of the symbol's page, unique in its folder (`folderFileNames`). */
+    readonly fileName: string;
     /** Import path of the nearest exporting barrel; undefined without semantic facts. */
     readonly entryPoint?: string;
     /** Further engine entries that share the id (overloads, merged declarations). */
@@ -105,56 +108,18 @@ const TABLE_ORDER: readonly EntityKind[] = [
     'enumeration'
 ];
 
-/**
- * Kinds whose same-name copies the table numbers itself (`-1`, `-2`, ... in
- * engine order). The engine numbers the other kinds on its own objects; these
- * are left untouched because the export copies them.
- */
-const TABLE_SUFFIX_KINDS: ReadonlySet<TableKind> = new Set<TableKind>([
-    'function',
-    'variable',
-    'typealias',
-    'enumeration',
-    'token'
-]);
-
-/** The engine lists the table numbers. */
-const SUFFIX_LISTS: readonly EntityKind[] = [
-    'function',
-    'variable',
-    'typealias',
-    'enumeration',
-    'token'
-];
-
-const engineDuplicateName = (item: Named): string | undefined => {
-    const name = (item as { duplicateName?: unknown }).duplicateName;
-    return typeof name === 'string' ? name : undefined;
-};
-
-/** Duplicate names of the table-numbered kinds; overloads (one id) are one symbol. */
-const tableDuplicateNames = (
-    data: EngineData,
-    idOf: (kind: EntityKind, item: Named) => SymbolId
-): ReadonlyMap<SymbolId, string> => {
+/** The file name of every symbol page, assigned per folder. */
+const fileNames = (entries: Iterable<SymbolEntry>): ReadonlyMap<SymbolId, string> => {
+    const byFolder = new Map<string, FileNameRequest[]>();
+    for (const entry of entries) {
+        const folder = entry.folder.join('/');
+        const request = { id: entry.id, name: entry.ref.name, kind: entry.ref.kind };
+        byFolder.set(folder, [...(byFolder.get(folder) ?? []), request]);
+    }
     const names = new Map<SymbolId, string>();
-    for (const kind of SUFFIX_LISTS) {
-        const seen = new Map<string, SymbolId[]>();
-        for (const item of listOf(data, kind) ?? []) {
-            if (typeof item?.name !== 'string') {
-                continue;
-            }
-            const id = idOf(kind, item);
-            const ids = seen.get(item.name) ?? [];
-            if (!ids.includes(id)) {
-                ids.push(id);
-                seen.set(item.name, ids);
-            }
-        }
-        for (const [name, ids] of seen) {
-            ids.slice(1).forEach((id, i) => {
-                names.set(id, `${name}-${i + 1}`);
-            });
+    for (const requests of byFolder.values()) {
+        for (const [id, file] of folderFileNames(requests)) {
+            names.set(id as SymbolId, file);
         }
     }
     return names;
@@ -172,7 +137,6 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
         file: typeof item.file === 'string' ? symbolFile(item.file, cwd) : '',
         name: item.name as string
     });
-    const suffixes = tableDuplicateNames(data, (kind, item) => symbolId(refOf(kind, item)));
     const byId = new Map<SymbolId, SymbolEntry>();
     const byName = new Map<string, SymbolId[]>();
     const dataByName = new Map<string, unknown[]>();
@@ -191,9 +155,8 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
                     id,
                     ref,
                     data: item,
-                    duplicateName: TABLE_SUFFIX_KINDS.has(kind)
-                        ? suffixes.get(id)
-                        : engineDuplicateName(item),
+                    folder: symbolFolder(ref.kind),
+                    fileName: '',
                     entryPoint: options.semantic?.facts.get(factKey(toSymbolKey(ref)))?.entryPoint,
                     overloads: 0
                 });
@@ -208,7 +171,32 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
             }
         }
     }
-    return { byId, byName, dataByName };
+    return withFileNames({ byId, byName, dataByName });
+};
+
+const withFileNames = (table: SymbolTable): SymbolTable => {
+    const files = fileNames(table.byId.values());
+    const byId = new Map<SymbolId, SymbolEntry>();
+    for (const [id, entry] of table.byId) {
+        byId.set(id, { ...entry, fileName: files.get(id) ?? safeFileName(entry.ref.name) });
+    }
+    return { ...table, byId };
+};
+
+/**
+ * The table with every symbol page moved to the folder `folderOf` gives it
+ * (its feature), file names assigned anew per folder. A symbol `folderOf`
+ * has no folder for keeps its kind folder.
+ */
+export const placeInFolders = (
+    table: SymbolTable,
+    folderOf: (entry: SymbolEntry) => readonly string[] | undefined
+): SymbolTable => {
+    const byId = new Map<SymbolId, SymbolEntry>();
+    for (const [id, entry] of table.byId) {
+        byId.set(id, { ...entry, folder: folderOf(entry) ?? symbolFolder(entry.ref.kind) });
+    }
+    return withFileNames({ ...table, byId });
 };
 
 export const emptySymbolTable = (): SymbolTable => ({
@@ -377,13 +365,9 @@ export const lookupName = (
     exclude?: ExcludeId
 ): SymbolId | undefined => lookupOccurrence(table, name, policy, kind, exclude)?.id;
 
-/** The duplicate name of one engine object: the table's for the kinds it numbers. */
-const duplicateNameFor = (entry: SymbolEntry, data: Named): string | undefined =>
-    TABLE_SUFFIX_KINDS.has(entry.ref.kind) ? entry.duplicateName : engineDuplicateName(data);
-
 /**
  * Like `lookupName`, but returns the entry as the chosen engine object sees
- * it: overloads of one id keep their own data and engine duplicate name.
+ * it: overloads of one id keep their own data (and share one page).
  */
 export const lookupEntry = (
     table: SymbolTable,
@@ -397,8 +381,7 @@ export const lookupEntry = (
     if (!occurrence || !entry) {
         return undefined;
     }
-    const data = occurrence.data as Named;
-    return { ...entry, data, duplicateName: duplicateNameFor(entry, data) };
+    return { ...entry, data: occurrence.data };
 };
 
 /** The entry of `name` and `kind` whose engine object was read from `file`. */
@@ -408,15 +391,21 @@ export const entryInFile = (
     name: string,
     file: string | undefined
 ): SymbolEntry | undefined => {
-    const occurrence = occurrencesOf(table, name).find(
-        o => o.kind === kind && (o.data as Named).file === file
-    );
+    const occurrences = occurrencesOf(table, name).filter(o => o.kind === kind);
+    // The engine's own path first, then the id form (absolute or backslash paths).
+    const id = file === undefined ? undefined : symbolFile(file, process.cwd());
+    const refFile = (o: Occurrence) => table.byId.get(o.id)?.ref.file ?? '';
+    // A path from another root (a coverage report) ends with the id form; only a unique match counts.
+    const bySuffix = occurrences.filter(o => id?.endsWith(`/${refFile(o)}`));
+    const occurrence =
+        occurrences.find(o => (o.data as Named).file === file) ??
+        occurrences.find(o => id !== undefined && refFile(o) === id) ??
+        (bySuffix.length === 1 ? bySuffix[0] : undefined);
     const entry = occurrence && table.byId.get(occurrence.id);
     if (!occurrence || !entry) {
         return undefined;
     }
-    const data = occurrence.data as Named;
-    return { ...entry, data, duplicateName: duplicateNameFor(entry, data) };
+    return { ...entry, data: occurrence.data };
 };
 
 /** Names that more than one symbol carries. */

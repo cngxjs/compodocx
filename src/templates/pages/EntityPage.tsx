@@ -222,7 +222,7 @@ const hasInfoContent = (e: any, props: EntityInfoProps): boolean =>
     );
 
 /** Render extends/implements as metadata card rows for entities without decorator metadata */
-const ExtendsMetadataCard = (e: any): string => {
+const ExtendsMetadataCard = (e: any, depth: number): string => {
     const hasExtends = e.extends?.length > 0;
     const hasImplements = e.implements?.length > 0;
     if (!hasExtends && !hasImplements) {
@@ -242,7 +242,9 @@ const ExtendsMetadataCard = (e: any): string => {
                     <div class="cdx-metadata-row">
                         <dt class="cdx-metadata-label">extends</dt>
                         <dd class="cdx-metadata-value">
-                            {(e.extends as string[]).map(ext => linkTypeHtml(ext)).join(' ')}
+                            {(e.extends as string[])
+                                .map(ext => linkTypeHtml(ext, { depth }))
+                                .join(' ')}
                         </dd>
                     </div>
                 )}
@@ -250,7 +252,9 @@ const ExtendsMetadataCard = (e: any): string => {
                     <div class="cdx-metadata-row">
                         <dt class="cdx-metadata-label">implements</dt>
                         <dd class="cdx-metadata-value">
-                            {(e.implements as string[]).map(impl => linkTypeHtml(impl)).join(' ')}
+                            {(e.implements as string[])
+                                .map(impl => linkTypeHtml(impl, { depth }))
+                                .join(' ')}
                         </dd>
                     </div>
                 )}
@@ -295,7 +299,7 @@ const InfoContent = (props: EntityInfoProps): string => {
             {/* Used-by backlinks from the semantic analysis */}
             {ReferencedBySection({
                 entries: usedByEntries(Configuration.mainData, props.entityKey as EntityKind, e),
-                depth: props.depth ?? 0
+                depth: props.depth
             })}
 
             {/* Import statement */}
@@ -329,7 +333,7 @@ const InfoContent = (props: EntityInfoProps): string => {
             {RelatedSection({
                 entityName: e.name,
                 relatedTo: e.relatedTo,
-                depth: props.depth ?? 0
+                depth: props.depth
             })}
 
             {/* Examples */}
@@ -346,7 +350,7 @@ const InfoContent = (props: EntityInfoProps): string => {
                 (props.metadataHtml
                     ? props.metadataHtml
                     : isInfoSection('extends') && props.showExtends !== false
-                      ? ExtendsMetadataCard(e)
+                      ? ExtendsMetadataCard(e, props.depth)
                       : '')}
 
             {/* Host section */}
@@ -357,7 +361,8 @@ const InfoContent = (props: EntityInfoProps): string => {
                 e.providers?.length > 0 &&
                 ProvidersSection({
                     title: t('providers'),
-                    entries: e.providers
+                    entries: e.providers,
+                    depth: props.depth
                 })}
 
             {/* View Providers */}
@@ -365,7 +370,8 @@ const InfoContent = (props: EntityInfoProps): string => {
                 e.viewProviders?.length > 0 &&
                 ProvidersSection({
                     title: t('view-providers'),
-                    entries: e.viewProviders
+                    entries: e.viewProviders,
+                    depth: props.depth
                 })}
 
             {/* Dependencies (inject() + constructor merged) */}
@@ -384,7 +390,7 @@ const InfoContent = (props: EntityInfoProps): string => {
                             return BlockConstructor({
                                 constructor: e.constructorObj,
                                 file: e.file,
-                                depth: props.depth ?? 0
+                                depth: props.depth
                             });
                         }
                         return '';
@@ -393,7 +399,7 @@ const InfoContent = (props: EntityInfoProps): string => {
                         injectProps,
                         constructorArgs: ctorArgs,
                         constructorDescription: e.constructorObj?.description,
-                        depth: props.depth ?? 0
+                        depth: props.depth
                     });
                 })()}
 
@@ -405,7 +411,8 @@ const InfoContent = (props: EntityInfoProps): string => {
                 BlockRelationshipGraph({
                     incoming: props.relationships.incoming,
                     outgoing: props.relationships.outgoing,
-                    entityName: e.name
+                    entityName: e.name,
+                    depth: props.depth
                 })}
         </>
     ) as string;
@@ -590,7 +597,7 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
                 </div>
                 <nav aria-label="Breadcrumb">
                     <ol class="cdx-breadcrumb">
-                        {FeatureCrumbs(feature, props.depth ?? 1) ??
+                        {FeatureCrumbs(feature, props.depth) ??
                             ((<li>{t(props.breadcrumbLabel)}</li>) as string)}
                         <li aria-current="page">{e.name}</li>
                     </ol>

@@ -74,7 +74,7 @@ export const parseDescription = (description: string, depth: number): string => 
             stringToReplace = completeTag;
         }
 
-        const foundTarget = found ? targetOfData(found) : undefined;
+        const foundTarget = found ? targetOfData(found, Configuration.mainData.symbols) : undefined;
         const foundLink =
             found && foundTarget
                 ? placeTarget(

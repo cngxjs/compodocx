@@ -15,11 +15,11 @@ import { pageUrl } from './pages';
 // UserCardComponent in the standalone-app fixture has the right
 // shape for these tests: depth-0 class + six depth-1 members, 45
 // lines — long enough to scroll through without being a full page.
-const SOURCE_PAGE = pageUrl('component', 'UserCardComponent');
+const SOURCE_PAGE = (): string => pageUrl('component', 'UserCardComponent');
 
 test.describe('Source viewer — chrome', () => {
     test('source tab renders the VS Code-style viewer wrapper', async ({ page }) => {
-        await page.goto(SOURCE_PAGE);
+        await page.goto(SOURCE_PAGE());
         await page.locator('a#source-tab').click();
         const viewer = page.locator('#source .cdx-source-viewer');
         await expect(viewer).toBeVisible();
@@ -27,7 +27,7 @@ test.describe('Source viewer — chrome', () => {
     });
 
     test('tab header renders file icon, path, scope span, and copy button', async ({ page }) => {
-        await page.goto(SOURCE_PAGE);
+        await page.goto(SOURCE_PAGE());
         await page.locator('a#source-tab').click();
         const header = page.locator('#source .cdx-source-viewer-header');
         await expect(header).toBeVisible();
@@ -40,7 +40,7 @@ test.describe('Source viewer — chrome', () => {
     });
 
     test('typescript icon uses the --typescript lang modifier class', async ({ page }) => {
-        await page.goto(SOURCE_PAGE);
+        await page.goto(SOURCE_PAGE());
         await page.locator('a#source-tab').click();
         const viewer = page.locator('#source .cdx-source-viewer');
         await expect(viewer).toHaveClass(/cdx-source-viewer--typescript/);
@@ -48,7 +48,7 @@ test.describe('Source viewer — chrome', () => {
 
     test('clone source via the integrated copy button', async ({ page, context }) => {
         await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-        await page.goto(SOURCE_PAGE);
+        await page.goto(SOURCE_PAGE());
         await page.locator('a#source-tab').click();
         const btn = page.locator('#source .cdx-source-viewer-copy');
         await btn.click();
@@ -59,7 +59,7 @@ test.describe('Source viewer — chrome', () => {
     });
 
     test('body pre contains member markers with depth attributes', async ({ page }) => {
-        await page.goto(SOURCE_PAGE);
+        await page.goto(SOURCE_PAGE());
         await page.locator('a#source-tab').click();
         const markers = page.locator('#source .cdx-source-viewer-body [data-cdx-member]');
         const count = await markers.count();
@@ -75,7 +75,7 @@ test.describe('Source viewer — chrome', () => {
 
 test.describe('Source viewer — sticky scroll stack', () => {
     test('stack is hidden when the user has not scrolled past the class decl', async ({ page }) => {
-        await page.goto(SOURCE_PAGE);
+        await page.goto(SOURCE_PAGE());
         await page.locator('a#source-tab').click();
         const stack = page.locator('#source .cdx-source-viewer-sticky-stack');
         // :empty hides the element via display: none, so the DOM node
@@ -101,7 +101,7 @@ test.describe('Source viewer — scroll margin', () => {
     test('lines carry scroll-margin-top so sticky chrome does not obscure jumps', async ({
         page
     }) => {
-        await page.goto(SOURCE_PAGE);
+        await page.goto(SOURCE_PAGE());
         await page.locator('a#source-tab').click();
 
         const firstLine = page.locator('#source .cdx-source-viewer-body .line').first();

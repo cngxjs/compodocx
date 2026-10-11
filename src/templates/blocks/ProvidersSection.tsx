@@ -2,7 +2,11 @@ import Html from '@kitajs/html';
 import { linkTypeHtml } from '../helpers';
 
 /** Standalone section for providers or viewProviders as 2-column grid table. */
-export const ProvidersSection = (props: { title: string; entries: any[] }): string => {
+export const ProvidersSection = (props: {
+    title: string;
+    entries: any[];
+    depth: number;
+}): string => {
     if (!props.entries?.length) {
         return '';
     }
@@ -14,7 +18,7 @@ export const ProvidersSection = (props: { title: string; entries: any[] }): stri
         );
 
     const nameLink = (name: string): string => {
-        const resolved = linkTypeHtml(name);
+        const resolved = linkTypeHtml(name, { depth: props.depth });
         return resolved || esc(name);
     };
 

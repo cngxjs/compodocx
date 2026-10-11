@@ -6,7 +6,7 @@ type BlockIndexSignaturesProps = {
     readonly indexables: any[];
     readonly file: string;
     readonly title?: string;
-    readonly depth?: number;
+    readonly depth: number;
     readonly navTabs?: any[];
 };
 
@@ -27,12 +27,13 @@ export const BlockIndexSignatures = (props: BlockIndexSignaturesProps): string =
                 <div class="cdx-io-member" id={idx.name ?? ''}>
                     <pre class="cdx-derived-body">
                         <code>
-                            {indexableSignature(idx)}: {linkTypeHtml(idx.returnType)}
+                            {indexableSignature(idx)}:{' '}
+                            {linkTypeHtml(idx.returnType, { depth: props.depth })}
                         </code>
                     </pre>
                     {idx.description && (
                         <div class="cdx-io-member-desc">
-                            {parseDescription(idx.description, props.depth ?? 0)}
+                            {parseDescription(idx.description, props.depth)}
                         </div>
                     )}
                     {idx.line && isTabEnabled(props.navTabs, 'source') && (

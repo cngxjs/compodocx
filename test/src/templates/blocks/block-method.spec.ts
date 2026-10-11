@@ -17,6 +17,7 @@ describe('BlockMethod', () => {
 
     it('renders the default block-methods section with one row per method', () => {
         const html = BlockMethod({
+            depth: 1,
             methods: [{ name: 'doThing', returnType: 'void' }],
             file: 'foo.ts'
         });
@@ -31,6 +32,7 @@ describe('BlockMethod', () => {
             (data: any) => `<section id="custom-methods">${data.methods.length}</section>`
         );
         const html = BlockMethod({
+            depth: 1,
             methods: [{ name: 'a' }, { name: 'b' }],
             file: 'foo.ts'
         });

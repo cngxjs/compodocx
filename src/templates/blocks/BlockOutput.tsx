@@ -6,7 +6,7 @@ import { isTabEnabled, linkTypeHtml, parseDescription, signalKindLabel, t } from
 type BlockOutputProps = {
     readonly element: any;
     readonly file: string;
-    readonly depth?: number;
+    readonly depth: number;
     readonly navTabs?: any[];
 };
 
@@ -43,7 +43,9 @@ export const BlockOutput = (props: BlockOutputProps): string => {
                                 </a>
                             </span>
                             {out.type && (
-                                <span class="cdx-io-member-type">{linkTypeHtml(out.type)}</span>
+                                <span class="cdx-io-member-type">
+                                    {linkTypeHtml(out.type, { depth: props.depth })}
+                                </span>
                             )}
                         </div>
                         <div class="cdx-io-member-badges">
@@ -58,7 +60,7 @@ export const BlockOutput = (props: BlockOutputProps): string => {
                         </div>
                         {out.description && (
                             <div class="cdx-io-member-desc">
-                                {parseDescription(out.description, props.depth ?? 0)}
+                                {parseDescription(out.description, props.depth)}
                             </div>
                         )}
                         {out.line && isTabEnabled(props.navTabs, 'source') && (

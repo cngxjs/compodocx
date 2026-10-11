@@ -1,10 +1,17 @@
 import Html from '@kitajs/html';
 import type { SymbolKey } from '../../app/compiler/semantic/model';
 import Configuration from '../../app/configuration';
-import { hrefFor, hrefText, KIND_FOLDER, memberAnchor } from '../../app/links/layout';
-import { placedLink } from '../../app/links/resolve';
+import {
+    hrefFor,
+    hrefText,
+    memberAnchor,
+    pageFile,
+    pageLocation,
+    pagePath
+} from '../../app/links/layout';
+import { clusterTarget, itemTarget, placedLink } from '../../app/links/resolve';
 import { symbolId } from '../../app/links/symbol-id';
-import type { SymbolTable } from '../../app/links/symbol-table';
+import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { ImportStatement } from '../blocks/ImportStatement';
 import { type ReferencedByEntry, ReferencedBySection } from '../blocks/ReferencedBySection';
 import { DiBadges } from '../components/DiBadges';
@@ -201,7 +208,11 @@ const TokenList = (tokens: readonly any[], depth: number): string =>
                               <a
                                   href={hrefText(
                                       hrefFor(
-                                          { type: 'symbol', kind: 'token', name: token.name },
+                                          itemTarget(
+                                              Configuration.mainData.symbols,
+                                              'token',
+                                              token
+                                          ),
                                           depth
                                       )
                                   )}
@@ -225,8 +236,12 @@ const clusterUsedBy = (cluster: ClusterPageData): ReferencedByEntry[] => {
             usedByEntries(Configuration.mainData, memberKind(item), item)
         )
     ];
+    const ownerEntry = Configuration.mainData.symbols
+        ? entryInFile(Configuration.mainData.symbols, ownerKind, owner.name, owner.file)
+        : undefined;
+    const thisPage = ownerEntry && pagePath(pageLocation(clusterTarget(ownerEntry)));
     const onThisPage = (entry: ReferencedByEntry) =>
-        entry.hrefPrefix === KIND_FOLDER.provider && (entry.pageName ?? entry.name) === owner.name;
+        pageFile(entry.hrefPrefix, entry.pageName ?? entry.name) === thisPage;
     const seen = new Set<string>();
     return entries
         .filter(entry => !onThisPage(entry))
@@ -282,7 +297,7 @@ const ExamplesContent = (cluster: ClusterPageData): string => {
 
 export const ClusterPage = (data: any): string => {
     const cluster: ClusterPageData = data.cluster;
-    const depth: number = data.depth ?? 1;
+    const depth: number = data.depth;
     const owner = cluster.featureType;
     const examples = ExamplesContent(cluster);
     const tabs: MiscTab[] = [

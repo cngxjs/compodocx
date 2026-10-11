@@ -5,24 +5,24 @@ import { pageUrl } from './pages';
 // LoadingSpinnerComponent — annotated with @overview + five @property tokens
 // across two @groups, plus one deprecated entry.
 
-const COMPONENT_PAGE = pageUrl('component', 'LoadingSpinnerComponent');
-const PLAIN_PAGE = pageUrl('component', 'AppComponent');
+const COMPONENT_PAGE = (): string => pageUrl('component', 'LoadingSpinnerComponent');
+const PLAIN_PAGE = (): string => pageUrl('component', 'AppComponent');
 
 test.describe('Theming tab — visibility', () => {
     test('appears in the tab bar when a component has documented tokens', async ({ page }) => {
-        await page.goto(COMPONENT_PAGE);
+        await page.goto(COMPONENT_PAGE());
         const themingTab = page.locator('a#theming-tab');
         await expect(themingTab).toBeVisible();
     });
 
     test('does NOT appear on a component without documented tokens', async ({ page }) => {
-        await page.goto(PLAIN_PAGE);
+        await page.goto(PLAIN_PAGE());
         const themingTab = page.locator('a#theming-tab');
         await expect(themingTab).toHaveCount(0);
     });
 
     test('#theming hash activates the Theming tab', async ({ page }) => {
-        await page.goto(`${COMPONENT_PAGE}#theming`);
+        await page.goto(`${COMPONENT_PAGE()}#theming`);
         const themingTab = page.locator('a#theming-tab');
         await expect(themingTab).toHaveAttribute('aria-selected', 'true');
         const panel = page.locator('#theming.cdx-tab-panel');
@@ -32,7 +32,7 @@ test.describe('Theming tab — visibility', () => {
 
 test.describe('Theming tab — content', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto(`${COMPONENT_PAGE}#theming`);
+        await page.goto(`${COMPONENT_PAGE()}#theming`);
     });
 
     test('renders the @overview block as the first paragraph', async ({ page }) => {
@@ -88,7 +88,7 @@ test.describe('Theming tab — content', () => {
 
 test.describe('Theming tab — index', () => {
     test('renders an index above the rows when 2+ tokens exist', async ({ page }) => {
-        await page.goto(`${COMPONENT_PAGE}#theming`);
+        await page.goto(`${COMPONENT_PAGE()}#theming`);
         const index = page.locator('#theming [data-compodoc="block-theming-index"]');
         await expect(index).toBeVisible();
         // One indicator per token, all with the theming kind
@@ -97,7 +97,7 @@ test.describe('Theming tab — index', () => {
     });
 
     test('clicking an index entry scrolls its row into view', async ({ page }) => {
-        await page.goto(`${COMPONENT_PAGE}#theming`);
+        await page.goto(`${COMPONENT_PAGE()}#theming`);
         const indexLink = page
             .locator('#theming [data-compodoc="block-theming-index"]')
             .locator('a[href="#theme-spinner-overlay-bg"]');
@@ -109,7 +109,7 @@ test.describe('Theming tab — index', () => {
 
 test.describe('Theming tab — source panel', () => {
     test('renders a collapsible <details> with the original style content', async ({ page }) => {
-        await page.goto(`${COMPONENT_PAGE}#theming`);
+        await page.goto(`${COMPONENT_PAGE()}#theming`);
         const details = page.locator('#theming details.cdx-theming-source');
         await expect(details).toBeVisible();
         // Closed by default
@@ -117,7 +117,7 @@ test.describe('Theming tab — source panel', () => {
     });
 
     test('opens when clicked and reveals the inline-style source code', async ({ page }) => {
-        await page.goto(`${COMPONENT_PAGE}#theming`);
+        await page.goto(`${COMPONENT_PAGE()}#theming`);
         const details = page.locator('#theming details.cdx-theming-source');
         await details.locator('summary').click();
         await expect(details).toHaveAttribute('open', '');

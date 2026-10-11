@@ -3,7 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 
 const tmp = temporaryDir();
 
@@ -157,7 +157,7 @@ describe('CLI simple flags', () => {
                 throw new Error('error');
             }
             componentFile = read(
-                `${distFolder}/documentation/${pageOf('component', 'FooComponent')}`
+                `${distFolder}/documentation/${pagesIn(`${distFolder}/documentation`).of('component', 'FooComponent')}`
             );
         });
         afterAll(() => tmp.clean(distFolder));

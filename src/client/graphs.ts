@@ -8,9 +8,16 @@ import { hrefFor, hrefText, ROOT_DEPTH } from '../app/links/layout';
 
 declare const ROUTES_INDEX: any;
 
-/** Link from the routes page (at the output root) to a component page. */
-const componentHref = (name: string): string =>
-    hrefText(hrefFor({ type: 'symbol', kind: 'component', name }, ROOT_DEPTH));
+/**
+ * Link from the routes page (at the output root) to a component page, from
+ * the entity index every page carries (root-relative hrefs).
+ */
+const componentHref = (name: string): string => {
+    const entities = (globalThis as { __CDX_ENTITIES__?: Record<string, { href: string }> })
+        .__CDX_ENTITIES__;
+    const href = entities?.[name]?.href;
+    return href ? hrefText(hrefFor({ type: 'asset', path: href }, ROOT_DEPTH)) : '#';
+};
 declare const COMPONENT_TEMPLATE: string;
 declare const COMPONENTS: Array<{ name: string; selector: string }>;
 declare const DIRECTIVES: Array<{ name: string; selector: string }>;

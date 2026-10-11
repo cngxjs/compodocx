@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ProvidersSection } from '../../../../src/templates/blocks/ProvidersSection';
 
-const render = (entries: any[]) => ProvidersSection({ title: 'Providers', entries });
+const render = (entries: any[]) => ProvidersSection({ title: 'Providers', entries, depth: 1 });
 
 describe('providers section', () => {
     it('renders an unknown provider call as code, callee and feature calls, without a strategy label', () => {

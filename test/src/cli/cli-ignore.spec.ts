@@ -1,5 +1,5 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { pageOf } from '../helpers/pages';
+import { pagesIn } from '../helpers/pages';
 import { readKindPages } from './paths';
 
 const tmp = temporaryDir();
@@ -8,6 +8,7 @@ describe('CLI ignore JSDoc tag support', () => {
     const distFolder = `${tmp.name}-ignore-jsdoc`;
 
     describe('without --disableLifeCycleHooks', () => {
+        const pages = pagesIn(distFolder);
         beforeAll(() => {
             tmp.create(distFolder);
             const ls = shell('node', [
@@ -27,39 +28,38 @@ describe('CLI ignore JSDoc tag support', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('AppComponent ignored', () => {
-            const file = exists(`${distFolder}/${pageOf('component', 'AppComponent')}`);
-            expect(file).to.be.false;
+            expect(() => pages.of('component', 'AppComponent')).to.throw(/^0 /);
         });
 
         it('Component property ignored', () => {
-            const file = read(`${distFolder}/${pageOf('component', 'FooterComponent')}`);
+            const file = read(`${distFolder}/${pages.of('component', 'FooterComponent')}`);
             expect(file).to.not.contain('<code>ignoredProperty');
         });
 
         it('Component function ignored', () => {
-            const file = read(`${distFolder}/${pageOf('component', 'FooterComponent')}`);
+            const file = read(`${distFolder}/${pages.of('component', 'FooterComponent')}`);
             expect(file).to.not.contain('<code>ignoredFunction');
         });
 
         it('Component input ignored', () => {
-            const file = read(`${distFolder}/${pageOf('component', 'FooterComponent')}`);
+            const file = read(`${distFolder}/${pages.of('component', 'FooterComponent')}`);
             expect(file).to.not.contain('<code>ignoredInput');
         });
 
         it('Component output ignored', () => {
-            const file = read(`${distFolder}/${pageOf('component', 'FooterComponent')}`);
+            const file = read(`${distFolder}/${pages.of('component', 'FooterComponent')}`);
             expect(file).to.not.contain('<code>ignoredOutput');
         });
 
         // `host: {}` entries are decorator metadata and stay listed; @ignore
         // hides the bound member and the listener handler.
         it('Component hostbinding ignored', () => {
-            const file = read(`${distFolder}/${pageOf('component', 'FooterComponent')}`);
+            const file = read(`${distFolder}/${pages.of('component', 'FooterComponent')}`);
             expect(file).to.not.contain('cdx-io-member-name">color');
         });
 
         it('Component hostlistener ignored', () => {
-            const file = read(`${distFolder}/${pageOf('component', 'FooterComponent')}`);
+            const file = read(`${distFolder}/${pages.of('component', 'FooterComponent')}`);
             expect(file).to.not.contain('cdx-io-member-name">onMouseup');
         });
 
@@ -69,47 +69,42 @@ describe('CLI ignore JSDoc tag support', () => {
         });
 
         it('Directive ignored', () => {
-            const file = exists(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
-            expect(file).to.be.false;
+            expect(() => pages.of('directive', 'DoNothingDirective')).to.throw(/^0 /);
         });
 
         it('Service ignored', () => {
-            const file = exists(`${distFolder}/${pageOf('injectable', 'TodoStore')}`);
-            expect(file).to.be.false;
+            expect(() => pages.of('injectable', 'TodoStore')).to.throw(/^0 /);
         });
 
         it('Pipe ignored', () => {
-            const file = exists(`${distFolder}/${pageOf('pipe', 'FirstUpperPipe')}`);
-            expect(file).to.be.false;
+            expect(() => pages.of('pipe', 'FirstUpperPipe')).to.throw(/^0 /);
         });
 
         it('Interface ignored', () => {
-            const file = exists(`${distFolder}/${pageOf('interface', 'ClockInterface')}`);
-            expect(file).to.be.false;
+            expect(() => pages.of('interface', 'ClockInterface')).to.throw(/^0 /);
         });
 
         it('Class ignored', () => {
-            const file = exists(`${distFolder}/${pageOf('class', 'Todo')}`);
-            expect(file).to.be.false;
+            expect(() => pages.of('class', 'Todo')).to.throw(/^0 /);
         });
 
         it('Class constructor ignored', () => {
-            const file = read(`${distFolder}/${pageOf('class', 'PrivateConstructor')}`);
+            const file = read(`${distFolder}/${pages.of('class', 'PrivateConstructor')}`);
             expect(file).to.not.contain('<code>constructor');
         });
 
         it('Class property ignored', () => {
-            const file = read(`${distFolder}/${pageOf('class', 'PrivateConstructor')}`);
+            const file = read(`${distFolder}/${pages.of('class', 'PrivateConstructor')}`);
             expect(file).to.not.contain('<code>myproperty');
         });
 
         it('Class function ignored', () => {
-            const file = read(`${distFolder}/${pageOf('class', 'PrivateConstructor')}`);
+            const file = read(`${distFolder}/${pages.of('class', 'PrivateConstructor')}`);
             expect(file).to.not.contain('<code>yo');
         });
 
         it('Class acessors ignored', () => {
-            const file = read(`${distFolder}/${pageOf('component', 'FooterComponent')}`);
+            const file = read(`${distFolder}/${pages.of('component', 'FooterComponent')}`);
             expect(file).to.not.contain('<code>title(v');
         });
 
@@ -135,6 +130,7 @@ describe('CLI ignore JSDoc tag support', () => {
     });
 
     describe('with --disableLifeCycleHooks', () => {
+        const pages = pagesIn(distFolder);
         beforeAll(() => {
             tmp.create(distFolder);
             const ls = shell('node', [
@@ -160,13 +156,11 @@ describe('CLI ignore JSDoc tag support', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('AppComponent ignored', () => {
-            const file = exists(`${distFolder}/${pageOf('component', 'AppComponent')}`);
-            expect(file).to.be.false;
+            expect(() => pages.of('component', 'AppComponent')).to.throw(/^0 /);
         });
 
         it('Directive ignored', () => {
-            const file = exists(`${distFolder}/${pageOf('directive', 'DoNothingDirective')}`);
-            expect(file).to.be.false;
+            expect(() => pages.of('directive', 'DoNothingDirective')).to.throw(/^0 /);
         });
     });
 });

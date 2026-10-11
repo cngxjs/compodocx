@@ -1,6 +1,6 @@
 # Multi-version documentation
 
-compodocx generates a fully self-contained, statically-served site on every run. Every URL in the output uses a relative path (`./images/favicon.ico`, `../components/Foo.html`, depth-aware Pagefind loader), so multiple builds can sit side-by-side in one parent folder under different version subdirectories with no rewrite step.
+compodocx generates a fully self-contained, statically-served site on every run. Every URL in the output uses a relative path (`./images/favicon.ico`, `../../forms/select/Foo.html`, depth-aware Pagefind loader), so multiple builds can sit side-by-side in one parent folder under different version subdirectories with no rewrite step.
 
 This page documents the pattern. It is purely a usage convention — there are no special CLI flags. If you can run `compodocx` once, you can run it N times into N folders.
 
@@ -13,12 +13,13 @@ public/                  ← deploy this folder
 ├── index.html           ← optional landing page (your own)
 ├── v0.2.0/
 │   ├── index.html
-│   ├── components/
-│   ├── modules/
+│   ├── forms/select/    ← pages of the `forms/select` entry point
+│   ├── redirects.json
 │   └── …
 ├── v0.3.0/
 │   ├── index.html
-│   ├── components/
+│   ├── forms/select/
+│   ├── redirects.json
 │   └── …
 └── latest/              ← optional symlink → v0.3.0
 ```
@@ -36,7 +37,7 @@ git checkout main
 ln -sfn v0.3.0 public/latest    # optional convenience pointer
 ```
 
-Deploy `public/` to any static host. Each version sub-site is fully self-contained: opening `https://example.com/v0.2.0/components/Foo.html` works, and so does `https://example.com/v0.3.0/components/Foo.html`. Nothing in `v0.2.0/` references `v0.3.0/` and vice versa.
+Deploy `public/` to any static host. Each version sub-site is fully self-contained: opening `https://example.com/v0.2.0/forms/select/Foo.html` works, and so does `https://example.com/v0.3.0/forms/select/Foo.html`. Nothing in `v0.2.0/` references `v0.3.0/` and vice versa.
 
 ## Why it works
 
@@ -145,7 +146,7 @@ SWITCHER+='<option value="/v0.3.0/">v0.3.0</option>'
 SWITCHER+='<option value="/v0.2.0/">v0.2.0</option>'
 SWITCHER+='</select></div>'
 
-for f in public/v*/index.html public/v*/components/*.html public/v*/modules/*.html; do
+find public/v* -name '*.html' | while read -r f; do
     [ -f "$f" ] || continue
     grep -q "switch…" "$f" && continue   # idempotent
     sed -i.bak "s|<body[^>]*>|&${SWITCHER}|" "$f" && rm -f "$f.bak"
@@ -153,6 +154,16 @@ done
 ```
 
 A native version-switcher component (built into the template, picking up an external `versions.json`) is on the roadmap for a future release. Until then, post-processing or a separate landing page is the recommended approach.
+
+## Pages that move between versions
+
+Page URLs follow the feature a symbol belongs to (`<entry point>/<feature>/<Name>.html`), so a page can move when a symbol moves to another feature or when an older version used an earlier layout (one folder per kind, `components/Foo.html`). Every version's output therefore holds `redirects.json`:
+
+```json
+{ "schemaVersion": 1, "redirects": { "components/Foo.html": "forms/select/Foo.html" } }
+```
+
+Keys are old page paths relative to the version folder (an anchor is allowed, for the old `miscellaneous/functions.html#name` collection anchors), values are where that page or section is now. The built-in version switcher uses it: switching from a page looks the page up in the target version's map; when the target was built before maps existed, it reads the current version's map backwards to find the old path. If neither finds the page, it opens the target version's root. A web server can use the same map for HTTP redirects; compodocx writes no stub pages.
 
 ## Conventions worth following
 
@@ -163,7 +174,7 @@ A native version-switcher component (built into the template, picking up an exte
 
 ## Limitations today
 
-- **No in-page version switcher.** The drop-in snippet above is the workaround. A built-in switcher is on the roadmap.
+- **The built-in switcher needs multi-version output.** With `--multiVersion` (the default) every page carries a switcher fed by `versions.json`; the drop-in snippet above is only for sites built with `--no-multiVersion`.
 - **No automatic cross-version linking.** A symbol that exists in v0.2.0 and v0.3.0 has no automatic "see this in vX" link. Each per-version site is independent.
 - **Template Playground and the live `--serve` mode use absolute URLs.** Both are runtime-only conveniences, not part of the static output you deploy. They are unaffected by the multi-version layout, but they cannot themselves run from a subdirectory.
 - **Per-symbol `@since` badges.** compodocx renders `@since` tags from JSDoc when authors include them in their source — it does not infer them from a multi-version diff.

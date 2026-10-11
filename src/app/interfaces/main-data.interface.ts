@@ -88,6 +88,8 @@ export interface MainDataInterface {
         edges: Array<{ source: string; target: string }>;
     };
     entityIndex: Record<string, { href: string; kind: string }>;
+    /** Old page paths of earlier layouts and where they moved; set when the pages are written. */
+    redirects?: Readonly<Record<string, string>>;
     coverageTest: boolean;
     coverageTestThreshold: number;
     coverageTestThresholdFail: boolean;

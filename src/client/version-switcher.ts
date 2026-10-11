@@ -2,12 +2,16 @@
  * Version-switcher widget. Renders the version dropdown at runtime from
  * `<versionsRoot>/versions.json`. Uses HEAD fetch to detect when the same
  * page exists in the target version and falls back to the version's index
- * when it does not.
+ * when it does not. A page that moved between layouts is found through the
+ * versions' `redirects.json`: the target's map forward, else the current
+ * version's map backward.
  *
  * On `file://`, fetch is uniformly blocked across browsers — render a
  * static hint and disable the trigger rather than ship a half-working
  * dropdown.
  */
+
+import { REDIRECTS_FILE } from '../app/links/layout';
 
 interface ManifestEntry {
     label: string;
@@ -219,20 +223,97 @@ async function navigateTo(item: HTMLButtonElement, widget: HTMLElement): Promise
     const currentLabel = widget.dataset.cdxCurrentLabel ?? '';
     const candidate = computeTargetUrl(location, currentLabel, targetPath);
     const fallback = computeFallbackUrl(location, currentLabel, targetPath);
-    if (!candidate) {
+    if (!candidate || !fallback) {
         if (fallback) {
             location.href = fallback;
         }
         return;
     }
-    try {
-        const r = await fetch(candidate, { method: 'HEAD', cache: 'no-cache' });
-        location.href = r.ok ? candidate : (fallback ?? candidate);
-    } catch {
-        if (fallback) {
-            location.href = fallback;
+    const currentRoot = computeFallbackUrl(location, currentLabel, `${currentLabel}/`) ?? fallback;
+    const tail = decodeTail(candidate.slice(0, candidate.length - location.hash.length), fallback);
+    const urls = await redirectCandidates(tail, location.hash, fallback, currentRoot, candidate);
+    for (const url of urls) {
+        try {
+            const r = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
+            if (r.ok) {
+                location.href = url;
+                return;
+            }
+        } catch {
+            // try the next candidate
         }
     }
+    location.href = fallback;
+}
+
+/** Old page path (anchor allowed) -> current page path, per version root. */
+type Redirects = Readonly<Record<string, string>>;
+
+const redirectMaps = new Map<string, Promise<Redirects | null>>();
+
+/** The `redirects.json` of a version root, fetched once; null when it has none. */
+function redirectsOf(root: string): Promise<Redirects | null> {
+    let pending = redirectMaps.get(root);
+    if (!pending) {
+        pending = fetch(new URL(REDIRECTS_FILE, root).toString(), { cache: 'no-cache' })
+            .then(r => (r.ok ? r.json() : null))
+            .then(json =>
+                json && json.schemaVersion === 1 && typeof json.redirects === 'object'
+                    ? (json.redirects as Redirects)
+                    : null
+            )
+            .catch(() => null);
+        redirectMaps.set(root, pending);
+    }
+    return pending;
+}
+
+/** The page path below the version root of a mirrored URL (no hash), decoded. */
+function decodeTail(url: string, root: string): string {
+    const raw = url.startsWith(root) ? url.slice(root.length) : '';
+    try {
+        return decodeURIComponent(raw.split('?')[0]);
+    } catch {
+        return raw.split('?')[0];
+    }
+}
+
+/**
+ * Where a page path of one layout lives in another, by a redirect map:
+ * forward when `map` is the target's (old path -> its path), the old paths
+ * when it is the current version's and the target predates it. Anchors in
+ * keys and values are kept; a hit on `tail#hash` wins over `tail`.
+ */
+export function followRedirect(map: Redirects, tail: string, hash: string): string | undefined {
+    const anchor = hash.replace(/^#/, '');
+    return (anchor && map[`${tail}#${anchor}`]) || map[tail];
+}
+
+export function invertRedirect(map: Redirects, tail: string): string[] {
+    const keys = Object.keys(map).filter(key => map[key].split('#')[0] === tail);
+    return [...keys.filter(key => !key.includes('#')), ...keys.filter(key => key.includes('#'))];
+}
+
+/** URLs to try in the target version, best first; the existing HEAD check picks one. */
+async function redirectCandidates(
+    tail: string,
+    hash: string,
+    targetRoot: string,
+    currentRoot: string,
+    same: string
+): Promise<string[]> {
+    const at = (path: string) => {
+        const [file, anchor] = path.split('#');
+        const url = new URL(encodeURI(file), targetRoot).toString();
+        return anchor ? `${url}#${anchor}` : `${url}${anchor === undefined ? hash : ''}`;
+    };
+    const target = await redirectsOf(targetRoot);
+    if (target) {
+        const moved = followRedirect(target, tail, hash);
+        return moved ? [at(moved), same] : [same];
+    }
+    const current = await redirectsOf(currentRoot);
+    return [same, ...(current ? invertRedirect(current, tail) : []).map(at)];
 }
 
 /**

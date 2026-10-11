@@ -6,6 +6,7 @@ type DefinedInRowProps = {
     readonly file: string;
     readonly inheritance?: { readonly file: string };
     readonly navTabs?: any[];
+    readonly depth: number;
 };
 
 /** Render "Inherited from" + "Defined in" rows for a member card. */
@@ -18,14 +19,19 @@ export const DefinedInRow = (props: DefinedInRowProps): string => {
         <>
             {props.inheritance && (
                 <div class="cdx-member-row">
-                    {t('inherited-from')} {linkTypeHtml(props.inheritance.file)}
+                    {t('inherited-from')}{' '}
+                    {linkTypeHtml(props.inheritance.file, { depth: props.depth })}
                 </div>
             )}
             <div class="cdx-member-row">
                 {props.inheritance ? (
                     <span>
                         {t('defined-in')}{' '}
-                        {linkTypeHtml(props.inheritance.file, { withLine: true, line: props.line })}
+                        {linkTypeHtml(props.inheritance.file, {
+                            depth: props.depth,
+                            withLine: true,
+                            line: props.line
+                        })}
                     </span>
                 ) : (
                     <span>

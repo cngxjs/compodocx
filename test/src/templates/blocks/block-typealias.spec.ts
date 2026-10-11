@@ -17,6 +17,7 @@ describe('BlockTypealias', () => {
 
     it('renders the default block-typealias section with one card per alias', () => {
         const html = BlockTypealias({
+            depth: 1,
             typealias: [{ name: 'Foo', rawtype: 'string | number' }]
         });
         expect(html).to.include('data-compodoc="block-typealias"');
@@ -29,6 +30,7 @@ describe('BlockTypealias', () => {
             (data: any) => `<section id="custom-ta">${data.typealias.length}</section>`
         );
         const html = BlockTypealias({
+            depth: 1,
             typealias: [
                 { name: 'A', rawtype: 'string' },
                 { name: 'B', rawtype: 'number' }

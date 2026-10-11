@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Placement } from '../../../src/app/di/model';
-import { hrefFor, hrefText, pageLocation } from '../../../src/app/links/layout';
+import { hrefFor, hrefText, pageLocation, symbolFolder } from '../../../src/app/links/layout';
 import {
     hrefForName,
     hrefForSymbol,
@@ -40,11 +40,12 @@ describe('symbol hrefs', () => {
         expect(at(2)).toBe(`../../${pageOf('component', 'TodoItem')}`);
     });
 
-    it('links a same-name copy to its own page only when asked', () => {
+    it('links a same-name copy to its own page', () => {
+        const first = id('class:src/a/todo.ts#Todo');
         const copy = id('class:src/b/todo.ts#Todo');
-        expect(hrefForSymbol(table, copy, 1)?.path).toBe(pageOf('class', 'Todo'));
-        expect(hrefForSymbol(table, copy, 1, { duplicate: true })?.path).toBe(
-            pageOf('class', 'Todo', { duplicate: 'Todo-1' })
+        expect(hrefForSymbol(table, first, 1)?.path).toBe(pageOf('class', 'Todo'));
+        expect(hrefForSymbol(table, copy, 1)?.path).toBe(
+            pageOf('class', 'Todo', { file: 'Todo-2' })
         );
     });
 
@@ -135,8 +136,10 @@ describe('links that follow the dependency injection placement', () => {
         expect(href(`interface:${F}#FooFeature`)).toBe(`../${clusterPage('FooFeature')}`);
     });
 
-    it('links a provider without a feature type to its provider page', () => {
-        expect(href(`function:${F}#provideLimit`)).toBe(hrefTo('provider', 'provideLimit', 1));
+    it('links a provider without a feature type to its provider page, in its own folder', () => {
+        expect(href(`function:${F}#provideLimit`)).toBe(
+            hrefTo('provider', 'provideLimit', 1, { folder: symbolFolder('function') })
+        );
         expect(href(`function:${F}#format`)).toBe(hrefTo('function', 'format', 1));
     });
 
@@ -153,10 +156,21 @@ describe('links that follow the dependency injection placement', () => {
             subtype: 'function'
         });
         expect(placeTarget(target!, { name: 'withMode', file: F }, context)).toEqual({
-            target: { type: 'cluster', name: 'FooFeature' },
+            target: {
+                type: 'cluster',
+                name: 'FooFeature',
+                folder: symbolFolder('interface'),
+                file: 'FooFeature'
+            },
             anchor: 'FooFeature--withMode'
         });
-        const own = { type: 'symbol', kind: 'function', name: 'format' } as const;
+        const own = {
+            type: 'symbol',
+            kind: 'function',
+            name: 'format',
+            folder: symbolFolder('function'),
+            file: 'format'
+        } as const;
         expect(placeTarget(own, { name: 'format', file: F }, context)).toEqual({
             target: own,
             anchor: undefined

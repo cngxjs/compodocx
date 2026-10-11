@@ -1,5 +1,6 @@
 import type { Feature, FeatureId } from '../compiler/semantic/features';
 import { compareText } from '../compiler/semantic/model';
+import { RESERVED_ROOT_FOLDERS } from './layout';
 
 export interface FeatureSegments {
     /** Page segments per feature (`pageLocation({ type: 'feature', segments })`). */
@@ -36,29 +37,34 @@ const importSegments = (importPath: string, scope: string | undefined): readonly
  * without the shared scope (a scope that differs between entry points stays
  * as a folder without `@`), then the key for a sub-feature. Features outside
  * every entry point use their key, a root feature its label. A path two
- * features would share gets `-2`, `-3`, ... on the later feature.
+ * features would share gets `-2`, `-3`, ... on the later feature; a first
+ * segment that names a folder the output root holds (`RESERVED_ROOT_FOLDERS`)
+ * gets `-2` too.
  */
 export const featureSegments = (features: readonly Feature[]): FeatureSegments => {
     const scope = sharedScope(features);
     const segments = new Map<FeatureId, readonly string[]>();
     const taken = new Set<string>();
+    const reserved = new Set(RESERVED_ROOT_FOLDERS);
     const clashes: string[] = [];
     const ordered = [...features].sort(
         (a, b) => compareText(a.entryPoint ?? '', b.entryPoint ?? '') || compareText(a.key, b.key)
     );
     for (const feature of ordered) {
-        const base =
+        const wanted =
             feature.entryPoint === undefined
                 ? [safeSegment(feature.key || feature.label)]
                 : [
                       ...importSegments(feature.entryPoint, scope),
                       ...(feature.key ? [feature.key] : [])
                   ];
+        const [first = '', ...rest] = wanted;
+        const base = reserved.has(first.toLowerCase()) ? [`${first}-2`, ...rest] : wanted;
         let path = base;
         for (let n = 2; taken.has(path.join('/').toLowerCase()); n++) {
             path = [...base.slice(0, -1), `${base[base.length - 1]}-${n}`];
         }
-        if (path !== base) {
+        if (path !== wanted) {
             clashes.push(
                 `Feature ${feature.id} shares its page with another feature; using ${path.join('/')}`
             );

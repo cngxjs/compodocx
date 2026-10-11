@@ -44,7 +44,7 @@ const entriesOf = (
 
 const Row = (entry: SymbolEntry, depth: number, semantic: SemanticModel | undefined): string => {
     const description = (entry.data as { description?: unknown }).description;
-    const href = hrefText(hrefFor(symbolTarget(entry, { duplicate: true }), depth));
+    const href = hrefText(hrefFor(symbolTarget(entry), depth));
     const summary = firstSentence(description);
     const facts = entryFacts(semantic, entry);
     return (
