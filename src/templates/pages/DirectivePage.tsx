@@ -44,7 +44,7 @@ const DirectiveMetadata = (directive: any, depth: number): string => {
 
 /** The Theming tab of a directive: the style files that theme it (`@themes`). */
 const DirectiveTheming = (directive: any, depth: number): string | undefined => {
-    const theming = themingFor(directive, 'directive', Configuration.mainData);
+    const theming = themingFor(directive, 'directive', Configuration.mainData, depth);
     if (!hasTheming(theming)) {
         return undefined;
     }

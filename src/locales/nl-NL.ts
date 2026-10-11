@@ -194,6 +194,7 @@ export const TRANSLATION_NL_NL = {
     mixins: 'Mixins',
     'mixin-content': 'Inhoudsblok',
     'style-files': 'Stijlbestanden',
+    'style-file': 'Stijlbestand',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Totaal',

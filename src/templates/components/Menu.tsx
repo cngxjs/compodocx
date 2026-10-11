@@ -49,6 +49,7 @@ import {
     IconInterceptor,
     IconInterface,
     IconList,
+    IconPalette,
     IconPipe,
     IconPodium,
     IconSettings,
@@ -481,6 +482,8 @@ const kindIconHtml = (kind: TableKind): string => {
             return IconTypealias();
         case 'enumeration':
             return IconEnum();
+        case 'style':
+            return IconPalette();
         default:
             return '';
     }
@@ -898,6 +901,15 @@ const withoutHidden = (d: any): any => {
     return copy;
 };
 
+/** The style pages of the table as sidebar items, in file order. */
+const styleMenuItems = (table: SymbolTable | undefined): any[] =>
+    table
+        ? [...table.byId.values()]
+              .filter(entry => entry.ref.kind === 'style')
+              .sort((a, b) => (a.ref.file < b.ref.file ? -1 : 1))
+              .map(entry => ({ name: entry.ref.name, file: entry.ref.file }))
+        : [];
+
 export const Menu = (props: MenuProps): string => {
     const d = withoutHidden(withFunctionalKinds(props.data));
     const byFeature = (items: any[] | undefined, kind: TableKind) =>
@@ -908,6 +920,7 @@ export const Menu = (props: MenuProps): string => {
     const injectables = d.injectables ?? [];
     const pipes = d.pipes ?? [];
     const entities = d.entities ?? [];
+    const styles = styleMenuItems(d.symbols);
 
     return (
         <nav>
@@ -1190,6 +1203,16 @@ export const Menu = (props: MenuProps): string => {
                                 iconHtml: IconPipe(),
                                 labelKey: 'pipes',
                                 kind: 'pipe',
+                                groupDepth: GROUP_EXPAND_DEPTH
+                            })}
+                        {styles.length > 0 &&
+                            EntitySection({
+                                items: styles,
+                                categorized: byFeature(styles, 'style'),
+                                type: 'styles',
+                                iconHtml: IconPalette(),
+                                labelKey: 'style-files',
+                                kind: 'style',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                     </>

@@ -194,6 +194,7 @@ export const TRANSLATION_FR_FR = {
     mixins: 'Mixins',
     'mixin-content': 'Bloc de contenu',
     'style-files': 'Fichiers de style',
+    'style-file': 'Fichier de style',
     token: 'Token',
     tokens: 'Tokens',
     'table-of-contents': 'Table des matières',

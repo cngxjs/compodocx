@@ -1,5 +1,8 @@
 import type { MainDataInterface } from '../../app/interfaces/main-data.interface';
-import { entryInFile } from '../../app/links/symbol-table';
+import { hrefFor, hrefText } from '../../app/links/layout';
+import { symbolTarget } from '../../app/links/resolve';
+import { symbolId } from '../../app/links/symbol-id';
+import { entryInFile, styleFileName } from '../../app/links/symbol-table';
 import type { StyleFile } from '../../app/styles/model';
 import {
     type StyleMixin,
@@ -13,6 +16,8 @@ export interface LinkedStyleFile {
     readonly file: string;
     /** File name shown on the tab. */
     readonly label: string;
+    /** The file's style page, when it has one. */
+    readonly href?: string;
 }
 
 /** What a component's or directive's Theming tab shows. */
@@ -64,7 +69,8 @@ export const linkedStyleFiles = (
 export const themingFor = (
     data: Themable,
     kind: 'component' | 'directive',
-    mainData: Pick<MainDataInterface, 'styles' | 'symbols'>
+    mainData: Pick<MainDataInterface, 'styles' | 'symbols'>,
+    depth = 0
 ): Theming => {
     const ownSources = data.themeStyleSources ?? [];
     const linked = linkedStyleFiles(data, kind, mainData);
@@ -88,7 +94,16 @@ export const themingFor = (
             }))
         ],
         mixins: styleMixins(ownSources),
-        linked: linked.map(file => ({ file: file.file, label: basename(file.file) }))
+        linked: linked.map(file => {
+            const page = mainData.symbols?.byId.get(
+                symbolId({ kind: 'style', file: file.file, name: styleFileName(file.file) })
+            );
+            return {
+                file: file.file,
+                label: basename(file.file),
+                ...(page ? { href: hrefText(hrefFor(symbolTarget(page), depth)) } : {})
+            };
+        })
     };
 };
 

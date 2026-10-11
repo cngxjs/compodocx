@@ -328,6 +328,15 @@ describe('CLI Theming tab generation', () => {
             );
         });
 
+        it('writes a page per style file that gets one, none for the single-target file', () => {
+            const pages = pagesIn(styleDist);
+            for (const name of ['tokens', 'card-theme', '_bridge']) {
+                expect(exists(`${styleDist}/${pages.of('style', name)}`)).to.be.true;
+            }
+            expect(() => pages.of('style', 'sty-highlight')).to.throw();
+            expect(() => pages.of('style', 'reset')).to.throw();
+        });
+
         it('names the file without documented content and reports its unknown tag', () => {
             expect(stdout).to.match(
                 /1 style files have no documented tokens, mixins or overview: \S*projects\/kit\/theming\/reset\.css/

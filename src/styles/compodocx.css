@@ -62,6 +62,7 @@
     --color-cdx-entity-service: #a56a07; /* amber-800 */
     --color-cdx-entity-directive: #7c3aed; /* violet */
     --color-cdx-entity-pipe: #e2177b; /* pink-700 */
+    --color-cdx-entity-style: #0f766e /* teal-700 */;
     --color-cdx-entity-module: #1e6ff5; /* blue-700 */
     --color-cdx-entity-class: #05875f; /* emerald-700 */
     --color-cdx-entity-interface: #475569; /* slate-600 — distinct from teal/emerald/cyan family */
@@ -180,6 +181,7 @@
     --color-cdx-entity-service: #fbbf24; /* amber light */
     --color-cdx-entity-directive: #a78bfa; /* violet light */
     --color-cdx-entity-pipe: #f472b6; /* pink light */
+    --color-cdx-entity-style: #2dd4bf /* teal light */;
     --color-cdx-entity-module: #60a5fa; /* blue light */
     --color-cdx-entity-class: #34d399; /* emerald light */
     --color-cdx-entity-interface: #94a3b8; /* slate-400 — distinct in dark mode */

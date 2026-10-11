@@ -236,16 +236,19 @@ export const exportFeatures = (model: FeatureModel): ExportFeature[] => {
         link => link.from,
         link => link.to
     );
-    return model.features.map(feature => ({
-        id: feature.id,
-        ...(feature.entryPoint ? { entryPoint: feature.entryPoint } : {}),
-        key: feature.key,
-        label: feature.label,
-        detector: feature.detector,
-        ...(feature.readme ? { readme: feature.readme } : {}),
-        buildsOn: buildsOn(feature.id),
-        extendedBy: extendedBy(feature.id)
-    }));
+    // Features of style files alone are not part of the symbol export.
+    return model.features
+        .filter(feature => !feature.styleOnly)
+        .map(feature => ({
+            id: feature.id,
+            ...(feature.entryPoint ? { entryPoint: feature.entryPoint } : {}),
+            key: feature.key,
+            label: feature.label,
+            detector: feature.detector,
+            ...(feature.readme ? { readme: feature.readme } : {}),
+            buildsOn: buildsOn(feature.id),
+            extendedBy: extendedBy(feature.id)
+        }));
 };
 
 export const exportSemantic = (model: SemanticModel): ExportSemantic => ({

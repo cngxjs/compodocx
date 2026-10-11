@@ -193,6 +193,7 @@ export const TRANSLATION_SK_SK = {
     mixins: 'Mixiny',
     'mixin-content': 'Blok obsahu',
     'style-files': 'Súbory štýlov',
+    'style-file': 'Súbor štýlov',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Celkom',

@@ -11,6 +11,7 @@ import {
     ComponentPageGenerator,
     CoveragePageGenerator,
     createFeaturePageGenerator,
+    createStylePageGenerator,
     DiPageGenerator,
     DirectivePageGenerator,
     EntityPageGenerator,
@@ -30,6 +31,7 @@ import {
     PlaygroundVendorResolver,
     ResolverPageGenerator,
     RoutesPageGenerator,
+    type StylePageGenerator,
     TokenPageGenerator
 } from '../page-generator';
 import type { DependenciesData } from '../services/dependencies';
@@ -62,6 +64,7 @@ export interface Generators {
     readonly appConfig: AppConfigPageGenerator;
     readonly utilities: MiscellaneousPageGenerator;
     readonly feature: FeaturePageGenerator;
+    readonly style: StylePageGenerator;
     readonly apiReference: ApiReferencePageGenerator;
     readonly coverage: CoveragePageGenerator;
     readonly additional: AdditionalPageGenerator;
@@ -92,6 +95,7 @@ export const createGenerators = (): Generators => {
         appConfig: new AppConfigPageGenerator(),
         utilities: new MiscellaneousPageGenerator(),
         feature: createFeaturePageGenerator(),
+        style: createStylePageGenerator(),
         apiReference: new ApiReferencePageGenerator(),
         coverage: new CoveragePageGenerator(),
         additional: new AdditionalPageGenerator(),

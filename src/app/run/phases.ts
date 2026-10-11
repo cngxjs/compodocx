@@ -21,9 +21,10 @@ import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
 import I18nEngine from '../engines/i18n.engine';
 import { initHighlighter } from '../engines/syntax-highlight.engine';
-import { buildSymbolTable } from '../links';
+import { buildSymbolTable, withStyleEntries } from '../links';
 import { copyAssetsFolder, copyResources, finalizeOutput } from '../page-generator';
 import { crawlDependencies, crawlMicroDependencies } from '../services/dependencies';
+import { hasStylePage } from '../styles';
 import type { RunContext, RunMode, Stage } from './context';
 import { deriveFeatures, placeInFeatures } from './features';
 import { type Halt, halt } from './halt';
@@ -255,16 +256,18 @@ const withSymbols = (ctx: RunContext): RunContext => {
     if (stylesRun && ctx.mode !== 'diff') {
         logStyles(stylesRun);
     }
+    const table = styles ? withStyleEntries(symbols, styles.files.filter(hasStylePage)) : symbols;
+    mainData.symbols = table;
     if (!ctx.semantic) {
-        return { ...ctx, symbols, di, styles };
+        return { ...ctx, symbols: table, di, styles };
     }
-    const detection = deriveFeatures(ctx.semantic.model, symbols, mainData, ctx.files, cwd);
+    const detection = deriveFeatures(ctx.semantic.model, table, mainData, ctx.files, cwd);
     const semantic = {
         ...ctx.semantic,
         model: { ...ctx.semantic.model, features: detection.model }
     };
     mainData.semantic = semantic.model;
-    const placed = placeInFeatures(symbols, detection.model);
+    const placed = placeInFeatures(table, detection.model);
     mainData.symbols = placed;
     if (ctx.mode !== 'diff') {
         for (const warning of detection.warnings) {

@@ -31,6 +31,7 @@ import { PackageProperties } from '../../templates/pages/PackageProperties';
 import { PipePage } from '../../templates/pages/PipePage';
 import { ResolverPage } from '../../templates/pages/ResolverPage';
 import { Routes } from '../../templates/pages/Routes';
+import { StylePage } from '../../templates/pages/StylePage';
 import { TokenPage } from '../../templates/pages/TokenPage';
 import { UnitTestReport } from '../../templates/pages/UnitTestReport';
 import { UtilitiesPage } from '../../templates/pages/UtilitiesPage';
@@ -72,6 +73,7 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     'unit-test': 'unit-test-report',
     'additional-page': 'additional-page',
     feature: 'feature',
+    style: 'style',
     'api-reference': 'api-reference'
 };
 
@@ -171,6 +173,8 @@ export class HtmlEngine {
                 return AppConfigPage(data);
             case 'feature':
                 return FeaturePage(data);
+            case 'style':
+                return StylePage(data);
             case 'api-reference':
                 return ApiReferencePage(data);
             default:

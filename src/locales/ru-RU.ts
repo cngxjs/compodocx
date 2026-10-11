@@ -195,6 +195,7 @@ export const TRANSLATION_RU_RU = {
     mixins: 'Миксины',
     'mixin-content': 'Блок содержимого',
     'style-files': 'Файлы стилей',
+    'style-file': 'Файл стилей',
     token: 'Token',
     tokens: 'Tokens',
     total: 'Итого',

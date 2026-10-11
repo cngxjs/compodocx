@@ -21,7 +21,8 @@ export const KIND_LABELS: Record<TableKind, string> = {
     function: 'Function',
     variable: 'Variable',
     typealias: 'Type Alias',
-    enumeration: 'Enumeration'
+    enumeration: 'Enumeration',
+    style: 'Style'
 };
 
 /**
@@ -47,7 +48,8 @@ export const KIND_LETTER: Record<TableKind, string> = {
     function: 'F',
     variable: 'V',
     typealias: 'Tp',
-    enumeration: 'En'
+    enumeration: 'En',
+    style: 'St'
 };
 
 /**

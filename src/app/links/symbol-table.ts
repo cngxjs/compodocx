@@ -199,6 +199,50 @@ export const placeInFolders = (
     return withFileNames({ ...table, byId });
 };
 
+/** A style file that gets a page: its cwd-relative file. */
+export interface StylePageFile {
+    readonly file: string;
+}
+
+/** `tokens.css` -> `tokens`, `_bridge.scss` -> `_bridge`. */
+export const styleFileName = (file: string): string =>
+    (file.split('/').pop() ?? file).replace(/\.[^.]+$/, '');
+
+/**
+ * The table with one `style` entry per style file that gets a page, named
+ * after the file. Style entries are in no lookup policy: names never link
+ * to them. File names are assigned anew.
+ */
+export const withStyleEntries = (
+    table: SymbolTable,
+    files: readonly StylePageFile[]
+): SymbolTable => {
+    if (files.length === 0) {
+        return table;
+    }
+    const byId = new Map(table.byId);
+    const byName = new Map([...table.byName].map(([name, ids]) => [name, [...ids]]));
+    const dataByName = new Map([...table.dataByName].map(([name, data]) => [name, [...data]]));
+    for (const style of files) {
+        const ref: SymbolRef = { kind: 'style', file: style.file, name: styleFileName(style.file) };
+        const id = symbolId(ref);
+        if (byId.has(id)) {
+            continue;
+        }
+        byId.set(id, {
+            id,
+            ref,
+            data: style,
+            folder: symbolFolder('style'),
+            fileName: '',
+            overloads: 0
+        });
+        byName.set(ref.name, [...(byName.get(ref.name) ?? []), id]);
+        dataByName.set(ref.name, [...(dataByName.get(ref.name) ?? []), style]);
+    }
+    return withFileNames({ byId, byName, dataByName });
+};
+
 export const emptySymbolTable = (): SymbolTable => ({
     byId: new Map(),
     byName: new Map(),

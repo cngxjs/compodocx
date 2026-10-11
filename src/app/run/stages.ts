@@ -2,6 +2,7 @@ import { err, ok, type Result, sequenceAsync } from '../../lib';
 import { logger } from '../../utils/logger';
 import DependenciesEngine from '../engines/dependencies.engine';
 import type { DependenciesData } from '../services/dependencies';
+import { hasStylePage } from '../styles';
 import type { RunContext } from './context';
 import { type Halt, halt } from './halt';
 
@@ -146,6 +147,11 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
         run: step(ctx => ctx.generators.utilities.prepare())
     },
     { key: 'feature', when: always, run: step(ctx => ctx.generators.feature.prepare()) },
+    {
+        key: 'style',
+        when: ctx => (ctx.config.mainData.styles?.files ?? []).some(hasStylePage),
+        run: step(ctx => ctx.generators.style.prepare())
+    },
     { key: 'apiReference', when: always, run: step(ctx => ctx.generators.apiReference.prepare()) },
     {
         key: 'documentationCoverage',

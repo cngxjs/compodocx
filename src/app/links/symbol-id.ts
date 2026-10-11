@@ -16,7 +16,7 @@ export interface SymbolRef extends SymbolKey {
  * `interceptor` or `resolver` for a function or constant that is one
  * (`functionalKind`). The engine keeps those under miscellaneous.
  */
-export type TableKind = EntityKind | 'resolver';
+export type TableKind = EntityKind | 'resolver' | 'style';
 
 const FUNCTIONAL_KINDS: ReadonlySet<string> = new Set(['guard', 'interceptor', 'resolver']);
 
@@ -45,7 +45,8 @@ const SYMBOL_KINDS: ReadonlySet<string> = new Set<TableKind>([
     'variable',
     'typealias',
     'enumeration',
-    'resolver'
+    'resolver',
+    'style'
 ]);
 
 const isTableKind = (value: string): value is TableKind => SYMBOL_KINDS.has(value);

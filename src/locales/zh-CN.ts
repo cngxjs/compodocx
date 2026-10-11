@@ -192,6 +192,7 @@ export const TRANSLATION_ZH_CN = {
     mixins: '混入',
     'mixin-content': '内容块',
     'style-files': '样式文件',
+    'style-file': '样式文件',
     token: 'Token',
     tokens: 'Tokens',
     total: '总计',
