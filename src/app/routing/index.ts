@@ -1,4 +1,4 @@
-export { exportRoutes } from './export';
+export { exportRoutes, withRouteFacts } from './export';
 export {
     declarationOf,
     extractRoutes,
@@ -12,6 +12,7 @@ export {
     routeValue,
     unresolvedLazy
 } from './extract';
+export { mountsOf, nodesById, type RouteMount, routedNodes } from './lookup';
 export * from './model';
 export {
     importedName,

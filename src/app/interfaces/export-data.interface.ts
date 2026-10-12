@@ -235,6 +235,10 @@ export interface ExportSemanticFacts {
     token?: ExportTokenFacts;
     /** The feature the symbol belongs to; `key` `''` is the entry point's root feature. */
     feature?: ExportFeatureRef;
+    /** Components: full paths of the routes rendering it. */
+    routedAt?: string[];
+    /** Route array variables: full paths of the places a router mounts it at. */
+    mountedAt?: string[];
 }
 
 export interface ExportFeatureRef {

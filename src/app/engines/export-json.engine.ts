@@ -34,7 +34,7 @@ import {
 } from '../interfaces/export-data.interface';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
 import { type SymbolTable, styleFileName } from '../links/symbol-table';
-import { exportRoutes, type RoutingModel } from '../routing';
+import { exportRoutes, type RoutingModel, withRouteFacts } from '../routing';
 import type { StyleModel } from '../styles/model';
 import FileEngine from './file.engine';
 
@@ -280,6 +280,27 @@ export const miscellaneousWithFacts = (
     return copy;
 };
 
+/** Copy of the miscellaneous block with `mountedAt` joined into its variable lists. */
+const withRouteVariables = (
+    miscellaneous: Record<string, unknown> | undefined,
+    routeFacts: ReturnType<typeof withRouteFacts>
+): Record<string, unknown> | undefined => {
+    if (!miscellaneous) {
+        return miscellaneous;
+    }
+    const copy: Record<string, unknown> = { ...miscellaneous };
+    if (Array.isArray(copy.variables)) {
+        copy.variables = routeFacts(copy.variables as SymbolEntry[], 'variable');
+    }
+    const grouped = copy.groupedVariables as Record<string, SymbolEntry[]> | undefined;
+    if (grouped && typeof grouped === 'object') {
+        copy.groupedVariables = Object.fromEntries(
+            Object.entries(grouped).map(([key, list]) => [key, routeFacts(list, 'variable')])
+        );
+    }
+    return copy;
+};
+
 /** Joins the semantic facts into a symbol list; the list itself without a model. */
 export const factsJoiner =
     (model: SemanticModel | undefined) =>
@@ -384,7 +405,11 @@ export class ExportJsonEngine {
         const shared = shareStyleSources<ExportComponent>(
             withLinkedTheming(data.components, 'component', themed) ?? []
         );
-        exportData.components = facts(shared.components);
+        const routeFacts = withRouteFacts(
+            Configuration.mainData.disableRoutesGraph ? undefined : data.routing,
+            data.symbols
+        );
+        exportData.components = routeFacts(facts(shared.components), 'component');
         const styleFiles = exportStyleFiles(data.styles, data.symbols, model?.features);
         const styleSources = {
             ...shared.styleSources,
@@ -397,9 +422,10 @@ export class ExportJsonEngine {
         if (styleFiles.files.length > 0) {
             exportData.styleFiles = styleFiles.files;
         }
-        exportData.miscellaneous = model
-            ? miscellaneousWithFacts(data.miscellaneous, model)
-            : data.miscellaneous;
+        exportData.miscellaneous = withRouteVariables(
+            model ? miscellaneousWithFacts(data.miscellaneous, model) : data.miscellaneous,
+            routeFacts
+        );
         exportData.tokens = facts(data.tokens);
         const routing: RoutingModel | undefined = data.routing;
         if (!Configuration.mainData.disableRoutesGraph && routing && routing.count > 0) {

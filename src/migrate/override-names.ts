@@ -63,6 +63,7 @@ export const BLOCK_LEVEL_OVERRIDES: readonly string[] = [
     'block-output',
     'block-playground',
     'block-property',
+    'block-routed-at',
     'block-theming',
     'block-theming-mixin',
     'block-theming-token',

@@ -6,7 +6,8 @@ import {
     exportRoutes,
     indexRouting,
     type RouteNode,
-    type RouteRoot
+    type RouteRoot,
+    withRouteFacts
 } from '../../../../src/app/routing';
 import { emitRoutes } from '../../../../src/llm-md/routes';
 
@@ -136,5 +137,45 @@ describe('route export', () => {
             }
         ]);
         expect(text).toBe('### Unmounted routes (PARTNER_ROUTES)\n\n- `/p`');
+    });
+
+    it('joins routedAt into components and mountedAt into route array variables', () => {
+        const model = indexRouting(
+            [
+                {
+                    ...ROOT,
+                    routes: [
+                        { ...ROOT.routes[0], array: 'variable:src/routes.ts#routes' as SymbolId }
+                    ]
+                }
+            ],
+            []
+        );
+        const table = buildSymbolTable({
+            components: [
+                { name: 'Page', file: 'src/page.ts' },
+                { name: 'Other', file: 'src/o.ts' }
+            ],
+            miscellaneous: { variables: [{ name: 'routes', file: 'src/routes.ts' }] }
+        });
+        const join = withRouteFacts(model, table);
+        expect(
+            join(
+                [
+                    { name: 'Page', file: 'src/page.ts' },
+                    { name: 'Other', file: 'src/o.ts' }
+                ],
+                'component'
+            )
+        ).toEqual([
+            { name: 'Page', file: 'src/page.ts', routedAt: ['/a'] },
+            { name: 'Other', file: 'src/o.ts' }
+        ]);
+        expect(join([{ name: 'routes', file: 'src/routes.ts' }], 'variable')).toEqual([
+            { name: 'routes', file: 'src/routes.ts', mountedAt: ['/'] }
+        ]);
+        expect(withRouteFacts(undefined, table)([{ name: 'Page' }], 'component')).toEqual([
+            { name: 'Page' }
+        ]);
     });
 });

@@ -4,8 +4,9 @@ import type {
     ExportRouteRoot,
     ExportRouteTarget
 } from '../interfaces/export-data.interface';
-import type { SymbolId } from '../links/symbol-id';
-import type { SymbolTable } from '../links/symbol-table';
+import type { SymbolId, TableKind } from '../links/symbol-id';
+import { entryInFile, type SymbolTable } from '../links/symbol-table';
+import { mountsOf, routedNodes } from './lookup';
 import {
     GUARD_KEYS,
     type RouteNode,
@@ -122,3 +123,40 @@ export const exportRoutes = (
     model: RoutingModel,
     table: SymbolTable | undefined
 ): ExportRouteRoot[] => model.roots.map(root => exportRoot(root, table));
+
+type Named = { readonly name?: string; readonly file?: string };
+
+const unique = (items: readonly string[]): string[] => [...new Set(items)];
+
+/** `routedAt` (components) or `mountedAt` (route array variables) of one entry; `{}` without any. */
+const routeFactsOf = (
+    model: RoutingModel,
+    table: SymbolTable,
+    kind: TableKind,
+    entry: Named
+): { routedAt?: string[]; mountedAt?: string[] } => {
+    const found = entry.name ? entryInFile(table, kind, entry.name, entry.file) : undefined;
+    if (!found) {
+        return {};
+    }
+    if (kind === 'component') {
+        const routedAt = unique(routedNodes(model, found.id).map(node => node.fullPath));
+        return routedAt.length > 0 ? { routedAt } : {};
+    }
+    const mountedAt = unique(mountsOf(model, found.id).map(mount => mount.place));
+    return mountedAt.length > 0 ? { mountedAt } : {};
+};
+
+/**
+ * Joins the route facts into a list of export entries: copies with
+ * `routedAt` / `mountedAt` appended, the entry itself when it has none.
+ */
+export const withRouteFacts =
+    (model: RoutingModel | undefined, table: SymbolTable | undefined) =>
+    <T extends Named>(entries: T[] | undefined, kind: TableKind): T[] | undefined =>
+        model && table && model.count > 0
+            ? entries?.map(entry => {
+                  const facts = routeFactsOf(model, table, kind, entry);
+                  return Object.keys(facts).length > 0 ? { ...entry, ...facts } : entry;
+              })
+            : entries;
