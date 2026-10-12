@@ -10,7 +10,9 @@ import {
 import { buildDiView } from '../../../../src/app/di';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import { buildSymbolTable, withStyleEntries } from '../../../../src/app/links';
+import type { SymbolId } from '../../../../src/app/links/symbol-id';
 import { featurePages } from '../../../../src/app/page-generator/feature-page-generator';
+import { emptyGuards, indexRouting, type RouteNode } from '../../../../src/app/routing';
 import { themeResolver } from '../../../../src/app/run/styles';
 import { buildStyleModel, hasStylePage, resolveThemes } from '../../../../src/app/styles';
 import { FeaturePage } from '../../../../src/templates/pages/FeaturePage';
@@ -110,12 +112,19 @@ const READMES: Record<string, string> = {
     'lib/select/src/menu/README.md': '<p>Menu <em>parts</em>.</p><p>Second.</p>'
 };
 
-const render = (id: string): string => {
+const render = (id: string, extra: Record<string, unknown> = {}): string => {
     const symbols = buildSymbolTable(engine as never, { cwd: '/' });
     const di = buildDiView(symbols, semantic);
     const pages = featurePages(semantic, symbols, di, file => READMES[file]);
     const feature = pages.find(page => page.id === id);
-    const html = FeaturePage({ feature, symbols, di, semantic, depth: feature?.segments.length });
+    const html = FeaturePage({
+        feature,
+        symbols,
+        di,
+        semantic,
+        depth: feature?.segments.length,
+        ...extra
+    });
     // The test transform adds JSX dev attributes; the build does not.
     return html.replace(/ __(self|source)="[^"]*"/g, '');
 };
@@ -263,5 +272,58 @@ describe('FeaturePage - Theming section with style files', () => {
 
     it('renders no Theming section without style files and no themed member', () => {
         expect(renderKit(false)).not.toContain('id="theming"');
+    });
+
+    const routeNode = (id: string, fullPath: string, symbol?: string): RouteNode => ({
+        id,
+        path: { kind: 'literal', text: fullPath.slice(1) },
+        fullPath,
+        ...(symbol
+            ? {
+                  component: {
+                      kind: 'symbol' as const,
+                      name: 'SelectPanel',
+                      symbol: symbol as SymbolId,
+                      lazy: true,
+                      source: ''
+                  }
+              }
+            : {}),
+        children: [],
+        guards: emptyGuards(),
+        resolve: [],
+        providers: [],
+        file: 'app.ts',
+        line: 1
+    });
+    const routing = indexRouting(
+        [
+            {
+                id: '0',
+                kind: 'router',
+                bootstraps: [],
+                features: [],
+                routes: [
+                    routeNode('0-0', '/panel', `component:${SELECT}/panel/panel.ts#SelectPanel`),
+                    routeNode('0-1', '/other')
+                ]
+            }
+        ],
+        []
+    );
+
+    it('lists the routes of its members, linked to their rows on the routes page', () => {
+        const html = render(ROOT, { routing });
+        expect(sectionIds(html)).toContain('routes');
+        expect(html).toContain('href="../routes.html#route-0-0"><code>/panel</code></a>');
+        expect(html).toContain('<code>SelectPanel (lazy)</code>');
+        expect(html).not.toContain('/other');
+    });
+
+    it('has no routes section without routed members or with routes disabled', () => {
+        expect(sectionIds(render(MENU, { routing }))).not.toContain('routes');
+        expect(sectionIds(render(ROOT, { routing, disableRoutesGraph: true }))).not.toContain(
+            'routes'
+        );
     });
 });

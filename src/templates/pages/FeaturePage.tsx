@@ -2,7 +2,7 @@ import Html from '@kitajs/html';
 import type { SemanticModel } from '../../app/compiler/semantic/model';
 import type { DiView } from '../../app/di/model';
 import type { MainDataInterface } from '../../app/interfaces/main-data.interface';
-import { hrefFor, hrefText } from '../../app/links/layout';
+import { hrefFor, hrefText, routeAnchor } from '../../app/links/layout';
 import { placedLink, symbolTarget } from '../../app/links/resolve';
 import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
 import type {
@@ -10,6 +10,7 @@ import type {
     FeatureMembers,
     FeaturePageData
 } from '../../app/page-generator/feature-page-generator';
+import type { RouteNode, RouteTarget, RoutingModel } from '../../app/routing/model';
 import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
 import { isDocumentedToken, type StyleFile } from '../../app/styles/model';
 import { markedAcl } from '../../utils/marked.acl';
@@ -53,6 +54,8 @@ interface Context {
     readonly table: SymbolTable;
     readonly di: DiView | undefined;
     readonly semantic: SemanticModel | undefined;
+    /** The route model; undefined when routes are disabled. */
+    readonly routing: RoutingModel | undefined;
     readonly depth: number;
     readonly mainData: Pick<MainDataInterface, 'styles' | 'symbols'>;
 }
@@ -212,6 +215,73 @@ const StyleRow = (entry: SymbolEntry, ctx: Context): string => {
     ) as string;
 };
 
+/** The routes whose component, or whose lazily loaded route array, is a member of the feature. */
+const routesOf = (members: FeatureMembers, model: RoutingModel): RouteNode[] => {
+    const ids = new Set(Object.values(members).flatMap(list => list.map(entry => entry.id)));
+    const isMember = (target: RouteTarget | undefined) =>
+        target?.symbol !== undefined && ids.has(target.symbol);
+    const found: RouteNode[] = [];
+    const walk = (nodes: readonly RouteNode[]): void => {
+        for (const node of nodes) {
+            if (isMember(node.component) || isMember(node.childrenFrom)) {
+                found.push(node);
+            }
+            walk(node.children);
+        }
+    };
+    for (const root of model.roots) {
+        walk(root.routes);
+    }
+    return found;
+};
+
+const routeTargetName = (node: RouteNode): string => {
+    const target = node.component ?? node.childrenFrom;
+    return target ? `${target.name}${target.lazy ? ` (${t('lazy')})` : ''}` : '';
+};
+
+const FeatureRoutes = (members: FeatureMembers, ctx: Context): string => {
+    const nodes = ctx.routing ? routesOf(members, ctx.routing) : [];
+    if (nodes.length === 0) {
+        return '';
+    }
+    return (
+        <section class="cdx-content-section" data-compodoc="feature-routes">
+            {Heading('routes', t('routes'), nodes.length)}
+            <table class="cdx-table">
+                <thead>
+                    <tr>
+                        <th scope="col">{t('full-path')}</th>
+                        <th scope="col">{t('route-target')}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {nodes.map(node => (
+                        <tr>
+                            <td>
+                                <a
+                                    href={hrefText(
+                                        hrefFor(
+                                            { type: 'root', page: 'routes' },
+                                            ctx.depth,
+                                            routeAnchor(node.id)
+                                        )
+                                    )}
+                                >
+                                    <code>{Html.escapeHtml(node.fullPath)}</code>
+                                </a>
+                            </td>
+                            <td>
+                                <code>{Html.escapeHtml(routeTargetName(node))}</code>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+        </section>
+    ) as string;
+};
+
 const fileName = (file: string): string => file.slice(file.lastIndexOf('/') + 1);
 
 /**
@@ -279,6 +349,7 @@ export const FeaturePage = (data: any): string => {
         table: data.symbols,
         di: data.di,
         semantic: data.semantic,
+        routing: data.disableRoutesGraph ? undefined : data.routing,
         depth: data.depth,
         mainData: { styles: data.styles, symbols: data.symbols }
     };
@@ -335,6 +406,7 @@ export const FeaturePage = (data: any): string => {
             )}
             {SubFeatures(feature.subFeatures, ctx.depth)}
             {SECTIONS.map(section => Members(section, feature.members, ctx))}
+            {FeatureRoutes(feature.members, ctx)}
             {Theming(feature.members, feature.styles ?? [], ctx)}
             {Related('builds-on', t('builds-on'), feature.buildsOn, ctx.depth)}
             {Related('extended-by', t('extended-by'), feature.extendedBy, ctx.depth)}
