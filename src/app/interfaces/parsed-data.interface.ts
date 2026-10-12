@@ -11,7 +11,6 @@ export interface ParsedData {
     pipes?;
     classes?;
     miscellaneous?;
-    routesTree?;
     aliases?;
     routes?;
     typescriptImports?;

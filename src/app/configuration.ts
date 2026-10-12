@@ -106,7 +106,6 @@ export class Configuration implements ConfigurationInterface {
         unitTestCoverage: '',
         unitTestData: undefined,
         coverageTestShowOnlyFailed: COMPODOC_DEFAULTS.coverageTestShowOnlyFailed,
-        routesLength: 0,
         angularVersion: '',
         hasZoneJs: true,
         exportFormat: COMPODOC_DEFAULTS.exportFormat,

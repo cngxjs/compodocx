@@ -5,7 +5,6 @@ import { err, isErr, mapResult, ok, type Result, sequenceAsync } from '../../lib
 import AngularVersionUtil from '../../utils/angular-version.util';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
-import RouterParserUtil from '../../utils/router-parser.util';
 import {
     formatUnknownStyleTagNotice,
     type StyleSource,
@@ -166,7 +165,7 @@ const markdowns: Stage = ctx =>
         }
     );
 
-const printStatistics = (ctx: RunContext): void => {
+const printStatistics = (): void => {
     logger.info('-------------------');
     logger.info('Project statistics ');
     if (DependenciesEngine.components.length > 0) {
@@ -195,9 +194,6 @@ const printStatistics = (ctx: RunContext): void => {
     }
     if (DependenciesEngine.interfaces.length > 0) {
         logger.info(`- interface    : ${DependenciesEngine.interfaces.length}`);
-    }
-    if (ctx.config.mainData.routesLength > 0) {
-        logger.info(`- route        : ${ctx.config.mainData.routesLength}`);
     }
     if (DependenciesEngine.miscellaneous.typealiases.length > 0) {
         logger.info(`- type aliases : ${DependenciesEngine.miscellaneous.typealiases.length}`);
@@ -326,9 +322,7 @@ const crawl: Stage = async current => {
 
     DependenciesEngine.init(dependenciesData);
 
-    mainData.routesLength = RouterParserUtil.routesLength();
-
-    printStatistics(ctx);
+    printStatistics();
     const placed = withSymbols(ctx);
     if (placed.mode !== 'diff' && placed.di && placed.symbols) {
         const hidden = formatHiddenList(placed.di, placed.symbols, placed.semantic?.model);

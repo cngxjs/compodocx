@@ -19,7 +19,6 @@ import Configuration from '../configuration';
 import { hiddenFilter } from '../di/model';
 import type { MiscellaneousData } from '../interfaces/miscellaneous-data.interface';
 import type { ParsedData } from '../interfaces/parsed-data.interface';
-import type { RouteInterface } from '../interfaces/routes.interface';
 import type { TableKind } from '../links/symbol-id';
 import { buildSymbolTable, lookupEntry, type SymbolTable } from '../links/symbol-table';
 
@@ -152,7 +151,6 @@ export class DependenciesEngine {
     public interceptors: IInterceptorDep[];
     public guards: IGuardDep[];
     public interfaces: IInterfaceDep[];
-    public routes: RouteInterface;
     public pipes: IPipeDep[];
     public classes: IDep[];
     public appConfig: any[] = [];
@@ -221,7 +219,6 @@ export class DependenciesEngine {
         this.appConfig = this.rawData.appConfig || [];
         this.miscellaneous = this.rawData.miscellaneous;
         this.prepareMiscellaneous();
-        this.routes = this.rawData.routesTree;
         this.manageDuplicatesName();
     }
 
@@ -450,10 +447,6 @@ export class DependenciesEngine {
 
     public getInterfaces() {
         return this.interfaces;
-    }
-
-    public getRoutes() {
-        return this.routes;
     }
 
     public getPipes() {

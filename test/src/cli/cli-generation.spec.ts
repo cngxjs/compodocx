@@ -1094,9 +1094,9 @@ describe('CLI simple generation', () => {
             expect(stdoutString).to.contain('found          : FALLBACK_COMPONENT');
         });
 
-        it('should analyze routes definitions for spread elements (cleanFileSpreads)', () => {
+        it('should read the router with spreads followed and dynamic values kept', () => {
             expect(stdoutString).to.contain(
-                'Analysing routes definitions and clean them if necessary'
+                'Routes: 9 in 1 router, 0 unmounted (1 lazy, 2 dynamic values)'
             );
         });
 

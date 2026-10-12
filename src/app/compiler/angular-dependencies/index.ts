@@ -6,7 +6,6 @@ import ExtendsMerger from '../../../utils/extends-merger.util';
 import { logger } from '../../../utils/logger';
 import { markedAcl } from '../../../utils/marked.acl';
 import { getNodeDecorators, nodeHasDecorator } from '../../../utils/node.util';
-import RouterParserUtil from '../../../utils/router-parser.util';
 import { cleanLifecycleHooksFromMethods } from '../../../utils/utils';
 import Configuration from '../../configuration';
 import ComponentsTreeEngine from '../../engines/components-tree.engine';
@@ -37,6 +36,21 @@ import { PublicApiFilter } from './public-api-filter';
 const project = new Project();
 
 // TypeScript reference : https://github.com/Microsoft/TypeScript/blob/master/lib/typescript.d.ts
+
+/**
+ * A variable statement with a declaration annotated with the bare type name
+ * `Routes`. Such a variable is documented only when it is exported (the
+ * behaviour of the former route parser, kept so the documented set of
+ * variables does not change).
+ */
+const hasBareRoutesType = (node: ts.VariableStatement): boolean =>
+    node.declarationList.declarations.some(
+        declaration =>
+            declaration.type !== undefined &&
+            ts.isTypeReferenceNode(declaration.type) &&
+            ts.isIdentifier(declaration.type.typeName) &&
+            declaration.type.typeName.text === 'Routes'
+    );
 
 export class AngularDependencies extends FrameworkDependencies {
     private cache: ComponentCache = new ComponentCache();
@@ -72,7 +86,6 @@ export class AngularDependencies extends FrameworkDependencies {
             guards: [],
             pipes: [],
             directives: [],
-            routes: [],
             classes: [],
             interfaces: [],
             typescriptImports: [],
@@ -82,14 +95,11 @@ export class AngularDependencies extends FrameworkDependencies {
                 typealiases: [],
                 enumerations: []
             },
-            routesTree: undefined,
             appConfig: [],
             legacyFindings: [] as readonly LegacyFinding[]
         };
 
         const sourceFiles = this.program.getSourceFiles() || [];
-
-        RouterParserUtil.scannedFiles = [...sourceFiles];
 
         sourceFiles.map((file: ts.SourceFile) => {
             const filePath = file.fileName;
@@ -124,13 +134,6 @@ export class AngularDependencies extends FrameworkDependencies {
          */
         deps = ExtendsMerger.merge(deps);
         deps.legacyFindings = sortLegacyFindings(deps.legacyFindings);
-
-        // RouterParserUtil.printModulesRoutes();
-        // RouterParserUtil.printRoutes();
-
-        if (!Configuration.mainData.disableRoutes) {
-            deps.routesTree = RouterParserUtil.constructRoutesTree();
-        }
 
         return deps;
     }
@@ -287,50 +290,12 @@ export class AngularDependencies extends FrameworkDependencies {
     private getSourceFileDecorators(initialSrcFile: ts.SourceFile, outputSymbols: any): void {
         const cleaner = (process.cwd() + path.sep).replace(/\\/g, '/');
         const fileName = initialSrcFile.fileName.replace(cleaner, '');
-        let scannedFile = initialSrcFile;
+        const scannedFile = initialSrcFile;
 
-        // Search in file for variable statement as routes definitions
-
-        let astFile =
+        const astFile =
             typeof project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
                 ? project.getSourceFile(initialSrcFile.fileName)
                 : project.addSourceFileAtPath(initialSrcFile.fileName);
-
-        const variableRoutesStatements = astFile.getVariableStatements();
-        let hasRoutesStatements = false;
-
-        if (variableRoutesStatements.length > 0) {
-            // Clean file for spread and dynamics inside routes definitions
-            variableRoutesStatements.forEach(s => {
-                const variableDeclarations = s.getDeclarations();
-                const len = variableDeclarations.length;
-                let i = 0;
-                for (i; i < len; i++) {
-                    if (variableDeclarations[i].compilerNode.type) {
-                        if (
-                            (variableDeclarations[i].compilerNode.type as any).typeName &&
-                            (variableDeclarations[i].compilerNode.type as any).typeName.text ===
-                                'Routes'
-                        ) {
-                            hasRoutesStatements = true;
-                        }
-                    }
-                }
-            });
-        }
-
-        if (hasRoutesStatements && !Configuration.mainData.disableRoutes) {
-            // Clean file for spread and dynamics inside routes definitions
-            logger.info('Analysing routes definitions and clean them if necessary');
-
-            // scannedFile = RouterParserUtil.cleanFileIdentifiers(astFile).compilerNode;
-            RouterParserUtil.cleanFileSpreads(astFile);
-
-            astFile = RouterParserUtil.cleanCallExpressions(astFile);
-            scannedFile = RouterParserUtil.cleanFileDynamics(astFile).compilerNode;
-
-            (scannedFile as any).kind = SyntaxKind.SourceFile;
-        }
 
         ts.forEachChild(scannedFile, (initialNode: ts.Node) => {
             if (
@@ -785,24 +750,11 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
                     }
                 } else {
-                    const IO = this.ioExtractor.getRouteIO(file, srcFile, node);
-                    if (IO.routes) {
-                        let newRoutes;
-                        try {
-                            newRoutes = RouterParserUtil.cleanRawRouteParsed(IO.routes);
-                        } catch (_e) {
-                            logger.error(
-                                'Routes parsing error, maybe a trailing comma or an external variable.'
-                            );
-                            return true;
-                        }
-                        outputSymbols.routes = [...outputSymbols.routes, ...newRoutes];
-                    }
                     if (ts.isClassDeclaration(node)) {
                         this.processClass(node, file, srcFile, outputSymbols, fileBody, astFile);
                     }
                     if (ts.isVariableStatement(node)) {
-                        const isRoutesVariable = RouterParserUtil.isVariableRoutes(node);
+                        const isRoutesVariable = hasBareRoutesType(node);
                         // Process all variables, including exported routes variables for miscellaneous
                         if (!isRoutesVariable || this.ioExtractor.isExportedVariable(node)) {
                             let isDestructured = false;

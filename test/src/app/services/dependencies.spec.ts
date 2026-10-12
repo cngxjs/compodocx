@@ -17,7 +17,6 @@ const getDependenciesReturn = {
     interfaces: [],
     typescriptImports: [],
     miscellaneous: { variables: [], functions: [], typealiases: [], enumerations: [] },
-    routesTree: undefined,
     appConfig: []
 };
 
