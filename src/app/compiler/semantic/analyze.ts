@@ -30,7 +30,10 @@ export interface SemanticInput {
     readonly files: readonly string[];
     /** Base of every relative path in the model. */
     readonly cwd: string;
-    /** Program of the previous run in watch mode. */
+    /**
+     * A program whose unchanged source files are reused. Only safe when no
+     * other program has bound those files; the run pipeline never passes one.
+     */
     readonly previous?: SemanticState;
 }
 

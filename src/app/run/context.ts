@@ -128,7 +128,7 @@ export interface RunContext {
     readonly diff?: DependenciesData;
     /**
      * Project-wide program and semantic facts. Set by the crawl phases; holds
-     * the previous run's state until then, so a rebuild can reuse its program.
+     * the previous run's state until then (not reused: each run parses afresh).
      */
     readonly semantic?: SemanticState;
     /** Every documented symbol by id. Built by the crawl phases. */

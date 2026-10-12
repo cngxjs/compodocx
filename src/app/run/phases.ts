@@ -204,6 +204,10 @@ const printStatistics = (): void => {
 /**
  * Build the project-wide program and its facts. A failure is logged once and
  * leaves the run without semantic facts; it never stops the generation.
+ * Every run parses afresh: the crawler shares the program's source files and
+ * re-binds them, so a later program that reused them as unchanged would get
+ * a checker that no longer resolves imports (a watch rebuild after a save
+ * without changes lost the routers).
  */
 const withSemantic = (ctx: RunContext): RunContext => {
     const { mainData } = ctx.config;
@@ -214,8 +218,7 @@ const withSemantic = (ctx: RunContext): RunContext => {
     const analyzed = analyzeProject({
         tsconfigPath: path.resolve(cwd, mainData.tsconfig),
         files: ctx.files,
-        cwd,
-        previous: ctx.semantic
+        cwd
     });
     if (!analyzed.ok) {
         logger.warn(`Semantic analysis skipped: ${analyzed.message}`);
