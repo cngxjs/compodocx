@@ -28,6 +28,7 @@ import { hasStylePage } from '../styles';
 import type { RunContext, RunMode, Stage } from './context';
 import { deriveFeatures, placeInFeatures } from './features';
 import { type Halt, halt } from './halt';
+import { draftRoutes, logRouting, nameRoutes } from './routing';
 import { countsFromDiff, countsFromEngine, runPrepareStages, selectPrepareStages } from './stages';
 import { deriveStyles, logStyles } from './styles';
 
@@ -258,8 +259,13 @@ const withSymbols = (ctx: RunContext): RunContext => {
     }
     const table = styles ? withStyleEntries(symbols, styles.files.filter(hasStylePage)) : symbols;
     mainData.symbols = table;
+    const routing = nameRoutes(ctx.routing, table);
+    mainData.routing = routing;
+    if (ctx.mode !== 'diff' && ctx.semantic && !mainData.disableRoutesGraph) {
+        logRouting(routing);
+    }
     if (!ctx.semantic) {
-        return { ...ctx, symbols: table, di, styles };
+        return { ...ctx, symbols: table, di, styles, routing };
     }
     const detection = deriveFeatures(ctx.semantic.model, table, mainData, ctx.files, cwd);
     const semantic = {
@@ -275,7 +281,7 @@ const withSymbols = (ctx: RunContext): RunContext => {
         }
         logger.info(formatFeatureSummary(detection.model));
     }
-    return { ...ctx, symbols: placed, di, semantic, styles };
+    return { ...ctx, symbols: placed, di, semantic, styles, routing };
 };
 
 /** The crawler parses nothing the semantic program already holds. */
@@ -284,8 +290,20 @@ const sharedSourceFiles = (ctx: RunContext) => {
     return program ? (fileName: string) => program.getSourceFile(fileName) : undefined;
 };
 
-const crawl: Stage = async current => {
+/** The semantic state and the route draft, read before the crawler touches the files. */
+const withSemanticAndRoutes = (current: RunContext): RunContext => {
     const ctx = withSemantic(current);
+    const routing = draftRoutes(
+        ctx.semantic?.program,
+        ctx.files,
+        cwd,
+        ctx.config.mainData.disableRoutesGraph
+    );
+    return { ...ctx, routing };
+};
+
+const crawl: Stage = async current => {
+    const ctx = withSemanticAndRoutes(current);
     const { mainData } = ctx.config;
     logger.info('Get dependencies data');
 
@@ -322,7 +340,7 @@ const crawl: Stage = async current => {
 };
 
 const microCrawl: Stage = async current => {
-    const ctx = withSemantic(current);
+    const ctx = withSemanticAndRoutes(current);
     logger.info('Get diff dependencies data');
 
     ctx.config.mainData.angularProject = true;

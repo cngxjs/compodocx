@@ -2,30 +2,26 @@ import { ts } from 'ts-morph';
 
 import { unwrapExpression } from '../compiler/semantic/declarations';
 
-const ROUTER_MODULE = '@angular/router';
+export const ROUTER_MODULE = '@angular/router';
 
-/** What a local name of a file stands for in `@angular/router`. */
-interface RouterImports {
+/** What the local names of a file stand for in one module. */
+interface ModuleImports {
     /** Local name -> exported name (`import { Routes as AppRoutes }`). */
     readonly named: ReadonlyMap<string, string>;
-    /** Local names of `import * as x from '@angular/router'`. */
+    /** Local names of `import * as x from '<module>'`. */
     readonly namespaces: ReadonlySet<string>;
 }
 
-const importsCache = new WeakMap<ts.SourceFile, RouterImports>();
+const importsCache = new WeakMap<ts.SourceFile, Map<string, ModuleImports>>();
 
-const routerImports = (sourceFile: ts.SourceFile): RouterImports => {
-    const cached = importsCache.get(sourceFile);
-    if (cached) {
-        return cached;
-    }
+const readImports = (sourceFile: ts.SourceFile, module: string): ModuleImports => {
     const named = new Map<string, string>();
     const namespaces = new Set<string>();
     for (const statement of sourceFile.statements) {
         if (
             !ts.isImportDeclaration(statement) ||
             !ts.isStringLiteral(statement.moduleSpecifier) ||
-            statement.moduleSpecifier.text !== ROUTER_MODULE
+            statement.moduleSpecifier.text !== module
         ) {
             continue;
         }
@@ -39,21 +35,51 @@ const routerImports = (sourceFile: ts.SourceFile): RouterImports => {
             }
         }
     }
-    const imports = { named, namespaces };
-    importsCache.set(sourceFile, imports);
+    return { named, namespaces };
+};
+
+const moduleImports = (sourceFile: ts.SourceFile, module: string): ModuleImports => {
+    const byModule = importsCache.get(sourceFile) ?? new Map<string, ModuleImports>();
+    importsCache.set(sourceFile, byModule);
+    const cached = byModule.get(module);
+    if (cached) {
+        return cached;
+    }
+    const imports = readImports(sourceFile, module);
+    byModule.set(module, imports);
     return imports;
 };
 
-/** The `@angular/router` export a type name refers to, if it is one. */
-const routerTypeName = (name: ts.EntityName): string | undefined => {
-    const imports = routerImports(name.getSourceFile());
+/**
+ * The export of `module` an identifier or `ns.name` refers to, read from the
+ * imports of its own file (aliases and namespace imports followed).
+ */
+export const importedName = (
+    name: ts.EntityName | ts.Expression,
+    module: string
+): string | undefined => {
+    const imports = moduleImports(name.getSourceFile(), module);
     if (ts.isIdentifier(name)) {
         return imports.named.get(name.text);
     }
-    return ts.isIdentifier(name.left) && imports.namespaces.has(name.left.text)
-        ? name.right.text
+    const left = ts.isQualifiedName(name)
+        ? name.left
+        : ts.isPropertyAccessExpression(name)
+          ? name.expression
+          : undefined;
+    const right = ts.isQualifiedName(name)
+        ? name.right
+        : ts.isPropertyAccessExpression(name)
+          ? name.name
+          : undefined;
+    return left && right && ts.isIdentifier(left) && imports.namespaces.has(left.text)
+        ? right.text
         : undefined;
 };
+
+/** The `@angular/router` export a type name refers to, if it is one. */
+const routerTypeName = (name: ts.EntityName): string | undefined =>
+    importedName(name, ROUTER_MODULE);
 
 const isRouteType = (type: ts.TypeNode): boolean =>
     ts.isTypeReferenceNode(type) &&

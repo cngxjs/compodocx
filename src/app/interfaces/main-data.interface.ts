@@ -2,6 +2,7 @@ import type { SemanticModel } from '../compiler/semantic/model';
 import type { DiView } from '../di/model';
 import type { FileRefBundle, VendorPackage } from '../engines/stackblitz';
 import type { SymbolTable } from '../links/symbol-table';
+import type { RoutingModel } from '../routing/model';
 import type { StyleModel } from '../styles/model';
 import type { CoverageData } from './coverageData.interface';
 
@@ -269,4 +270,6 @@ export interface MainDataInterface {
     symbols?: SymbolTable;
     /** Placement of providers, feature functions and tokens; absent before the first crawl. */
     di?: DiView;
+    /** Routers and route arrays; absent before the first crawl. */
+    routing?: RoutingModel;
 }

@@ -36,6 +36,7 @@ import {
     type StylePageGenerator,
     TokenPageGenerator
 } from '../page-generator';
+import type { RoutingModel } from '../routing';
 import type { DependenciesData } from '../services/dependencies';
 import type { StyleModel } from '../styles';
 import type { Halt } from './halt';
@@ -136,6 +137,8 @@ export interface RunContext {
     readonly di?: DiView;
     /** The free-standing style files of `styleFiles`. Built with the table. */
     readonly styles?: StyleModel;
+    /** Routers and route arrays of the documented files. Built with the table. */
+    readonly routing?: RoutingModel;
     /**
      * Watch rebuilds only: called once the output phase has started writing
      * HTML, so the watcher can reset its changed-file buffer.

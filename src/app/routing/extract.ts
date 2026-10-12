@@ -69,6 +69,8 @@ interface Walk {
     readonly notes: RouteNote[];
     /** Array expressions on the current path (cycle guard). */
     readonly visiting: ReadonlySet<ts.Node>;
+    /** Every array expression entered, shared by the whole extraction. */
+    readonly visited?: Set<ts.Node>;
     readonly depth: number;
 }
 
@@ -463,6 +465,7 @@ const routeList = (
         note(walk, node, `route nesting deeper than ${MAX_DEPTH}`);
         return [];
     }
+    walk.visited?.add(expression);
     const inner: Walk = {
         ...walk,
         visiting: new Set([...walk.visiting, expression]),
@@ -486,11 +489,15 @@ const routeList = (
     return nodes;
 };
 
-/** The routes of a route array expression, ids below `place.id`. */
+/**
+ * The routes of a route array expression, ids below `place.id`. Notes are
+ * appended to `notes`; every array expression entered is added to `visited`.
+ */
 export const extractRoutes = (
     env: RouteEnv,
     source: ts.Expression | RouteArrayRef,
     place: RoutePlace,
-    notes: RouteNote[] = []
+    notes: RouteNote[] = [],
+    visited?: Set<ts.Node>
 ): readonly RouteNode[] =>
-    routeList({ env, notes, visiting: new Set(), depth: 0 }, source, place, 0);
+    routeList({ env, notes, visiting: new Set(), visited, depth: 0 }, source, place, 0);
