@@ -22,6 +22,7 @@ const PROJECT_DOCS: Readonly<Record<string, string>> = {
     'standalone-feature': '/tmp/compodoc-standalone-feature',
     semantic: '/tmp/compodoc-semantic',
     styles: '/tmp/compodoc-style',
+    routing: '/tmp/compodoc-routing',
     // Specs prefix the version folder themselves (`/v2.0.0${pageUrl(...)}`).
     'multi-version': '/tmp/compodoc-multi-version/v2.0.0'
 };
