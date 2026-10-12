@@ -204,6 +204,33 @@ Configuration and template changes:
 
 The JSON export moves to `schemaVersion: 3`, see "JSON export shape" below. Re-export older snapshots before comparing them with `compodocx diff`.
 
+## Breaking change in 0.9.0: typed routes, schema 5 and `disableRoutes`
+
+Routes are read through the project analysis: a router starts at `bootstrapApplication` and its `provideRouter` call, route arrays are recognised by their `@angular/router` type, and lazy `loadChildren` route arrays are expanded below their route. See "Routes" in docs/configuration.md for what is read.
+
+- **JSON export schema 5.** `routes` used to hold one tree object (`{ name: '<root>', kind: 'root', children }`) under a key typed as a list. It is now a typed list of roots:
+
+    ```ts
+    interface ExportRouteRoot {
+        kind: 'router' | 'unmounted';
+        bootstraps?: { file: string; line: number; component?: string }[];
+        config?: string;              // name of the config variable holding provideRouter
+        features?: ExportRouteRef[];  // provideRouter(routes, ...features)
+        array?: string;               // name of the route array variable
+        routes: ExportRoute[];        // path, fullPath, component, loadChildren, redirectTo,
+                                      // title, canActivate, ..., resolve, providers, data,
+                                      // file, line, children
+    }
+    interface ExportRouteRef { name: string; file?: string; source: string; call?: true }
+    ```
+
+    `routes` is written only when the project has routes. Components gain the optional `routedAt` (full paths of the routes rendering them) and route array variables `mountedAt`. `schemaVersion` is 5. `compodocx diff` of a schema 4 export against a schema 5 one exits with code 2 and the "re-export" message, so stored baselines must be re-exported. Routes are not compared by `compodocx diff`.
+- **No routes graph.** The routes page is a server-rendered table per router; the d3 graph and `js/routes/routes_index.js` are gone. A custom `routes` page override receives `routing` (the route model), `symbols` and `depth` instead of `routes`. Rows carry the anchors `route-<root>-<index>...`, sections `route-<root>`.
+- **No page without routes.** `routes.html` and its menu entry are generated only when the project has routes.
+- **`disableRoutesGraph` -> `disableRoutes`.** Rename the key in your config file and the flag in your scripts. `--disableRoutesGraph` is dropped with a warning and the config key is ignored with a warning, so routes stay enabled until you switch.
+- **New block override `block-routed-at`.** Renders "Routed at" on component pages and "Mounted at" on route array variables; receives `{ id, title, links }` with `links` as `{ label, href }[]`.
+- **Route file variables.** Variables in files with a `Routes` array show their source as default value instead of a rewritten one, and an exported route array that the former parser could not read is now documented.
+
 ## Changes in 0.9.0: style files and design tokens
 
 compodocx can document style files that no component reads (theme bridges, directive assets, global token sheets), give them pages and collect global tokens on a design tokens page. Nothing changes until you set `styleFiles`, except the two behaviour changes below.
@@ -351,7 +378,8 @@ To opt INTO the new layout, no migration is needed - set `menuLayout: 'feature'`
 
 - **Typed shape.** `ExportData` and every per-entity field are exported from `@cngxjs/compodocx`. Downstream tooling can import and narrow without `any`.
 - **Schema 3 (v0.9.0+).** The `modules` bucket and `entryComponents` on components are removed. Style sources are shared: a new top-level `styleSources` map holds `{ content, language }` per key, and each component's `themeStyleSources` lists keys into it (project-relative file path, or `<component file>#inline-<n>` for inline styles). `inputsClass`, `outputsClass`, `hostBindings` and `hostListeners` are fed by signal APIs and the `host` object only; `guards` and `interceptors` list functional ones only. Tools reading v2 must gate on `schemaVersion >= 3`.
-- **Header fields.** `schemaVersion: 3` (v0.9.0+; `2` in v0.6.0 to v0.8.x, `1` in v0.3.0–v0.5.0), `generatedAt` (ISO 8601), `compodocxVersion`. Pre-v0.3.0 outputs had no `schemaVersion` - consumers should treat its absence as version 0. The v0.6.0 bump from `1` to `2` is a non-breaking additive change: `tokens?: ExportInjectable[]` was added as a top-level entry (InjectionToken / HttpContextToken collection - previously dropped from JSON entirely), plus optional per-entity fields `docsKind?: 'primary'`, `wcagLevel?: 'A' \| 'AA' \| 'AAA'`, `a11yNote?: string`, `taggedSelector?: string`, `relatedTo?: string[]` on directives / components / interfaces / classes / tokens. Old v1 readers ignore unknown fields and keep working; downstream tools that want to react to the new surface should gate on `schemaVersion >= 2`.
+- **Schema 5 (v0.9.0+).** `routes` is a typed list of route roots, see "Breaking change in 0.9.0: typed routes, schema 5 and `disableRoutes`". Schema 4 removed `category` and `docsKind`.
+- **Header fields.** `schemaVersion: 5` (v0.9.0+; `2` in v0.6.0 to v0.8.x, `1` in v0.3.0–v0.5.0), `generatedAt` (ISO 8601), `compodocxVersion`. Pre-v0.3.0 outputs had no `schemaVersion` - consumers should treat its absence as version 0. The v0.6.0 bump from `1` to `2` is a non-breaking additive change: `tokens?: ExportInjectable[]` was added as a top-level entry (InjectionToken / HttpContextToken collection - previously dropped from JSON entirely), plus optional per-entity fields `docsKind?: 'primary'`, `wcagLevel?: 'A' \| 'AA' \| 'AAA'`, `a11yNote?: string`, `taggedSelector?: string`, `relatedTo?: string[]` on directives / components / interfaces / classes / tokens. Old v1 readers ignore unknown fields and keep working; downstream tools that want to react to the new surface should gate on `schemaVersion >= 2`.
 - **Indent default `0`.** Single-line by default. Pass `--jsonIndent 2` to restore the previous human-readable formatting. `jq` consumers are unaffected.
 
 ## Themes
@@ -484,7 +512,7 @@ The `feature` context targets the page of a feature, `features/<entry point>/<fe
 
 ### Block-level
 
-`block-theming`, `block-theming-token`, `block-theming-mixin`, `block-method`, `block-property`, `block-input`, `block-output`, `block-accessors`, `block-host-listener`, `block-host-listeners`, `block-host-bindings`, `block-derived-state`, `block-constructor`, `block-enum`, `block-typealias`, `block-index`, `block-index-signatures`, `block-playground`, `playground-content`, `referenced-by`, `version-switcher`
+`block-theming`, `block-theming-token`, `block-theming-mixin`, `block-routed-at`, `block-method`, `block-property`, `block-input`, `block-output`, `block-accessors`, `block-host-listener`, `block-host-listeners`, `block-host-bindings`, `block-derived-state`, `block-constructor`, `block-enum`, `block-typealias`, `block-index`, `block-index-signatures`, `block-playground`, `playground-content`, `referenced-by`, `version-switcher`
 
 The `referenced-by` block (v0.6.0+) renders the "Used by" chip list: the declarations that use the symbol, from the project analysis. Data: `{ entries: ReferencedByEntry[], depth: number }`; `ReferencedByEntry = { name, kind, hrefPrefix }`.
 
