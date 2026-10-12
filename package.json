@@ -40,6 +40,7 @@
         "test:multi-version-doc": "node ./scripts/build-multi-version-fixture.mjs",
         "test:semantic-doc": "node ./bin/index-cli.js -c ./test/fixtures/type-layout.compodocxrc.json --no-multiVersion -p ./test/fixtures/semantic-library/tsconfig.json -d /tmp/compodoc-semantic -s --port 4005",
         "test:style-doc": "node ./bin/index-cli.js -c ./test/fixtures/style-library/.compodocxrc.json --no-multiVersion -p ./test/fixtures/style-library/tsconfig.json -d /tmp/compodoc-style -s --port 4006",
+        "test:routing-doc": "node ./bin/index-cli.js -c ./test/fixtures/routing-app/.compodocxrc.json --no-multiVersion -p ./test/fixtures/routing-app/tsconfig.json -d /tmp/compodoc-routing -s --port 4007",
         "test-e2e-playwright": "npx playwright test",
         "*********QUALITY********": "*******************",
         "lint": "biome check",
