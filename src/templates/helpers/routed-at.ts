@@ -22,7 +22,7 @@ export interface RoutedAtProps {
 interface RouteData {
     readonly routing?: RoutingModel;
     readonly symbols?: SymbolTable;
-    readonly disableRoutesGraph?: boolean;
+    readonly disableRoutes?: boolean;
 }
 
 const routesHref = (id: string, depth: number): string =>
@@ -40,7 +40,7 @@ export const routedAt = (
     depth: number
 ): RoutedAtProps | undefined => {
     const { routing: model, symbols } = data;
-    if (model === undefined || symbols === undefined || data.disableRoutesGraph || !item.name) {
+    if (model === undefined || symbols === undefined || data.disableRoutes || !item.name) {
         return undefined;
     }
     const entry = entryInFile(symbols, kind, item.name, item.file);

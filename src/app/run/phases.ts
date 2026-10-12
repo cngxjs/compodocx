@@ -261,7 +261,7 @@ const withSymbols = (ctx: RunContext): RunContext => {
     mainData.symbols = table;
     const routing = nameRoutes(ctx.routing, table);
     mainData.routing = routing;
-    if (ctx.mode !== 'diff' && ctx.semantic && !mainData.disableRoutesGraph) {
+    if (ctx.mode !== 'diff' && ctx.semantic && !mainData.disableRoutes) {
         logRouting(routing);
     }
     if (!ctx.semantic) {
@@ -297,7 +297,7 @@ const withSemanticAndRoutes = (current: RunContext): RunContext => {
         ctx.semantic?.program,
         ctx.files,
         cwd,
-        ctx.config.mainData.disableRoutesGraph
+        ctx.config.mainData.disableRoutes
     );
     return { ...ctx, routing };
 };

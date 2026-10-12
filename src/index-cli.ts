@@ -6,7 +6,7 @@ import minimist from 'minimist';
 import pkg from '../package.json';
 import { printBanner } from './app/cli/banner';
 import { applyConfigToMainData, loadConfigFile } from './app/cli/config-loader';
-import { defineFlags, stripRemovedFlags } from './app/cli/flags';
+import { defineFlags, REMOVED_FLAG_REASONS, stripRemovedFlags } from './app/cli/flags';
 import Configuration from './app/configuration';
 import FileEngine from './app/engines/file.engine';
 import type { RunOutcome } from './app/run';
@@ -84,7 +84,7 @@ export async function runCli(argv: string[]): Promise<void> {
 
     const stripped = stripRemovedFlags(argv);
     for (const flag of stripped.removed) {
-        logger.warn(`${flag} is ignored: the sidebar groups symbols by feature`);
+        logger.warn(`${flag} is ignored: ${REMOVED_FLAG_REASONS[flag]}`);
     }
     argv = stripped.argv;
     defineFlags(program).parse(argv);

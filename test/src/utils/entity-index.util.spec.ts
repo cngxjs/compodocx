@@ -100,7 +100,7 @@ describe('buildEntityIndex — route entries', () => {
     });
 
     it('adds none with routes disabled', () => {
-        const index = buildEntityIndex({ routing, disableRoutesGraph: true });
+        const index = buildEntityIndex({ routing, disableRoutes: true });
         expect(Object.keys(index).some(key => key.startsWith('route:'))).toBe(false);
     });
 });

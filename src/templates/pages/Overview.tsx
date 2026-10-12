@@ -17,7 +17,7 @@ type OverviewProps = {
     readonly guards?: unknown[];
     readonly interfaces?: unknown[];
     readonly routing?: { readonly count: number };
-    readonly disableRoutesGraph?: boolean;
+    readonly disableRoutes?: boolean;
     readonly disableGraph?: boolean;
     readonly appConfig?: any[];
     readonly coverageData?: { files?: any[]; count?: number };
@@ -29,7 +29,7 @@ type OverviewProps = {
 
 /** Routes of the route model; none when routes are disabled. */
 const routeCount = (props: OverviewProps): number =>
-    props.disableRoutesGraph ? 0 : (props.routing?.count ?? 0);
+    props.disableRoutes ? 0 : (props.routing?.count ?? 0);
 
 const hasAnyEntities = (props: OverviewProps): boolean =>
     !!(

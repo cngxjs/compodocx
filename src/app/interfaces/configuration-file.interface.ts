@@ -40,7 +40,7 @@ export interface ConfigurationFileInterface {
     disableInternal: boolean;
     disableLifeCycleHooks: boolean;
     disableConstructors: boolean;
-    disableRoutesGraph: boolean;
+    disableRoutes: boolean;
     disableSearch: boolean;
     disableDependencies: boolean;
     disableDependenciesTab: boolean;

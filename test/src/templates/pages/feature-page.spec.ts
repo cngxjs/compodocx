@@ -322,8 +322,6 @@ describe('FeaturePage - Theming section with style files', () => {
 
     it('has no routes section without routed members or with routes disabled', () => {
         expect(sectionIds(render(MENU, { routing }))).not.toContain('routes');
-        expect(sectionIds(render(ROOT, { routing, disableRoutesGraph: true }))).not.toContain(
-            'routes'
-        );
+        expect(sectionIds(render(ROOT, { routing, disableRoutes: true }))).not.toContain('routes');
     });
 });

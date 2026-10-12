@@ -406,7 +406,7 @@ export class ExportJsonEngine {
             withLinkedTheming(data.components, 'component', themed) ?? []
         );
         const routeFacts = withRouteFacts(
-            Configuration.mainData.disableRoutesGraph ? undefined : data.routing,
+            Configuration.mainData.disableRoutes ? undefined : data.routing,
             data.symbols
         );
         exportData.components = routeFacts(facts(shared.components), 'component');
@@ -428,7 +428,7 @@ export class ExportJsonEngine {
         );
         exportData.tokens = facts(data.tokens);
         const routing: RoutingModel | undefined = data.routing;
-        if (!Configuration.mainData.disableRoutesGraph && routing && routing.count > 0) {
+        if (!Configuration.mainData.disableRoutes && routing && routing.count > 0) {
             exportData.routes = exportRoutes(routing, data.symbols);
         }
         if (!Configuration.mainData.disableCoverage) {

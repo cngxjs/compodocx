@@ -74,7 +74,7 @@ export class ExportLlmMdEngine {
             : data.miscellaneous;
         exportData.tokens = facts(data.tokens);
         const routing: RoutingModel | undefined = data.routing;
-        if (!Configuration.mainData.disableRoutesGraph && routing && routing.count > 0) {
+        if (!Configuration.mainData.disableRoutes && routing && routing.count > 0) {
             exportData.routes = exportRoutes(routing, data.symbols);
         }
 

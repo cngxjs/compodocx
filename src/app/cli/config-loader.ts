@@ -24,7 +24,8 @@ const IGNORED_CONFIG_KEYS: Readonly<Record<string, string>> = {
     groupBy: 'the sidebar groups symbols by feature',
     groupDepth: 'the sidebar groups symbols by feature',
     featureLibraryScope:
-        'each feature lists its primary members, or its whole surface when it has none'
+        'each feature lists its primary members, or its whole surface when it has none',
+    disableRoutesGraph: 'the routes graph is gone; use disableRoutes'
 };
 
 export interface LoadConfigOptions {
@@ -672,11 +673,11 @@ export function applyConfigToMainData(
         mainData.disableConstructors = programOptions.disableConstructors;
     }
 
-    if (configFile.disableRoutesGraph) {
-        mainData.disableRoutesGraph = configFile.disableRoutesGraph;
+    if (configFile.disableRoutes) {
+        mainData.disableRoutes = configFile.disableRoutes;
     }
-    if (programOptions.disableRoutesGraph) {
-        mainData.disableRoutesGraph = programOptions.disableRoutesGraph;
+    if (programOptions.disableRoutes) {
+        mainData.disableRoutes = programOptions.disableRoutes;
     }
 
     if (configFile.disableSearch) {
@@ -744,13 +745,13 @@ export function applyConfigToMainData(
 
     if (configFile.minimal) {
         mainData.disableSearch = true;
-        mainData.disableRoutesGraph = true;
+        mainData.disableRoutes = true;
         mainData.disableGraph = true;
         mainData.disableCoverage = true;
     }
     if (programOptions.minimal) {
         mainData.disableSearch = true;
-        mainData.disableRoutesGraph = true;
+        mainData.disableRoutes = true;
         mainData.disableGraph = true;
         mainData.disableCoverage = true;
     }

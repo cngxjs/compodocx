@@ -72,7 +72,7 @@ const context = (mode: RunMode, mainData: Record<string, unknown> = {}): RunCont
         mode,
         config: {
             mainData: {
-                disableRoutesGraph: false,
+                disableRoutes: false,
                 disableCoverage: false,
                 unitTestCoverage: '',
                 includes: '',
@@ -207,10 +207,10 @@ describe('prepare stage table', () => {
         expect(keys(context('diff'), EMPTY)).not.toContain('routes');
         expect(keys(context('diff'), { ...EMPTY, routes: true })).toContain('routes');
         expect(
-            keys(context('diff', { disableRoutesGraph: true }), { ...EMPTY, routes: true })
+            keys(context('diff', { disableRoutes: true }), { ...EMPTY, routes: true })
         ).not.toContain('routes');
         expect(
-            keys(context('full', { disableRoutesGraph: true }), { ...EMPTY, routes: true })
+            keys(context('full', { disableRoutes: true }), { ...EMPTY, routes: true })
         ).not.toContain('routes');
     });
 

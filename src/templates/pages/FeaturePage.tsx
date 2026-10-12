@@ -349,7 +349,7 @@ export const FeaturePage = (data: any): string => {
         table: data.symbols,
         di: data.di,
         semantic: data.semantic,
-        routing: data.disableRoutesGraph ? undefined : data.routing,
+        routing: data.disableRoutes ? undefined : data.routing,
         depth: data.depth,
         mainData: { styles: data.styles, symbols: data.symbols }
     };

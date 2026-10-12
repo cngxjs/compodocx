@@ -191,9 +191,9 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
             COMPODOC_DEFAULTS.disableConstructors
         )
         .option(
-            '--disableRoutesGraph',
-            'Do not add the routes graph',
-            COMPODOC_DEFAULTS.disableRoutesGraph
+            '--disableRoutes',
+            'Do not read routes: no routes page, no route links, no routes in the exports',
+            COMPODOC_DEFAULTS.disableRoutes
         )
         .option('--disableSearch', 'Do not add the search input', COMPODOC_DEFAULTS.disableSearch)
         .option(
@@ -254,12 +254,25 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
         .allowExcessArguments();
 }
 
-/** Flags that no longer exist; the CLI drops them with a warning instead of failing. */
+/** Flags that no longer exist, with the reason; the CLI drops them with a warning instead of failing. */
+export const REMOVED_FLAG_REASONS: Readonly<Record<string, string>> = {
+    '--groupBy': 'the sidebar groups symbols by feature',
+    '--groupDepth': 'the sidebar groups symbols by feature',
+    '--disableRoutesGraph': 'the routes graph is gone; use --disableRoutes'
+};
+
+/** Removed flags that may take a value: a following non-flag token is dropped with them. */
 export const REMOVED_FLAGS: readonly string[] = ['--groupBy', '--groupDepth'];
 
 /**
- * `argv` without the removed flags (and a value following one), plus the
- * flags that were dropped.
+ * Removed boolean flags: they never take the next token. An inline value
+ * (`--disableRoutesGraph=false`) is dropped with the flag.
+ */
+export const REMOVED_BOOLEAN_FLAGS: readonly string[] = ['--disableRoutesGraph'];
+
+/**
+ * `argv` without the removed flags (and a value following a value flag),
+ * plus the flags that were dropped.
  */
 export const stripRemovedFlags = (
     argv: readonly string[]
@@ -268,6 +281,10 @@ export const stripRemovedFlags = (
     const removed: string[] = [];
     for (let i = 0; i < argv.length; i++) {
         const [flag, inline] = argv[i].split('=');
+        if (REMOVED_BOOLEAN_FLAGS.includes(flag)) {
+            removed.push(flag);
+            continue;
+        }
         if (!REMOVED_FLAGS.includes(flag)) {
             kept.push(argv[i]);
             continue;

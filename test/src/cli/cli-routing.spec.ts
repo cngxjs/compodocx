@@ -153,4 +153,47 @@ describe('CLI routes', () => {
             expect(data.schemaVersion).toBe(5);
         });
     });
+
+    describe('disableRoutes and the removed disableRoutesGraph', () => {
+        const off = `${tmp.name}-routing-off`;
+        const old = `${tmp.name}-routing-old-flag`;
+        let oldStdout: string;
+
+        beforeAll(() => {
+            tmp.create(off);
+            tmp.create(old);
+            const args = ['-c', `${RT}/.compodocxrc.json`, '-p', `${RT}/tsconfig.json`];
+            run([...args, '-e', 'json', '--disableRoutes', '-d', off]);
+            const ls = shell('node', [
+                './bin/index-cli.js',
+                ...args,
+                '-e',
+                'json',
+                '--disableRoutesGraph',
+                '-d',
+                old
+            ]);
+            oldStdout = ls.stdout.toString();
+        });
+        afterAll(() => {
+            tmp.clean(off);
+            tmp.clean(old);
+        });
+
+        it('writes no routes and no route facts with disableRoutes', () => {
+            const text = read(`${off}/documentation.json`);
+            const data = JSON.parse(text) as ExportData;
+            expect(data.routes).toBeUndefined();
+            expect(text).not.toContain('"routedAt"');
+            expect(text).not.toContain('"mountedAt"');
+        });
+
+        it('ignores disableRoutesGraph with a warning and keeps the routes', () => {
+            expect(oldStdout).toContain(
+                '--disableRoutesGraph is ignored: the routes graph is gone; use --disableRoutes'
+            );
+            const data = JSON.parse(read(`${old}/documentation.json`)) as ExportData;
+            expect(data.routes?.length).toBe(2);
+        });
+    });
 });

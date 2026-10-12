@@ -125,7 +125,7 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
     },
     {
         key: 'routes',
-        when: (ctx, counts) => counts.routes && !ctx.config.mainData.disableRoutesGraph,
+        when: (ctx, counts) => counts.routes && !ctx.config.mainData.disableRoutes,
         run: step(ctx => ctx.generators.routes.prepare())
     },
     { key: 'pipe', when: hasAny(c => c.pipes), run: step(ctx => ctx.generators.pipe.prepare()) },

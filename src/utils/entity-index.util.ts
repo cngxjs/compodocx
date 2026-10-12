@@ -78,7 +78,7 @@ export function buildEntityIndex(mainData: Record<string, unknown>): EntityIndex
             kind: INDEX_KIND[entry.ref.kind] ?? entry.ref.kind
         };
     }
-    const routing = mainData.disableRoutesGraph
+    const routing = mainData.disableRoutes
         ? undefined
         : (mainData.routing as RoutingModel | undefined);
     return { ...index, ...routeEntries(routing) };

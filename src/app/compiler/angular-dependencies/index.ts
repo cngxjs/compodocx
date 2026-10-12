@@ -128,7 +128,7 @@ export class AngularDependencies extends FrameworkDependencies {
         // RouterParserUtil.printModulesRoutes();
         // RouterParserUtil.printRoutes();
 
-        if (!Configuration.mainData.disableRoutesGraph) {
+        if (!Configuration.mainData.disableRoutes) {
             deps.routesTree = RouterParserUtil.constructRoutesTree();
         }
 
@@ -319,7 +319,7 @@ export class AngularDependencies extends FrameworkDependencies {
             });
         }
 
-        if (hasRoutesStatements && !Configuration.mainData.disableRoutesGraph) {
+        if (hasRoutesStatements && !Configuration.mainData.disableRoutes) {
             // Clean file for spread and dynamics inside routes definitions
             logger.info('Analysing routes definitions and clean them if necessary');
 

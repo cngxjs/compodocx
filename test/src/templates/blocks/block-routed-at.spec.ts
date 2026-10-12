@@ -104,7 +104,7 @@ describe('Routed at / Mounted at', () => {
         expect(
             BlockRoutedAt(
                 routedAt(
-                    { ...data, disableRoutesGraph: true },
+                    { ...data, disableRoutes: true },
                     'component',
                     { name: 'Page', file: 'src/page.ts' },
                     0

@@ -63,7 +63,7 @@ const makeMainData = (): MainDataInterface => {
         disableInternal: false,
         disableLifeCycleHooks: false,
         disableConstructors: false,
-        disableRoutesGraph: false,
+        disableRoutes: false,
         disableSearch: false,
         disableDependencies: false,
         disableDependenciesTab: false,
@@ -308,6 +308,22 @@ describe('applyConfigToMainData', () => {
         expect(mainData).not.toHaveProperty('groupBy');
     });
 
+    it('warns that disableRoutesGraph is ignored and reads disableRoutes', () => {
+        const ignored = makeMainData();
+        applyConfigToMainData(ignored, { disableRoutesGraph: true } as never, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'disableRoutesGraph is ignored: the routes graph is gone; use disableRoutes'
+        );
+        expect(ignored.disableRoutes).toBe(false);
+        const disabled = makeMainData();
+        applyConfigToMainData(disabled, { disableRoutes: true }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(disabled.disableRoutes).toBe(true);
+    });
+
     it('keeps valid feature globs and warns about invalid keys', () => {
         const mainData = makeMainData();
         applyConfigToMainData(
@@ -421,7 +437,7 @@ describe('applyConfigToMainData', () => {
         const program = makeProgram();
         applyConfigToMainData(mainData, { minimal: true }, program, { cwd: '/tmp/test' });
         expect(mainData.disableSearch).toBe(true);
-        expect(mainData.disableRoutesGraph).toBe(true);
+        expect(mainData.disableRoutes).toBe(true);
         expect(mainData.disableGraph).toBe(true);
         expect(mainData.disableCoverage).toBe(true);
     });

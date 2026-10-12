@@ -78,7 +78,7 @@ describe('defineFlags', () => {
             '--disableInternal',
             '--disableLifeCycleHooks',
             '--disableConstructors',
-            '--disableRoutesGraph',
+            '--disableRoutes',
             '--disableSearch',
             '--disableDependencies',
             '--disableDependenciesTab',
@@ -175,6 +175,21 @@ describe('defineFlags', () => {
             'compodocx',
             '-s'
         ]);
+    });
+
+    it('drops the removed routes graph flag without taking the next argument', () => {
+        expect(
+            stripRemovedFlags(['node', 'compodocx', '--disableRoutesGraph', 'src/tsconfig.json'])
+        ).toEqual({
+            argv: ['node', 'compodocx', 'src/tsconfig.json'],
+            removed: ['--disableRoutesGraph']
+        });
+        expect(
+            stripRemovedFlags(['node', 'compodocx', '--disableRoutesGraph', '--disableSearch']).argv
+        ).toEqual(['node', 'compodocx', '--disableSearch']);
+        expect(
+            stripRemovedFlags(['node', 'compodocx', '--disableRoutesGraph=false', '-s'])
+        ).toEqual({ argv: ['node', 'compodocx', '-s'], removed: ['--disableRoutesGraph'] });
     });
 
     it('source tracking marks user-provided flags as "cli"', () => {

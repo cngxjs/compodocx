@@ -32,7 +32,7 @@ describe('CLI Routes graph', () => {
                 '--no-multiVersion',
                 '-p',
                 './test/fixtures/standalone-scenarios/routing/simple/tsconfig.json',
-                '--disableRoutesGraph',
+                '--disableRoutes',
                 '-d',
                 distFolder
             ]);
