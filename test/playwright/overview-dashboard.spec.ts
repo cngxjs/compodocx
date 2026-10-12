@@ -266,25 +266,27 @@ test.describe('Overview Dashboard', () => {
         });
     });
 
-    test.describe('Routes Graph Styling', () => {
-        test('routes graph SVG has role=img and aria-label', async ({ page }) => {
+    test.describe('Routes page', () => {
+        test('lists the routes as table rows, enum redirects resolved', async ({ page }) => {
             await page.goto('/routes.html');
-            const svg = page.locator('#body-routes svg');
-            await expect(svg).toBeVisible();
-            await expect(svg).toHaveAttribute('role', 'img');
-            await expect(svg).toHaveAttribute('aria-label', 'Application routes graph');
+            const rows = page.locator('table.cdx-routes-table tbody tr');
+            await expect(rows).toHaveCount(8);
+            await expect(page.locator('#route-0-2')).toContainText('homeenumimported');
+            await expect(page.locator('#route-0-1')).toContainText('lazy');
         });
 
-        test('route nodes have native SVG title tooltips', async ({ page }) => {
+        test('needs no routes graph script', async ({ page }) => {
             await page.goto('/routes.html');
-            const titles = page.locator('#body-routes svg .node title');
-            expect(await titles.count()).toBeGreaterThanOrEqual(1);
-        });
-
-        test('no Ionicons font reference', async ({ page }) => {
-            await page.goto('/routes.html');
+            await expect(page.locator('#body-routes')).toHaveCount(0);
             const html = await page.content();
+            expect(html).not.toContain('routes_index.js');
             expect(html).not.toContain('Ionicons');
+        });
+
+        test('overview shows the route count', async ({ page }) => {
+            await page.goto('/overview.html');
+            const chip = page.locator('a.cdx-overview-chip[href$="routes.html"]');
+            await expect(chip).toContainText('8');
         });
     });
 

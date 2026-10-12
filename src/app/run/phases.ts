@@ -374,7 +374,8 @@ const prepare: Stage = async ctx => {
     if (isDiff) {
         ctx.config.resetPages();
     }
-    const counts = isDiff ? countsFromDiff(ctx.diff) : countsFromEngine();
+    const routeCount = ctx.routing?.count ?? 0;
+    const counts = isDiff ? countsFromDiff(ctx.diff, routeCount) : countsFromEngine(routeCount);
     const prepared = await runPrepareStages(ctx, selectPrepareStages(ctx, counts));
     if (isErr(prepared)) {
         if (prepared.message.kind === 'halt') {

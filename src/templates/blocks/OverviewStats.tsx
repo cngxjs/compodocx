@@ -37,8 +37,8 @@ type OverviewStatsProps = {
     readonly interfaces?: any[];
     readonly interceptors?: any[];
     readonly entities?: any[];
-    readonly routes?: any[];
-    readonly routesLength?: number;
+    /** Routes of the route model. */
+    readonly routeCount?: number;
     readonly appConfig?: any[];
     readonly coverageData?: { files?: any[] };
 };
@@ -168,10 +168,10 @@ function buildChipGroups(props: OverviewStatsProps): ChipGroup[] {
 
     // Structure: Routes, AppConfig
     const structure: EntityChip[] = [];
-    if (props.routes?.length) {
+    if (props.routeCount) {
         structure.push({
             icon: IconGitBranch,
-            count: props.routesLength ?? 0,
+            count: props.routeCount,
             label: t('routes'),
             href: rootHref('routes'),
             colorVar: 'var(--color-cdx-primary)'

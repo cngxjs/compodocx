@@ -213,19 +213,8 @@ test.describe('SPA navigation', () => {
     test('content scripts execute after SPA navigation', async ({ page }) => {
         await page.goto('/');
 
-        const routesLink = page.locator('#sidebar a[href="routes.html"]');
-        if ((await routesLink.count()) > 0) {
-            await routesLink.click();
-            await page.waitForTimeout(2000);
-
-            const hasRoutesIndex = await page.evaluate(
-                () => typeof (window as any).ROUTES_INDEX !== 'undefined'
-            );
-            expect(hasRoutesIndex).toBe(true);
-
-            const svg = page.locator('#body-routes svg');
-            await expect(svg).toBeVisible();
-        }
+        await page.locator('#sidebar a[href$="overview.html"]').first().click();
+        await expect(page.locator('#dependency-graph-container svg')).toBeVisible();
     });
 });
 

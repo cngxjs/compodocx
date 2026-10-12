@@ -8,6 +8,7 @@ import {
     type PageTarget,
     pageLocation,
     relativePrefix,
+    routeAnchor,
     safeFileName,
     symbolFolder
 } from '../../../src/app/links/layout';
@@ -274,5 +275,13 @@ describe('page layout contract', () => {
         expect(memberAnchor('window:resize')).toBe('window:resize');
         expect(memberAnchor('a b<c>', 'Owner')).toBe('Owner--a-b-c-');
         expect(memberAnchor(undefined)).toBeUndefined();
+    });
+
+    it('builds route anchors from root and node ids', () => {
+        expect(routeAnchor('0')).toBe('route-0');
+        expect(routeAnchor('1-0-2')).toBe('route-1-0-2');
+        expect(hrefText(hrefFor({ type: 'root', page: 'routes' }, 1, routeAnchor('0-3')))).toBe(
+            '../routes.html#route-0-3'
+        );
     });
 });

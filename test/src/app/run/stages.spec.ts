@@ -201,11 +201,14 @@ describe('prepare stage table', () => {
         expect(PREPARE_STAGES.map(stage => stage.key)).not.toContain('module');
     });
 
-    it('gates routes on the routes tree in full mode but not in diff mode', () => {
+    it('gates routes on the route model in every mode', () => {
         expect(keys(context('full'), EMPTY)).not.toContain('routes');
         expect(keys(context('full'), { ...EMPTY, routes: true })).toContain('routes');
-        expect(keys(context('diff'), EMPTY)).toContain('routes');
-        expect(keys(context('diff', { disableRoutesGraph: true }), EMPTY)).not.toContain('routes');
+        expect(keys(context('diff'), EMPTY)).not.toContain('routes');
+        expect(keys(context('diff'), { ...EMPTY, routes: true })).toContain('routes');
+        expect(
+            keys(context('diff', { disableRoutesGraph: true }), { ...EMPTY, routes: true })
+        ).not.toContain('routes');
         expect(
             keys(context('full', { disableRoutesGraph: true }), { ...EMPTY, routes: true })
         ).not.toContain('routes');
@@ -232,7 +235,7 @@ describe('prepare stage table', () => {
 
     it('keeps table order for any selection', () => {
         const ctx = context('diff');
-        const selected = keys(ctx, { ...EMPTY, pipes: 1, guards: 1, components: 1 });
+        const selected = keys(ctx, { ...EMPTY, pipes: 1, guards: 1, components: 1, routes: true });
         const positions = selected.map(key => ALL_KEYS.indexOf(key));
         expect(positions).toEqual([...positions].sort((a, b) => a - b));
         expect(selected.slice(0, 4)).toEqual(['component', 'guard', 'routes', 'pipe']);

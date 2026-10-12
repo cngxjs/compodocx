@@ -1,6 +1,25 @@
+import type {
+    ExportData,
+    ExportRoute,
+    ExportRouteRoot
+} from '../../../src/app/interfaces/export-data.interface';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
 
 const tmp = temporaryDir();
+
+/** `fullPath -> target` per route, children indented, from the JSON export. */
+const routeLines = (routes: readonly ExportRoute[], depth = 0): string[] =>
+    routes.flatMap(route => [
+        `${'  '.repeat(depth)}${route.fullPath} -> ${
+            route.component?.name ??
+            route.loadChildren?.name ??
+            (typeof route.redirectTo === 'string' ? `redirect ${route.redirectTo}` : '')
+        }`,
+        ...routeLines(route.children ?? [], depth + 1)
+    ]);
+
+const exportedRoutes = (folder: string): ExportRouteRoot[] =>
+    (JSON.parse(read(`${folder}/documentation.json`)) as ExportData).routes ?? [];
 
 describe('CLI Routes graph', () => {
     const distFolder = `${tmp.name}-routes-graph`;
@@ -25,9 +44,9 @@ describe('CLI Routes graph', () => {
         });
         afterAll(() => tmp.clean(distFolder));
 
-        it('it should not exist routes_index.js file', () => {
-            const isFileExists = exists(`${distFolder}/js/routes/routes_index.js`);
-            expect(isFileExists).to.be.false;
+        it('it should write neither a routes page nor a routes script', () => {
+            expect(exists(`${distFolder}/routes.html`)).to.be.false;
+            expect(exists(`${distFolder}/js/routes/routes_index.js`)).to.be.false;
         });
     });
 
@@ -66,6 +85,8 @@ describe('CLI Routes graph', () => {
                 '--no-multiVersion',
                 '-p',
                 './test/fixtures/standalone-scenarios/routing/lazy-trailing-comma/tsconfig.json',
+                '-e',
+                'json',
                 '-d',
                 distFolder
             ]);
@@ -77,11 +98,14 @@ describe('CLI Routes graph', () => {
         });
         afterAll(() => tmp.clean(distFolder));
 
-        it('should have a clean graph', () => {
-            const isFileExists = exists(`${distFolder}/js/routes/routes_index.js`);
-            expect(isFileExists).to.be.true;
-            const file = read(`${distFolder}/js/routes/routes_index.js`);
-            expect(file).to.contain('AboutComponent');
+        it('should expand the lazy routes', () => {
+            expect(routeLines(exportedRoutes(distFolder)[0].routes)).toEqual([
+                '/home -> HomeComponent',
+                '/about -> ABOUT_ROUTES',
+                '  /about -> AboutComponent',
+                '/ -> redirect home',
+                '/** -> redirect home'
+            ]);
         });
     });
 
@@ -93,6 +117,8 @@ describe('CLI Routes graph', () => {
                 '--no-multiVersion',
                 '-p',
                 './test/fixtures/standalone-scenarios/routing/lazy-async/tsconfig.json',
+                '-e',
+                'json',
                 '-d',
                 distFolder
             ]);
@@ -104,11 +130,17 @@ describe('CLI Routes graph', () => {
         });
         afterAll(() => tmp.clean(distFolder));
 
-        it('should have a clean graph', () => {
-            const isFileExists = exists(`${distFolder}/js/routes/routes_index.js`);
-            expect(isFileExists).to.be.true;
-            const file = read(`${distFolder}/js/routes/routes_index.js`);
-            expect(file).to.contain('AboutComponent');
+        it('should expand the awaited lazy routes and keep a missing one unresolved', () => {
+            const [root] = exportedRoutes(distFolder);
+            expect(routeLines(root.routes)).toEqual([
+                '/home -> HomeComponent',
+                '/about -> ABOUT_ROUTES',
+                '  /about -> AboutComponent',
+                '/toto -> TOTO_ROUTES',
+                '/ -> redirect home',
+                '/** -> redirect home'
+            ]);
+            expect(root.routes[2].loadChildren?.kind).toBe('unresolved');
         });
     });
 
@@ -120,6 +152,8 @@ describe('CLI Routes graph', () => {
                 '--no-multiVersion',
                 '-p',
                 './test/fixtures/standalone-scenarios/routing/bootstrap-if/tsconfig.json',
+                '-e',
+                'json',
                 '-d',
                 distFolder
             ]);
@@ -131,11 +165,16 @@ describe('CLI Routes graph', () => {
         });
         afterAll(() => tmp.clean(distFolder));
 
-        it('should have a clean graph', () => {
-            const isFileExists = exists(`${distFolder}/js/routes/routes_index.js`);
-            expect(isFileExists).to.be.true;
-            const file = read(`${distFolder}/js/routes/routes_index.js`);
-            expect(file).to.contain('HomeComponent');
+        it('should find the router of a bootstrap inside an if', () => {
+            const [root] = exportedRoutes(distFolder);
+            expect(root.kind).toBe('router');
+            expect(root.bootstraps?.[0].file).toContain('routing/bootstrap-if/src/main.ts');
+            expect(routeLines(root.routes)).toEqual([
+                '/home -> HomeComponent',
+                '/about -> AboutComponent',
+                '/ -> redirect home',
+                '/** -> redirect home'
+            ]);
         });
     });
 
@@ -147,6 +186,8 @@ describe('CLI Routes graph', () => {
                 '--no-multiVersion',
                 '-p',
                 './test/fixtures/standalone-scenarios/routing/simple/tsconfig.json',
+                '-e',
+                'json',
                 '-d',
                 distFolder
             ]);
@@ -158,9 +199,15 @@ describe('CLI Routes graph', () => {
         });
         afterAll(() => tmp.clean(distFolder));
 
-        it('should correctly read external file', () => {
-            const file = read(`${distFolder}/js/routes/routes_index.js`);
-            expect(file).to.contain('login');
+        it('should follow spreads of route arrays in other files', () => {
+            expect(routeLines(exportedRoutes(distFolder)[0].routes)).toEqual([
+                '/home -> HomeComponent',
+                '/login -> ',
+                '/about -> ABOUT_ROUTES',
+                '  /about -> AboutComponent',
+                '/ -> redirect home',
+                '/** -> redirect home'
+            ]);
         });
     });
 });
