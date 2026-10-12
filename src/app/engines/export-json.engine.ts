@@ -34,6 +34,7 @@ import {
 } from '../interfaces/export-data.interface';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
 import { type SymbolTable, styleFileName } from '../links/symbol-table';
+import { exportRoutes, type RoutingModel } from '../routing';
 import type { StyleModel } from '../styles/model';
 import FileEngine from './file.engine';
 
@@ -400,8 +401,9 @@ export class ExportJsonEngine {
             ? miscellaneousWithFacts(data.miscellaneous, model)
             : data.miscellaneous;
         exportData.tokens = facts(data.tokens);
-        if (!Configuration.mainData.disableRoutesGraph) {
-            exportData.routes = data.routes;
+        const routing: RoutingModel | undefined = data.routing;
+        if (!Configuration.mainData.disableRoutesGraph && routing && routing.count > 0) {
+            exportData.routes = exportRoutes(routing, data.symbols);
         }
         if (!Configuration.mainData.disableCoverage) {
             exportData.coverage = data.coverageData;

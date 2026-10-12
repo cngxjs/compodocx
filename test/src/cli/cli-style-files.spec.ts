@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { EXPORT_SCHEMA_VERSION } from '../../../src/app/interfaces/export-data.interface';
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
 
 const tmp = temporaryDir();
@@ -57,7 +58,7 @@ describe('CLI style files in the exports', () => {
         expect(card.themes.map((ref: any) => ref.name)).to.deep.equal(['StyCard', 'StyTooltip']);
         expect(card.mixins.map((mixin: any) => mixin.name)).to.deep.equal(['theme']);
         expect(exported.styleSources[card.file].language).to.equal('scss');
-        expect(exported.schemaVersion).to.equal(4);
+        expect(exported.schemaVersion).to.equal(EXPORT_SCHEMA_VERSION);
     });
 
     it('gives the themed directive the tokens of its style file', () => {

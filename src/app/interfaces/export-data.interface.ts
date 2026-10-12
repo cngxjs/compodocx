@@ -4,14 +4,86 @@ import type {
     ProviderEntry
 } from '../compiler/angular/deps/helpers/component-helper';
 import type { JsdocTagInterface } from './jsdoc-tag.interface';
-import type { RouteInterface } from './routes.interface';
 
 /**
- * Re-export of `RouteInterface` under the `Export*` naming convention so the
- * public surface is uniform. Wraps rather than redefines, so the route shape
- * stays in sync with the production interface.
+ * A guard, resolver, title or redirect function, matcher, provider or router
+ * feature of a route: the name, the declaring file when the name is a
+ * documented symbol, and the exact source text (`roleGuard('admin')`).
  */
-export type ExportRoute = RouteInterface;
+export interface ExportRouteRef {
+    /** Callee or identifier name; `''` for an inline function or a dynamic value. */
+    name: string;
+    file?: string;
+    source: string;
+    /** Set for a call expression. */
+    call?: true;
+}
+
+/** What a route renders (`component` / `loadComponent`) or loads (`loadChildren`). */
+export interface ExportRouteTarget {
+    kind: 'symbol' | 'routes' | 'external' | 'unresolved';
+    /** Exported name; a default-exported declaration by its own name, else `default`. */
+    name: string;
+    /** Declaring file when the target is a documented symbol. */
+    file?: string;
+    /** Module specifier of a lazy import. */
+    specifier?: string;
+    lazy?: true;
+    source: string;
+}
+
+/** One route. Empty lists and absent values are never written. */
+export interface ExportRoute {
+    /** The path text; `null` for a matcher route or a runtime-built child list. */
+    path: string | null;
+    /** Set when `path` is source text the type checker cannot evaluate. */
+    pathDynamic?: true;
+    /** Parent full path + own path; dynamic segments as `{source}`; the root is `/`. */
+    fullPath: string;
+    pathMatch?: 'full' | 'prefix';
+    outlet?: string;
+    matcher?: ExportRouteRef;
+    component?: ExportRouteTarget;
+    loadChildren?: ExportRouteTarget;
+    /** The call that builds this node's routes at runtime. */
+    builtBy?: ExportRouteRef;
+    /** A string, or a redirect function / dynamic value. */
+    redirectTo?: string | ExportRouteRef;
+    /** A string, or a title resolver / dynamic value. */
+    title?: string | ExportRouteRef;
+    canActivate?: ExportRouteRef[];
+    canActivateChild?: ExportRouteRef[];
+    canDeactivate?: ExportRouteRef[];
+    canMatch?: ExportRouteRef[];
+    canLoad?: ExportRouteRef[];
+    resolve?: Record<string, ExportRouteRef>;
+    providers?: ExportRouteRef[];
+    /** Source text of the `data` value. */
+    data?: string;
+    /** Source text of the `runGuardsAndResolvers` value. */
+    runGuardsAndResolvers?: string;
+    /** Declaring file, relative to the working directory. */
+    file: string;
+    line: number;
+    /** Inline children, spreads followed, plus an expanded `loadChildren` route array. */
+    children?: ExportRoute[];
+}
+
+/**
+ * A router (`provideRouter` reached from `bootstrapApplication`) or an
+ * exported route array that no router mounts (`unmounted`).
+ */
+export interface ExportRouteRoot {
+    kind: 'router' | 'unmounted';
+    bootstraps?: { file: string; line: number; component?: string }[];
+    /** Name of the application config variable holding the `provideRouter` call. */
+    config?: string;
+    /** `provideRouter(routes, ...features)`. */
+    features?: ExportRouteRef[];
+    /** Name of the route array variable (the routes argument, or the unmounted array). */
+    array?: string;
+    routes: ExportRoute[];
+}
 
 /**
  * Schema version of the `documentation.json` produced by `--exportFormat json`.
@@ -26,7 +98,7 @@ export type ExportRoute = RouteInterface;
  * other place in `src/` writes a numeric literal as the schema version
  * instead of importing this constant.
  */
-export const EXPORT_SCHEMA_VERSION = 4 as const;
+export const EXPORT_SCHEMA_VERSION = 5 as const;
 
 export type ExportSchemaVersion = typeof EXPORT_SCHEMA_VERSION;
 
@@ -494,7 +566,8 @@ export interface ExportData {
     interceptors?: ExportInterceptor[];
     classes?: ExportClass[];
     directives?: ExportDirective[];
-    routes?: ExportRoute[];
+    /** Written only when the route model has routes and routes are not disabled. */
+    routes?: ExportRouteRoot[];
     coverage?: ExportCoverage;
     miscellaneous?: ExportMiscellaneous;
     components?: ExportComponent[];

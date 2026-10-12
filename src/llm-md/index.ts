@@ -36,6 +36,7 @@ import {
     emitVariable
 } from './emit';
 import { collapseDescription, escapeMarkdown, joinSections } from './format';
+import { emitRoutes } from './routes';
 import type { LlmMdEmitOptions, LlmMdInput, LlmMdSnapshotMeta } from './types';
 
 const sectionHeader = (title: string): string => `## ${title}`;
@@ -44,6 +45,12 @@ const sectionHeader = (title: string): string => `## ${title}`;
 const designTokensSection = (files: ExportData['styleFiles']): string => {
     const body = emitDesignTokens(files ?? []);
     return body ? `${sectionHeader('Design tokens')}\n\n${body}` : '';
+};
+
+/** Routers and unmounted route arrays; '' without routes. */
+const routesSection = (roots: ExportData['routes']): string => {
+    const body = emitRoutes(roots ?? []);
+    return body ? `${sectionHeader('Routes')}\n\n${body}` : '';
 };
 
 /** Symbols that reach no public entry point are left out of every section. */
@@ -120,6 +127,7 @@ export const emitLlmMd = (input: LlmMdInput): string => {
             emitEnumeration
         ),
         renderListSection<ExportVariable>('Public variables', misc?.variables, emitVariable),
+        routesSection(data.routes),
         designTokensSection(data.styleFiles)
     ];
 

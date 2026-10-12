@@ -1,3 +1,4 @@
+export { exportRoutes } from './export';
 export {
     declarationOf,
     extractRoutes,
