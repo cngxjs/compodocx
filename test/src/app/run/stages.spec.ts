@@ -90,7 +90,12 @@ const keys = (ctx: RunContext, counts: SourceCounts) =>
 
 describe('prepare stage table', () => {
     it('runs the style stage only when a style file gets a page', () => {
-        const linkedOnce = { hasContent: true, themes: ['component:a.ts#A'], mixins: [], tokens: [] };
+        const linkedOnce = {
+            hasContent: true,
+            themes: ['component:a.ts#A'],
+            mixins: [],
+            tokens: []
+        };
         const unlinked = { hasContent: true, themes: [], mixins: [], tokens: [] };
         expect(keys(context('full', { styles: { files: [linkedOnce] } }), EMPTY)).not.toContain(
             'style'
