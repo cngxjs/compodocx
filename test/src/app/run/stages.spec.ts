@@ -56,6 +56,8 @@ const ALL_KEYS = [
     'appConfig',
     'utilities',
     'feature',
+    'style',
+    'designTokens',
     'apiReference',
     'documentationCoverage',
     'unitTestCoverage',
@@ -87,6 +89,20 @@ const keys = (ctx: RunContext, counts: SourceCounts) =>
     selectPrepareStages(ctx, counts).map(stage => stage.key);
 
 describe('prepare stage table', () => {
+    it('runs the style stage only when a style file gets a page', () => {
+        const linkedOnce = {
+            hasContent: true,
+            themes: ['component:a.ts#A'],
+            mixins: [],
+            tokens: []
+        };
+        const unlinked = { hasContent: true, themes: [], mixins: [], tokens: [] };
+        expect(keys(context('full', { styles: { files: [linkedOnce] } }), EMPTY)).not.toContain(
+            'style'
+        );
+        expect(keys(context('full', { styles: { files: [unlinked] } }), EMPTY)).toContain('style');
+    });
+
     it('selects only the unconditional stages for an empty full run', () => {
         expect(keys(context('full'), EMPTY)).toEqual([
             'component',
@@ -100,11 +116,23 @@ describe('prepare stage table', () => {
         ]);
     });
 
-    it('selects all 24 stages in table order for a full run with every kind', () => {
+    it('selects all 26 stages in table order for a full run with every kind', () => {
         const ctx = context('full', {
             unitTestCoverage: 'coverage.json',
             includes: 'docs',
-            di: { clusters: [{}], plainProviders: [], tokens: [] }
+            di: { clusters: [{}], plainProviders: [], tokens: [] },
+            styles: {
+                files: [
+                    {
+                        hasContent: true,
+                        themes: [],
+                        mixins: [],
+                        tokens: [
+                            { description: 'x', group: '', type: '', kind: 'css-custom-property' }
+                        ]
+                    }
+                ]
+            }
         });
         expect(keys(ctx, EVERY_KIND)).toEqual(ALL_KEYS);
         expect(PREPARE_STAGES.map(stage => stage.key)).toEqual(ALL_KEYS);
@@ -147,7 +175,19 @@ describe('prepare stage table', () => {
         const ctx = context('diff', {
             unitTestCoverage: 'coverage.json',
             includes: 'docs',
-            di: { clusters: [{}], plainProviders: [], tokens: [] }
+            di: { clusters: [{}], plainProviders: [], tokens: [] },
+            styles: {
+                files: [
+                    {
+                        hasContent: true,
+                        themes: [],
+                        mixins: [],
+                        tokens: [
+                            { description: 'x', group: '', type: '', kind: 'css-custom-property' }
+                        ]
+                    }
+                ]
+            }
         });
         const selected = keys(ctx, EVERY_KIND);
         expect(selected).not.toContain('unitTestCoverage');

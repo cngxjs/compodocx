@@ -26,9 +26,11 @@ import type {
     ExportMethod,
     ExportPipe,
     ExportProperty,
+    ExportStyleFile,
     ExportTypeAlias,
     ExportVariable
 } from '../app/interfaces/export-data.interface';
+import type { StyleMixin, ThemeToken } from '../utils/theme-doc-parser';
 import {
     collapseDescription,
     collapseSignatureWhitespace,
@@ -202,8 +204,59 @@ export const emitDirective = (entity: ExportDirective): string => {
         renderProperties('Inputs', entity.inputsClass ?? []),
         renderProperties('Outputs', entity.outputsClass ?? []),
         renderProperties('Properties', regularProperties(entity.propertiesClass ?? [])),
-        renderMethods('Methods', entity.methodsClass ?? [])
+        renderMethods('Methods', entity.methodsClass ?? []),
+        renderThemeTokens(entity.themeTokens ?? [])
     ]);
+};
+
+/** `name($a, $b: 1)` of a documented mixin or function. */
+const mixinSignature = (mixin: StyleMixin): string =>
+    `@${mixin.kind} ${mixin.name}(${mixin.params
+        .map(param => `$${param.name}${param.default ? `: ${param.default}` : ''}`)
+        .join(', ')})`;
+
+/**
+ * The project's design tokens: the documented tokens of every style file
+ * that themes no symbol, by `@group` (default group first), then each style
+ * file's documented mixins by signature.
+ */
+export const emitDesignTokens = (files: ReadonlyArray<ExportStyleFile>): string => {
+    const unlinked = files.filter(file => (file.themes ?? []).length === 0);
+    const byGroup = new Map<string, ThemeToken[]>();
+    for (const file of unlinked) {
+        for (const token of file.tokens) {
+            const documented =
+                token.description.trim() !== '' ||
+                token.group !== '' ||
+                (token.type !== '' && token.kind !== 'css-at-property');
+            if (documented) {
+                byGroup.set(token.group, [...(byGroup.get(token.group) ?? []), token]);
+            }
+        }
+    }
+    const groups = [...byGroup.keys()].sort((a, b) =>
+        a === '' ? -1 : b === '' ? 1 : a.localeCompare(b)
+    );
+    const tokenLines = groups.flatMap(group =>
+        (byGroup.get(group) ?? []).map(token => {
+            const sig = formatPropertySignature(token.name, token.type, false, token.defaultValue);
+            const desc = collapseDescription(token.description);
+            const groupTag = group ? ` [${escapeMarkdown(group)}]` : '';
+            return `- ${inlineCode(sig)}${groupTag}${desc ? ` - ${escapeMarkdown(desc)}` : ''}`;
+        })
+    );
+    const mixinBlocks = files
+        .filter(file => (file.mixins ?? []).length > 0)
+        .map(file =>
+            renderList(
+                `Mixins in ${file.file}`,
+                (file.mixins ?? []).map(mixin => {
+                    const desc = collapseDescription(mixin.description);
+                    return `- ${inlineCode(mixinSignature(mixin))}${desc ? ` - ${escapeMarkdown(desc)}` : ''}`;
+                })
+            )
+        );
+    return joinSections([renderList('Tokens', tokenLines), ...mixinBlocks]);
 };
 
 export const emitPipe = (entity: ExportPipe): string => {

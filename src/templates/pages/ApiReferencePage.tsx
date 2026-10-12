@@ -6,6 +6,7 @@ import type { EntityKind, EntityWithKind } from '../../app/engines/dependencies.
 import { hrefFor, hrefText, isPageKind } from '../../app/links/layout';
 import { itemTarget, placeTarget } from '../../app/links/resolve';
 import type { TableKind } from '../../app/links/symbol-id';
+import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
 import { isNonNull } from '../../lib';
 import { IconSearch, IconX } from '../components/Icons';
 import {
@@ -223,13 +224,16 @@ const hasUtilities = (misc: any): boolean =>
         list => (misc?.[list]?.length ?? 0) > 0
     );
 
-/** Links to the Utilities and Dependency Injection landing pages that exist. */
+/** Links to the Utilities, Dependency Injection and design tokens pages that exist. */
 const LandingLinks = (data: any): string => {
     const depth: number = data.depth ?? 0;
     const pages = [
         hasUtilities(data.miscellaneous) ? { page: 'utilities', label: t('utilities') } : undefined,
         hasDiLanding(data.di)
             ? { page: 'dependency-injection', label: t('dependency-injection') }
+            : undefined,
+        unlinkedTokenFiles(data.styles?.files ?? []).length > 0
+            ? { page: 'design-tokens', label: t('design-tokens') }
             : undefined
     ].filter(isNonNull);
     return pages.length > 0

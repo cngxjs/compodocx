@@ -16,6 +16,7 @@ import type {
 import {
     emitClass,
     emitComponent,
+    emitDesignTokens,
     emitDirective,
     emitEnumeration,
     emitFunction,
@@ -135,6 +136,76 @@ describe('llm-md/emit — emitDirective', () => {
         expect(out).toContain('Selector: `[appBorder]`');
         expect(out).toContain('Standalone: yes');
         expect(out).toContain('Description: Adds a border');
+    });
+});
+
+describe('llm-md/emit - style files', () => {
+    const token = (name: string, group = '') => ({
+        name,
+        kind: 'css-custom-property' as const,
+        type: '<length>',
+        defaultValue: '1px',
+        description: `${name} token.`,
+        group,
+        examples: [],
+        since: '',
+        deprecated: null,
+        see: [],
+        file: 'x.css',
+        line: 1
+    });
+
+    it('lists the theme tokens a directive gets from its style files', () => {
+        const out = emitDirective({
+            name: 'HighlightDirective',
+            file: 'src/highlight.ts',
+            themeTokens: [token('--hl-bg')]
+        });
+        expect(out).toContain('Theme tokens:');
+        expect(out).toContain('`--hl-bg: <length> = 1px`');
+    });
+
+    it('lists unlinked tokens by group and mixins by signature', () => {
+        const out = emitDesignTokens([
+            {
+                file: 'theming/tokens.css',
+                language: 'css',
+                tokens: [token('--space', 'Spacing'), token('--gap')]
+            },
+            {
+                file: 'theming/linked.css',
+                language: 'css',
+                tokens: [token('--linked')],
+                themes: [{ name: 'Card', file: 'card.ts' }]
+            },
+            {
+                file: 'themes/card.scss',
+                language: 'scss',
+                tokens: [],
+                mixins: [
+                    {
+                        name: 'theme',
+                        kind: 'mixin',
+                        params: [{ name: 'theme', default: '', description: '', type: 'Map' }],
+                        description: 'Emits the tokens.',
+                        content: null,
+                        returns: '',
+                        examples: [],
+                        since: '',
+                        deprecated: null,
+                        see: [],
+                        relatedTo: [],
+                        file: 'themes/card.scss',
+                        line: 1
+                    }
+                ]
+            }
+        ]);
+        expect(out.indexOf('--gap')).toBeLessThan(out.indexOf('--space'));
+        expect(out).toContain('[Spacing]');
+        expect(out).not.toContain('--linked');
+        expect(out).toContain('Mixins in themes/card.scss:');
+        expect(out).toContain('`@mixin theme($theme)` - Emits the tokens.');
     });
 });
 

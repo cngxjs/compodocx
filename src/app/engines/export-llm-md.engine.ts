@@ -8,7 +8,12 @@ import type { SemanticModel } from '../compiler/semantic/model';
 import Configuration from '../configuration';
 
 import { EXPORT_SCHEMA_VERSION, type ExportData } from '../interfaces/export-data.interface';
-import { factsJoiner, miscellaneousWithFacts } from './export-json.engine';
+import {
+    exportStyleFiles,
+    factsJoiner,
+    miscellaneousWithFacts,
+    withLinkedTheming
+} from './export-json.engine';
 import FileEngine from './file.engine';
 
 /**
@@ -56,8 +61,13 @@ export class ExportLlmMdEngine {
         exportData.guards = facts(data.guards);
         exportData.interceptors = facts(data.interceptors);
         exportData.classes = facts(data.classes);
-        exportData.directives = facts(data.directives);
-        exportData.components = facts(data.components);
+        const themed = { styles: data.styles, symbols: data.symbols };
+        exportData.directives = facts(withLinkedTheming(data.directives, 'directive', themed));
+        exportData.components = facts(withLinkedTheming(data.components, 'component', themed));
+        const styleFiles = exportStyleFiles(data.styles, data.symbols, model?.features).files;
+        if (styleFiles.length > 0) {
+            exportData.styleFiles = styleFiles;
+        }
         exportData.miscellaneous = model
             ? miscellaneousWithFacts(data.miscellaneous, model)
             : data.miscellaneous;

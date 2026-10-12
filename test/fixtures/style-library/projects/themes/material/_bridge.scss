@@ -1,0 +1,14 @@
+@use 'sass:map';
+
+/// Reads one colour role from a Material theme map.
+///
+/// @param {Map} $theme - Material theme map.
+/// @param {String} $role - Colour role, for example `surface`.
+/// @return {Color} The colour of the role.
+@function color($theme, $role) {
+    @return map.get(map.get($theme, 'color'), $role);
+}
+
+@function -private-helper($value) {
+    @return $value;
+}

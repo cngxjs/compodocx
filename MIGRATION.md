@@ -204,6 +204,44 @@ Configuration and template changes:
 
 The JSON export moves to `schemaVersion: 3`, see "JSON export shape" below. Re-export older snapshots before comparing them with `compodocx diff`.
 
+## Changes in 0.9.0: style files and design tokens
+
+compodocx can document style files that no component reads (theme bridges, directive assets, global token sheets), give them pages and collect global tokens on a design tokens page. Nothing changes until you set `styleFiles`, except the two behaviour changes below.
+
+Behaviour changes:
+
+- **Unknown tags in style comments are dropped.** A tag the style parser does not read (for example `@todo` or `@internal` in a `///` or `/** */` block, or any tag other than `@themes` and `@relatedTo` inside an `@overview` block) used to be appended to the token description as plain text. It is now dropped and reported once per run; the exit code is unchanged:
+
+    ```text
+    Style comments: 2 unknown tags ignored (@todo x1, @note x1)
+      src/theming/button.css:14 @todo
+      src/theming/button.css:31 @note
+    ```
+
+    Move text you want to keep into the description (the lines above the first tag).
+- **`themingTabSections` gains `mixins`.** The default list is now `overview`, `index`, `tokens`, `mixins`, `source`. A project that sets the list explicitly does not see documented mixins until it adds `mixins`.
+
+Template overrides (all additive):
+
+| Name | Kind | Receives |
+|-|-|-|
+| `style` | page | main data plus `style` (`file`, `name`, `language`, `importLine`, `overview`, `groups`, `mixins`, `themes`, `relatedTo`, `sources`), `styleEntry`, `depth` |
+| `design-tokens` | page | main data plus `groups` (tokens by `@group`), `depth: 0` |
+| `block-theming-mixin` | block | `{ mixin, depth, related }` |
+
+`block-theming` also receives `mixins` and `linked`, and `block-theming-token` receives `related`, each only when non-empty. Existing overrides keep working. See docs/custom-templates.md.
+
+JSON export: no breaking change. `schemaVersion` stays 4 and every new field is optional: top-level `styleFiles`, `themeTokens` / `themeOverview` / `themeStyleSources` on directives, `relatedTo` on tokens. A component's theme fields now include the files that theme it with `@themes`. `ExportComponent.themeOverview` is typed as `string` (it was declared `string[]` but always held one string). `compodocx diff` does not compare `styleFiles`.
+
+To adopt:
+
+1. List your free-standing style files in the config file: `{ "styleFiles": ["projects/*/theming/**/*.css", "projects/themes/**/*.{css,scss}"] }`. The globs are relative to the config file's folder.
+2. Add `@themes AcmeCard` to a file that styles one component or directive, in its `@overview` block or a block of its own. A theme bridge for several targets lists them all (`@themes AcmeButton, AcmeCard`) and gets a page of its own.
+3. Document global tokens (files that theme no symbol) with `@group` so the design tokens page groups them.
+4. Check the build log: `Style files: ...` counts the matched files and names those without documented content, which get no page.
+
+See docs/theming-tokens-authoring-guide.md for the tag set and examples.
+
 ## Breaking change in 0.3.0: multi-version output is the default
 
 Starting with `@cngxjs/compodocx@0.3.0`, `compodocx -d <output>` writes the generated HTML to `<output>/<versionLabel>/` instead of `<output>/`, and maintains a small `<output>/versions.json` manifest next to it.
@@ -438,7 +476,7 @@ Stable contract for `--templates`. Data shapes documented inline in the correspo
 
 ### Page-level
 
-`overview`, `markdown`, `component`, `component-detail`, `controller`, `entity`, `directive`, `injectable`, `interceptor`, `guard`, `pipe`, `class`, `interface`, `resolver`, `token`, `routes`, `utilities`, `function`, `variable`, `typealias`, `enumeration`, `dependency-injection`, `di-cluster`, `additional-page`, `package-dependencies`, `package-properties`, `coverage-report`, `unit-test-report`, `menu`, `app-config`, `feature`
+`overview`, `markdown`, `component`, `component-detail`, `controller`, `entity`, `directive`, `injectable`, `interceptor`, `guard`, `pipe`, `class`, `interface`, `resolver`, `token`, `routes`, `utilities`, `function`, `variable`, `typealias`, `enumeration`, `dependency-injection`, `di-cluster`, `additional-page`, `package-dependencies`, `package-properties`, `coverage-report`, `unit-test-report`, `menu`, `app-config`, `feature`, `style`, `design-tokens`
 
 `function`, `variable`, `typealias` and `enumeration` target the page every such symbol gets (`functions/<name>.html` and so on); the page object carries the symbol under the same key (`data.function`, ...). `resolver` targets `resolvers/<name>.html` (`data.resolver`). `utilities` and `dependency-injection` target the two landing pages. `di-cluster` targets the page of a feature type, `providers/<FeatureType>.html`: `data.cluster = { featureType, providers, features, tokens }`, each list holding the same entity objects the symbol pages get. A provider without a feature type has no override of its own.
 
@@ -446,7 +484,7 @@ The `feature` context targets the page of a feature, `features/<entry point>/<fe
 
 ### Block-level
 
-`block-theming`, `block-theming-token`, `block-method`, `block-property`, `block-input`, `block-output`, `block-accessors`, `block-host-listener`, `block-host-listeners`, `block-host-bindings`, `block-derived-state`, `block-constructor`, `block-enum`, `block-typealias`, `block-index`, `block-index-signatures`, `block-playground`, `playground-content`, `referenced-by`, `version-switcher`
+`block-theming`, `block-theming-token`, `block-theming-mixin`, `block-method`, `block-property`, `block-input`, `block-output`, `block-accessors`, `block-host-listener`, `block-host-listeners`, `block-host-bindings`, `block-derived-state`, `block-constructor`, `block-enum`, `block-typealias`, `block-index`, `block-index-signatures`, `block-playground`, `playground-content`, `referenced-by`, `version-switcher`
 
 The `referenced-by` block (v0.6.0+) renders the "Used by" chip list: the declarations that use the symbol, from the project analysis. Data: `{ entries: ReferencedByEntry[], depth: number }`; `ReferencedByEntry = { name, kind, hrefPrefix }`.
 

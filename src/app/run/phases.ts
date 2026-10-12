@@ -6,6 +6,11 @@ import AngularVersionUtil from '../../utils/angular-version.util';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import RouterParserUtil from '../../utils/router-parser.util';
+import {
+    formatUnknownStyleTagNotice,
+    type StyleSource,
+    unknownStyleTags
+} from '../../utils/theme-doc-parser';
 import { formatLegacyNotice } from '../compiler/legacy-scan';
 import { findRemovedTags, formatRemovedTagNotice } from '../compiler/removed-tags';
 import { analyzeProject, formatFeatureSummary, formatSemanticSummary } from '../compiler/semantic';
@@ -16,13 +21,15 @@ import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
 import I18nEngine from '../engines/i18n.engine';
 import { initHighlighter } from '../engines/syntax-highlight.engine';
-import { buildSymbolTable } from '../links';
+import { buildSymbolTable, withStyleEntries } from '../links';
 import { copyAssetsFolder, copyResources, finalizeOutput } from '../page-generator';
 import { crawlDependencies, crawlMicroDependencies } from '../services/dependencies';
+import { hasStylePage } from '../styles';
 import type { RunContext, RunMode, Stage } from './context';
 import { deriveFeatures, placeInFeatures } from './features';
 import { type Halt, halt } from './halt';
 import { countsFromDiff, countsFromEngine, runPrepareStages, selectPrepareStages } from './stages';
+import { deriveStyles, logStyles } from './styles';
 
 // package.json is read from the process cwd, not from the tsconfig folder.
 const cwd = process.cwd();
@@ -243,16 +250,24 @@ const withSymbols = (ctx: RunContext): RunContext => {
     const di = buildDiView(symbols, ctx.semantic?.model);
     mainData.symbols = symbols;
     mainData.di = di;
-    if (!ctx.semantic) {
-        return { ...ctx, symbols, di };
+    const stylesRun = deriveStyles(mainData, DependenciesEngine.getComponents(), symbols, cwd);
+    const styles = stylesRun?.model;
+    mainData.styles = styles;
+    if (stylesRun && ctx.mode !== 'diff') {
+        logStyles(stylesRun);
     }
-    const detection = deriveFeatures(ctx.semantic.model, symbols, mainData, ctx.files, cwd);
+    const table = styles ? withStyleEntries(symbols, styles.files.filter(hasStylePage)) : symbols;
+    mainData.symbols = table;
+    if (!ctx.semantic) {
+        return { ...ctx, symbols: table, di, styles };
+    }
+    const detection = deriveFeatures(ctx.semantic.model, table, mainData, ctx.files, cwd);
     const semantic = {
         ...ctx.semantic,
         model: { ...ctx.semantic.model, features: detection.model }
     };
     mainData.semantic = semantic.model;
-    const placed = placeInFeatures(symbols, detection.model);
+    const placed = placeInFeatures(table, detection.model);
     mainData.symbols = placed;
     if (ctx.mode !== 'diff') {
         for (const warning of detection.warnings) {
@@ -260,7 +275,7 @@ const withSymbols = (ctx: RunContext): RunContext => {
         }
         logger.info(formatFeatureSummary(detection.model));
     }
-    return { ...ctx, symbols: placed, di, semantic };
+    return { ...ctx, symbols: placed, di, semantic, styles };
 };
 
 /** The crawler parses nothing the semantic program already holds. */
@@ -321,6 +336,21 @@ const microCrawl: Stage = async current => {
     return proceed(withSymbols({ ...ctx, diff }));
 };
 
+/** One notice per run for tags the style-comment parser does not read. */
+const logUnknownStyleTags = (ctx: RunContext): void => {
+    const components = (ctx.config.mainData.components ?? []) as {
+        themeStyleSources?: StyleSource[];
+    }[];
+    const sources = components.flatMap(component => component.themeStyleSources ?? []);
+    const notice = formatUnknownStyleTagNotice([
+        ...unknownStyleTags(sources),
+        ...(ctx.config.mainData.styles?.unknownTags ?? [])
+    ]);
+    if (notice.length > 0) {
+        logger.warn(notice.join('\n'));
+    }
+};
+
 const prepare: Stage = async ctx => {
     const isDiff = ctx.mode === 'diff';
     if (isDiff) {
@@ -334,6 +364,9 @@ const prepare: Stage = async ctx => {
         }
         logger.error(prepared.message.error);
         return err(halt(1, 'prepare'));
+    }
+    if (!isDiff) {
+        logUnknownStyleTags(ctx);
     }
     return proceed(ctx);
 };

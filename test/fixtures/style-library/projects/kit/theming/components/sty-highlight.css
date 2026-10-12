@@ -1,0 +1,49 @@
+/**
+ * Styles for the highlight directive. Ships as a package asset because a
+ * directive has no stylesheet of its own.
+ *
+ * @overview
+ * @themes StyHighlight
+ */
+
+/**
+ * Background of a highlighted element.
+ *
+ * @type <color>
+ */
+@property --sty-highlight-bg {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #fff3b0;
+}
+
+/**
+ * Background of a strong highlight.
+ *
+ * @type <color>
+ */
+@property --sty-highlight-strong-bg {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #ffd84d;
+}
+
+/**
+ * Horizontal padding around the highlighted text.
+ *
+ * @type <length>
+ */
+@property --sty-highlight-padding {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 2px;
+}
+
+.sty-highlight {
+    background: var(--sty-highlight-bg);
+    padding-inline: var(--sty-highlight-padding);
+}
+
+.sty-highlight--strong {
+    background: var(--sty-highlight-strong-bg);
+}

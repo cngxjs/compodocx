@@ -11,7 +11,11 @@ import {
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import { symbolFolder } from '../../../../src/app/links/layout';
 import { symbolId } from '../../../../src/app/links/symbol-id';
-import { buildSymbolTable, emptySymbolTable } from '../../../../src/app/links/symbol-table';
+import {
+    buildSymbolTable,
+    emptySymbolTable,
+    withStyleEntries
+} from '../../../../src/app/links/symbol-table';
 import { Menu } from '../../../../src/templates/components/Menu';
 import { clusterPage, featurePage, pageOf, rootPage } from '../../helpers/pages';
 
@@ -159,6 +163,40 @@ describe('Menu — feature layout', () => {
         expect(html).to.match(
             /<span class="cdx-bucket-link"[^>]*><span class="link-name"[^>]*>Ui</
         );
+    });
+
+    it('lists style pages after the primary members of their feature', () => {
+        const data = featureData(BUTTON, [
+            {
+                ...BUTTON_FEATURE,
+                members: [
+                    ...BUTTON_FEATURE.members,
+                    'lib/button/theming/button-tokens.css#button-tokens'
+                ]
+            }
+        ]);
+        const symbols = withStyleEntries(data.symbols as never, [
+            { file: 'lib/button/theming/button-tokens.css' }
+        ]);
+        const html = Menu({ data: { ...data, symbols: symbols as never } });
+        expect(html).to.match(/data-cdx-kind="style"[^>]*><a href="[^"]*button-tokens\.html"/);
+        expect(html.indexOf('data-cdx-kind="style"')).to.be.greaterThan(
+            html.indexOf('data-cdx-kind="injectable"')
+        );
+    });
+
+    it('gives the type layout a Styles chapter that toggleMenuItems opens', () => {
+        const symbols = withStyleEntries(buildSymbolTable(BUTTON as never, { cwd: '/' }), [
+            { file: 'lib/theming/tokens.css' }
+        ]);
+        Configuration.mainData.toggleMenuItems = ['styles'];
+        const html = Menu({ data: baseData({ ...BUTTON, symbols: symbols as never }) });
+        expect(html).to.include('id="styles-links"');
+        expect(html).to.match(/class="links collapse in" id="styles-links"/);
+        expect(html).to.include('tokens.html');
+        Configuration.mainData.toggleMenuItems = [];
+        const closed = Menu({ data: baseData({ ...BUTTON, symbols: symbols as never }) });
+        expect(closed).to.match(/class="links collapse" id="styles-links"/);
     });
 
     it('lists the whole surface of a feature without primary members', () => {

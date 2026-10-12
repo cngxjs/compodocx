@@ -1,0 +1,82 @@
+/**
+ * Global design tokens of the kit: colours and spacing every component
+ * reads. Load this file once at the application root.
+ *
+ * @overview
+ */
+
+@layer sty.tokens {
+    /**
+     * Primary brand colour.
+     *
+     * @type <color>
+     * @group Colour
+     * @relatedTo StyButton
+     */
+    @property --sty-color-primary {
+        syntax: '<color>';
+        inherits: true;
+        initial-value: #3355ff;
+    }
+
+    /**
+     * Colour of text on the primary colour.
+     *
+     * @type <color>
+     * @group Colour
+     */
+    @property --sty-color-on-primary {
+        syntax: '<color>';
+        inherits: true;
+        initial-value: #ffffff;
+    }
+
+    /**
+     * Neutral surface colour.
+     *
+     * @type <color>
+     * @group Colour
+     * @todo pick the dark-mode value
+     */
+    @property --sty-color-surface {
+        syntax: '<color>';
+        inherits: true;
+        initial-value: #f7f7f9;
+    }
+
+    /**
+     * Small gap between related elements.
+     *
+     * @type <length>
+     * @group Spacing
+     */
+    @property --sty-space-sm {
+        syntax: '<length>';
+        inherits: true;
+        initial-value: 4px;
+    }
+
+    /**
+     * Default gap.
+     *
+     * @type <length>
+     * @group Spacing
+     */
+    @property --sty-space-md {
+        syntax: '<length>';
+        inherits: true;
+        initial-value: 8px;
+    }
+
+    /**
+     * Gap between sections.
+     *
+     * @type <length>
+     * @group Spacing
+     */
+    @property --sty-space-lg {
+        syntax: '<length>';
+        inherits: true;
+        initial-value: 16px;
+    }
+}

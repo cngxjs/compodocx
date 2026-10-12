@@ -18,9 +18,10 @@ import { t } from '../helpers';
  * Override name: `related`.
  */
 
-type RelatedEntry = { name: string; href?: string };
+export type RelatedEntry = { name: string; href?: string };
 
-const resolveEntry = (name: string, depth: number): RelatedEntry => {
+/** The link of a `@relatedTo` name from a page at `depth`; no `href` when unresolved. */
+export const resolveRelated = (name: string, depth: number): RelatedEntry => {
     const hit = DependenciesEngine.findInCompodoc(name);
     if (hit && typeof hit !== 'boolean') {
         const target = targetOfData(hit, Configuration.mainData.symbols);
@@ -54,7 +55,7 @@ export const RelatedSection = (props: RelatedSectionProps): string => {
     if (!props.relatedTo || props.relatedTo.length === 0) {
         return '';
     }
-    const entries = props.relatedTo.map(n => resolveEntry(n, props.depth));
+    const entries = props.relatedTo.map(n => resolveRelated(n, props.depth));
     for (const e of entries) {
         if (!e.href) {
             logger.warn(

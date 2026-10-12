@@ -207,7 +207,14 @@ const compareDirective = (
     ] as ReadonlyArray<keyof ExportProperty>),
     ...compareMemberList('methodsClass', oldEntity.methodsClass, newEntity.methodsClass, [
         ...METHOD_FIELDS
-    ] as ReadonlyArray<keyof ExportMethod>)
+    ] as ReadonlyArray<keyof ExportMethod>),
+    ...compareMemberList('themeTokens', oldEntity.themeTokens, newEntity.themeTokens, [
+        'type',
+        'defaultValue',
+        'description',
+        'group',
+        'deprecated'
+    ])
 ];
 
 const comparePipe = (oldEntity: ExportPipe, newEntity: ExportPipe): FieldChange[] => [

@@ -23,9 +23,10 @@ export type UtilityKind = 'function' | 'variable' | 'typealias' | 'enumeration';
 
 /**
  * Every symbol kind has a page of its own; `provider` is the page of a
- * provider without a feature type (a function or constant in the engine).
+ * provider without a feature type (a function or constant in the engine),
+ * `style` the page of a free-standing style file.
  */
-export type PageKind = SymbolKind | 'provider';
+export type PageKind = SymbolKind | 'provider' | 'style';
 
 export const KIND_FOLDER = {
     component: 'components',
@@ -43,7 +44,8 @@ export const KIND_FOLDER = {
     variable: 'variables',
     typealias: 'typealiases',
     enumeration: 'enumerations',
-    provider: 'providers'
+    provider: 'providers',
+    style: 'stylesheets'
 } as const satisfies Record<PageKind, string>;
 
 /** The redirect map of a version, next to its pages (old page path -> current page path). */

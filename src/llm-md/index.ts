@@ -23,6 +23,7 @@ import type {
 import {
     emitClass,
     emitComponent,
+    emitDesignTokens,
     emitDirective,
     emitEnumeration,
     emitFunction,
@@ -38,6 +39,12 @@ import { collapseDescription, escapeMarkdown, joinSections } from './format';
 import type { LlmMdEmitOptions, LlmMdInput, LlmMdSnapshotMeta } from './types';
 
 const sectionHeader = (title: string): string => `## ${title}`;
+
+/** The design tokens and documented mixins of the style files; '' without any. */
+const designTokensSection = (files: ExportData['styleFiles']): string => {
+    const body = emitDesignTokens(files ?? []);
+    return body ? `${sectionHeader('Design tokens')}\n\n${body}` : '';
+};
 
 /** Symbols that reach no public entry point are left out of every section. */
 const documented = <T extends ExportSemanticFacts>(items: ReadonlyArray<T> | undefined): T[] =>
@@ -112,7 +119,8 @@ export const emitLlmMd = (input: LlmMdInput): string => {
             misc?.enumerations,
             emitEnumeration
         ),
-        renderListSection<ExportVariable>('Public variables', misc?.variables, emitVariable)
+        renderListSection<ExportVariable>('Public variables', misc?.variables, emitVariable),
+        designTokensSection(data.styleFiles)
     ];
 
     return `${joinSections(sections)}\n`;

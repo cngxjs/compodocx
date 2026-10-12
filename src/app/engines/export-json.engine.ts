@@ -2,6 +2,7 @@ import * as path from 'node:path';
 import traverse from 'neotraverse/legacy';
 
 import pkg from '../../../package.json';
+import { linkedStyleFiles, themingFor } from '../../templates/helpers/theming';
 import { logger } from '../../utils/logger';
 import type { StyleSource } from '../../utils/theme-doc-parser';
 import type { FamilyLink, Feature, FeatureModel } from '../compiler/semantic/features';
@@ -21,14 +22,19 @@ import {
     type ExportComponent,
     type ExportData,
     type ExportDiFacts,
+    type ExportDirective,
     type ExportFeature,
     type ExportFeatureRef,
     type ExportSemantic,
     type ExportSemanticFacts,
+    type ExportStyleFile,
     type ExportStyleSource,
     type ExportSymbolRef,
     type ExportTokenFacts
 } from '../interfaces/export-data.interface';
+import type { MainDataInterface } from '../interfaces/main-data.interface';
+import { type SymbolTable, styleFileName } from '../links/symbol-table';
+import type { StyleModel } from '../styles/model';
 import FileEngine from './file.engine';
 
 const INLINE_STYLE_RE = /^<inline-style-(\d+)>$/;
@@ -61,6 +67,68 @@ export const shareStyleSources = <T extends { file?: string; themeStyleSources?:
         return { ...component, themeStyleSources: keys };
     });
     return { components: shared, styleSources };
+};
+
+/**
+ * Copies of the components or directives that style files theme, with the
+ * tokens, overview and sources of those files joined to their own (as on the
+ * Theming tab). Objects no file themes are returned as they are.
+ */
+export const withLinkedTheming = <T extends object>(
+    items: readonly T[] | undefined,
+    kind: 'component' | 'directive',
+    mainData: Pick<MainDataInterface, 'styles' | 'symbols'>
+): T[] | undefined =>
+    items?.map(item => {
+        if (linkedStyleFiles(item, kind, mainData).length === 0) {
+            return item;
+        }
+        const theming = themingFor(item, kind, mainData);
+        return {
+            ...item,
+            themeTokens: [...theming.tokens],
+            themeOverview: theming.overview,
+            themeStyleSources: [...theming.sources]
+        };
+    });
+
+/** The style files with content, in file order, for the export. */
+export const exportStyleFiles = (
+    styles: StyleModel | undefined,
+    table: SymbolTable | undefined,
+    features: FeatureModel | undefined
+): { files: ExportStyleFile[]; sources: Record<string, ExportStyleSource> } => {
+    const files: ExportStyleFile[] = [];
+    const sources: Record<string, ExportStyleSource> = {};
+    const byId = new Map((features?.features ?? []).map(feature => [feature.id, feature]));
+    for (const file of styles?.files ?? []) {
+        const themes = file.themes.flatMap(id => {
+            const entry = table?.byId.get(id);
+            return entry ? [{ name: entry.ref.name, file: entry.ref.file }] : [];
+        });
+        const key = factKey({ name: styleFileName(file.file), file: file.file });
+        const featureId = features?.featureOf.get(key);
+        const feature = featureId === undefined ? undefined : byId.get(featureId);
+        files.push({
+            file: file.file,
+            language: file.language,
+            ...(file.overview ? { overview: file.overview } : {}),
+            tokens: [...file.tokens],
+            ...(file.mixins.length > 0 ? { mixins: [...file.mixins] } : {}),
+            ...(themes.length > 0 ? { themes } : {}),
+            ...(file.relatedTo.length > 0 ? { relatedTo: [...file.relatedTo] } : {}),
+            ...(feature
+                ? {
+                      feature: {
+                          ...(feature.entryPoint ? { entryPoint: feature.entryPoint } : {}),
+                          key: feature.key
+                      }
+                  }
+                : {})
+        });
+        sources[file.file] = { content: file.content, language: file.language };
+    }
+    return { files, sources };
 };
 
 const refs = (keys: readonly SymbolKey[]): ExportSymbolRef[] =>
@@ -307,11 +375,26 @@ export class ExportJsonEngine {
         exportData.guards = facts(data.guards);
         exportData.interceptors = facts(data.interceptors);
         exportData.classes = facts(data.classes);
-        exportData.directives = facts(data.directives);
-        const shared = shareStyleSources<ExportComponent>(data.components ?? []);
+        const themed = { styles: data.styles, symbols: data.symbols };
+        const directives = shareStyleSources<ExportDirective>(
+            withLinkedTheming(data.directives, 'directive', themed) ?? []
+        );
+        exportData.directives = facts(data.directives && directives.components);
+        const shared = shareStyleSources<ExportComponent>(
+            withLinkedTheming(data.components, 'component', themed) ?? []
+        );
         exportData.components = facts(shared.components);
-        if (Object.keys(shared.styleSources).length > 0) {
-            exportData.styleSources = shared.styleSources;
+        const styleFiles = exportStyleFiles(data.styles, data.symbols, model?.features);
+        const styleSources = {
+            ...shared.styleSources,
+            ...directives.styleSources,
+            ...styleFiles.sources
+        };
+        if (Object.keys(styleSources).length > 0) {
+            exportData.styleSources = styleSources;
+        }
+        if (styleFiles.files.length > 0) {
+            exportData.styleFiles = styleFiles.files;
         }
         exportData.miscellaneous = model
             ? miscellaneousWithFacts(data.miscellaneous, model)

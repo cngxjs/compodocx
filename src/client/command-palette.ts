@@ -28,7 +28,8 @@ const ENTITY_TYPES = [
     'function',
     'typealias',
     'variable',
-    'provider'
+    'provider',
+    'style'
 ] as const;
 
 type EntityType = (typeof ENTITY_TYPES)[number];
@@ -60,6 +61,7 @@ const entityClass = (type: EntityType | 'other'): string => {
         case 'variable':
         case 'typealias':
         case 'enum':
+        case 'style':
             return type;
         default:
             return 'other';
@@ -114,7 +116,9 @@ const KIND_LABEL_TO_TYPE: Record<string, EntityType> = {
     'Type Alias': 'typealias',
     Entity: 'class',
     // A feature type page with its providers and feature functions.
-    Cluster: 'provider'
+    Cluster: 'provider',
+    // A free-standing style file and the design tokens page.
+    Style: 'style'
 };
 
 /** Capitalize first letter */

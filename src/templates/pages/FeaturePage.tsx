@@ -1,6 +1,7 @@
 import Html from '@kitajs/html';
 import type { SemanticModel } from '../../app/compiler/semantic/model';
 import type { DiView } from '../../app/di/model';
+import type { MainDataInterface } from '../../app/interfaces/main-data.interface';
 import { hrefFor, hrefText } from '../../app/links/layout';
 import { placedLink, symbolTarget } from '../../app/links/resolve';
 import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
@@ -9,10 +10,14 @@ import type {
     FeatureMembers,
     FeaturePageData
 } from '../../app/page-generator/feature-page-generator';
+import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
+import { isDocumentedToken, type StyleFile } from '../../app/styles/model';
+import { markedAcl } from '../../utils/marked.acl';
 import { DiBadges } from '../components/DiBadges';
 import { IconFolder } from '../components/Icons';
 import { firstSentence, t } from '../helpers';
 import { entryFacts } from '../helpers/symbol-facts';
+import { hasTheming, themingFor } from '../helpers/theming';
 
 /**
  * The page of a feature (`features/<entry point>/<key>.html`): import path,
@@ -49,6 +54,7 @@ interface Context {
     readonly di: DiView | undefined;
     readonly semantic: SemanticModel | undefined;
     readonly depth: number;
+    readonly mainData: Pick<MainDataInterface, 'styles' | 'symbols'>;
 }
 
 const featureHref = (segments: readonly string[], depth: number): string =>
@@ -182,34 +188,87 @@ const Related = (
     ) as string;
 };
 
-/** Components with a Theming tab, linked to it. */
-const Theming = (members: FeatureMembers, ctx: Context): string => {
-    const themed = members.components.filter(entry => {
-        const data = entry.data as { themeTokens?: unknown[]; themeOverview?: unknown };
-        return (data.themeTokens?.length ?? 0) > 0 || !!data.themeOverview;
-    });
-    if (themed.length === 0) {
+/** A style page row: link, first sentence of its overview, token and mixin counts. */
+const StyleRow = (entry: SymbolEntry, ctx: Context): string => {
+    const file = entry.data as StyleFile;
+    const summary = firstSentence(file.overview ? (markedAcl(file.overview) as string) : '');
+    const tokens = file.tokens.filter(isDocumentedToken).length;
+    const counts = [
+        tokens > 0 ? `${tokens} ${t('tokens')}` : '',
+        file.mixins.length > 0 ? `${file.mixins.length} ${t('mixins')}` : ''
+    ].filter(Boolean);
+    return (
+        <li data-cdx-feature-member="style">
+            <a href={hrefText(hrefFor(symbolTarget(entry), ctx.depth))}>
+                <code>{fileName(file.file)}</code>
+            </a>
+            {summary ? <span class="cdx-feature-style-summary"> {summary}</span> : ''}
+            {counts.length > 0 ? (
+                <span class="cdx-feature-style-counts"> ({counts.join(', ')})</span>
+            ) : (
+                ''
+            )}
+        </li>
+    ) as string;
+};
+
+const fileName = (file: string): string => file.slice(file.lastIndexOf('/') + 1);
+
+/**
+ * The feature's style pages, its components and directives with a Theming
+ * tab (linked to it), and the design tokens page when one of the feature's
+ * style files feeds it.
+ */
+const Theming = (members: FeatureMembers, styles: readonly SymbolEntry[], ctx: Context): string => {
+    const themedOf = (entries: readonly SymbolEntry[], kind: 'component' | 'directive') =>
+        entries.filter(entry => hasTheming(themingFor(entry.data as never, kind, ctx.mainData)));
+    const themed = [
+        ...themedOf(members.components, 'component'),
+        ...themedOf(members.directives, 'directive')
+    ];
+    const tokenPage = styles.some(
+        entry => unlinkedTokenFiles([entry.data as StyleFile]).length > 0
+    );
+    if (themed.length === 0 && styles.length === 0) {
         return '';
     }
     return (
         <section class="cdx-content-section">
-            {Heading('theming', t('theming'), themed.length)}
-            <ul>
-                {themed.map(
-                    entry =>
-                        (
-                            <li>
-                                <a
-                                    href={hrefText(
-                                        hrefFor(symbolTarget(entry), ctx.depth, 'theming')
-                                    )}
-                                >
-                                    <code>{entry.ref.name}</code>
-                                </a>
-                            </li>
-                        ) as string
-                )}
-            </ul>
+            {Heading('theming', t('theming'), themed.length + styles.length)}
+            {styles.length > 0 ? (
+                <ul class="cdx-feature-styles">{styles.map(entry => StyleRow(entry, ctx))}</ul>
+            ) : (
+                ''
+            )}
+            {tokenPage ? (
+                <p class="cdx-feature-design-tokens">
+                    <a href={hrefText(hrefFor({ type: 'root', page: 'design-tokens' }, ctx.depth))}>
+                        {t('design-tokens')}
+                    </a>
+                </p>
+            ) : (
+                ''
+            )}
+            {themed.length > 0 ? (
+                <ul>
+                    {themed.map(
+                        entry =>
+                            (
+                                <li>
+                                    <a
+                                        href={hrefText(
+                                            hrefFor(symbolTarget(entry), ctx.depth, 'theming')
+                                        )}
+                                    >
+                                        <code>{entry.ref.name}</code>
+                                    </a>
+                                </li>
+                            ) as string
+                    )}
+                </ul>
+            ) : (
+                ''
+            )}
         </section>
     ) as string;
 };
@@ -220,7 +279,8 @@ export const FeaturePage = (data: any): string => {
         table: data.symbols,
         di: data.di,
         semantic: data.semantic,
-        depth: data.depth
+        depth: data.depth,
+        mainData: { styles: data.styles, symbols: data.symbols }
     };
     return (
         <>
@@ -275,7 +335,7 @@ export const FeaturePage = (data: any): string => {
             )}
             {SubFeatures(feature.subFeatures, ctx.depth)}
             {SECTIONS.map(section => Members(section, feature.members, ctx))}
-            {Theming(feature.members, ctx)}
+            {Theming(feature.members, feature.styles ?? [], ctx)}
             {Related('builds-on', t('builds-on'), feature.buildsOn, ctx.depth)}
             {Related('extended-by', t('extended-by'), feature.extendedBy, ctx.depth)}
         </>

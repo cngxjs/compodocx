@@ -2,6 +2,7 @@ import type { SemanticModel } from '../compiler/semantic/model';
 import type { DiView } from '../di/model';
 import type { FileRefBundle, VendorPackage } from '../engines/stackblitz';
 import type { SymbolTable } from '../links/symbol-table';
+import type { StyleModel } from '../styles/model';
 import type { CoverageData } from './coverageData.interface';
 
 export interface MainDataInterface {
@@ -252,6 +253,12 @@ export interface MainDataInterface {
     featureUtilityFolders: string[];
     /** Entry point and app folders named after a role; their files join the feature they name. */
     featureRoleFolders: string[];
+    /** Globs of free-standing style files, relative to `styleFilesBase`. */
+    styleFiles: string[];
+    /** Absolute folder the `styleFiles` globs are relative to; `''` = the tsconfig folder. */
+    styleFilesBase: string;
+    /** The style files the globs matched; undefined without `styleFiles`. */
+    styles?: StyleModel;
     featuresName: string;
     referencesName: string;
     collapsedAll: boolean;

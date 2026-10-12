@@ -106,7 +106,10 @@ export async function runCli(argv: string[]): Promise<void> {
     }
     const { config: configFile, explorerResult: configExplorerResult } = configResult.value;
 
-    applyConfigToMainData(Configuration.mainData, configFile, program, { cwd });
+    applyConfigToMainData(Configuration.mainData, configFile, program, {
+        cwd,
+        configDir: configExplorerResult ? path.dirname(configExplorerResult.filepath) : undefined
+    });
 
     const isLlmMdStdoutMode =
         Configuration.mainData.exportFormat === 'llm-md' && !Configuration.mainData.outputProvided;

@@ -6,9 +6,8 @@ import { logger } from './logger';
  * A single documented theming token extracted from an SCSS or CSS source file.
  *
  * The parser is deliberately tolerant: every field except `name`, `kind`, `file`
- * and `line` may be empty. Anything not matched by a known tag is preserved
- * verbatim in `description`, so users can extend the convention without the
- * parser breaking.
+ * and `line` may be empty. A tag the parser does not know is left out of the
+ * token and reported in `ParsedStyleResult.unknownTags`.
  */
 export interface ThemeToken {
     /** Variable name including prefix: `--cngx-alert-padding` or `$alert-padding` */
@@ -31,9 +30,49 @@ export interface ThemeToken {
     deprecated: string | null;
     /** @see entries (URLs or token names) in source order */
     see: string[];
+    /** @relatedTo symbol names as written; set only when the token has one */
+    relatedTo?: string[];
     /** Source location for "view in source" link */
     file: string;
     line: number;
+}
+
+/** One parameter of a documented SCSS mixin or function. */
+export interface StyleMixinParam {
+    /** Without the `$`. */
+    readonly name: string;
+    /** From `@param [default]`, else the signature default, else ''. */
+    readonly default: string;
+    readonly description: string;
+    /** From `@param {Type}`, else ''. */
+    readonly type: string;
+}
+
+/** An SCSS mixin or function documented with a `///` block. */
+export interface StyleMixin {
+    readonly name: string;
+    readonly kind: 'mixin' | 'function';
+    readonly params: readonly StyleMixinParam[];
+    readonly description: string;
+    /** `@content` description; null when the tag is absent. */
+    readonly content: string | null;
+    /** Functions: the `@return` text, else ''. */
+    readonly returns: string;
+    readonly examples: readonly string[];
+    readonly since: string;
+    readonly deprecated: string | null;
+    readonly see: readonly string[];
+    readonly relatedTo: readonly string[];
+    readonly file: string;
+    readonly line: number;
+}
+
+/** A tag in a style comment the parser does not read. */
+export interface UnknownStyleTag {
+    readonly file: string;
+    /** 1-based line of the tag. */
+    readonly line: number;
+    readonly tag: string;
 }
 
 export interface ThemeTokenGroup {
@@ -46,6 +85,14 @@ export interface ParsedStyleResult {
     tokens: ThemeToken[];
     /** Markdown bodies harvested from `@overview` blocks, in source order. */
     overview: string[];
+    /** `@themes` names of the file-level blocks, in source order. */
+    themes: string[];
+    /** `@relatedTo` names of the file-level blocks, in source order. */
+    relatedTo: string[];
+    /** Tags the parser does not read, in source order. */
+    unknownTags: UnknownStyleTag[];
+    /** Documented SCSS mixins and functions, in source order. */
+    mixins: StyleMixin[];
 }
 
 export interface StyleSource {
@@ -141,6 +188,77 @@ export function extractOverview(body: string): string | null {
     return parts.join('\n\n').trim();
 }
 
+/** Names in a `@themes` / `@relatedTo` value: its first line, comma or space separated. */
+export const tagNames = (value: string): string[] =>
+    (value.split('\n')[0] ?? '')
+        .split(/[\s,]+/)
+        .map(name => name.trim())
+        .filter(Boolean);
+
+/** Line index in `body` of each tag `parseDocBody` returns, in the same order. */
+const tagLineIndexes = (body: string): number[] => {
+    const lines = body.split('\n');
+    const indexes: number[] = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (TAG_LINE_RE.test(lines[i])) {
+            indexes.push(i);
+        }
+    }
+    return indexes;
+};
+
+/** What the file-level blocks of one source say. */
+interface FileLevelCollector {
+    readonly overview: string[];
+    readonly themes: string[];
+    readonly relatedTo: string[];
+    readonly unknownTags: UnknownStyleTag[];
+}
+
+const newCollector = (): FileLevelCollector => ({
+    overview: [],
+    themes: [],
+    relatedTo: [],
+    unknownTags: []
+});
+
+/**
+ * Read a block that carries `@overview` or `@themes`: such a block describes
+ * the file and never documents the declaration after it. Returns false for
+ * any other block. `bodyLine` is the 1-based file line of the body's first line.
+ */
+const readFileLevelBlock = (
+    body: string,
+    file: string,
+    bodyLine: number,
+    into: FileLevelCollector
+): boolean => {
+    const parsed = parseDocBody(body);
+    if (!parsed.tags.some(tag => tag.name === 'overview' || tag.name === 'themes')) {
+        return false;
+    }
+    const intro = extractOverview(body);
+    if (intro) {
+        into.overview.push(intro);
+    }
+    const lines = tagLineIndexes(body);
+    parsed.tags.forEach((tag, i) => {
+        switch (tag.name) {
+            case 'overview':
+                break;
+            case 'themes':
+                into.themes.push(...tagNames(tag.value));
+                break;
+            case 'relatedTo':
+                into.relatedTo.push(...tagNames(tag.value));
+                break;
+            default:
+                into.unknownTags.push({ file, line: bodyLine + (lines[i] ?? 0), tag: tag.name });
+        }
+    });
+    return true;
+};
+
 /**
  * Build a ThemeToken from a doc-block body + a target declaration.
  *
@@ -157,17 +275,22 @@ function buildToken(args: {
     literalDefault: string;
     file: string;
     line: number;
+    /** 1-based file line of the body's first line. */
+    bodyLine: number;
+    unknownTags: UnknownStyleTag[];
 }): ThemeToken {
     const parsed = parseDocBody(args.body);
+    const lines = tagLineIndexes(args.body);
     const examples: string[] = [];
     const see: string[] = [];
+    const relatedTo: string[] = [];
     let type = '';
     let defaultValue = '';
     let group = '';
     let since = '';
     let deprecated: string | null = null;
 
-    for (const tag of parsed.tags) {
+    for (const [i, tag] of parsed.tags.entries()) {
         switch (tag.name) {
             case 'type':
                 type = tag.value.trim();
@@ -192,11 +315,15 @@ function buildToken(args: {
                     see.push(tag.value.trim());
                 }
                 break;
+            case 'relatedTo':
+                relatedTo.push(...tagNames(tag.value));
+                break;
             default:
-                // Unknown tag — fold it back into the description as plain text
-                // so authors can layer their own conventions without breakage.
-                parsed.description =
-                    `${parsed.description}\n@${tag.name}${tag.value ? ` ${tag.value}` : ''}`.trim();
+                args.unknownTags.push({
+                    file: args.file,
+                    line: args.bodyLine + (lines[i] ?? 0),
+                    tag: tag.name
+                });
         }
     }
 
@@ -211,6 +338,7 @@ function buildToken(args: {
         since,
         deprecated,
         see,
+        ...(relatedTo.length > 0 && { relatedTo }),
         file: args.file,
         line: args.line
     };
@@ -221,11 +349,183 @@ function buildToken(args: {
 // ---------------------------------------------------------------------------
 
 const SCSS_VAR_DECL_RE = /^[ \t]*\$([\w-]+)\s*:\s*([\s\S]*?)(?:\s*!default)?\s*;/;
+const SCSS_MIXIN_DECL_RE = /^[ \t]*@(mixin|function)\s+([\w-]+)/;
+const PARAM_TAG_RE = /^(?:\{([^}]*)\}\s*)?\$?([\w-]+)(?:\s*\[([^\]]*)\])?\s*(?:-\s+)?([\s\S]*)$/;
+
+/**
+ * The parameter list of a mixin or function declared at `lines[start]`: the
+ * text between the first `(` and its closing `)`, across lines. Empty when
+ * the declaration has none or never closes.
+ */
+const signatureParams = (
+    lines: readonly string[],
+    start: number
+): { name: string; default: string }[] => {
+    const text = lines.slice(start, start + 50).join('\n');
+    const open = text.indexOf('(');
+    const brace = text.indexOf('{');
+    if (open === -1 || (brace !== -1 && brace < open)) {
+        return [];
+    }
+    const parts: string[] = [];
+    let depth = 0;
+    let current = '';
+    for (let i = open + 1; i < text.length; i++) {
+        const c = text[i];
+        if (c === '(' || c === '[') {
+            depth++;
+        } else if (c === ')' || c === ']') {
+            if (depth === 0) {
+                parts.push(current);
+                return parts
+                    .map(part => part.trim())
+                    .filter(part => part.startsWith('$'))
+                    .map(part => {
+                        const colon = part.indexOf(':');
+                        const name = (colon === -1 ? part : part.slice(0, colon)).trim().slice(1);
+                        return {
+                            name: name.replace(/\.\.\.$/, ''),
+                            default: colon === -1 ? '' : part.slice(colon + 1).trim()
+                        };
+                    });
+            }
+            depth--;
+        } else if (c === ',' && depth === 0) {
+            parts.push(current);
+            current = '';
+            continue;
+        }
+        current += c;
+    }
+    return [];
+};
+
+/**
+ * A SassDoc example (`@example scss` + indented code) as a fenced block, so
+ * it renders like a token's fenced example. Other forms are kept as written.
+ */
+const sassDocExample = (value: string): string => {
+    const trimmed = value.replace(/^\n+/, '').replace(/\n+$/, '');
+    const [first, ...rest] = trimmed.split('\n');
+    if (!/^(scss|sass|css)$/.test(first.trim()) || rest.length === 0) {
+        return trimmed;
+    }
+    const indent = Math.min(
+        ...rest.filter(line => line.trim() !== '').map(line => line.match(/^ */)?.[0].length ?? 0)
+    );
+    const code = rest.map(line => line.slice(indent)).join('\n');
+    return `\`\`\`${first.trim()}\n${code}\n\`\`\``;
+};
+
+const isPrivateName = (name: string): boolean => name.startsWith('_') || name.startsWith('-');
+
+/** A documented mixin or function from its `///` body and declaration. */
+const buildMixin = (args: {
+    kind: StyleMixin['kind'];
+    name: string;
+    body: string;
+    signature: readonly { name: string; default: string }[];
+    file: string;
+    line: number;
+    bodyLine: number;
+    unknownTags: UnknownStyleTag[];
+}): StyleMixin => {
+    const parsed = parseDocBody(args.body);
+    const lines = tagLineIndexes(args.body);
+    const documented: StyleMixinParam[] = [];
+    const examples: string[] = [];
+    const see: string[] = [];
+    const relatedTo: string[] = [];
+    const outputs: string[] = [];
+    let content: string | null = null;
+    let returns = '';
+    let since = '';
+    let deprecated: string | null = null;
+    for (const [i, tag] of parsed.tags.entries()) {
+        const value = tag.value.trim();
+        switch (tag.name) {
+            case 'param': {
+                const m = value.match(PARAM_TAG_RE);
+                if (m) {
+                    documented.push({
+                        name: m[2],
+                        type: (m[1] ?? '').trim(),
+                        default: (m[3] ?? '').trim(),
+                        description: (m[4] ?? '').trim()
+                    });
+                }
+                break;
+            }
+            case 'content':
+                content = value;
+                break;
+            case 'return':
+                returns = value;
+                break;
+            case 'output':
+                if (value) {
+                    outputs.push(value);
+                }
+                break;
+            case 'example':
+                examples.push(sassDocExample(tag.value));
+                break;
+            case 'since':
+                since = value;
+                break;
+            case 'deprecated':
+                deprecated = value;
+                break;
+            case 'see':
+                if (value) {
+                    see.push(value);
+                }
+                break;
+            case 'relatedTo':
+                relatedTo.push(...tagNames(tag.value));
+                break;
+            default:
+                args.unknownTags.push({
+                    file: args.file,
+                    line: args.bodyLine + (lines[i] ?? 0),
+                    tag: tag.name
+                });
+        }
+    }
+    const byName = new Map(documented.map(param => [param.name, param]));
+    const params: StyleMixinParam[] = args.signature.map(({ name, default: fallback }) => {
+        const doc = byName.get(name);
+        byName.delete(name);
+        return {
+            name,
+            default: doc?.default || fallback,
+            description: doc?.description ?? '',
+            type: doc?.type ?? ''
+        };
+    });
+    params.push(...byName.values());
+    return {
+        name: args.name,
+        kind: args.kind,
+        params,
+        description: [parsed.description, ...outputs].filter(Boolean).join('\n\n'),
+        content,
+        returns,
+        examples,
+        since,
+        deprecated,
+        see,
+        relatedTo,
+        file: args.file,
+        line: args.line
+    };
+};
 
 export function parseScssTokens(source: string, file: string): ParsedStyleResult {
     const lines = source.split('\n');
     const tokens: ThemeToken[] = [];
-    const overview: string[] = [];
+    const mixins: StyleMixin[] = [];
+    const fileLevel = newCollector();
 
     let pending: { body: string; line: number } | null = null;
     let pendingLines: string[] | null = null;
@@ -234,11 +534,7 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
     const flushPending = () => {
         if (pendingLines?.length) {
             const body = pendingLines.join('\n');
-            const intro = extractOverview(body);
-            if (intro !== null) {
-                if (intro) {
-                    overview.push(intro);
-                }
+            if (readFileLevelBlock(body, file, pendingStart + 1, fileLevel)) {
                 pending = null;
             } else {
                 pending = { body, line: pendingStart + 1 };
@@ -271,6 +567,22 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
             continue;
         }
 
+        const mixinMatch = pending ? raw.match(SCSS_MIXIN_DECL_RE) : null;
+        if (pending && mixinMatch && !isPrivateName(mixinMatch[2])) {
+            mixins.push(
+                buildMixin({
+                    kind: mixinMatch[1] as StyleMixin['kind'],
+                    name: mixinMatch[2],
+                    body: pending.body,
+                    signature: signatureParams(lines, i),
+                    file,
+                    line: i + 1,
+                    bodyLine: pending.line,
+                    unknownTags: fileLevel.unknownTags
+                })
+            );
+        }
+
         if (pending) {
             const declMatch = raw.match(SCSS_VAR_DECL_RE);
             if (declMatch) {
@@ -282,7 +594,9 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
                         inferredType: '',
                         literalDefault: declMatch[2].trim(),
                         file,
-                        line: i + 1
+                        line: i + 1,
+                        bodyLine: pending.line,
+                        unknownTags: fileLevel.unknownTags
                     })
                 );
             }
@@ -299,7 +613,7 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
         flushPending();
     }
 
-    return { tokens, overview };
+    return { tokens, ...fileLevel, mixins };
 }
 
 // ---------------------------------------------------------------------------
@@ -315,9 +629,22 @@ function stripJsdocBlock(raw: string): string {
         .trim();
 }
 
+// 1-based file line of the first body line of a block opened at `open`:
+// the line of `/**` plus the blank lines `stripJsdocBlock` trims off.
+function bodyStartLine(source: string, open: number, inner: string): number {
+    const lines = inner.split('\n');
+    let skip = 0;
+    while (skip < lines.length - 1 && lines[skip].replace(/^[ \t]*\*\s?/, '').trim() === '') {
+        skip++;
+    }
+    return offsetToLine(source, open) + skip;
+}
+
 // Find every `/** ... */` block. Single-asterisk blocks are ignored.
-function scanJsdocBlocks(source: string): { start: number; end: number; body: string }[] {
-    const blocks: { start: number; end: number; body: string }[] = [];
+function scanJsdocBlocks(
+    source: string
+): { start: number; end: number; body: string; bodyLine: number }[] {
+    const blocks: { start: number; end: number; body: string; bodyLine: number }[] = [];
     let i = 0;
     while (i < source.length) {
         const open = source.indexOf('/**', i);
@@ -335,7 +662,8 @@ function scanJsdocBlocks(source: string): { start: number; end: number; body: st
         blocks.push({
             start: open,
             end: close + 2,
-            body: stripJsdocBlock(inner)
+            body: stripJsdocBlock(inner),
+            bodyLine: bodyStartLine(source, open, inner)
         });
         i = close + 2;
     }
@@ -403,18 +731,19 @@ function parseAtPropertyBody(body: string): AtPropertyInfo {
 
 export function parseCssTokens(source: string, file: string): ParsedStyleResult {
     const tokens: ThemeToken[] = [];
-    const overview: string[] = [];
+    const fileLevel = newCollector();
     const blocks = scanJsdocBlocks(source);
     const consumedAtProperties = new Set<string>();
 
     for (const block of blocks) {
-        const intro = extractOverview(block.body);
-        if (intro !== null) {
-            if (intro) {
-                overview.push(intro);
-            }
+        if (readFileLevelBlock(block.body, file, block.bodyLine, fileLevel)) {
             continue;
         }
+        const docArgs = {
+            body: block.body,
+            bodyLine: block.bodyLine,
+            unknownTags: fileLevel.unknownTags
+        };
 
         const after = consumeWhitespace(source, block.end);
         const rest = source.slice(after);
@@ -427,7 +756,7 @@ export function parseCssTokens(source: string, file: string): ParsedStyleResult 
                 buildToken({
                     name: propName,
                     kind: 'css-at-property',
-                    body: block.body,
+                    ...docArgs,
                     inferredType: info.syntax,
                     literalDefault: info.initialValue,
                     file,
@@ -444,7 +773,7 @@ export function parseCssTokens(source: string, file: string): ParsedStyleResult 
                 buildToken({
                     name: customMatch[1],
                     kind: 'css-custom-property',
-                    body: block.body,
+                    ...docArgs,
                     inferredType: '',
                     literalDefault: customMatch[2].trim(),
                     file,
@@ -470,7 +799,7 @@ export function parseCssTokens(source: string, file: string): ParsedStyleResult 
                         buildToken({
                             name: innerMatch[1],
                             kind: 'css-custom-property',
-                            body: block.body,
+                            ...docArgs,
                             inferredType: '',
                             literalDefault: innerMatch[2].trim(),
                             file,
@@ -509,7 +838,7 @@ export function parseCssTokens(source: string, file: string): ParsedStyleResult 
         m = undocAtProp.exec(source);
     }
 
-    return { tokens, overview };
+    return { tokens, ...fileLevel, mixins: [] };
 }
 
 export function parseStyleSource(
@@ -522,7 +851,11 @@ export function parseStyleSource(
         const css = parseCssTokens(source, file);
         return {
             tokens: [...scss.tokens, ...css.tokens],
-            overview: [...scss.overview, ...css.overview]
+            overview: [...scss.overview, ...css.overview],
+            themes: [...scss.themes, ...css.themes],
+            relatedTo: [...scss.relatedTo, ...css.relatedTo],
+            unknownTags: [...scss.unknownTags, ...css.unknownTags],
+            mixins: scss.mixins
         };
     }
     return parseCssTokens(source, file);
@@ -657,17 +990,72 @@ export function collectThemeTokens(args: {
     entityFile: string | undefined | null;
     styleUrls?: string[];
     styles?: string[];
-}): { tokens: ThemeToken[]; sources: StyleSource[]; overview: string } {
+}): { tokens: ThemeToken[]; sources: StyleSource[]; overview: string; mixins: StyleMixin[] } {
     const sources = collectStyleSources(args);
     const tokens: ThemeToken[] = [];
+    const mixins: StyleMixin[] = [];
     const overviewParts: string[] = [];
     for (const src of sources) {
         const parsed = parseStyleSource(src.content, src.file, src.language);
         tokens.push(...parsed.tokens);
+        mixins.push(...parsed.mixins);
         overviewParts.push(...parsed.overview);
     }
-    return { tokens, sources, overview: overviewParts.join('\n\n').trim() };
+    return { tokens, sources, overview: overviewParts.join('\n\n').trim(), mixins };
 }
+
+/** Documented mixins and functions of every source, each file read once. */
+export const styleMixins = (sources: readonly StyleSource[]): StyleMixin[] => {
+    const seen = new Set<string>();
+    const found: StyleMixin[] = [];
+    for (const src of sources) {
+        if (src.language !== 'scss' || seen.has(src.file)) {
+            continue;
+        }
+        seen.add(src.file);
+        found.push(...parseScssTokens(src.content, src.file).mixins);
+    }
+    return found;
+};
+
+/**
+ * Unknown tags of every source, each file read once (a file shared by
+ * several components is reported once).
+ */
+export const unknownStyleTags = (sources: readonly StyleSource[]): UnknownStyleTag[] => {
+    const seen = new Set<string>();
+    const found: UnknownStyleTag[] = [];
+    for (const src of sources) {
+        if (seen.has(src.file)) {
+            continue;
+        }
+        seen.add(src.file);
+        found.push(...parseStyleSource(src.content, src.file, src.language).unknownTags);
+    }
+    return found;
+};
+
+/**
+ * The build notice for unknown style-comment tags: a count line with the
+ * tag tally, then one `file:line @tag` per finding. Empty without findings.
+ */
+export const formatUnknownStyleTagNotice = (
+    findings: readonly UnknownStyleTag[]
+): readonly string[] => {
+    if (findings.length === 0) {
+        return [];
+    }
+    const counts = new Map<string, number>();
+    for (const finding of findings) {
+        counts.set(finding.tag, (counts.get(finding.tag) ?? 0) + 1);
+    }
+    const tally = [...counts].map(([tag, count]) => `@${tag} x${count}`).join(', ');
+    const noun = findings.length === 1 ? 'tag' : 'tags';
+    return [
+        `Style comments: ${findings.length} unknown ${noun} ignored (${tally})`,
+        ...findings.map(finding => `  ${finding.file}:${finding.line} @${finding.tag}`)
+    ];
+};
 
 /** Group tokens by `@group`. The `''` bucket renders without a sub-heading. */
 export function groupThemeTokens(tokens: ThemeToken[]): ThemeTokenGroup[] {

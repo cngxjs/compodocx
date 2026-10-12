@@ -304,6 +304,9 @@
 .cdx-ref-kind-icon--pipe {
     --cdx-ref-kind-color: var(--color-cdx-entity-pipe);
 }
+.cdx-ref-kind-icon--style {
+    --cdx-ref-kind-color: var(--color-cdx-entity-style);
+}
 .cdx-ref-kind-icon--injectable {
     --cdx-ref-kind-color: var(--color-cdx-entity-service);
 }

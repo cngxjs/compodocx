@@ -30,6 +30,8 @@ type EntityTabsProps = {
     readonly entityName?: string;
     readonly entityFile?: string;
     readonly entitySourceCode?: string;
+    /** Rendered Theming tab content; the panel is omitted without it. */
+    readonly themingContent?: string;
     readonly playgrounds?: ComponentPlaygroundBlock[];
     readonly playgroundFiles?: Record<string, FileRefBundle>;
     readonly playgroundResolver?: DepGraphResolver;
@@ -134,6 +136,17 @@ export const EntityTabs = (props: EntityTabsProps): string =>
                                   description: t('empty-source-desc'),
                                   variant: 'full'
                               })}
+                    </div>
+                )}
+
+                {isTabEnabled(props.navTabs, 'theming') && props.themingContent && (
+                    <div
+                        class={`cdx-tab-panel${isInitialTab(props.navTabs, 'theming') ? ' active' : ''}`}
+                        id="theming"
+                        role="tabpanel"
+                        aria-labelledby="theming-tab"
+                    >
+                        {props.themingContent}
                     </div>
                 )}
 

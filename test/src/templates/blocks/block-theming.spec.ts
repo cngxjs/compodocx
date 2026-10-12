@@ -247,6 +247,92 @@ describe('BlockTheming', () => {
         expect(html).to.not.include('cdx-io-member-name');
     });
 
+    it('renders @relatedTo names as Related chips, unresolved ones as code', () => {
+        const html = BlockTheming({
+            tokens: [makeToken({ relatedTo: ['NoSuchSymbol'] })],
+            depth: 1
+        });
+        expect(html).to.include('cdx-theming-related');
+        expect(html).to.include('<code>NoSuchSymbol</code>');
+    });
+
+    it('omits the Related row for tokens without @relatedTo', () => {
+        expect(BlockTheming({ tokens: [makeToken()] })).to.not.include('cdx-theming-related');
+    });
+
+    it('passes the resolved related names to the `block-theming-token` override', () => {
+        let seen: unknown;
+        registerCustomTemplate('block-theming-token', (data: any) => {
+            seen = data.related;
+            return '<div></div>';
+        });
+        BlockTheming({ tokens: [makeToken({ relatedTo: ['NoSuchSymbol'] })], depth: 1 });
+        expect(seen).to.deep.equal([{ name: 'NoSuchSymbol' }]);
+    });
+
+    const mixin = {
+        name: 'theme',
+        kind: 'mixin' as const,
+        params: [{ name: 'theme', default: '', description: 'Theme map.', type: 'Map' }],
+        description: 'Emits the tokens.',
+        content: null,
+        returns: '',
+        examples: [],
+        since: '',
+        deprecated: null,
+        see: [],
+        relatedTo: [],
+        file: 'x.scss',
+        line: 3
+    };
+
+    it('renders a Mixins section after the tokens with signature and params', () => {
+        const html = BlockTheming({ tokens: [makeToken()], mixins: [mixin] });
+        expect(html).to.include('data-compodoc="block-theming-mixins"');
+        expect(html).to.include('id="theme-mixin-theme"');
+        expect(html).to.include('theme($theme)');
+        expect(html).to.include('<code>$theme</code>');
+        expect(html.indexOf('block-theming-token')).to.be.lessThan(
+            html.indexOf('block-theming-mixins')
+        );
+    });
+
+    it('omits the Mixins section without mixins or when "mixins" is not a section', () => {
+        expect(BlockTheming({ tokens: [makeToken()] })).to.not.include('block-theming-mixins');
+        Configuration.mainData.themingTabSections = ['tokens'];
+        expect(BlockTheming({ tokens: [makeToken()], mixins: [mixin] })).to.not.include(
+            'block-theming-mixins'
+        );
+    });
+
+    it('honours the `block-theming-mixin` override and passes mixins to `block-theming`', () => {
+        registerCustomTemplate('block-theming-mixin', (data: any) => `<i>${data.mixin.name}</i>`);
+        expect(BlockTheming({ tokens: [], mixins: [mixin] })).to.include('<i>theme</i>');
+        clearCustomTemplates();
+        let seen: unknown;
+        registerCustomTemplate('block-theming', (data: any) => {
+            seen = data.mixins;
+            return '';
+        });
+        BlockTheming({ tokens: [], mixins: [mixin] });
+        expect(seen).to.deep.equal([mixin]);
+    });
+
+    it('names the linked style files above the overview, linking those with a page', () => {
+        const html = BlockTheming({
+            tokens: [makeToken()],
+            overview: 'Intro.',
+            linked: [{ label: 'a.css', href: '../a.html' }, { label: 'b.css' }]
+        });
+        expect(html).to.include('cdx-theming-linked');
+        expect(html).to.include('<a href="../a.html"><code>a.css</code></a>');
+        expect(html).to.include('<code>b.css</code>');
+        expect(html.indexOf('cdx-theming-linked')).to.be.lessThan(
+            html.indexOf('cdx-theming-overview')
+        );
+        expect(BlockTheming({ tokens: [makeToken()] })).to.not.include('cdx-theming-linked');
+    });
+
     it('handles undefined tokens prop as empty list', () => {
         const html = BlockTheming({ tokens: undefined as any });
         expect(html).to.include('data-compodoc="block-theming"');

@@ -153,6 +153,29 @@ describe('page layout contract', () => {
         expect(pageLocation(symbol(kind, 'item', { file: 'item-2' })).filename).toBe('item-2');
     });
 
+    it('puts a style page without a feature in stylesheets/, never in styles/', () => {
+        expect(pageLocation(symbol('style', 'tokens'))).toEqual({
+            path: 'stylesheets',
+            filename: 'tokens',
+            depth: 1
+        });
+        expect(
+            pageLocation(symbol('style', '_bridge', { folder: ['themes'], file: '_bridge' }))
+        ).toEqual({ path: 'themes', filename: '_bridge', depth: 1 });
+        expect(symbolFolder('style')).not.toEqual(['styles']);
+    });
+
+    it('writes the design tokens page at the output root', () => {
+        expect(pageLocation({ type: 'root', page: 'design-tokens' })).toEqual({
+            path: '',
+            filename: 'design-tokens',
+            depth: 0
+        });
+        expect(hrefText(hrefFor({ type: 'root', page: 'design-tokens' }, 2))).toBe(
+            '../../design-tokens.html'
+        );
+    });
+
     it('puts root pages at the output root', () => {
         expect(pageLocation({ type: 'root', page: 'app-config' })).toEqual({
             path: '',

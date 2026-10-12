@@ -713,6 +713,9 @@ button.menu-toggler:focus-visible {
 .cdx-feature-link[data-cdx-kind="pipe"] .cdx-feature-kind-icon {
     color: var(--color-cdx-entity-pipe);
 }
+.cdx-feature-link[data-cdx-kind="style"] .cdx-feature-kind-icon {
+    color: var(--color-cdx-entity-style);
+}
 .cdx-feature-link[data-cdx-kind="class"] .cdx-feature-kind-icon {
     color: var(--color-cdx-entity-class);
 }

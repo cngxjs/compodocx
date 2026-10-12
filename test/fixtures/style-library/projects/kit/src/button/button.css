@@ -1,0 +1,39 @@
+/**
+ * Button surface tokens.
+ *
+ * @overview
+ */
+
+/**
+ * Background of a filled button.
+ *
+ * @type <color>
+ * @group Surface
+ * @relatedTo StyTooltip
+ */
+@property --sty-button-bg {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #3355ff;
+}
+
+/**
+ * Corner radius of the button.
+ *
+ * @type <length>
+ * @group Shape
+ */
+@property --sty-button-radius {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 4px;
+}
+
+:host {
+    display: inline-block;
+}
+
+button {
+    background: var(--sty-button-bg);
+    border-radius: var(--sty-button-radius);
+}

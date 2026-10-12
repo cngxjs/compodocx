@@ -214,6 +214,11 @@
     color: var(--color-cdx-text-inverse, white);
     border: none;
 }
+.cdx-badge--entity-style {
+    background: var(--color-cdx-entity-style);
+    color: var(--color-cdx-text-inverse, white);
+    border: none;
+}
 .cdx-badge--entity-module {
     background: var(--color-cdx-entity-module);
     color: var(--color-cdx-text-inverse, white);
@@ -280,6 +285,10 @@
 }
 .dark .cdx-badge--entity-pipe {
     background: var(--color-cdx-entity-pipe);
+    color: var(--color-cdx-text-inverse);
+}
+.dark .cdx-badge--entity-style {
+    background: var(--color-cdx-entity-style);
     color: var(--color-cdx-text-inverse);
 }
 .dark .cdx-badge--entity-module {

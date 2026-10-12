@@ -27,6 +27,7 @@
     --color-cdx-entity-service: #a55a05; /* amber-700 */
     --color-cdx-entity-directive: #6d28d9; /* violet-700 cool */
     --color-cdx-entity-pipe: #ce226f; /* pink-700 */
+    --color-cdx-entity-style: #0f766e;
     --color-cdx-entity-module: #2563eb; /* blue-600 */
     --color-cdx-entity-class: #047857; /* emerald-700 */
     --color-cdx-entity-interface: #067792; /* cyan-700 */
@@ -108,6 +109,7 @@
     --color-cdx-entity-service: #fbbf24; /* amber-400 */
     --color-cdx-entity-directive: #a78bfa; /* violet-400 */
     --color-cdx-entity-pipe: #f472b6; /* pink-400 */
+    --color-cdx-entity-style: #2dd4bf;
     --color-cdx-entity-module: #60a5fa; /* blue-400 */
     --color-cdx-entity-class: #34d399; /* emerald-400 */
     --color-cdx-entity-interface: #22d3ee; /* cyan-400 */

@@ -11,7 +11,9 @@ import {
 } from '../../../src/app/compiler/semantic/model';
 import {
     exportSemantic,
+    exportStyleFiles,
     miscellaneousWithFacts,
+    withLinkedTheming,
     withSemanticFacts
 } from '../../../src/app/engines/export-json.engine';
 import {
@@ -22,6 +24,9 @@ import {
     type ExportInterface,
     type ExportPipe
 } from '../../../src/app/interfaces/export-data.interface';
+import { buildSymbolTable } from '../../../src/app/links';
+import { themeResolver } from '../../../src/app/run/styles';
+import { buildStyleModel, resolveThemes } from '../../../src/app/styles';
 
 /**
  * Real-fixture snapshot. We spawn the CLI against test/fixtures/todomvc-ng2
@@ -412,5 +417,61 @@ describe('export-json semantic facts', () => {
             }
         ]);
         expect(exportSemantic(model([]))).not.toHaveProperty('features');
+    });
+});
+
+describe('export-json style files', () => {
+    const card = { name: 'Card', file: 'kit/card.ts', themeTokens: [], themeOverview: '' };
+    const highlight = { name: 'Highlight', file: 'kit/highlight.ts' };
+    const symbols = buildSymbolTable({ components: [card], directives: [highlight] }, { cwd: '/' });
+    const styles = resolveThemes(
+        buildStyleModel([
+            {
+                file: 'kit/theming/highlight.css',
+                content:
+                    '/**\n * Highlight.\n * @overview\n * @themes Highlight, Card\n */\n' +
+                    '/**\n * Background.\n */\n:root { --hl: 1; }\n'
+            },
+            {
+                file: 'kit/theming/tokens.css',
+                content: '/**\n * Gap.\n * @group Space\n */\n:root { --gap: 1px; }\n'
+            }
+        ]),
+        themeResolver(symbols)
+    ).model;
+
+    it('writes each style file with content, its themes and its source', () => {
+        const { files, sources } = exportStyleFiles(styles, symbols, undefined);
+        expect(files.map(file => file.file)).toEqual([
+            'kit/theming/highlight.css',
+            'kit/theming/tokens.css'
+        ]);
+        expect(files[0].themes).toEqual([
+            { name: 'Highlight', file: 'kit/highlight.ts' },
+            { name: 'Card', file: 'kit/card.ts' }
+        ]);
+        expect(files[1]).not.toHaveProperty('themes');
+        expect(files[1].tokens.map(token => token.name)).toEqual(['--gap']);
+        expect(Object.keys(sources)).toEqual([
+            'kit/theming/highlight.css',
+            'kit/theming/tokens.css'
+        ]);
+    });
+
+    it('gives a themed directive and component copies with the linked tokens', () => {
+        const [directive] = withLinkedTheming([highlight], 'directive', { styles, symbols }) ?? [];
+        const [component] = withLinkedTheming([card], 'component', { styles, symbols }) ?? [];
+        expect((directive as any).themeTokens.map((t: any) => t.name)).toEqual(['--hl']);
+        expect((component as any).themeTokens.map((t: any) => t.name)).toEqual(['--hl']);
+        expect((component as any).themeOverview).toContain('Highlight.');
+        expect(highlight).not.toHaveProperty('themeTokens');
+    });
+
+    it('leaves everything as it was without style files', () => {
+        const items = [highlight];
+        expect(withLinkedTheming(items, 'directive', { styles: undefined, symbols })?.[0]).toBe(
+            highlight
+        );
+        expect(exportStyleFiles(undefined, symbols, undefined).files).toEqual([]);
     });
 });

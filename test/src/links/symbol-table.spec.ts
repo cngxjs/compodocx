@@ -8,7 +8,9 @@ import {
     entryInFile,
     lookupEntry,
     lookupName,
-    type SymbolTable
+    policyKinds,
+    type SymbolTable,
+    withStyleEntries
 } from '../../../src/app/links/symbol-table';
 import { buildEntityIndex } from '../../../src/utils/entity-index.util';
 import { pageOf } from '../helpers/pages';
@@ -74,6 +76,38 @@ const identity = (data: unknown) => {
 
 const pick = (table: SymbolTable, id: string | undefined) =>
     identity(id === undefined ? undefined : table.byId.get(id as never)?.data);
+
+describe('style entries', () => {
+    const base = buildSymbolTable(
+        { components: [{ name: 'tokens', file: 'kit/tokens.ts' }] },
+        { cwd: '/' }
+    );
+    const table = withStyleEntries(base, [
+        { file: 'kit/theming/tokens.css' },
+        { file: 'themes/material/_bridge.scss' }
+    ]);
+
+    it('adds one style entry per file, named after the file, in the fallback folder', () => {
+        const entry = table.byId.get('style:kit/theming/tokens.css#tokens' as never);
+        expect(entry?.ref).toEqual({
+            kind: 'style',
+            file: 'kit/theming/tokens.css',
+            name: 'tokens'
+        });
+        expect(entry?.folder).toEqual(['stylesheets']);
+        expect(
+            table.byId.get('style:themes/material/_bridge.scss#_bridge' as never)?.fileName
+        ).toBe('_bridge');
+    });
+
+    it('keeps style entries out of every lookup policy', () => {
+        for (const policy of ['type-link', 'doc-link', 'entity-index', 'diff'] as const) {
+            expect(policyKinds(policy)).not.toContain('style');
+            expect(lookupName(table, '_bridge', policy)).toBeUndefined();
+        }
+        expect(lookupName(table, 'tokens', 'doc-link')).toBe('component:kit/tokens.ts#tokens');
+    });
+});
 
 describe('symbol table', () => {
     let data: ReturnType<typeof fixture>;

@@ -10,7 +10,10 @@ import {
     ClassPageGenerator,
     ComponentPageGenerator,
     CoveragePageGenerator,
+    createDesignTokensPageGenerator,
     createFeaturePageGenerator,
+    createStylePageGenerator,
+    type DesignTokensPageGenerator,
     DiPageGenerator,
     DirectivePageGenerator,
     EntityPageGenerator,
@@ -30,9 +33,11 @@ import {
     PlaygroundVendorResolver,
     ResolverPageGenerator,
     RoutesPageGenerator,
+    type StylePageGenerator,
     TokenPageGenerator
 } from '../page-generator';
 import type { DependenciesData } from '../services/dependencies';
+import type { StyleModel } from '../styles';
 import type { Halt } from './halt';
 
 export { type Halt, halt } from './halt';
@@ -61,6 +66,8 @@ export interface Generators {
     readonly appConfig: AppConfigPageGenerator;
     readonly utilities: MiscellaneousPageGenerator;
     readonly feature: FeaturePageGenerator;
+    readonly style: StylePageGenerator;
+    readonly designTokens: DesignTokensPageGenerator;
     readonly apiReference: ApiReferencePageGenerator;
     readonly coverage: CoveragePageGenerator;
     readonly additional: AdditionalPageGenerator;
@@ -91,6 +98,8 @@ export const createGenerators = (): Generators => {
         appConfig: new AppConfigPageGenerator(),
         utilities: new MiscellaneousPageGenerator(),
         feature: createFeaturePageGenerator(),
+        style: createStylePageGenerator(),
+        designTokens: createDesignTokensPageGenerator(),
         apiReference: new ApiReferencePageGenerator(),
         coverage: new CoveragePageGenerator(),
         additional: new AdditionalPageGenerator(),
@@ -125,6 +134,8 @@ export interface RunContext {
     readonly symbols?: SymbolTable;
     /** Where providers, feature functions and tokens are documented. Built with the table. */
     readonly di?: DiView;
+    /** The free-standing style files of `styleFiles`. Built with the table. */
+    readonly styles?: StyleModel;
     /**
      * Watch rebuilds only: called once the output phase has started writing
      * HTML, so the watcher can reset its changed-file buffer.

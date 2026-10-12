@@ -148,7 +148,8 @@ export const featureGroups = (
     for (const feature of model.features) {
         const items = all.get(feature.id) ?? [];
         const primary = items.filter(item => PRIMARY_KINDS.has(item.kind));
-        const listed = scope === 'primary' && primary.length > 0 ? primary : items;
+        const styles = items.filter(item => item.kind === 'style');
+        const listed = scope === 'primary' && primary.length > 0 ? [...primary, ...styles] : items;
         const folded = foldClusterMembers(listed, view, table);
         if (folded.length > 0) {
             groups[featurePathKey(byId.get(feature.id)?.segments ?? [])] = folded;

@@ -56,6 +56,7 @@ import {
     relativeUrl,
     t
 } from '../helpers';
+import { hasTheming, themingFor } from '../helpers/theming';
 
 const escapeSimpleQuote = (text: string): string => {
     if (!text) {
@@ -369,6 +370,7 @@ export const ComponentPage = (data: any): string => {
     const depth = data.depth;
     const base = relativeUrl(depth);
     const navTabs = data.navTabs;
+    const theming = themingFor(c, 'component', Configuration.mainData, depth);
     const hasStandaloneImports =
         c.standalone && c.imports?.length > 0 && !Configuration.mainData.disableDependenciesTab;
 
@@ -632,21 +634,23 @@ export const ComponentPage = (data: any): string => {
                     </div>
                 )}
 
-                {isTabEnabled(navTabs, 'theming') &&
-                    (c.themeTokens?.length > 0 || c.themeOverview) && (
-                        <div
-                            class={`cdx-tab-panel${isInitialTab(navTabs, 'theming') ? ' active' : ''}`}
-                            id="theming"
-                            role="tabpanel"
-                            aria-labelledby="theming-tab"
-                        >
-                            {BlockTheming({
-                                tokens: c.themeTokens,
-                                styleSources: c.themeStyleSources,
-                                overview: c.themeOverview
-                            })}
-                        </div>
-                    )}
+                {isTabEnabled(navTabs, 'theming') && hasTheming(theming) && (
+                    <div
+                        class={`cdx-tab-panel${isInitialTab(navTabs, 'theming') ? ' active' : ''}`}
+                        id="theming"
+                        role="tabpanel"
+                        aria-labelledby="theming-tab"
+                    >
+                        {BlockTheming({
+                            tokens: [...theming.tokens],
+                            styleSources: [...theming.sources],
+                            overview: theming.overview,
+                            mixins: theming.mixins,
+                            linked: theming.linked,
+                            depth
+                        })}
+                    </div>
+                )}
 
                 {isTabEnabled(navTabs, 'tree') && (
                     <div

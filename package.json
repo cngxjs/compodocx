@@ -39,6 +39,7 @@
         "test:standalone-feature-doc": "node ./bin/index-cli.js -c ./test/fixtures/standalone-app/.compodocxrc.feature.json --no-multiVersion -p ./test/fixtures/standalone-app/src/tsconfig.json -d /tmp/compodoc-standalone-feature -s --port 4004 --disableSearch --toggleMenuItems features,additionalPages",
         "test:multi-version-doc": "node ./scripts/build-multi-version-fixture.mjs",
         "test:semantic-doc": "node ./bin/index-cli.js -c ./test/fixtures/type-layout.compodocxrc.json --no-multiVersion -p ./test/fixtures/semantic-library/tsconfig.json -d /tmp/compodoc-semantic -s --port 4005",
+        "test:style-doc": "node ./bin/index-cli.js -c ./test/fixtures/style-library/.compodocxrc.json --no-multiVersion -p ./test/fixtures/style-library/tsconfig.json -d /tmp/compodoc-style -s --port 4006",
         "test-e2e-playwright": "npx playwright test",
         "*********QUALITY********": "*******************",
         "lint": "biome check",

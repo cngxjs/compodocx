@@ -63,6 +63,7 @@ describe('CLI Theming tab generation', () => {
                     `/// @type Length\n` +
                     `/// @default 8px 12px\n` +
                     `/// @group container\n` +
+                    `/// @todo pick a dense value\n` +
                     `$btn-padding: 8px 12px !default;\n`
             );
 
@@ -155,6 +156,13 @@ describe('CLI Theming tab generation', () => {
             expect(indexIdx).to.be.greaterThan(-1);
             expect(memberIdx).to.be.greaterThan(-1);
             expect(indexIdx).to.be.lessThan(memberIdx);
+        });
+
+        it('reports an unknown style-comment tag once, with its location', () => {
+            expect(stdoutString).to.contain('Style comments: 1 unknown tag ignored (@todo x1)');
+            expect(stdoutString).to.match(/themed\/button\.component\.scss:9 @todo/);
+            const descriptions = componentHtml.match(/cdx-io-member-desc[\s\S]*?<\/div>/g) ?? [];
+            expect(descriptions.join('')).to.not.contain('pick a dense value');
         });
 
         it('renders the description for each documented token', () => {
@@ -278,6 +286,63 @@ describe('CLI Theming tab generation', () => {
         it('exposes the singular-styleUrl source file in the collapsible source panel', () => {
             expect(componentHtml).to.contain('cdx-theming-source');
             expect(componentHtml).to.contain('card.component.css');
+        });
+    });
+
+    describe('when styleFiles globs match free-standing style files', () => {
+        const styleDist = `${tmp.name}-style-files`;
+        const styleFixture = `${tmp.name}-style-files-fixture`;
+        let stdout: string;
+
+        beforeAll(() => {
+            tmp.create(styleDist);
+            fs.cpSync(path.resolve('test/fixtures/style-library'), styleFixture, {
+                recursive: true
+            });
+            const ls = shell('node', [
+                './bin/index-cli.js',
+                '-c',
+                path.join(styleFixture, '.compodocxrc.json'),
+                '-p',
+                path.join(styleFixture, 'tsconfig.json'),
+                '--disableSearch',
+                '--no-multiVersion',
+                '-d',
+                styleDist
+            ]);
+            if (hasStderrError(ls.stderr.toString())) {
+                console.error(`shell error: ${ls.stderr.toString()}`);
+                throw new Error('error');
+            }
+            stdout = ls.stdout.toString();
+        });
+
+        afterAll(() => {
+            tmp.clean(styleDist);
+            tmp.clean(styleFixture);
+        });
+
+        it('logs the matched, page and listed counts', () => {
+            expect(stdout).to.match(
+                /Style files: 5 \(\d+ pages, \d+ linked to \d+ symbols, 1 without documented content\)/
+            );
+        });
+
+        it('writes a page per style file that gets one, none for the single-target file', () => {
+            const pages = pagesIn(styleDist);
+            for (const name of ['tokens', 'card-theme', '_bridge']) {
+                expect(exists(`${styleDist}/${pages.of('style', name)}`)).to.be.true;
+            }
+            expect(() => pages.of('style', 'sty-highlight')).to.throw();
+            expect(() => pages.of('style', 'reset')).to.throw();
+        });
+
+        it('names the file without documented content and reports its unknown tag', () => {
+            expect(stdout).to.match(
+                /1 style files have no documented tokens, mixins or overview: \S*projects\/kit\/theming\/reset\.css/
+            );
+            expect(stdout).to.contain('Style comments: 1 unknown tag ignored (@todo x1)');
+            expect(stdout).to.match(/projects\/kit\/theming\/tokens\.css:\d+ @todo/);
         });
     });
 });
