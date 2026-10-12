@@ -29,7 +29,8 @@ const ENTITY_TYPES = [
     'typealias',
     'variable',
     'provider',
-    'style'
+    'style',
+    'route'
 ] as const;
 
 type EntityType = (typeof ENTITY_TYPES)[number];
@@ -118,7 +119,9 @@ const KIND_LABEL_TO_TYPE: Record<string, EntityType> = {
     // A feature type page with its providers and feature functions.
     Cluster: 'provider',
     // A free-standing style file and the design tokens page.
-    Style: 'style'
+    Style: 'style',
+    // The routes page.
+    Route: 'route'
 };
 
 /** Capitalize first letter */
@@ -137,6 +140,9 @@ const icon = (paths: string): string =>
     `<svg class="cdx-cp-result-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 
 const RESULT_ICONS: Record<string, string> = {
+    route: icon(
+        '<line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/>'
+    ),
     component: icon(
         '<path d="M5.5 8.5 9 12l-3.5 3.5L2 12l3.5-3.5Z"/><path d="m12 2 3.5 3.5L12 9 8.5 5.5 12 2Z"/><path d="M18.5 8.5 22 12l-3.5 3.5L15 12l3.5-3.5Z"/><path d="m12 15 3.5 3.5L12 22l-3.5-3.5L12 15Z"/>'
     ),
@@ -218,6 +224,50 @@ const clusterMembers = (d: any): SearchResult[] =>
             name: decodeURIComponent(MEMBER_ANCHOR.exec(sub.url)?.[1] ?? ''),
             excerpt: typeof sub.excerpt === 'string' ? sub.excerpt : undefined
         }));
+
+/** One palette row per router section of the routes page (Pagefind sub-results of its headings). */
+const ROUTE_SECTION_ANCHOR = /#route-\d+$/;
+
+const routeSections = (d: any): SearchResult[] =>
+    (Array.isArray(d.sub_results) ? d.sub_results : [])
+        .filter((sub: any) => typeof sub?.url === 'string' && ROUTE_SECTION_ANCHOR.test(sub.url))
+        .map((sub: any) => ({
+            title: String(sub.title ?? ''),
+            url: sub.url,
+            type: 'route' as const,
+            name: String(sub.title ?? '').replace(/#$/, ''),
+            excerpt: typeof sub.excerpt === 'string' ? sub.excerpt : undefined
+        }));
+
+/** Route entries of the inlined entity index: `route:<full path>` -> routes page row. */
+const ROUTE_PREFIX = 'route:';
+const MAX_ROUTE_RESULTS = 5;
+
+/**
+ * Routes whose full path contains every query term, from the entity index
+ * every page carries; needs no search index. Hrefs are root-relative.
+ */
+const routeMatches = (query: string): SearchResult[] => {
+    const entities = (
+        globalThis as { __CDX_ENTITIES__?: Record<string, { href: string; kind: string }> }
+    ).__CDX_ENTITIES__;
+    const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!entities || terms.length === 0) {
+        return [];
+    }
+    const depth = (window as any).COMPODOC_CURRENT_PAGE_DEPTH ?? 0;
+    return Object.entries(entities)
+        .filter(([key, entry]) => entry.kind === 'route' && key.startsWith(ROUTE_PREFIX))
+        .map(([key, entry]) => ({ path: key.slice(ROUTE_PREFIX.length), href: entry.href }))
+        .filter(route => terms.every(term => route.path.toLowerCase().includes(term)))
+        .slice(0, MAX_ROUTE_RESULTS)
+        .map(route => ({
+            title: route.path,
+            url: hrefText(hrefFor({ type: 'asset', path: route.href }, depth)),
+            type: 'route' as const,
+            name: route.path
+        }));
+};
 
 interface SearchResult {
     readonly title: string;
@@ -448,89 +498,8 @@ const loadPagefind = async (): Promise<any> => {
     }
 };
 
-/** Perform search and render results */
-const search = async (query: string) => {
-    const list = getList();
-    const empty = getEmpty();
-    if (!list || !empty) {
-        return;
-    }
-
-    const hasFilters = FACET_DIMS.some(d => activeFilters[d].size > 0);
-
-    if (!query.trim() && !hasFilters) {
-        list.innerHTML = '';
-        empty.hidden = false;
-        empty.textContent = 'Start typing to see results';
-        // Surface the global filter counts so an empty palette is a
-        // valid "browse the API" entry point — clicking Interface
-        // narrows to all interfaces without ever typing. Falls back to
-        // a hidden rail when no global counts are available (Pagefind
-        // still loading, `file://` mode, or an index built without
-        // filters).
-        if (globalFilterCounts) {
-            renderFacets(globalFilterCounts);
-        } else {
-            const facetsRoot = getFacets();
-            if (facetsRoot) {
-                facetsRoot.hidden = true;
-                facetsRoot.innerHTML = '';
-            }
-        }
-        activeIndex = -1;
-        updateUrlFromState();
-        return;
-    }
-
-    const pf = await loadPagefind();
-    if (!pf) {
-        empty.hidden = false;
-        empty.textContent = 'Search unavailable (requires HTTP server)';
-        return;
-    }
-
-    const maxResults = (window as any).MAX_SEARCH_RESULTS ?? 15;
-    const filtersObj = buildFiltersObj();
-    // Pagefind 1.0+ accepts `{ filters }` as the second argument; passing
-    // `undefined` is the same as omitting the option, so the unfiltered
-    // path stays cache-friendly.
-    const searchOptions = filtersObj ? { filters: filtersObj } : undefined;
-    // Empty query + active filters → Pagefind supports `null` for the
-    // query in filter-only mode; falls back to listing all matching pages.
-    const queryArg = query.trim() ? query : null;
-    const results = await pf.search(queryArg, searchOptions);
-    renderFacets((results?.filters ?? {}) as Record<string, Record<string, number>>);
-    const sliced = (results?.results ?? []).slice(0, maxResults);
-    const data = await Promise.all(sliced.map((r: any) => r.data()));
-
-    const mapped: SearchResult[] = data.flatMap((d: any) => {
-        const meta = d.meta || {};
-        const parsed = parseEntityType(meta.title || '');
-        // Prefer the explicit `data-pagefind-meta="kind:..."` value emitted by
-        // entity heroes (v0.6.0+) — robust against title-format drift. Fall
-        // back to title parsing for pages that predate the meta block
-        // (custom templates, README/CHANGELOG without a kind, etc.).
-        const metaType = typeof meta.kind === 'string' ? KIND_LABEL_TO_TYPE[meta.kind] : undefined;
-        const page: SearchResult = {
-            title: meta.title || '',
-            url: d.url,
-            type: metaType ?? parsed.type,
-            name: parsed.name,
-            category: [meta.feature, meta.category].find(value => typeof value === 'string'),
-            description: typeof meta.description === 'string' ? meta.description : undefined,
-            excerpt: typeof d.excerpt === 'string' ? d.excerpt : undefined
-        };
-        return meta.kind === 'Cluster' ? [page, ...clusterMembers(d)] : [page];
-    });
-
-    if (mapped.length === 0) {
-        list.innerHTML = '';
-        empty.hidden = false;
-        empty.textContent = `No results for "${query}"`;
-        activeIndex = -1;
-        return;
-    }
-
+/** Render result rows; the first row is active. */
+const renderResults = (list: HTMLElement, empty: HTMLElement, mapped: readonly SearchResult[]) => {
     empty.hidden = true;
     const searchQuery = lastQuery;
     list.innerHTML = mapped
@@ -569,6 +538,102 @@ const search = async (query: string) => {
         .join('');
 
     activeIndex = 0;
+};
+
+/** Perform search and render results */
+const search = async (query: string) => {
+    const list = getList();
+    const empty = getEmpty();
+    if (!list || !empty) {
+        return;
+    }
+
+    const hasFilters = FACET_DIMS.some(d => activeFilters[d].size > 0);
+
+    if (!query.trim() && !hasFilters) {
+        list.innerHTML = '';
+        empty.hidden = false;
+        empty.textContent = 'Start typing to see results';
+        // Surface the global filter counts so an empty palette is a
+        // valid "browse the API" entry point — clicking Interface
+        // narrows to all interfaces without ever typing. Falls back to
+        // a hidden rail when no global counts are available (Pagefind
+        // still loading, `file://` mode, or an index built without
+        // filters).
+        if (globalFilterCounts) {
+            renderFacets(globalFilterCounts);
+        } else {
+            const facetsRoot = getFacets();
+            if (facetsRoot) {
+                facetsRoot.hidden = true;
+                facetsRoot.innerHTML = '';
+            }
+        }
+        activeIndex = -1;
+        updateUrlFromState();
+        return;
+    }
+
+    // Route rows come from the entity index and need no search index.
+    const routes = hasFilters ? [] : routeMatches(query);
+    const pf = await loadPagefind();
+    if (!pf) {
+        if (routes.length > 0) {
+            renderResults(list, empty, routes);
+            return;
+        }
+        empty.hidden = false;
+        empty.textContent = 'Search unavailable (requires HTTP server)';
+        return;
+    }
+
+    const maxResults = (window as any).MAX_SEARCH_RESULTS ?? 15;
+    const filtersObj = buildFiltersObj();
+    // Pagefind 1.0+ accepts `{ filters }` as the second argument; passing
+    // `undefined` is the same as omitting the option, so the unfiltered
+    // path stays cache-friendly.
+    const searchOptions = filtersObj ? { filters: filtersObj } : undefined;
+    // Empty query + active filters → Pagefind supports `null` for the
+    // query in filter-only mode; falls back to listing all matching pages.
+    const queryArg = query.trim() ? query : null;
+    const results = await pf.search(queryArg, searchOptions);
+    renderFacets((results?.filters ?? {}) as Record<string, Record<string, number>>);
+    const sliced = (results?.results ?? []).slice(0, maxResults);
+    const data = await Promise.all(sliced.map((r: any) => r.data()));
+
+    const mapped: SearchResult[] = data.flatMap((d: any) => {
+        const meta = d.meta || {};
+        const parsed = parseEntityType(meta.title || '');
+        // Prefer the explicit `data-pagefind-meta="kind:..."` value emitted by
+        // entity heroes (v0.6.0+) — robust against title-format drift. Fall
+        // back to title parsing for pages that predate the meta block
+        // (custom templates, README/CHANGELOG without a kind, etc.).
+        const metaType = typeof meta.kind === 'string' ? KIND_LABEL_TO_TYPE[meta.kind] : undefined;
+        const page: SearchResult = {
+            title: meta.title || '',
+            url: d.url,
+            type: metaType ?? parsed.type,
+            name: parsed.name,
+            category: [meta.feature, meta.category].find(value => typeof value === 'string'),
+            description: typeof meta.description === 'string' ? meta.description : undefined,
+            excerpt: typeof d.excerpt === 'string' ? d.excerpt : undefined
+        };
+        if (meta.kind === 'Cluster') {
+            return [page, ...clusterMembers(d)];
+        }
+        return meta.kind === 'Route' ? [page, ...routeSections(d)] : [page];
+    });
+    const rows = [...routes, ...mapped];
+
+    if (rows.length === 0) {
+        list.innerHTML = '';
+        empty.hidden = false;
+        empty.textContent = `No results for "${query}"`;
+        activeIndex = -1;
+        return;
+    }
+
+    renderResults(list, empty, rows);
 };
 
 /** Escape HTML entities */

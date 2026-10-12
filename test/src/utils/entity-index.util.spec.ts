@@ -57,3 +57,50 @@ describe('buildEntityIndex — miscellaneous entries', () => {
         expect(index['e'].kind).to.equal('enum');
     });
 });
+
+describe('buildEntityIndex — route entries', () => {
+    const node = (id: string, fullPath: string, children: unknown[] = []) => ({
+        id,
+        path: null,
+        fullPath,
+        children,
+        guards: {},
+        resolve: [],
+        providers: [],
+        file: 'routes.ts',
+        line: 1
+    });
+    const routing = {
+        roots: [
+            {
+                id: '0',
+                kind: 'router',
+                bootstraps: [],
+                features: [],
+                routes: [
+                    node('0-0', '/users', [node('0-0-0', '/users/:id')]),
+                    node('0-1', '/users')
+                ]
+            }
+        ],
+        count: 3,
+        byTarget: new Map(),
+        mountedAt: new Map(),
+        notes: []
+    };
+
+    it('adds one entry per distinct full path, linking its first row on the routes page', () => {
+        const index = buildEntityIndex({ routing });
+        expect(index['route:/users']).toEqual({ href: 'routes.html#route-0-0', kind: 'route' });
+        expect(index['route:/users/:id']).toEqual({
+            href: 'routes.html#route-0-0-0',
+            kind: 'route'
+        });
+        expect(Object.keys(index).filter(key => key.startsWith('route:'))).toHaveLength(2);
+    });
+
+    it('adds none with routes disabled', () => {
+        const index = buildEntityIndex({ routing, disableRoutesGraph: true });
+        expect(Object.keys(index).some(key => key.startsWith('route:'))).toBe(false);
+    });
+});

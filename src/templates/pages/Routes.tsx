@@ -13,7 +13,7 @@ import {
     type RouteValue,
     type RoutingModel
 } from '../../app/routing/model';
-import { highlightedCodeWrap, t } from '../helpers';
+import { highlightedCodeWrap, pagefindMetaBlock, t } from '../helpers';
 
 /** What the `routes` override receives besides the main data. */
 export interface RoutesPageData {
@@ -250,6 +250,7 @@ export const Routes = (props: RoutesPageData): string => {
     return (
         <>
             <div class="cdx-entity-hero" style="--cdx-hero-color: var(--color-cdx-primary)">
+                {pagefindMetaBlock({ kind: 'route' })}
                 <h1 class="cdx-entity-hero-name">{t('routes')}</h1>
                 <div class="cdx-entity-hero-badges">
                     <span class="cdx-badge cdx-badge--count">{props.routing?.count ?? 0}</span>

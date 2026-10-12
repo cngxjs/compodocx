@@ -101,7 +101,7 @@ export function firstSentence(html: unknown): string | undefined {
  * <https://pagefind.app/docs/metadata/> for the supported syntax.
  */
 export interface PagefindMetaInput {
-    readonly kind?: TableKind | 'cluster';
+    readonly kind?: TableKind | 'cluster' | 'route';
     /** Label of the symbol's feature; the search palette shows it. */
     readonly feature?: string;
     readonly description?: string;
@@ -125,8 +125,15 @@ export interface PagefindMetaInput {
 /** Meta kind label of a feature type page (providers and features on one page). */
 export const CLUSTER_KIND_LABEL = 'Cluster';
 
-const metaKindLabel = (kind: PagefindMetaInput['kind']): string | undefined =>
-    kind === 'cluster' ? CLUSTER_KIND_LABEL : kind && KIND_LABELS[kind];
+/** Meta kind label of the routes page. */
+export const ROUTE_KIND_LABEL = 'Route';
+
+const metaKindLabel = (kind: PagefindMetaInput['kind']): string | undefined => {
+    if (kind === 'cluster') {
+        return CLUSTER_KIND_LABEL;
+    }
+    return kind === 'route' ? ROUTE_KIND_LABEL : kind && KIND_LABELS[kind];
+};
 
 export function pagefindMetaBlock(input: PagefindMetaInput): string {
     const parts: string[] = [];
