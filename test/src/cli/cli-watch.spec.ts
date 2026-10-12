@@ -256,6 +256,12 @@ describe('CLI watch mode', () => {
             const routes = mainContent(readOut('out', 'routes.html'));
             expect(routes).to.contain('id="route-0"');
             expect(routes).to.equal(mainContent(readOut('out-fresh-2', 'routes.html')));
+            // Used by, the DI badges and Routed at read the same semantic facts.
+            const page = mainContent(readOut('out', componentPage('out')));
+            expect(page).to.contain('id="routed-at"');
+            expect(page).to.equal(
+                mainContent(readOut('out-fresh-2', componentPage('out-fresh-2')))
+            );
         },
         IT_TIMEOUT
     );

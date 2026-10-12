@@ -5,17 +5,24 @@ import { exists, shell, temporaryDir } from '../helpers';
 
 const tmp = temporaryDir();
 
-describe('CLI Router Parser Special Characters Fix', () => {
+const stripAnsi = (str: string): string => str.replace(/\u001b\[[0-9;]*m/g, '');
+
+// An NgModule app whose route paths hold dots, plus signs, parentheses and
+// template literals. RouterModule.forRoot is a legacy construct: it is reported
+// in the legacy notice and not read into the route model, so the run succeeds
+// without a routes page.
+describe('CLI routes with special characters in an NgModule app', () => {
     const distFolder = `${tmp.name}-router-special-chars`;
+    let stdout = '';
+    let stderr = '';
+    let status: number | null = null;
 
     beforeAll(() => {
         tmp.create(distFolder);
 
-        // Create test project with problematic special characters
         const srcDir = path.join(distFolder, 'src');
         fs.ensureDirSync(srcDir);
 
-        // Component with inline template to avoid file path issues
         const testComponent = `
 import { Component } from '@angular/core';
 
@@ -28,7 +35,6 @@ export class TestComponent {
   constructor() {}
 }`;
 
-        // Module with routes containing special characters from all reported issues
         const moduleWithSpecialCharRoutes = `
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
@@ -39,12 +45,12 @@ const CREATE = 'create';
 const EDIT = 'edit';
 
 const routes: Routes = [
-  { path: 'admin.config', component: TestComponent },           // Issue #1581 - dots
-  { path: 'route+with+plus', component: TestComponent },        // Issue #1610 - plus
-  { path: 'user(profile)', component: TestComponent },          // Issue #1594 - parentheses
+  { path: 'admin.config', component: TestComponent },
+  { path: 'route+with+plus', component: TestComponent },
+  { path: 'user(profile)', component: TestComponent },
   { path: 'complex.path(with)+special/chars', component: TestComponent },
-  { path: \`\${USER}/\${CREATE}\`, component: TestComponent },     // New issue - template literals
-  { path: \`\${USER}/\${EDIT}/:id\`, component: TestComponent }    // New issue - template literals with params
+  { path: \`\${USER}/\${CREATE}\`, component: TestComponent },
+  { path: \`\${USER}/\${EDIT}/:id\`, component: TestComponent }
 ];
 
 @NgModule({
@@ -73,13 +79,7 @@ export class AppModule { }`;
         fs.writeFileSync(path.join(srcDir, 'test.component.ts'), testComponent);
         fs.writeFileSync(path.join(srcDir, 'app.module.ts'), moduleWithSpecialCharRoutes);
         fs.writeFileSync(path.join(distFolder, 'tsconfig.json'), tsconfig);
-    });
 
-    afterAll(() => {
-        tmp.clean(distFolder);
-    });
-
-    it('should generate documentation without JSON5 parsing errors for special character routes', () => {
         const ls = shell('node', [
             './bin/index-cli.js',
             '--no-multiVersion',
@@ -90,47 +90,32 @@ export class AppModule { }`;
             '--disableSourceCode',
             '--disableCoverage'
         ]);
-
-        const stdout = ls.stdout.toString();
-        const stderr = ls.stderr.toString();
-
-        // Primary test: should not have the specific JSON5 parsing errors from reported issues
-        expect(stderr).to.not.contain("JSON5: invalid character '+'"); // Issue #1610
-        expect(stderr).to.not.contain("JSON5: invalid character '('"); // Issue #1594
-        expect(stderr).to.not.contain("JSON5: invalid character '.'"); // Issue #1581
-        expect(stderr).to.not.contain("JSON5: invalid character '\"'"); // New issue - template literals
-        expect(stderr).to.not.contain('Unhandled Rejection'); // All issues
-
-        // Should complete successfully despite special characters in routes
-        expect(stdout).to.contain('Documentation generated');
-
-        // Documentation should be generated
-        expect(exists(path.join(distFolder, 'docs'))).to.be.true;
+        stdout = stripAnsi(ls.stdout.toString());
+        stderr = stripAnsi(ls.stderr.toString());
+        status = ls.status;
     });
 
-    it('should handle template literal routes and complex character combinations', () => {
-        // Test that our fix handles template literals and all reported special character issues
-        const ls = shell('node', [
-            './bin/index-cli.js',
-            '--no-multiVersion',
-            '-p',
-            path.join(distFolder, 'tsconfig.json'),
-            '-d',
-            path.join(distFolder, 'docs-comprehensive-test'),
-            '--disableSourceCode',
-            '--disableCoverage'
-        ]);
+    afterAll(() => {
+        tmp.clean(distFolder);
+    });
 
-        const stdout = ls.stdout.toString();
-        const stderr = ls.stderr.toString();
-
-        // Should not crash with template literals or any of the problematic character combinations
-        expect(stderr).to.not.contain("JSON5: invalid character '\"'"); // Template literals
-        expect(stderr).to.not.contain("JSON5: invalid character '('"); // Parentheses
-        expect(stderr).to.not.contain('JSON5: invalid character'); // Any other chars
+    it('generates the documentation and exits 0', () => {
+        expect(status).to.equal(0);
         expect(stderr).to.not.contain('Unhandled Rejection');
-
-        // Should still generate documentation successfully
         expect(stdout).to.contain('Documentation generated');
+        expect(exists(path.join(distFolder, 'docs/index.html'))).to.be.true;
+    });
+
+    it('reports RouterModule.forRoot and the NgModule in the legacy notice', () => {
+        expect(stdout).to.contain('Angular 21+ only: 2 legacy constructs are not documented');
+        expect(stdout).to.match(/ng-module \(1\): \S*src[\\/]app\.module\.ts:19 AppModule/);
+        expect(stdout).to.match(
+            /router-for-root \(1\): \S*src[\\/]app\.module\.ts:20 RouterModule\.forRoot/
+        );
+    });
+
+    it('reads no routes from the module and writes no routes page', () => {
+        expect(stdout).to.contain('Routes: 0 in 0 routers, 0 unmounted');
+        expect(exists(path.join(distFolder, 'docs/routes.html'))).to.be.false;
     });
 });
