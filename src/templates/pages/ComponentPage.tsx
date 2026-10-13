@@ -11,6 +11,7 @@ import { BlockMethod } from '../blocks/BlockMethod';
 import { BlockOutput } from '../blocks/BlockOutput';
 import { BlockProperty } from '../blocks/BlockProperty';
 import { BlockRelationshipGraph } from '../blocks/BlockRelationshipGraph';
+import { BlockRoutedAt } from '../blocks/BlockRoutedAt';
 import { BlockTheming } from '../blocks/BlockTheming';
 import { ContentSlotsSection } from '../blocks/ContentSlots';
 import { DependenciesSection } from '../blocks/DependenciesSection';
@@ -56,6 +57,7 @@ import {
     relativeUrl,
     t
 } from '../helpers';
+import { routedAt } from '../helpers/routed-at';
 import { hasTheming, themingFor } from '../helpers/theming';
 
 const escapeSimpleQuote = (text: string): string => {
@@ -134,6 +136,7 @@ const hasComponentInfoContent = (data: any): boolean => {
     return !!(
         c.deprecated ||
         c.route ||
+        routedAt(data, 'component', c, data.depth) !== undefined ||
         c.description ||
         c.jsdoctags?.length ||
         c.selector ||
@@ -177,6 +180,8 @@ const InfoContent = (data: any): string => {
             )}
 
             {RouteChip({ route: c.route })}
+
+            {BlockRoutedAt(routedAt(data, 'component', c, depth))}
 
             {isInfoSection('description') && c.description && (
                 <section class="cdx-content-section">

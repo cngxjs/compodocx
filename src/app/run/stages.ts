@@ -25,7 +25,7 @@ export interface SourceCounts {
     readonly interfaces: number;
     /** Sum of variables, functions, type aliases and enumerations. */
     readonly utilities: number;
-    /** Whether the crawler found a routes tree. */
+    /** Whether the route model has routes. */
     readonly routes: boolean;
 }
 
@@ -125,8 +125,7 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
     },
     {
         key: 'routes',
-        when: (ctx, counts) =>
-            (isDiff(ctx) || counts.routes) && !ctx.config.mainData.disableRoutesGraph,
+        when: (ctx, counts) => counts.routes && !ctx.config.mainData.disableRoutes,
         run: step(ctx => ctx.generators.routes.prepare())
     },
     { key: 'pipe', when: hasAny(c => c.pipes), run: step(ctx => ctx.generators.pipe.prepare()) },
@@ -220,7 +219,7 @@ const functionalCount = (
         item => (item as { functionalKind?: unknown }).functionalKind === kind
     ).length;
 
-export const countsFromEngine = (): SourceCounts => ({
+export const countsFromEngine = (routeCount = 0): SourceCounts => ({
     components: DependenciesEngine.components.length,
     directives: DependenciesEngine.directives.length,
     entities: DependenciesEngine.entities.length,
@@ -241,11 +240,11 @@ export const countsFromEngine = (): SourceCounts => ({
         DependenciesEngine.miscellaneous.functions.length +
         DependenciesEngine.miscellaneous.typealiases.length +
         DependenciesEngine.miscellaneous.enumerations.length,
-    routes: Boolean(DependenciesEngine.routes)
+    routes: routeCount > 0
 });
 
 /** Counts of the changed files of a watch rebuild. */
-export const countsFromDiff = (diff: DependenciesData): SourceCounts => ({
+export const countsFromDiff = (diff: DependenciesData, routeCount = 0): SourceCounts => ({
     components: diff.components.length,
     directives: diff.directives.length,
     entities: diff.entities.length,
@@ -262,7 +261,7 @@ export const countsFromDiff = (diff: DependenciesData): SourceCounts => ({
         diff.miscellaneous.functions.length +
         diff.miscellaneous.typealiases.length +
         diff.miscellaneous.enumerations.length,
-    routes: Boolean(diff.routesTree)
+    routes: routeCount > 0
 });
 
 /**

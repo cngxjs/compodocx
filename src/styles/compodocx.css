@@ -31,6 +31,7 @@
 @import "./components/readme.css";
 @import "./components/bucket-landing.css";
 @import "./components/api-reference.css";
+@import "./components/routes.css";
 @import "./components/legacy.css";
 
 @source "../templates/**/*.hbs";

@@ -8,6 +8,7 @@ import type { SemanticModel } from '../compiler/semantic/model';
 import Configuration from '../configuration';
 
 import { EXPORT_SCHEMA_VERSION, type ExportData } from '../interfaces/export-data.interface';
+import { exportRoutes, type RoutingModel } from '../routing';
 import {
     exportStyleFiles,
     factsJoiner,
@@ -72,8 +73,9 @@ export class ExportLlmMdEngine {
             ? miscellaneousWithFacts(data.miscellaneous, model)
             : data.miscellaneous;
         exportData.tokens = facts(data.tokens);
-        if (!Configuration.mainData.disableRoutesGraph) {
-            exportData.routes = data.routes;
+        const routing: RoutingModel | undefined = data.routing;
+        if (!Configuration.mainData.disableRoutes && routing && routing.count > 0) {
+            exportData.routes = exportRoutes(routing, data.symbols);
         }
 
         const markdown = renderLlmMd(exportData, {

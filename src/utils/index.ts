@@ -6,7 +6,6 @@ export * from './has-spread-element-in-array';
 export * from './imports.util';
 export * from './jsdoc-parser.util';
 export * from './public-api-parser.util';
-export * from './router-parser.util';
 export * from './source-path-mapper.util';
 export * from './theme-doc-parser';
 export * from './utils';

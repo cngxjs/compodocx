@@ -1,12 +1,14 @@
 import * as path from 'node:path';
 
 import fg from 'fast-glob';
+import type { ts } from 'ts-morph';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import {
     buildImportGraph,
     createSemanticProgram,
-    type ImportGraph
+    type ImportGraph,
+    resolveSpecifier
 } from '../../../../../src/app/compiler/semantic';
 
 const CWD = process.cwd();
@@ -15,6 +17,7 @@ const TSCONFIG = path.join(FIXTURE, 'tsconfig.json');
 const REL = 'test/fixtures/semantic-library/projects';
 
 let graph: ImportGraph;
+let program: ts.Program;
 
 const importsOf = (file: string): readonly string[] | undefined =>
     graph.edges.get(`${REL}/${file}`)?.map(target => target.slice(REL.length + 1));
@@ -25,6 +28,7 @@ beforeAll(() => {
     if (!created.ok) {
         throw new Error(created.message);
     }
+    program = created.value;
     graph = buildImportGraph(created.value, files, CWD);
 });
 
@@ -58,5 +62,15 @@ describe('semantic import graph', () => {
         const targets = [...graph.edges.values()].flat();
         expect(targets.some(target => target.includes('node_modules'))).toBe(false);
         expect(targets.every(target => target.startsWith(`${REL}/`))).toBe(true);
+    });
+
+    it('resolves one specifier to a program file, nothing outside the program', () => {
+        const from = path.join(FIXTURE, 'projects/ui/src/button/button.ts');
+        const target = resolveSpecifier(program, from, '@sem/core')?.fileName ?? '';
+        expect(path.relative(CWD, target).split(path.sep).join('/')).toBe(
+            `${REL}/core/src/public-api.ts`
+        );
+        expect(resolveSpecifier(program, from, '@angular/core')).toBeUndefined();
+        expect(resolveSpecifier(program, from, './does-not-exist')).toBeUndefined();
     });
 });

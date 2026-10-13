@@ -2,6 +2,7 @@ import type { SemanticModel } from '../compiler/semantic/model';
 import type { DiView } from '../di/model';
 import type { FileRefBundle, VendorPackage } from '../engines/stackblitz';
 import type { SymbolTable } from '../links/symbol-table';
+import type { RoutingModel } from '../routing/model';
 import type { StyleModel } from '../styles/model';
 import type { CoverageData } from './coverageData.interface';
 
@@ -61,7 +62,7 @@ export interface MainDataInterface {
     disableInternal: boolean;
     disableLifeCycleHooks: boolean;
     disableConstructors: boolean;
-    disableRoutesGraph: boolean;
+    disableRoutes: boolean;
     disableSearch: boolean;
     disableDependencies: boolean;
     disableDependenciesTab: boolean;
@@ -99,7 +100,6 @@ export interface MainDataInterface {
     coverageTestShowOnlyFailed: boolean;
     unitTestCoverage: string;
     unitTestData: Object;
-    routesLength: number;
     angularVersion: string;
     exportFormat: string;
     /** Indent size (0–8) for `--exportFormat json`. 0 = single-line. */
@@ -269,4 +269,6 @@ export interface MainDataInterface {
     symbols?: SymbolTable;
     /** Placement of providers, feature functions and tokens; absent before the first crawl. */
     di?: DiView;
+    /** Routers and route arrays; absent before the first crawl. */
+    routing?: RoutingModel;
 }

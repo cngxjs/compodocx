@@ -23,6 +23,10 @@ const stripAnsi = (str: string): string => str.replace(/\u001b\[[0-9;]*m/g, '');
 
 const countMatches = (text: string, pattern: string): number => text.split(pattern).length - 1;
 
+/** The `<main>` content of a page (the inlined entity index and the menu left out). */
+const mainContent = (html: string): string =>
+    html.slice(html.indexOf('<main id="main-content"'), html.indexOf('</main>'));
+
 const normaliseTimestamps = (html: string): string =>
     html
         .replace(/\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d+Z/g, '<TS>')
@@ -184,6 +188,11 @@ describe('CLI watch mode', () => {
             const rebuilt = normaliseTimestamps(readOut('out', componentPage('out')));
             const oneShot = normaliseTimestamps(readOut('out-fresh', componentPage('out-fresh')));
             expect(rebuilt).to.equal(oneShot);
+            // The route model is rebuilt from the sources each time, not from the first run.
+            expect(rebuilt).to.contain('id="routed-at"');
+            expect(normaliseTimestamps(readOut('out', 'routes.html'))).to.equal(
+                normaliseTimestamps(readOut('out-fresh', 'routes.html'))
+            );
         },
         IT_TIMEOUT
     );
@@ -213,6 +222,46 @@ describe('CLI watch mode', () => {
 
             await waitForLog('Get dependencies data', 2);
             await waitForLog('Documentation generated in', 4);
+        },
+        IT_TIMEOUT
+    );
+
+    it(
+        'keeps the route model after a rebuild in which no source text changed',
+        async () => {
+            const file = path.join(projectDir, COMPONENT_FILE);
+            const now = new Date();
+            await editUntilLogged(
+                () => fs.utimesSync(file, now, new Date()),
+                'Get diff dependencies data',
+                2
+            );
+            await waitForLog('Documentation generated in', 5);
+
+            const fresh = spawnSync(
+                'node',
+                [
+                    BIN,
+                    '-p',
+                    'tsconfig.json',
+                    '-d',
+                    'out-fresh-2',
+                    '--disableSearch',
+                    '--no-multiVersion'
+                ],
+                { cwd: projectDir }
+            );
+            expect(fresh.status).to.equal(0);
+            // The watched file list is fixed at start, so only the page content is compared.
+            const routes = mainContent(readOut('out', 'routes.html'));
+            expect(routes).to.contain('id="route-0"');
+            expect(routes).to.equal(mainContent(readOut('out-fresh-2', 'routes.html')));
+            // Used by, the DI badges and Routed at read the same semantic facts.
+            const page = mainContent(readOut('out', componentPage('out')));
+            expect(page).to.contain('id="routed-at"');
+            expect(page).to.equal(
+                mainContent(readOut('out-fresh-2', componentPage('out-fresh-2')))
+            );
         },
         IT_TIMEOUT
     );

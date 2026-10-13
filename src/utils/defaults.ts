@@ -41,7 +41,7 @@ export const COMPODOC_DEFAULTS = {
     disableInternal: false,
     disableLifeCycleHooks: false,
     disableConstructors: false,
-    disableRoutesGraph: false,
+    disableRoutes: false,
     disableDependencies: false,
     disableDependenciesTab: false,
     disablePlaygroundTab: false,

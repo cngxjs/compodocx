@@ -126,12 +126,6 @@ path.link {
     stroke: #9ecae1;
     stroke-width: 1.5px;
 }
-#body-routes a {
-    text-decoration: underline;
-}
-#body-routes svg {
-    overflow: visible;
-}
 
 .content.miscellaneous h2 {
     margin-bottom: var(--spacing-cdx-xl);

@@ -5,7 +5,6 @@ import { err, isErr, mapResult, ok, type Result, sequenceAsync } from '../../lib
 import AngularVersionUtil from '../../utils/angular-version.util';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
-import RouterParserUtil from '../../utils/router-parser.util';
 import {
     formatUnknownStyleTagNotice,
     type StyleSource,
@@ -28,6 +27,7 @@ import { hasStylePage } from '../styles';
 import type { RunContext, RunMode, Stage } from './context';
 import { deriveFeatures, placeInFeatures } from './features';
 import { type Halt, halt } from './halt';
+import { draftRoutes, logRouting, nameRoutes } from './routing';
 import { countsFromDiff, countsFromEngine, runPrepareStages, selectPrepareStages } from './stages';
 import { deriveStyles, logStyles } from './styles';
 
@@ -165,7 +165,7 @@ const markdowns: Stage = ctx =>
         }
     );
 
-const printStatistics = (ctx: RunContext): void => {
+const printStatistics = (): void => {
     logger.info('-------------------');
     logger.info('Project statistics ');
     if (DependenciesEngine.components.length > 0) {
@@ -195,9 +195,6 @@ const printStatistics = (ctx: RunContext): void => {
     if (DependenciesEngine.interfaces.length > 0) {
         logger.info(`- interface    : ${DependenciesEngine.interfaces.length}`);
     }
-    if (ctx.config.mainData.routesLength > 0) {
-        logger.info(`- route        : ${ctx.config.mainData.routesLength}`);
-    }
     if (DependenciesEngine.miscellaneous.typealiases.length > 0) {
         logger.info(`- type aliases : ${DependenciesEngine.miscellaneous.typealiases.length}`);
     }
@@ -207,6 +204,10 @@ const printStatistics = (ctx: RunContext): void => {
 /**
  * Build the project-wide program and its facts. A failure is logged once and
  * leaves the run without semantic facts; it never stops the generation.
+ * Every run parses afresh: the crawler shares the program's source files and
+ * re-binds them, so a later program that reused them as unchanged would get
+ * a checker that no longer resolves imports (a watch rebuild after a save
+ * without changes lost the routers).
  */
 const withSemantic = (ctx: RunContext): RunContext => {
     const { mainData } = ctx.config;
@@ -217,8 +218,7 @@ const withSemantic = (ctx: RunContext): RunContext => {
     const analyzed = analyzeProject({
         tsconfigPath: path.resolve(cwd, mainData.tsconfig),
         files: ctx.files,
-        cwd,
-        previous: ctx.semantic
+        cwd
     });
     if (!analyzed.ok) {
         logger.warn(`Semantic analysis skipped: ${analyzed.message}`);
@@ -258,8 +258,13 @@ const withSymbols = (ctx: RunContext): RunContext => {
     }
     const table = styles ? withStyleEntries(symbols, styles.files.filter(hasStylePage)) : symbols;
     mainData.symbols = table;
+    const routing = nameRoutes(ctx.routing, table);
+    mainData.routing = routing;
+    if (ctx.mode !== 'diff' && ctx.semantic && !mainData.disableRoutes) {
+        logRouting(routing);
+    }
     if (!ctx.semantic) {
-        return { ...ctx, symbols: table, di, styles };
+        return { ...ctx, symbols: table, di, styles, routing };
     }
     const detection = deriveFeatures(ctx.semantic.model, table, mainData, ctx.files, cwd);
     const semantic = {
@@ -275,7 +280,7 @@ const withSymbols = (ctx: RunContext): RunContext => {
         }
         logger.info(formatFeatureSummary(detection.model));
     }
-    return { ...ctx, symbols: placed, di, semantic, styles };
+    return { ...ctx, symbols: placed, di, semantic, styles, routing };
 };
 
 /** The crawler parses nothing the semantic program already holds. */
@@ -284,8 +289,20 @@ const sharedSourceFiles = (ctx: RunContext) => {
     return program ? (fileName: string) => program.getSourceFile(fileName) : undefined;
 };
 
-const crawl: Stage = async current => {
+/** The semantic state and the route draft, read before the crawler touches the files. */
+const withSemanticAndRoutes = (current: RunContext): RunContext => {
     const ctx = withSemantic(current);
+    const routing = draftRoutes(
+        ctx.semantic?.program,
+        ctx.files,
+        cwd,
+        ctx.config.mainData.disableRoutes
+    );
+    return { ...ctx, routing };
+};
+
+const crawl: Stage = async current => {
+    const ctx = withSemanticAndRoutes(current);
     const { mainData } = ctx.config;
     logger.info('Get dependencies data');
 
@@ -308,9 +325,7 @@ const crawl: Stage = async current => {
 
     DependenciesEngine.init(dependenciesData);
 
-    mainData.routesLength = RouterParserUtil.routesLength();
-
-    printStatistics(ctx);
+    printStatistics();
     const placed = withSymbols(ctx);
     if (placed.mode !== 'diff' && placed.di && placed.symbols) {
         const hidden = formatHiddenList(placed.di, placed.symbols, placed.semantic?.model);
@@ -322,7 +337,7 @@ const crawl: Stage = async current => {
 };
 
 const microCrawl: Stage = async current => {
-    const ctx = withSemantic(current);
+    const ctx = withSemanticAndRoutes(current);
     logger.info('Get diff dependencies data');
 
     ctx.config.mainData.angularProject = true;
@@ -356,7 +371,8 @@ const prepare: Stage = async ctx => {
     if (isDiff) {
         ctx.config.resetPages();
     }
-    const counts = isDiff ? countsFromDiff(ctx.diff) : countsFromEngine();
+    const routeCount = ctx.routing?.count ?? 0;
+    const counts = isDiff ? countsFromDiff(ctx.diff, routeCount) : countsFromEngine(routeCount);
     const prepared = await runPrepareStages(ctx, selectPrepareStages(ctx, counts));
     if (isErr(prepared)) {
         if (prepared.message.kind === 'halt') {

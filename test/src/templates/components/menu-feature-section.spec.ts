@@ -54,7 +54,7 @@ const baseData = (overrides: Partial<MenuDataFixture>): MenuDataFixture => ({
     additionalPages: [],
     appConfig: [],
     routes: null,
-    disableRoutesGraph: true,
+    disableRoutes: true,
     disableCoverage: true,
     disableOverview: true,
     disableDependencies: true,

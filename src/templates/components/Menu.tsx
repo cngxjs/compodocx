@@ -1250,7 +1250,7 @@ export const Menu = (props: MenuProps): string => {
                     UtilitiesChapter(d)}
 
                 {/* Routes */}
-                {!d.disableRoutesGraph && d.routes && (
+                {!d.disableRoutes && (d.routing?.count ?? 0) > 0 && (
                     <li class="chapter">
                         <a data-type="chapter-link" href={rootHref('routes')}>
                             {IconGitBranch()}

@@ -22,18 +22,19 @@ const moduleSpecifiers = (sourceFile: ts.SourceFile): readonly ts.StringLiteral[
             : []
     );
 
-/**
- * Edges from every `import` and `export ... from` of `files` to the project
- * files they resolve to, resolved with the program's compiler options
- * (relative and path-mapped specifiers; `node_modules` is never searched). Type-only imports count. Targets outside the
- * program, declaration files and self imports are dropped.
- */
-export const buildImportGraph = (
-    program: ts.Program,
-    files: readonly string[],
-    cwd: string
-): ImportGraph => {
-    const options = program.getCompilerOptions();
+interface Resolver {
+    readonly host: ts.ModuleResolutionHost;
+    readonly cache: ts.ModuleResolutionCache;
+}
+
+/** One module resolution host and cache per program, shared by every caller. */
+const resolvers = new WeakMap<ts.Program, Resolver>();
+
+const resolverOf = (program: ts.Program): Resolver => {
+    const cached = resolvers.get(program);
+    if (cached) {
+        return cached;
+    }
     const host: ts.ModuleResolutionHost = {
         fileExists: fileName => !isInNodeModules(fileName) && ts.sys.fileExists(fileName),
         readFile: fileName => ts.sys.readFile(fileName),
@@ -44,8 +45,46 @@ export const buildImportGraph = (
     const cache = ts.createModuleResolutionCache(
         ts.sys.getCurrentDirectory(),
         fileName => (ts.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase()),
-        options
+        program.getCompilerOptions()
     );
+    const resolver = { host, cache };
+    resolvers.set(program, resolver);
+    return resolver;
+};
+
+/**
+ * The project source file a module specifier of `fromFile` resolves to, with
+ * the program's compiler options (relative and path-mapped specifiers;
+ * `node_modules` is never searched). Undefined for anything outside the
+ * program and for declaration files.
+ */
+export const resolveSpecifier = (
+    program: ts.Program,
+    fromFile: string,
+    specifier: string
+): ts.SourceFile | undefined => {
+    const { host, cache } = resolverOf(program);
+    const resolved = ts.resolveModuleName(
+        specifier,
+        fromFile,
+        program.getCompilerOptions(),
+        host,
+        cache
+    ).resolvedModule?.resolvedFileName;
+    const target = resolved && program.getSourceFile(resolved);
+    return target && !target.isDeclarationFile ? target : undefined;
+};
+
+/**
+ * Edges from every `import` and `export ... from` of `files` to the project
+ * files they resolve to (`resolveSpecifier`). Type-only imports count.
+ * Targets outside the program, declaration files and self imports are dropped.
+ */
+export const buildImportGraph = (
+    program: ts.Program,
+    files: readonly string[],
+    cwd: string
+): ImportGraph => {
     const edges = new Map<string, readonly string[]>();
     for (const fileName of files) {
         const sourceFile = program.getSourceFile(fileName);
@@ -55,15 +94,8 @@ export const buildImportGraph = (
         const from = relativeFile(cwd, sourceFile.fileName);
         const targets = new Set<string>();
         for (const specifier of moduleSpecifiers(sourceFile)) {
-            const resolved = ts.resolveModuleName(
-                specifier.text,
-                sourceFile.fileName,
-                options,
-                host,
-                cache
-            ).resolvedModule?.resolvedFileName;
-            const target = resolved && program.getSourceFile(resolved);
-            if (!target || target.isDeclarationFile || target === sourceFile) {
+            const target = resolveSpecifier(program, sourceFile.fileName, specifier.text);
+            if (!target || target === sourceFile) {
                 continue;
             }
             targets.add(relativeFile(cwd, path.resolve(target.fileName)));

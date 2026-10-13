@@ -9,7 +9,6 @@ export class FrameworkDependencies {
     public typeChecker: ts.TypeChecker;
     public classHelper: ClassHelper;
     public componentHelper: ComponentHelper;
-    public routerParser;
 
     constructor(files: string[], options: any) {
         this.files = files;

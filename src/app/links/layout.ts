@@ -284,6 +284,13 @@ export function memberAnchor(member: string | undefined, owner?: string): string
     return owner ? `${safeAnchorPart(owner)}--${safeAnchorPart(member)}` : safeAnchorPart(member);
 }
 
+/**
+ * The element id of a route on the routes page, or of a router section when
+ * `id` is a root index: `route-<root>[-<child index>...]`. Route node ids are
+ * `<root>-<index path>` (`0-2-1`), stable within one build.
+ */
+export const routeAnchor = (id: string): string => `route-${id.replace(/[^0-9-]/g, '-')}`;
+
 /** The `href` string: prefix, path and `#anchor`. */
 export const hrefText = (href: Href, style: PrefixStyle = 'relative'): string =>
     `${relativePrefix(href.fromDepth, style)}${href.path}${href.anchor ? `#${href.anchor}` : ''}`;

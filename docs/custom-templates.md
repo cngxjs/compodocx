@@ -53,7 +53,7 @@ These file names correspond to page contexts. Place them in `partials/` inside y
 | `interface.js` | Interface detail |
 | `entity.js` | Entity detail |
 | `token.js` | `InjectionToken` / `HttpContextToken` detail page (in its feature folder) (v0.6.0+) |
-| `routes.js` | Routes page |
+| `routes.js` | Routes page, `routes.html` (generated only when there are routes). Receives the main data plus `data.routing` (the route model: `roots`, each `{ id, kind: 'router' \| 'unmounted', bootstraps, configName, arrayName, features, routes }`, every route `{ id, path, fullPath, component, childrenFrom, redirectTo, title, guards, resolve, providers, data, children, file, line }`; `count`), `data.symbols` and `data.depth` (`0`). Row anchors are `route-<id>` |
 | `markdown.js` | Markdown pages (readme, changelog, etc.) |
 | `additional-page.js` | Additional documentation pages |
 | `coverage-report.js` | Documentation coverage report |
@@ -83,6 +83,7 @@ Block-level overrides replace a region inside a page rather than the whole page:
 | `block-theming.js` | Whole Theming tab panel. Receives `{ groups, styleSources, overview, depth }` where `groups` is an array of `{ name, tokens }` buckets, `styleSources` is `{ file, content, language }[]`, and `overview` is the concatenated `@overview` markdown. Also receives `mixins` (`StyleMixin[]`, the documented SCSS mixins and functions) and `linked` (the style files linked with `@themes`, as `{ label, href? }[]`, `href` set when the file has a page), each only when non-empty |
 | `block-theming-token.js` | Single token row inside the Theming tab. Receives `{ token, depth }` where `token` is a `ThemeToken` (`name`, `kind`, `type`, `defaultValue`, `description`, `group`, `examples`, `since`, `deprecated`, `see`, `relatedTo`, `file`, `line`). When the token has `@relatedTo`, also receives `related`, the resolved names as `{ name, href? }[]` (no `href` when the name resolves to nothing). Replace this when you want custom row chrome but the rest of the panel can stay default |
 | `block-theming-mixin.js` | Single documented SCSS mixin or function in the Mixins section (Theming tab and style page). Receives `{ mixin, depth, related }` where `mixin` is a `StyleMixin` (`name`, `kind` (`'mixin'` or `'function'`), `params` (`{ name, default, description, type }[]`, names without `$`), `description`, `content` (the `@content` text, `null` without the tag), `returns`, `examples`, `since`, `deprecated`, `see`, `relatedTo`, `file`, `line`) and `related` holds its resolved `@relatedTo` names as `{ name, href? }[]` |
+| `block-routed-at.js` | "Routed at" on component pages and "Mounted at" on route array variable pages. Receives `{ id, title, links }`, `links` as `{ label, href }[]` (the full path and its row on the routes page) |
 | `block-method.js` | Methods section on the API tab |
 | `block-property.js` | Properties section on the API tab |
 | `block-input.js` | Inputs section on the API tab |

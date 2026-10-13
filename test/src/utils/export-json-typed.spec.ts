@@ -91,8 +91,36 @@ describe('export-json typed snapshot — todomvc fixture', () => {
         expect(snapshot.schemaVersion).toBe(EXPORT_SCHEMA_VERSION);
     });
 
-    it('writes no category or docsKind field on any entry or member (schema 4)', () => {
-        expect(EXPORT_SCHEMA_VERSION).toBe(4);
+    it('writes typed routes (schema 5)', () => {
+        expect(EXPORT_SCHEMA_VERSION).toBe(5);
+        const [root] = snapshot.routes ?? [];
+        expect(root.kind).toBe('router');
+        expect(root.config).toBe('appConfig');
+        expect(root.bootstraps?.map(b => b.component)).toEqual(['AppComponent']);
+        expect(root.routes.map(r => r.fullPath)).toEqual([
+            '/{PATHS.home.url}',
+            '/about',
+            '/',
+            '/**'
+        ]);
+        const about = root.routes[1];
+        expect(about.loadChildren).toMatchObject({
+            kind: 'routes',
+            name: 'ABOUT_ROUTES',
+            lazy: true
+        });
+        expect(about.children?.[0].providers).toEqual([
+            {
+                name: 'TodoStore',
+                file: 'test/fixtures/todomvc-ng2/src/app/shared/services/todo.store.ts',
+                source: 'TodoStore'
+            }
+        ]);
+        expect(root.routes[2].redirectTo).toBe('homeenumimported');
+        expect(root.routes[3].redirectTo).toBe('homeenuminfile');
+    });
+
+    it('writes no category or docsKind field on any entry or member (since schema 4)', () => {
         const keys: string[] = [];
         const walk = (value: unknown): void => {
             if (Array.isArray(value)) {

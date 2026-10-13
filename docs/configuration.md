@@ -81,8 +81,10 @@ With `-e json`, every symbol entry (components, directives, classes, injectables
 | `di.usesInjectionContext` | `'direct'` \| `'call'` | Calls `inject()` or an Angular API that needs an injection context (`effect`, `toSignal`, `takeUntilDestroyed`, ... without an injector), directly or through exactly one called function, method or constructor |
 | `token.shape` | string | Type argument of an `InjectionToken`/`HttpContextToken`: `interface`, `signal`, `function`, `primitive`, `union` or `other` |
 | `token.providedBy` / `token.injectedBy` | `{ name, file }[]` | Providers that provide the token / symbols that read it |
+| `routedAt` | string[] | Components: full paths of the routes rendering the component |
+| `mountedAt` | string[] | Route array variables: full paths of the places a router mounts the array at |
 
-Entry points are the `ng-package.json` entry files below the workspace, plus tsconfig `paths` targets without a wildcard that re-export from other files (`export ... from`). The top-level `semantic` object lists them (`importPath`, `file`, `source`) with the counts of the analysis, which the build log also prints as one `Semantic analysis:` line. Every `file` is relative to the working directory. `schemaVersion` stays `3`.
+Entry points are the `ng-package.json` entry files below the workspace, plus tsconfig `paths` targets without a wildcard that re-export from other files (`export ... from`). The top-level `semantic` object lists them (`importPath`, `file`, `source`) with the counts of the analysis, which the build log also prints as one `Semantic analysis:` line. Every `file` is relative to the working directory. `schemaVersion` is `5`.
 
 Two more optional fields come from the source: `tokens[].factory` holds the source of the `factory` option of `new InjectionToken(...)`, and a `providers` / `viewProviders` entry written as a call (`provideFoo(withMode('wide'))`) carries `call: { callee, args }`, where `args` lists the names of arguments that are calls themselves. `name` and `type` of such an entry are unchanged. Function guards and functional resolvers stay under `miscellaneous` with their `functionalKind`, although the HTML shows them as guards and resolvers.
 
@@ -142,7 +144,7 @@ These flags disable entire features, tabs, or pages. Unlike visibility filters w
 | disableGraph | `--disableGraph` | boolean | `false` | Remove all dependency graphs -- both the overview page graph and per-component dependency tabs |
 | disableDependenciesTab | `--disableDependenciesTab` | boolean | `false` | Remove the per-component Dependencies tab that shows the standalone import graph. The overview graph and other graphs are not affected |
 | disablePlaygroundTab | `--disablePlaygroundTab` | boolean | `false` | Remove the per-component Playground tab even when `@playground` JSDoc blocks are present in the source |
-| disableRoutesGraph | `--disableRoutesGraph` | boolean | `false` | Remove the routes graph page. The page visualizes the Angular router configuration as a tree |
+| disableRoutes | `--disableRoutes` | boolean | `false` | Do not read routes: no routes page, no menu entry, no Routed at / Mounted at links, no route entries in the command palette and no `routes` in the exports. See [Routes](#routes). The removed `--disableRoutesGraph` / `disableRoutesGraph` are ignored with a warning |
 | disableSearch | `--disableSearch` | boolean | `false` | Remove the Pagefind search functionality. Disables the command palette (Ctrl+K), the search input, and skips Pagefind index generation at build time |
 | disableCoverage | `--disableCoverage` | boolean | `false` | Remove the documentation coverage report page. Coverage measures how many public members have JSDoc descriptions |
 | disableOverview | `--disableOverview` | boolean | `false` | Remove the overview/dashboard page that shows project-level statistics and the main dependency graph |
@@ -211,6 +213,19 @@ The build log prints one line, `Features: <n> in <e> entry points (config <a>, t
 Every feature gets a page, `index.html` in the feature's folder `<entry point>/<feature>/` (the entry point's import path without a scope shared by all entry points; an app feature at `<feature>/`), and the pages of its symbols live in the same folder: the import path, the `README.md` of the feature folder (for a root feature, the entry file's folder, then the `ng-package.json` folder) with relative links to other features' READMEs or folders pointing at their pages, the features of an entry point, the members by role (components and directives, pipes, services, configuration, utilities, constants, types, classes), links to the members' Theming tabs, and the features it builds on or that extend it. Symbol pages show entry point and feature in their breadcrumb.
 
 `@category` and `@docsKind` are no longer read. A build that still finds them logs one warning with every location; `compodocx migrate jsdoc <dir>` removes them (`--dry-run` to preview, `--json` for a report).
+
+## Routes
+
+compodocx reads the routes of the documented files through the project analysis (the `-p` tsconfig) and shows them on `routes.html`, which is generated only when there are routes.
+
+- **Routers.** Every `bootstrapApplication(<component>, <config>)` call starts one: the config may be an object, a named config (also from another file) or `mergeApplicationConfig(a, b, ...)`. Each `provideRouter(<routes>, ...<features>)` in its `providers` (array elements, spreads and named provider arrays are followed) is one router; two bootstraps of the same config share it. A `provideRouter` call no bootstrap reaches (a test config) is not a router.
+- **Route arrays.** A variable or `export default` typed `Routes`, `Route[]` or `Array<Route>` (annotation, `satisfies` or `as`) imported from `@angular/router`, including aliased and namespace imports. Untyped arrays count when a router reaches them as its routes argument, a spread, `children` or a `loadChildren` target.
+- **Lazy routes.** `loadChildren` and `loadComponent` in the forms `() => import('./x').then(m => m.X)`, `.then(({ X }) => X)`, `async () => (await import('./x')).X` and `() => import('./x')` (default export). A `loadChildren` route array is expanded below its route; a `loadComponent` target links to the component. A package specifier is shown as external; a computed specifier or a loader built by a call is kept as source text.
+- **Values.** Paths, redirects, titles and outlets the type checker can evaluate (string literals, consts, enum members, templates of those) are shown as text; anything else as its source in braces, for example `/{PATHS.home}`. Guards, resolvers, providers and router features keep their source, with the callee linked when it is documented. `data` is kept as source text.
+- **Unmounted routes.** An exported route array that no router mounts (a library shipping feature routes) gets a section of its own. Unexported ones are left out.
+- **Not read.** `RouterModule.forRoot` / `forChild`, string `loadChildren`, routes built at runtime by a function (shown as one node with the call), `Router.navigate` calls and `routerLink`.
+
+The build log prints `Routes: <n> in <r> routers, <u> unmounted (<l> lazy, <d> dynamic values)`; what was skipped is logged at debug level. Component pages list the routes they are rendered at, route array variables the places they are mounted at, and feature pages the routes of their members. `--disableRoutes` turns all of it off.
 
 ## Analytics
 

@@ -29,7 +29,7 @@ describe('CLI simple generation - big app', () => {
         functionsFile,
         contactInfoInterfaceFile;
 
-    let routesIndex;
+    let routesPage;
 
     const tmpFolder = `${tmp.name}-big-app`;
     const distFolder = `${tmpFolder}/documentation`;
@@ -61,7 +61,7 @@ describe('CLI simple generation - big app', () => {
         interfaceIDATAFile = read(`${distFolder}/${pages.of('interface', 'IDATA')}`);
         searchFuncFile = read(`${distFolder}/${pages.of('interface', 'SearchFunc')}`);
 
-        routesIndex = read(`${distFolder}/js/routes/routes_index.js`);
+        routesPage = read(`${distFolder}/routes.html`);
         todoComponentFile = read(`${distFolder}/${pages.of('component', 'TodoComponent')}`);
         todoMVCComponentFile = read(`${distFolder}/${pages.of('component', 'TodoMVCComponent')}`);
         footerComponentFile = read(`${distFolder}/${pages.of('component', 'FooterComponent')}`);
@@ -152,19 +152,20 @@ describe('CLI simple generation - big app', () => {
      */
 
     it('should not have a toggled item menu', () => {
-        expect(routesIndex).to.not.contain('fa-angle-down');
+        expect(routesPage).to.not.contain('fa-angle-down');
     });
 
-    it('should have a route index', () => {
-        const isFileExists = exists(`${distFolder}/js/routes/routes_index.js`);
-        expect(isFileExists).to.be.true;
+    it('should render the routes page without a graph script', () => {
+        expect(exists(`${distFolder}/js/routes/routes_index.js`)).to.be.false;
+        expect(routesPage).to.contain('class="cdx-table cdx-routes-table"');
     });
 
-    it('should have generated files', () => {
-        expect(routesIndex).to.contain('src/app/app.routes.ts');
-        expect(routesIndex).to.contain('src/app/about/about.routes.ts');
-        expect(routesIndex).to.contain('src/app/home/home.routes.ts');
-        expect(routesIndex).to.contain('AboutComponent');
+    it('should list the routes of the bootstrapped router, lazy children expanded', () => {
+        expect(routesPage).to.contain('src/main.ts:11');
+        expect(routesPage).to.contain('<code>ABOUT_ROUTES</code>');
+        expect(routesPage).to.contain('<code>AboutComponent</code>');
+        expect(routesPage).to.contain('<code>TodoMVCComponent</code>');
+        expect(routesPage.match(/<tr id="route-0-/g)).to.have.length(8);
     });
 
     it('should have a readme tab', () => {
@@ -548,12 +549,11 @@ describe('CLI simple generation - big app', () => {
         expect(aboutComponentFile).to.contain('class="cdx-member-modifier">Async');
     });
 
-    it('should support dynamic path for routes', () => {
-        const routesFile = read(`${distFolder}/js/routes/routes_index.js`);
-        expect(routesFile).to.contain('homeimported');
-        expect(routesFile).to.contain('homeenumimported');
-        expect(routesFile).to.contain('homeenuminfile');
-        expect(routesFile).to.contain('todomvcinstaticclass');
+    it('should resolve enum paths and keep other dynamic paths as source', () => {
+        expect(routesPage).to.contain('<code>homeenumimported</code>');
+        expect(routesPage).to.contain('<code>homeenuminfile</code>');
+        expect(routesPage).to.contain('{PATHS.home.url}');
+        expect(routesPage).to.contain('{ABOUT_ENUMS.todomvc}');
     });
 
     it('should support Object Literal Property Value Shorthand support for metadatas for components', () => {

@@ -209,8 +209,6 @@ export interface Deps {
 
     imports?: Deps[];
     exports?: Deps[];
-
-    routesTree?;
 }
 
 export interface SymbolDeps {

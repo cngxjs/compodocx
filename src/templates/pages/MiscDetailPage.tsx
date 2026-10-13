@@ -1,6 +1,7 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
 import { hrefFor, hrefText } from '../../app/links/layout';
+import { BlockRoutedAt } from '../blocks/BlockRoutedAt';
 import { ParamsTable } from '../blocks/ParamsTable';
 import { ReferencedBySection } from '../blocks/ReferencedBySection';
 import { DiBadges } from '../components/DiBadges';
@@ -19,6 +20,7 @@ import {
     parseDescription,
     t
 } from '../helpers';
+import { routedAt } from '../helpers/routed-at';
 import { symbolFacts } from '../helpers/symbol-facts';
 import { usedByEntries } from '../helpers/used-by';
 import { utilityGroupAnchor } from './UtilitiesPage';
@@ -124,10 +126,12 @@ export const collectExampleComments = (item: any): string[] => {
 //  Info-tab content (description + prose)
 
 const InfoContent = (item: any, depth: number, kind: MiscDetailKind): string => {
-    const backlinks = ReferencedBySection({
-        entries: usedByEntries(Configuration.mainData, kind, item),
-        depth
-    });
+    const backlinks =
+        BlockRoutedAt(routedAt(Configuration.mainData, kind, item, depth)) +
+        ReferencedBySection({
+            entries: usedByEntries(Configuration.mainData, kind, item),
+            depth
+        });
     if (!item.description) {
         return backlinks;
     }

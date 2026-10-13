@@ -1,5 +1,5 @@
 import { type DiView, hiddenFilter } from '../app/di/model';
-import { hrefFor, hrefText } from '../app/links/layout';
+import { hrefFor, hrefText, routeAnchor } from '../app/links/layout';
 import { placedLink } from '../app/links/resolve';
 import {
     buildSymbolTable,
@@ -8,6 +8,7 @@ import {
     policyKinds,
     type SymbolTable
 } from '../app/links/symbol-table';
+import type { RouteNode, RoutingModel } from '../app/routing/model';
 
 export interface EntityIndexEntry {
     href: string;
@@ -17,6 +18,32 @@ export interface EntityIndexEntry {
 export type EntityIndex = Record<string, EntityIndexEntry>;
 
 const INDEX_KIND: Readonly<Record<string, string>> = { enumeration: 'enum' };
+
+/** Key prefix of the route entries; symbol names never contain `:`. */
+export const ROUTE_ENTRY_PREFIX = 'route:';
+
+/**
+ * One entry per distinct full path of the route model, linking its first
+ * row on the routes page (`route:/users` -> `routes.html#route-0-2`). The
+ * command palette matches them without the search index.
+ */
+export const routeEntries = (model: RoutingModel | undefined): EntityIndex => {
+    const entries: EntityIndex = {};
+    const walk = (nodes: readonly RouteNode[]): void => {
+        for (const node of nodes) {
+            const key = `${ROUTE_ENTRY_PREFIX}${node.fullPath}`;
+            if (entries[key] === undefined) {
+                const href = hrefFor({ type: 'root', page: 'routes' }, 0, routeAnchor(node.id));
+                entries[key] = { href: hrefText(href, 'bare'), kind: 'route' };
+            }
+            walk(node.children);
+        }
+    };
+    for (const root of model?.roots ?? []) {
+        walk(root.routes);
+    }
+    return entries;
+};
 
 /**
  * Build the entity index from mainData. Call after entity collection, before
@@ -51,5 +78,8 @@ export function buildEntityIndex(mainData: Record<string, unknown>): EntityIndex
             kind: INDEX_KIND[entry.ref.kind] ?? entry.ref.kind
         };
     }
-    return index;
+    const routing = mainData.disableRoutes
+        ? undefined
+        : (mainData.routing as RoutingModel | undefined);
+    return { ...index, ...routeEntries(routing) };
 }

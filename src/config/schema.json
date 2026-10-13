@@ -270,10 +270,10 @@
             "default": false,
             "examples": [false]
         },
-        "disableRoutesGraph": {
-            "$id": "/properties/disableRoutesGraph",
+        "disableRoutes": {
+            "$id": "/properties/disableRoutes",
             "type": "boolean",
-            "title": "Do not add the routes graph",
+            "title": "Do not read routes: no routes page, no route links, no routes in the exports",
             "default": false,
             "examples": [false]
         },

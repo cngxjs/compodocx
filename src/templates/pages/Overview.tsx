@@ -16,8 +16,8 @@ type OverviewProps = {
     readonly classes?: unknown[];
     readonly guards?: unknown[];
     readonly interfaces?: unknown[];
-    readonly routes?: unknown[];
-    readonly routesLength?: number;
+    readonly routing?: { readonly count: number };
+    readonly disableRoutes?: boolean;
     readonly disableGraph?: boolean;
     readonly appConfig?: any[];
     readonly coverageData?: { files?: any[]; count?: number };
@@ -26,6 +26,10 @@ type OverviewProps = {
     readonly documentationMainName?: string;
     readonly dependencyGraph?: { nodes: any[]; edges: any[] };
 };
+
+/** Routes of the route model; none when routes are disabled. */
+const routeCount = (props: OverviewProps): number =>
+    props.disableRoutes ? 0 : (props.routing?.count ?? 0);
 
 const hasAnyEntities = (props: OverviewProps): boolean =>
     !!(
@@ -38,7 +42,7 @@ const hasAnyEntities = (props: OverviewProps): boolean =>
         props.classes?.length ||
         props.guards?.length ||
         props.interfaces?.length ||
-        props.routes?.length ||
+        routeCount(props) > 0 ||
         props.appConfig?.length
     );
 
@@ -93,8 +97,7 @@ export const Overview = (props: OverviewProps): string => {
                       interfaces: props.interfaces as any[],
                       interceptors: props.interceptors as any[],
                       entities: props.entities as any[],
-                      routes: props.routes as any[],
-                      routesLength: props.routesLength,
+                      routeCount: routeCount(props),
                       appConfig: props.appConfig,
                       coverageData: props.coverageData
                   })
