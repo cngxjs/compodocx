@@ -311,117 +311,91 @@ describe('ComponentHelper', () => {
         });
     });
 
-    describe('getSignalConfig', () => {
-        it('should parse input signal configuration', () => {
-            const defaultValue = 'input<string>()';
-            const result = componentHelper['getSignalConfig']('input', defaultValue);
-
-            expect(result).to.deep.equal({
-                required: false,
-                type: 'string',
-                defaultValue: undefined
-            });
-        });
-
-        it('should parse required input signal', () => {
-            const defaultValue = 'input.required<string>()';
-            const result = componentHelper['getSignalConfig']('input', defaultValue);
-
-            expect(result).to.deep.equal({
-                required: true,
-                type: 'string',
-                defaultValue: undefined
-            });
-        });
-
-        it('should parse input signal with default value', () => {
-            const defaultValue = "input<string>('default')";
-            const result = componentHelper['getSignalConfig']('input', defaultValue);
-
-            expect(result).to.deep.equal({
-                required: false,
-                type: 'string',
-                defaultValue: "'default'"
-            });
-        });
-
-        it('should parse output signal configuration', () => {
-            const defaultValue = 'output<string>()';
-            const result = componentHelper['getSignalConfig']('output', defaultValue);
-
-            expect(result).to.deep.equal({
-                required: false,
-                type: 'string',
-                defaultValue: undefined
-            });
-        });
-
-        it('should return undefined for non-matching signal', () => {
-            const defaultValue = 'someOtherFunction()';
-            const result = componentHelper['getSignalConfig']('input', defaultValue);
-
-            expect(result).to.be.undefined;
-        });
-    });
-
     describe('getInputSignal', () => {
-        it('should extract input signal from property', () => {
-            const prop = { defaultValue: 'input<string>()' };
+        it('should return an input signal member with required written', () => {
+            const prop = { name: 'value', signalKind: 'input-signal', type: 'string' };
             const result = componentHelper.getInputSignal(prop);
 
-            expect(result).to.deep.equal({
-                ...prop,
-                required: false,
-                type: 'string',
-                defaultValue: undefined
-            });
+            expect(result).to.deep.equal({ ...prop, required: false, type: 'string' });
+            expect(result).not.to.equal(prop);
         });
 
-        it('should return undefined when no input signal found', () => {
-            const prop = { defaultValue: 'someOtherValue' };
-            const result = componentHelper.getInputSignal(prop);
-
-            expect(result).to.be.undefined;
+        it('should return undefined for a member without an input signal kind', () => {
+            expect(componentHelper.getInputSignal({ defaultValue: "input<string>('a')" })).to.be
+                .undefined;
+            expect(componentHelper.getInputSignal({ signalKind: 'output-signal' })).to.be.undefined;
         });
     });
 
     describe('getOutputSignal', () => {
-        it('should extract output signal from property', () => {
-            const prop = { defaultValue: 'output<string>()' };
+        it('should return an output signal member and keep required and alias', () => {
+            const prop = {
+                name: 'changed',
+                signalKind: 'output-signal',
+                required: true,
+                type: undefined,
+                alias: 'change'
+            };
             const result = componentHelper.getOutputSignal(prop);
 
-            expect(result).to.deep.equal({
-                ...prop,
-                required: false,
-                type: 'string',
-                defaultValue: undefined
-            });
+            expect(result).to.deep.equal({ ...prop, required: true, type: undefined });
         });
 
-        it('should return undefined when no output signal found', () => {
-            const prop = { defaultValue: 'someOtherValue' };
-            const result = componentHelper.getOutputSignal(prop);
-
-            expect(result).to.be.undefined;
+        it('should return undefined for a member without an output signal kind', () => {
+            expect(componentHelper.getOutputSignal({ defaultValue: 'output<string>()' })).to.be
+                .undefined;
+            expect(componentHelper.getOutputSignal({ signalKind: 'computed' })).to.be.undefined;
         });
     });
 
     describe('getInputOutputSignals', () => {
         it('should separate signals from regular properties', () => {
             const props = [
-                { defaultValue: 'input<string>()', name: 'inputProp' },
-                { defaultValue: 'output<number>()', name: 'outputProp' },
+                { signalKind: 'input-signal', name: 'inputProp' },
+                { signalKind: 'output-signal', name: 'outputProp' },
+                { signalKind: 'computed', name: 'computedProp' },
                 { defaultValue: 'regularValue', name: 'regularProp' }
             ];
 
             const result = componentHelper.getInputOutputSignals(props);
 
-            expect(result.inputSignals).to.have.lengthOf(1);
-            expect(result.outputSignals).to.have.lengthOf(1);
-            expect(result.properties).to.have.lengthOf(1);
-            expect(result.inputSignals[0].name).to.equal('inputProp');
-            expect(result.outputSignals[0].name).to.equal('outputProp');
-            expect(result.properties[0].name).to.equal('regularProp');
+            expect(result.inputSignals.map(p => p.name)).to.deep.equal(['inputProp']);
+            expect(result.outputSignals.map(p => p.name)).to.deep.equal(['outputProp']);
+            expect(result.properties.map(p => p.name)).to.deep.equal([
+                'computedProp',
+                'regularProp'
+            ]);
+        });
+
+        it('should list a model in both inputs and outputs', () => {
+            const result = componentHelper.getInputOutputSignals([
+                { signalKind: 'model', name: 'value', type: 'number' }
+            ]);
+
+            expect(result.inputSignals.map(p => p.name)).to.deep.equal(['value']);
+            expect(result.outputSignals.map(p => p.name)).to.deep.equal(['value']);
+            expect(result.properties).to.have.lengthOf(0);
+            expect(result.inputSignals[0]).not.to.equal(result.outputSignals[0]);
+        });
+
+        it('should apply parseSignalType to the type', () => {
+            const result = componentHelper.getInputOutputSignals([
+                { signalKind: 'input-signal', name: 'size', type: "'s' | 'm' | 'l'" }
+            ]);
+
+            expect(result.inputSignals[0].type).to.equal('"s" | "m" | "l"');
+        });
+
+        it('should keep a string default that mentions a signal API a property, quickly', () => {
+            const start = performance.now();
+            const result = componentHelper.getInputOutputSignals([
+                { name: 'copy', defaultValue: `'<code>input</code> ${'x'.repeat(20)}'` }
+            ]);
+            const elapsed = performance.now() - start;
+
+            expect(result.properties.map(p => p.name)).to.deep.equal(['copy']);
+            expect(result.inputSignals).to.have.lengthOf(0);
+            expect(elapsed).to.be.lessThan(200);
         });
     });
 

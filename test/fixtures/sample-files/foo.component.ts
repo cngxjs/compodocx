@@ -72,7 +72,7 @@ export class FooComponent {
     /**
      * An example required input signal
      */
-    public readonly requiredInputSignal = input.required<string>('foo');
+    public readonly requiredInputSignal = input.required<string>();
 
     /**
      * An example aliased input signal
@@ -82,17 +82,17 @@ export class FooComponent {
     /**
      * An example output signal
      */
-    public readonly outputSignal = output<'foo' | 'bar'>('foo');
+    public readonly outputSignal = output<'foo' | 'bar'>();
 
     /**
      * An example required output signal
      */
-    public readonly requiredOutputSignal = output.required<string>('foo');
+    public readonly requiredOutputSignal = output<string>();
 
     /**
      * An example aliased output signal
      */
-    public readonly aliasedOutputSignal = output(null, { alias: 'aliasedOutSignal' });
+    public readonly aliasedOutputSignal = output({ alias: 'aliasedOutSignal' });
 
     /**
      * An example model input signal

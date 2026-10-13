@@ -9,10 +9,34 @@ import { getNodeDecorators, nodeHasDecorator } from '../../../../../../utils/nod
 import { StringifyObjectLiteralExpression } from '../../../../../../utils/object-literal-expression.util';
 import { getNamesCompareFn, markedtags, mergeTagsAndArgs } from '../../../../../../utils/utils';
 import Configuration from '../../../../../configuration';
-import { angularImports, rootInjectCall } from '../../../../semantic/inject-calls';
+import {
+    type AngularImports,
+    angularImports,
+    rootInjectCall
+} from '../../../../semantic/inject-calls';
+import { type SignalApi, signalMemberCall } from '../../../../semantic/signal-calls';
 import type { DecoratorInspector } from './decorator-inspector';
 import type { JsdocExtractor } from './jsdoc-extractor';
 import type { TypeRenderer } from './type-renderer';
+
+const SIGNAL_MEMBER_KINDS: Readonly<Record<SignalApi, string>> = {
+    input: 'input-signal',
+    output: 'output-signal',
+    model: 'model'
+};
+
+const importsCache = new WeakMap<ts.SourceFile, AngularImports>();
+
+/** `angularImports` once per source file. */
+const importsOf = (sourceFile: ts.SourceFile): AngularImports => {
+    const cached = importsCache.get(sourceFile);
+    if (cached) {
+        return cached;
+    }
+    const imports = angularImports(sourceFile);
+    importsCache.set(sourceFile, imports);
+    return imports;
+};
 
 export class MemberVisitor {
     private jsdocParserUtil = new JsdocParserUtil();
@@ -54,15 +78,8 @@ export class MemberVisitor {
         const cleaned = defaultValue.replaceAll('\n', '');
 
         // Order matters: check specific patterns before generic ones
+        // input, output and model come from the syntax tree (`signalMemberCall`)
         const patterns: Array<{ pattern: RegExp; kind: string }> = [
-            {
-                pattern: /^input\.required\s*<([^>]+)>\s*\(/,
-                kind: 'input-signal'
-            },
-            { pattern: /^input\s*(?:<([^>]+)>)?\s*\(/, kind: 'input-signal' },
-            { pattern: /^output\s*(?:<([^>]+)>)?\s*\(/, kind: 'output-signal' },
-            { pattern: /^model\s*(?:<([^>]+)>)?\s*\(/, kind: 'model' },
-            { pattern: /^model\.required\s*<([^>]+)>\s*\(/, kind: 'model' },
             {
                 pattern: /^linkedSignal\s*(?:<([^>]+)>)?\s*\(/,
                 kind: 'linked-signal'
@@ -123,7 +140,7 @@ export class MemberVisitor {
         if (!initializer || !sourceFile || !ts.isSourceFile(sourceFile)) {
             return undefined;
         }
-        const call = rootInjectCall(initializer, angularImports(sourceFile));
+        const call = rootInjectCall(initializer, importsOf(sourceFile));
         if (!call?.tokenName) {
             return undefined;
         }
@@ -610,8 +627,24 @@ export class MemberVisitor {
             result.defaultValue = '() => {...}';
         }
 
-        // Detect signal primitives from initializer
-        if (result.defaultValue) {
+        // input/output/model calls imported from @angular/core; the type is the
+        // first type argument, the default value the initial value argument
+        const signalCall =
+            initializer && sourceFile && ts.isSourceFile(sourceFile)
+                ? signalMemberCall(initializer, importsOf(sourceFile), sourceFile)
+                : undefined;
+        if (signalCall) {
+            result.signalKind = SIGNAL_MEMBER_KINDS[signalCall.api];
+            if (signalCall.required) {
+                result.required = true;
+            }
+            result.type = signalCall.type;
+            result.defaultValue = signalCall.initialValue;
+            if (signalCall.alias !== undefined) {
+                result.alias = signalCall.alias;
+            }
+        } else if (result.defaultValue) {
+            // Detect other signal primitives from the initializer text
             const signalKind = this.detectSignalKind(result.defaultValue, initializer, sourceFile);
             if (signalKind) {
                 result.signalKind = signalKind.kind;

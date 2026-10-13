@@ -484,7 +484,7 @@ const buildStylesCss = (extraStyles = ''): string => {
     ];
     const trimmed = typeof extraStyles === 'string' ? extraStyles.trim() : '';
     if (trimmed.length === 0) {
-        return reset.join('\n') + '\n';
+        return `${reset.join('\n')}\n`;
     }
 
     // `@import` / `@charset` / `@layer name;` / `@use` / `@forward` are statement

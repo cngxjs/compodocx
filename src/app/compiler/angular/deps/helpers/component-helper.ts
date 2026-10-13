@@ -5,6 +5,9 @@ import { type IParseDeepIdentifierResult, type ProviderEntry, SymbolHelper } fro
 
 export type { ProviderEntry };
 
+const INPUT_SIGNAL_KINDS: ReadonlySet<string> = new Set(['input-signal', 'model']);
+const OUTPUT_SIGNAL_KINDS: ReadonlySet<string> = new Set(['output-signal', 'model']);
+
 /**
  * Structured representation of a single entry from a `@Component({ host: {...} })`
  * literal, used by the Phase 2b metadata renderer in `MetadataRow.tsx`. The raw
@@ -372,80 +375,22 @@ export class ComponentHelper {
         return { inputSignals, outputSignals, properties };
     }
 
+    /** A signal input or model member (`signalKind` set by the member visitor), else undefined. */
     public getInputSignal(prop) {
-        const config =
-            this.getSignalConfig('input', prop.defaultValue) ??
-            this.getSignalConfig('model', prop.defaultValue);
-
-        if (config) {
-            return {
-                ...prop,
-                ...config
-            };
-        }
-
-        return undefined;
+        return INPUT_SIGNAL_KINDS.has(prop.signalKind) ? this.toSignalMember(prop) : undefined;
     }
 
+    /** A signal output or model member (`signalKind` set by the member visitor), else undefined. */
     public getOutputSignal(prop) {
-        const config =
-            this.getSignalConfig('output', prop.defaultValue) ??
-            this.getSignalConfig('model', prop.defaultValue);
-
-        if (config) {
-            return {
-                ...prop,
-                ...config
-            };
-        }
-
-        return undefined;
+        return OUTPUT_SIGNAL_KINDS.has(prop.signalKind) ? this.toSignalMember(prop) : undefined;
     }
 
-    private getSignalConfig(type: 'input' | 'output' | 'model', defaultValue: string) {
-        // Matches a quote mark
-        const quotePattern = `['"\`]`;
-
-        // Matches a value for the input
-        const valuePattern = (capture = true) =>
-            `(${capture ? '' : '?:'}[^()]*(?:\\([^()]*\\)[^()]*)*)`;
-
-        // Matches an optional space
-        const spacePattern = `(?: )*`;
-
-        // Matches the input's type
-        const typesPattern = `(?:<((?:${valuePattern(false)}(?:${spacePattern}\\|${spacePattern})?)+)>)?`;
-
-        // Matches the alias provided in the options
-        const aliasRegExp = new RegExp(`alias:${spacePattern}${quotePattern}(\\w+)${quotePattern}`);
-
-        // Matches a signal of the provided type
-        const signalRegExp = new RegExp(
-            `${type}(.required)?${typesPattern}\\(${valuePattern()}?(?:,${spacePattern}({.+}))?\\)`
-        );
-
-        const matches = signalRegExp.exec(defaultValue?.replace(/\n/g, ''));
-
-        if (matches) {
-            const [_match, required, type, defaultValue, options] = matches;
-
-            const name = options?.match(aliasRegExp)?.[1];
-
-            const result = {
-                required: !!required,
-                type: this.parseSignalType(type),
-                defaultValue
-            };
-
-            if (name) {
-                return {
-                    ...result,
-                    name
-                };
-            }
-
-            return result;
-        }
+    private toSignalMember(prop) {
+        return {
+            ...prop,
+            required: prop.required === true,
+            type: this.parseSignalType(prop.type)
+        };
     }
 
     public parseSignalType(type: string) {

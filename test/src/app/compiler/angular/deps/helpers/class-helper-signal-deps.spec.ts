@@ -31,8 +31,11 @@ describe('ClassHelper > signalDeps extraction', () => {
         vi.restoreAllMocks();
     });
 
-    function extractProperty(code: string, propName: string) {
-        const sf = project.createSourceFile(`test-${Date.now()}.ts`, `class TestClass { ${code} }`);
+    function extractProperty(code: string, propName: string, imports = '') {
+        const sf = project.createSourceFile(
+            `test-${Date.now()}.ts`,
+            `${imports}class TestClass { ${code} }`
+        );
         const classDec = sf.getClasses()[0];
         const prop = classDec.getProperty(propName)!;
         return (classHelper as any).memberVisitor.visitProperty(prop.compilerNode, sf.compilerNode);
@@ -90,7 +93,11 @@ describe('ClassHelper > signalDeps extraction', () => {
     });
 
     it('should not extract deps from input()', () => {
-        const result = extractProperty(`readonly user = input<string>();`, 'user');
+        const result = extractProperty(
+            `readonly user = input<string>();`,
+            'user',
+            `import { input } from '@angular/core';\n`
+        );
 
         expect(result.signalKind).toBe('input-signal');
         expect(result.signalDeps).toBeUndefined();

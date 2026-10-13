@@ -141,6 +141,12 @@ export interface ExportProperty {
     kind?: string;
     signalDeps?: string[];
     jsdoctags?: JsdocTagInterface[];
+    /** Signal primitive of the initializer (`input-signal`, `output-signal`, `model`, `computed`, ...). */
+    signalKind?: string;
+    /** Signal inputs, outputs and models: whether the member is `.required`. */
+    required?: boolean;
+    /** Public name from the `alias` option of a signal input, output or model. */
+    alias?: string;
 }
 
 export interface ExportMethod {
