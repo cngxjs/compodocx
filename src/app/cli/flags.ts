@@ -1,6 +1,7 @@
 import type { Command } from 'commander';
 
 import pkg from '../../../package.json';
+import { MENU_TOGGLE_KEYS } from '../../utils/constants';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 
 const splitCommaList = (val: string): string[] => val.split(',');
@@ -106,7 +107,7 @@ export function defineFlags(program: Command): Command {
         )
         .option(
             '--toggleMenuItems <items>',
-            "Close by default items in the menu values : ['all'] or one of these ['components','directives','entities','classes','injectables','dependency-injection','guards','interfaces','interceptors','pipes','utilities','additionalPages','features'] (features applies under menuLayout: 'feature')",
+            `Sidebar chapters that start open. Default ['all'] keeps every chapter collapsed ('all' anywhere in the list does the same). Chapter keys: ${MENU_TOGGLE_KEYS.join(', ')} (features under menuLayout: 'feature', styles under menuLayout: 'type')`,
             splitCommaList,
             COMPODOC_DEFAULTS.toggleMenuItems
         )

@@ -147,6 +147,30 @@ export const DEFAULT_THEMING_SECTIONS: ReadonlyArray<string> = [
  * Max length for the string of a file during Lunr search engine indexing.
  * Prevent stack size exceeded
  */
+/**
+ * Sidebar chapter keys `toggleMenuItems` accepts. A listed chapter starts
+ * open; `'all'` anywhere in the list keeps every chapter collapsed. Single
+ * source for the CLI help; the schema title and the docs row are checked
+ * against it by a spec.
+ */
+export const MENU_TOGGLE_KEYS: ReadonlyArray<string> = [
+    'components',
+    'directives',
+    'entities',
+    'classes',
+    'injectables',
+    'dependency-injection',
+    'guards',
+    'interfaces',
+    'interceptors',
+    'pipes',
+    'resolvers',
+    'utilities',
+    'styles',
+    'additionalPages',
+    'features'
+];
+
 export const MAX_SIZE_FILE_SEARCH_INDEX = 50000;
 
 /**
