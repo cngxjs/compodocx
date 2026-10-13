@@ -175,6 +175,39 @@ describe('loadConfigFile', () => {
         expect(result.value.explorerResult?.filepath).toContain('.compodocrc.json');
     });
 
+    it.each(['.compodocxrc.json', '.compodocxrc', '.compodocxrc.yaml'])('finds %s in cwd', file => {
+        fs.writeFileSync(path.join(tmpDir, file), JSON.stringify({ theme: 'ocean' }));
+        const result = loadConfigFile({ cwd: tmpDir });
+        expect(result.ok).toBe(true);
+        if (!result.ok) {
+            return;
+        }
+        expect(result.value.config).toMatchObject({ theme: 'ocean' });
+        expect(result.value.explorerResult?.filepath).toBe(path.join(tmpDir, file));
+    });
+
+    it('finds the compodocx and the compodoc key in package.json', () => {
+        const pkg = path.join(tmpDir, 'package.json');
+        fs.writeFileSync(pkg, JSON.stringify({ name: 'x', compodocx: { theme: 'ocean' } }));
+        const compodocx = loadConfigFile({ cwd: tmpDir });
+        fs.writeFileSync(pkg, JSON.stringify({ name: 'x', compodoc: { theme: 'midnight' } }));
+        const compodoc = loadConfigFile({ cwd: tmpDir });
+        expect(compodocx.ok && compodocx.value.config).toMatchObject({ theme: 'ocean' });
+        expect(compodoc.ok && compodoc.value.config).toMatchObject({ theme: 'midnight' });
+    });
+
+    it('prefers .compodocxrc.json over .compodocrc.json in the same folder', () => {
+        fs.writeFileSync(path.join(tmpDir, '.compodocrc.json'), JSON.stringify({ theme: 'a' }));
+        fs.writeFileSync(path.join(tmpDir, '.compodocxrc.json'), JSON.stringify({ theme: 'b' }));
+        const result = loadConfigFile({ cwd: tmpDir });
+        expect(result.ok).toBe(true);
+        if (!result.ok) {
+            return;
+        }
+        expect(result.value.config).toMatchObject({ theme: 'b' });
+        expect(result.value.explorerResult?.filepath).toContain('.compodocxrc.json');
+    });
+
     it('honours explicitConfigPath over cwd search', () => {
         const explicit = path.join(tmpDir, 'explicit-config.json');
         fs.writeFileSync(explicit, JSON.stringify({ theme: 'midnight' }));

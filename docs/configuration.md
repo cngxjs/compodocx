@@ -3,10 +3,10 @@
 Compodocx generates static HTML documentation for Angular projects by analyzing TypeScript source code. Every aspect of the output can be configured through three methods:
 
 1. **CLI flags** -- pass options directly when running `compodocx` or `compodoc`
-2. **Config file** -- `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` (also supports legacy `.compodocrc` variants)
+2. **Config file** -- `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` (also `.yml`, `.js`, `.cjs`, `.mjs`, `.ts` and `compodocx.config.*`); the same `.compodocrc` / `compodoc.config.*` names are still found
 3. **package.json** -- under a `compodocx` or `compodoc` property
 
-Options are resolved in this order: CLI flags override config file values, which override defaults. The config file is auto-discovered in the project root unless explicitly specified with `-c`.
+Options are resolved in this order: CLI flags override config file values, which override defaults. The config file is looked up in the folder compodocx runs in (not in parent folders) unless explicitly specified with `-c`. The `compodocx` names are searched first: when a folder holds both a `.compodocxrc.json` and a `.compodocrc.json`, the `.compodocxrc.json` is used.
 
 ## Quick Start
 
@@ -47,7 +47,7 @@ These options control the basic identity and language of the generated documenta
 |-|-|-|-|-|
 | name | `-n, --name` | string | `'Application documentation'` | Title shown in the sidebar header and browser tab. Also used in the `<title>` element of every generated page |
 | language | `--language` | string | `'en-US'` | UI language for all labels, headings, and navigation. Available: bg-BG, de-DE, en-US, es-ES, fr-FR, hu-HU, it-IT, ja-JP, ka-GE, ko-KR, nl-NL, pl-PL, pt-BR, ru-RU, sk-SK, zh-CN, zh-TW |
-| config | `-c, --config` | string | -- | Explicit path to a config file. If omitted, compodocx searches for `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml`, or a `compodocx`/`compodoc` key in `package.json` |
+| config | `-c, --config` | string | -- | Explicit path to a config file. If omitted, compodocx searches the working folder for `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` (and the other `compodocx` names), a `compodocx` key in `package.json`, then the same `compodoc` names |
 | tsconfig | `-p, --tsconfig` | string | -- | Path to the project's `tsconfig.json`. This is required -- compodocx uses the TypeScript compiler to analyze the source |
 
 ## Output

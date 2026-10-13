@@ -83,6 +83,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **`json5` dependency.**
 ### Fixed
 
+- **Config files named `.compodocxrc` are found.** Without `-c`, compodocx only looked for `.compodocrc*` files and a `compodoc` key in `package.json`, although the docs and the CLI help name `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` and a `compodocx` key. Both sets of names are searched now, the `compodocx` ones first. `.compodocrc*` files keep working.
 - **Parameter types of top-level functions.** Array, union, function, literal and tuple parameter types were written as `undefined` and generic arguments were dropped (for example `...features: undefined`), in the HTML, the JSON export and the llm-md export. The declared type is kept now.
 - **A constant and a type with the same name.** `export const Foo` and `export type Foo` in one file shared one set of semantic facts in the JSON export. They are kept apart now.
 - **Anchors of private members.** A member named `#clicked` got `id="#clicked"` and links to `##clicked`, which never matched. Member anchors are now valid ids (`clicked`).

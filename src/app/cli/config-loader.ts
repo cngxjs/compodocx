@@ -14,7 +14,8 @@ import { STACKBLITZ_POST_LIMIT } from '../engines/stackblitz/constants';
 import type { ConfigurationFileInterface } from '../interfaces/configuration-file.interface';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
 
-const COSMICONFIG_MODULE_NAME = 'compodoc';
+/** Config names in search order: `.compodocxrc*` / `compodocx` key first, then the `compodoc` ones. */
+const COSMICONFIG_MODULE_NAMES: readonly string[] = ['compodocx', 'compodoc'];
 
 /** Menu keys of chapters that no longer exist; they warn and are dropped. */
 const REMOVED_MENU_ITEMS: readonly string[] = ['modules', 'miscellaneous', 'tokens'];
@@ -49,13 +50,14 @@ export interface ApplySources {
 }
 
 /**
- * Cosmiconfig boundary. Honours an explicit `-c` path, otherwise walks up
- * from `opts.cwd` searching for `.compodocxrc.*` / `compodoc` /`compodocx`
- * keys in `package.json`. Returns `ok({ config: {}, explorerResult: null })`
- * when nothing is found so callers can downgrade to a warning.
+ * Cosmiconfig boundary. Honours an explicit `-c` path, otherwise searches
+ * `opts.cwd` for `.compodocxrc*` / `compodocx.config.*` / a `compodocx` key in
+ * `package.json`, then for the same `compodoc` names. Returns
+ * `ok({ config: {}, explorerResult: null })` when nothing is found so callers
+ * can downgrade to a warning.
  */
 export function loadConfigFile(opts: LoadConfigOptions): ConfigFileResult {
-    const explorer = cosmiconfigSync(COSMICONFIG_MODULE_NAME);
+    const explorers = COSMICONFIG_MODULE_NAMES.map(name => cosmiconfigSync(name));
 
     let explorerResult: CosmiconfigResult | undefined;
     try {
@@ -68,9 +70,12 @@ export function loadConfigFile(opts: LoadConfigOptions): ConfigFileResult {
             // Resolve against opts.cwd (not process.cwd()) so callers can
             // pass a non-default cwd in tests without the path collapsing
             // to the test runner's working directory.
-            explorerResult = explorer.load(path.resolve(opts.cwd, configFilePath)) ?? undefined;
+            explorerResult = explorers[0].load(path.resolve(opts.cwd, configFilePath)) ?? undefined;
         } else {
-            explorerResult = explorer.search(opts.cwd) ?? undefined;
+            explorerResult = explorers.reduce<CosmiconfigResult | undefined>(
+                (found, next) => found ?? next.search(opts.cwd) ?? undefined,
+                undefined
+            );
         }
     } catch (e) {
         return err(`Failed to load configuration file: ${(e as Error).message}`);
