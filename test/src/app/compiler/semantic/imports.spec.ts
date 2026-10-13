@@ -66,9 +66,10 @@ describe('semantic import graph', () => {
 
     it('resolves one specifier to a program file, nothing outside the program', () => {
         const from = path.join(FIXTURE, 'projects/ui/src/button/button.ts');
-        expect(
-            path.relative(CWD, resolveSpecifier(program, from, '@sem/core')?.fileName ?? '')
-        ).toBe(`${REL}/core/src/public-api.ts`);
+        const target = resolveSpecifier(program, from, '@sem/core')?.fileName ?? '';
+        expect(path.relative(CWD, target).split(path.sep).join('/')).toBe(
+            `${REL}/core/src/public-api.ts`
+        );
         expect(resolveSpecifier(program, from, '@angular/core')).toBeUndefined();
         expect(resolveSpecifier(program, from, './does-not-exist')).toBeUndefined();
     });
