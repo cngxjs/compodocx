@@ -6,7 +6,7 @@ Compodocx generates static HTML documentation for Angular projects by analyzing 
 2. **Config file** -- `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` (also `.yml`, `.js`, `.cjs`, `.mjs`, `.ts` and `compodocx.config.*`); the same `.compodocrc` / `compodoc.config.*` names are still found
 3. **package.json** -- under a `compodocx` or `compodoc` property
 
-Options are resolved in this order: CLI flags override config file values, which override defaults. The config file is looked up in the folder compodocx runs in (not in parent folders) unless explicitly specified with `-c`. The `compodocx` names are searched first: when a folder holds both a `.compodocxrc.json` and a `.compodocrc.json`, the `.compodocxrc.json` is used.
+Options are resolved in this order: CLI flags override config file values, which override defaults. The config file is looked up in the folder compodocx runs in (not in parent folders) unless explicitly specified with `-c`. The `compodocx` names are searched first: when a folder holds both a `.compodocxrc.json` and a `.compodocrc.json`, the `.compodocxrc.json` is used, and a `compodocx` key in `package.json` also wins over a `.compodocrc.json`.
 
 ## Quick Start
 

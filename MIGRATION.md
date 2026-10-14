@@ -325,7 +325,8 @@ Full pattern, deployment recipes, and version-switcher reference: [`docs/version
 | `--gaSite` | removed | Universal Analytics is end-of-life. |
 | `--showEffects` | new (default `false`) | Renders Angular `effect()` blocks in a dedicated section on the API tab. |
 | `--publicApiOnly` | new | Restricts processing to symbols re-exported from a project's public entry. |
-| `--minimal`, `--silent`, `--language`, `--maxSearchResults` | unchanged ||
+| `--minimal`, `--silent`, `--language` | unchanged ||
+| `--maxSearchResults` | needs a value | Since v0.9.0 the flag takes an integer from `0` to `10000` (`0` shows all results); a bare `--maxSearchResults` or any other value stops the build. The `maxSearchResults` config key is read; the flag wins when both are set. |
 | `--templatePlayground` | removed in v0.4.0 | Deprecated in v0.3.0, removed in v0.4.0. Switch to the JS template override path (`--templates`). The `compodocx migrate` sub-CLI converts existing Handlebars partials automatically. |
 
 Config-file (`.compodocrc.json`, `.compodocrc.yaml`, `.compodocrc.js`) keys mirror the CLI flags one-to-one. Existing config files keep working unchanged.
