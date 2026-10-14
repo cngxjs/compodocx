@@ -87,7 +87,8 @@ export const functionSignature = (method: any, depth: number): string => {
 
             const link = resolveTypeLink(arg.type, depth);
             if (link) {
-                args += `${arg.name}${getOptionalString(arg)}: ${link}`;
+                const rest = arg.dotDotDotToken ? '...' : '';
+                args += `${rest}${arg.name}${getOptionalString(arg)}: ${link}`;
             } else if (arg.dotDotDotToken) {
                 args += `...${arg.name}: ${arg.type}`;
             } else if (arg.function) {
