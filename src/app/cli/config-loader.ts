@@ -27,7 +27,8 @@ const IGNORED_CONFIG_KEYS: Readonly<Record<string, string>> = {
     groupDepth: 'the sidebar groups symbols by feature',
     featureLibraryScope:
         'each feature lists its primary members, or its whole surface when it has none',
-    disableRoutesGraph: 'the routes graph is gone; use disableRoutes'
+    disableRoutesGraph: 'the routes graph is gone; use disableRoutes',
+    disableMainGraph: 'there is no module graph any more'
 };
 
 export interface LoadConfigOptions {

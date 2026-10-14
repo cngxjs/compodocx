@@ -372,6 +372,15 @@ describe('applyConfigToMainData', () => {
         expect(disabled.disableRoutes).toBe(true);
     });
 
+    it('warns that disableMainGraph is ignored', () => {
+        applyConfigToMainData(makeMainData(), { disableMainGraph: true } as never, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'disableMainGraph is ignored: there is no module graph any more'
+        );
+    });
+
     it('keeps valid feature globs and warns about invalid keys', () => {
         const mainData = makeMainData();
         applyConfigToMainData(

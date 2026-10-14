@@ -195,7 +195,7 @@ The exit code is unchanged and the notice is not part of the JSON export.
 
 Configuration and template changes:
 
-- `disableMainGraph` is removed (there is no module graph any more).
+- `disableMainGraph` is removed (there is no module graph any more). The flag and the config key are ignored with a warning.
 - `toggleMenuItems: ['modules']` is accepted, has no effect and logs a warning. Remove the value.
 - `groupBy` defaults to `'folder'` when unset.
 - The `modules.js` and `module.js` template overrides are removed; a file with either name is ignored with a warning.

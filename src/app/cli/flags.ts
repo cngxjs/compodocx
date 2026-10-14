@@ -259,7 +259,8 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
 export const REMOVED_FLAG_REASONS: Readonly<Record<string, string>> = {
     '--groupBy': 'the sidebar groups symbols by feature',
     '--groupDepth': 'the sidebar groups symbols by feature',
-    '--disableRoutesGraph': 'the routes graph is gone; use --disableRoutes'
+    '--disableRoutesGraph': 'the routes graph is gone; use --disableRoutes',
+    '--disableMainGraph': 'there is no module graph any more'
 };
 
 /** Removed flags that may take a value: a following non-flag token is dropped with them. */
@@ -269,7 +270,10 @@ export const REMOVED_FLAGS: readonly string[] = ['--groupBy', '--groupDepth'];
  * Removed boolean flags: they never take the next token. An inline value
  * (`--disableRoutesGraph=false`) is dropped with the flag.
  */
-export const REMOVED_BOOLEAN_FLAGS: readonly string[] = ['--disableRoutesGraph'];
+export const REMOVED_BOOLEAN_FLAGS: readonly string[] = [
+    '--disableRoutesGraph',
+    '--disableMainGraph'
+];
 
 /**
  * `argv` without the removed flags (and a value following a value flag),
