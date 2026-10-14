@@ -76,6 +76,19 @@ describe('llm-md/emit — emitComponent', () => {
         expect(out).toContain('`disabled?: boolean = false`');
     });
 
+    it('appends the alias of an input or output after its signature', () => {
+        const out = emitComponent({
+            ...base,
+            inputsClass: [
+                { name: 'text', type: 'string', alias: 'appTooltip', description: 'Text' }
+            ],
+            outputsClass: [{ name: 'closed', type: 'OutputEmitterRef<void>', alias: 'appClosed' }]
+        });
+        expect(out).toContain('- `text: string` (alias `appTooltip`) ');
+        expect(out).toMatch(/\(alias `appTooltip`\) \S+ Text$/m);
+        expect(out).toContain('- `closed: OutputEmitterRef<void>` (alias `appClosed`)');
+    });
+
     it('emits outputs and methods sections when present', () => {
         const out = emitComponent(base);
         expect(out).toContain('Outputs:');
