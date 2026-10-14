@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { parseDescription } from '../helpers/parse-description';
 
 export type SlotEntry = { name: string; description: string };
 
@@ -17,7 +18,7 @@ export type SlotEntry = { name: string; description: string };
  * would hide the inventory for exactly the hosts whose own API tab is
  * emptiest.
  */
-export const ContentSlotsSection = (slots: SlotEntry[] | undefined): string => {
+export const ContentSlotsSection = (slots: SlotEntry[] | undefined, depth: number): string => {
     if (!slots || slots.length === 0) {
         return '';
     }
@@ -35,7 +36,7 @@ export const ContentSlotsSection = (slots: SlotEntry[] | undefined): string => {
                         <dt>
                             <code>{slot.name}</code>
                         </dt>
-                        <dd>{slot.description}</dd>
+                        <dd>{parseDescription(slot.description, depth)}</dd>
                     </>
                 ))}
             </dl>

@@ -43,14 +43,8 @@ export class JsdocTags {
                 continue;
             }
             const name = tag.tagName.text;
-            const rawComment = tag.comment;
-            const comment = (
-                typeof rawComment === 'string'
-                    ? rawComment
-                    : Array.isArray(rawComment)
-                      ? rawComment.map((c: any) => c.text || '').join('')
-                      : ''
-            ).trim();
+            // tag.comment is a NodeArray when it holds an inline {@link}
+            const comment = (this.jsdocParserUtil.parseJSDocNode(tag) || '').trim();
 
             switch (name) {
                 case 'signal':
@@ -111,6 +105,7 @@ export class JsdocTags {
                 case 'relatedTo': {
                     const symbols = comment
                         .split('\n')[0]
+                        .replace(/\{@link(?:code|plain)?\s+([^\s|}]+)[^}]*\}/g, '$1')
                         .split(',')
                         .map(s => s.trim())
                         .filter(Boolean);

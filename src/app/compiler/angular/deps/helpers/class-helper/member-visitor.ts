@@ -752,7 +752,10 @@ export class MemberVisitor {
                                         tag.name?.escapedText &&
                                         tag.name.escapedText === param.name
                                     ) {
-                                        param.description = tag.comment;
+                                        // a NodeArray (inline {@link}) becomes text
+                                        param.description = tag.comment
+                                            ? this.jsdocParserUtil.parseJSDocNode(tag)
+                                            : tag.comment;
                                     }
                                 }
                             });
