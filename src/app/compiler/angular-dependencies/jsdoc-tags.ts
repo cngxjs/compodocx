@@ -120,18 +120,18 @@ export class JsdocTags {
                     break;
                 }
                 case 'slot': {
-                    // @slot name - description
+                    // @slot name - description; a repeated name keeps the first
                     if (!result.slots) {
                         result.slots = [];
                     }
                     const parts = comment.match(/^(\S+)\s*-?\s*(.*)$/);
-                    if (parts) {
+                    const slotName = parts ? parts[1] : comment;
+                    const slotDesc = parts ? parts[2] || '' : '';
+                    if (slotName && !result.slots.some((s: any) => s.name === slotName)) {
                         result.slots.push({
-                            name: parts[1],
-                            description: parts[2] || ''
+                            name: slotName,
+                            description: slotDesc
                         });
-                    } else if (comment) {
-                        result.slots.push({ name: comment, description: '' });
                     }
                     break;
                 }
