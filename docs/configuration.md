@@ -49,6 +49,8 @@ These options control the basic identity and language of the generated documenta
 | language | `--language` | string | `'en-US'` | UI language for all labels, headings, and navigation. Available: bg-BG, de-DE, en-US, es-ES, fr-FR, hu-HU, it-IT, ja-JP, ka-GE, ko-KR, nl-NL, pl-PL, pt-BR, ru-RU, sk-SK, zh-CN, zh-TW |
 | config | `-c, --config` | string | -- | Explicit path to a config file. If omitted, compodocx searches the working folder for `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` (and the other `compodocx` names), a `compodocx` key in `package.json`, then the same `compodoc` names |
 | tsconfig | `-p, --tsconfig` | string | -- | Path to the project's `tsconfig.json`. This is required -- compodocx uses the TypeScript compiler to analyze the source |
+| include | _config-only_ | string[] | `[]` | Extra globs of source files to document, relative to the tsconfig folder. Added to the tsconfig `include` list |
+| exclude | _config-only_ | string[] | `['**/.git', '**/node_modules', '**/*.d.ts', '**/*.spec.ts']` | Globs of source files to skip, relative to the tsconfig folder. Replaces the default list (repeat its entries to keep them) and is combined with the tsconfig `exclude` list |
 
 ## Output
 
@@ -58,6 +60,7 @@ Controls where and how the documentation is generated.
 |-|-|-|-|-|
 | output | `-d, --output` | string | `'./documentation/'` | Directory for the generated static site. Created if it doesn't exist. Contents are overwritten on each run |
 | exportFormat | `-e, --exportFormat` | string | `'html'` | Output format. `html` generates a full static site. `json` exports the parsed data model as JSON files (useful for custom tooling) |
+| jsonIndent | `--jsonIndent` | number | `0` | Indent of `documentation.json` with `exportFormat` `json`: `0` writes one line, `1` to `8` pretty-prints with that many spaces. Any other value stops the build with an error |
 | base | -- | string | `'/'` | Base URL path prepended to all generated links. Set this when hosting docs in a subdirectory (e.g. `'/my-project/'`) |
 | multiVersion | `--multiVersion` / `--no-multiVersion` | boolean | `true` | When `true` (default), HTML output is written to `<output>/<versionLabel>/` and a `versions.json` manifest is maintained next to it; the topbar version switcher reads the manifest at runtime. Pass `--no-multiVersion` to restore the previous flat layout. Non-HTML exports (`json`, `llm-md`) ignore this flag. |
 | versionLabel | `--versionLabel <label>` | string | (auto) | Override the version-subfolder name. Defaults to the nearest `package.json` `version`, prefixed with `v` (`1.2.3` → `v1.2.3`). Use `main`, `next`, `unreleased` for non-package builds. Hard error (exit 2) if no label can be resolved while `multiVersion` is on. |
