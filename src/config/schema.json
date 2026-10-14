@@ -129,7 +129,7 @@
             "items": {
                 "$id": "/properties/toggleMenuItems/items",
                 "type": "string",
-                "title": "Close by default items in the menu values : ['all'] or one of these ['components','directives','entities','classes','injectables','dependency-injection','guards','interfaces','interceptors','pipes','resolvers','utilities','additionalPages','features'] (features applies under menuLayout: 'feature')",
+                "title": "Sidebar chapters that start open. Default ['all'] keeps every chapter collapsed ('all' anywhere in the list does the same). Chapter keys: components, directives, entities, classes, injectables, dependency-injection, guards, interfaces, interceptors, pipes, resolvers, utilities, styles, additionalPages, features (features under menuLayout: 'feature', styles under menuLayout: 'type')",
                 "default": "",
                 "examples": ["all"]
             }
@@ -569,9 +569,104 @@
         "maxSearchResults": {
             "$id": "/properties/maxSearchResults",
             "type": "integer",
-            "title": "Max search results on the results page. Set to 0 for unlimited",
+            "minimum": 0,
+            "maximum": 10000,
+            "title": "Max results in the search command palette (0 shows all)",
             "default": 15,
             "examples": [15]
+        },
+        "jsonIndent": {
+            "$id": "/properties/jsonIndent",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 8,
+            "title": "Indent of documentation.json for exportFormat json (0-8, 0 writes one line)",
+            "default": 0,
+            "examples": [2]
+        },
+        "multiVersion": {
+            "$id": "/properties/multiVersion",
+            "type": "boolean",
+            "title": "Write output to <output>/<versionLabel>/ and maintain a versions.json manifest",
+            "default": true,
+            "examples": [false]
+        },
+        "versionLabel": {
+            "$id": "/properties/versionLabel",
+            "type": "string",
+            "title": "Version subfolder name. Defaults to the version of the nearest package.json, prefixed with 'v'",
+            "default": "",
+            "examples": ["v1.2.0"]
+        },
+        "versionsRoot": {
+            "$id": "/properties/versionsRoot",
+            "type": "string",
+            "title": "Folder where versions.json is read and written. Defaults to the output folder",
+            "default": "",
+            "examples": ["./docs"]
+        },
+        "maxVersionsShown": {
+            "$id": "/properties/maxVersionsShown",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "title": "Number of versions shown in the version switcher (0 = all)",
+            "default": 10,
+            "examples": [10]
+        },
+        "coverageTestShowOnlyFailed": {
+            "$id": "/properties/coverageTestShowOnlyFailed",
+            "type": "boolean",
+            "title": "Display only failed files for a coverage test",
+            "default": false,
+            "examples": [true]
+        },
+        "unitTestCoverage": {
+            "$id": "/properties/unitTestCoverage",
+            "type": "string",
+            "title": "Istanbul JSON coverage summary file to include unit test coverage",
+            "default": "",
+            "examples": ["./coverage/coverage-summary.json"]
+        },
+        "include": {
+            "$id": "/properties/include",
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Extra globs of source files to document, relative to the tsconfig folder; added to the tsconfig include list",
+            "default": [],
+            "examples": [["src/**/*.ts"]]
+        },
+        "exclude": {
+            "$id": "/properties/exclude",
+            "type": "array",
+            "items": { "type": "string" },
+            "title": "Globs of source files to skip, relative to the tsconfig folder; replaces the default excludes (.git, node_modules, *.d.ts, *.spec.ts) and is added to the tsconfig exclude list",
+            "default": [],
+            "examples": [["**/*.spec.ts", "**/testing/**"]]
+        },
+        "infoTabSections": {
+            "$id": "/properties/infoTabSections",
+            "type": "array",
+            "items": { "type": "string", "enum": ["import", "deprecated", "description", "examples", "metadata", "extends", "host", "dependencies", "providers", "viewProviders", "relationships"] },
+            "title": "Sections of the Info tab, in order (config-only). Empty renders all of them",
+            "default": [],
+            "examples": [["description", "examples"]]
+        },
+        "apiTabSections": {
+            "$id": "/properties/apiTabSections",
+            "type": "array",
+            "items": { "type": "string", "enum": ["index", "inputs", "outputs", "derivedState", "effects", "properties", "methods", "accessors", "indexSignatures", "hostBindings", "hostListeners"] },
+            "title": "Sections of the API tab, in order (config-only). Empty renders all of them",
+            "default": [],
+            "examples": [["index", "inputs", "outputs"]]
+        },
+        "themingTabSections": {
+            "$id": "/properties/themingTabSections",
+            "type": "array",
+            "items": { "type": "string", "enum": ["overview", "index", "tokens", "mixins", "source"] },
+            "title": "Sections of the Theming tab, in order (config-only). Empty renders all of them",
+            "default": [],
+            "examples": [["overview", "tokens"]]
         }
     }
 }

@@ -27,6 +27,8 @@ export interface PageInterface {
     /** Token groups of the design tokens page. */
     groups?: unknown;
     markdown?: string;
+    /** `@aiGenerated` marker of a markdown page (`true`, or the detail text). */
+    aiGenerated?: string | boolean;
     childrenLength?: number;
     children?: any[];
     lastChild?: boolean;

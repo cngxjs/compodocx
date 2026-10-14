@@ -1,6 +1,7 @@
 import type { Command } from 'commander';
 
 import pkg from '../../../package.json';
+import { MENU_TOGGLE_KEYS } from '../../utils/constants';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 
 const splitCommaList = (val: string): string[] => val.split(',');
@@ -106,7 +107,7 @@ export function defineFlags(program: Command): Command {
         )
         .option(
             '--toggleMenuItems <items>',
-            "Close by default items in the menu values : ['all'] or one of these ['components','directives','entities','classes','injectables','dependency-injection','guards','interfaces','interceptors','pipes','utilities','additionalPages','features'] (features applies under menuLayout: 'feature')",
+            `Sidebar chapters that start open. Default ['all'] keeps every chapter collapsed ('all' anywhere in the list does the same). Chapter keys: ${MENU_TOGGLE_KEYS.join(', ')} (features under menuLayout: 'feature', styles under menuLayout: 'type')`,
             splitCommaList,
             COMPODOC_DEFAULTS.toggleMenuItems
         )
@@ -245,8 +246,8 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
             'Document only symbols exported from index.d.ts files in the specified dist folder'
         )
         .option(
-            '--maxSearchResults [maxSearchResults]',
-            'Max search results on the results page. To show all results, set to 0',
+            '--maxSearchResults <n>',
+            'Max results in the search command palette (0 shows all)',
             String(COMPODOC_DEFAULTS.maxSearchResults)
         )
         .option('--stackblitz', 'Enable StackBlitz integration for examples')
@@ -258,7 +259,8 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
 export const REMOVED_FLAG_REASONS: Readonly<Record<string, string>> = {
     '--groupBy': 'the sidebar groups symbols by feature',
     '--groupDepth': 'the sidebar groups symbols by feature',
-    '--disableRoutesGraph': 'the routes graph is gone; use --disableRoutes'
+    '--disableRoutesGraph': 'the routes graph is gone; use --disableRoutes',
+    '--disableMainGraph': 'there is no module graph any more'
 };
 
 /** Removed flags that may take a value: a following non-flag token is dropped with them. */
@@ -268,7 +270,10 @@ export const REMOVED_FLAGS: readonly string[] = ['--groupBy', '--groupDepth'];
  * Removed boolean flags: they never take the next token. An inline value
  * (`--disableRoutesGraph=false`) is dropped with the flag.
  */
-export const REMOVED_BOOLEAN_FLAGS: readonly string[] = ['--disableRoutesGraph'];
+export const REMOVED_BOOLEAN_FLAGS: readonly string[] = [
+    '--disableRoutesGraph',
+    '--disableMainGraph'
+];
 
 /**
  * `argv` without the removed flags (and a value following a value flag),

@@ -154,6 +154,7 @@ export interface IDirectiveDep extends IDep {
     beta?: boolean;
     since?: string;
     breaking?: string;
+    aiGenerated?: string | boolean;
     group?: string;
     storybookUrl?: string;
     figmaUrl?: string;

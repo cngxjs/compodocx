@@ -1,4 +1,6 @@
-import { exists, hasStderrError, shell, temporaryDir } from '../helpers';
+import * as os from 'node:os';
+
+import { exists, fs, hasStderrError, path, shell, temporaryDir } from '../helpers';
 
 const tmp = temporaryDir();
 
@@ -45,5 +47,44 @@ describe('CLI option file', () => {
         expect(isAppConfigExists).to.be.true;
         const isRoutesExists = exists(`${distFolder}/routes.html`);
         expect(isRoutesExists).to.be.true;
+    });
+});
+
+describe('CLI option file discovery', () => {
+    const repo = process.cwd();
+    let cwd: string;
+    let stdoutString: string;
+
+    beforeAll(() => {
+        cwd = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'cdx-rc-discovery-')));
+        fs.writeFileSync(
+            path.join(cwd, '.compodocxrc.json'),
+            JSON.stringify({
+                tsconfig: path.relative(
+                    cwd,
+                    path.join(repo, 'test/fixtures/sample-files/tsconfig.simple.json')
+                ),
+                output: 'docs',
+                multiVersion: false,
+                disableSearch: true
+            })
+        );
+        const ls = shell('node', [path.join(repo, 'bin/index-cli.js')], { cwd });
+        if (hasStderrError(ls.stderr.toString())) {
+            console.error(`shell error: ${ls.stderr.toString()}`);
+            throw new Error('error');
+        }
+        stdoutString = ls.stdout.toString();
+    });
+    afterAll(() => {
+        fs.rmSync(cwd, { recursive: true, force: true });
+    });
+
+    it('should find .compodocxrc.json without -c', () => {
+        expect(stdoutString).to.contain(
+            `Using configuration file : ${path.join(cwd, '.compodocxrc.json')}`
+        );
+        expect(stdoutString).to.contain('Documentation generated');
+        expect(fs.existsSync(path.join(cwd, 'docs/index.html'))).to.be.true;
     });
 });

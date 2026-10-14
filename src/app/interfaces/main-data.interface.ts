@@ -40,10 +40,14 @@ export interface MainDataInterface {
     entities: any;
     directives: any;
     injectables: any;
+    tokens?: any;
     interceptors: any;
     guards: any;
     miscellaneous: any;
     routes: any;
+    /** `paths` / `baseUrl` of the `-p` tsconfig (extends resolved), for import lines. */
+    tsconfigPaths?: Record<string, string[]>;
+    tsconfigBaseUrl?: string;
     tsconfig: string;
     toggleMenuItems: string[];
     navTabConfig: any[];

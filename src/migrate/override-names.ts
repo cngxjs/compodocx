@@ -17,6 +17,7 @@
 export const PAGE_LEVEL_OVERRIDES: readonly string[] = [
     'additional-page',
     'api-reference',
+    'app-config',
     'class',
     'component',
     'coverage-report',
@@ -91,7 +92,7 @@ export const RENAMED_OVERRIDES: Readonly<Record<string, string>> = {
 };
 
 /** Override names whose page no longer exists; a file with such a name is ignored. */
-export const REMOVED_OVERRIDES: readonly string[] = ['bucket-landing'];
+export const REMOVED_OVERRIDES: readonly string[] = ['bucket-landing', 'module', 'modules'];
 
 /** The current name of an override, following a rename. */
 export const currentOverrideName = (name: string): string => RENAMED_OVERRIDES[name] ?? name;

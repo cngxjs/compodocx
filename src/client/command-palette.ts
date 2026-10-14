@@ -598,7 +598,7 @@ const search = async (query: string) => {
     const queryArg = query.trim() ? query : null;
     const results = await pf.search(queryArg, searchOptions);
     renderFacets((results?.filters ?? {}) as Record<string, Record<string, number>>);
-    const sliced = (results?.results ?? []).slice(0, maxResults);
+    const sliced = limitResults(results?.results ?? [], maxResults);
     const data = await Promise.all(sliced.map((r: any) => r.data()));
 
     const mapped: SearchResult[] = data.flatMap((d: any) => {
@@ -686,6 +686,10 @@ const navigateToActive = () => {
 };
 
 /** Open the command palette */
+/** The first `max` results; `0` (or less) keeps all of them. */
+export const limitResults = <T>(results: readonly T[], max: number): T[] =>
+    max > 0 ? results.slice(0, max) : [...results];
+
 export const openCommandPalette = () => {
     const dialog = getDialog();
     if (!dialog) {

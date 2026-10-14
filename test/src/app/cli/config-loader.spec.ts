@@ -126,6 +126,7 @@ const makeProgram = (argv: readonly string[] = []): Command => {
         .option('--versionLabel [label]')
         .option('--versionsRoot [path]')
         .option('--maxVersionsShown <n>', '', '10')
+        .option('--maxSearchResults <n>', '', '15')
         .option('--gaID [id]')
         .option('--coverageTest [threshold]')
         .option('--showEffects', '', false)
@@ -173,6 +174,39 @@ describe('loadConfigFile', () => {
         }
         expect(result.value.config).toMatchObject({ theme: 'ocean', port: 9000 });
         expect(result.value.explorerResult?.filepath).toContain('.compodocrc.json');
+    });
+
+    it.each(['.compodocxrc.json', '.compodocxrc', '.compodocxrc.yaml'])('finds %s in cwd', file => {
+        fs.writeFileSync(path.join(tmpDir, file), JSON.stringify({ theme: 'ocean' }));
+        const result = loadConfigFile({ cwd: tmpDir });
+        expect(result.ok).toBe(true);
+        if (!result.ok) {
+            return;
+        }
+        expect(result.value.config).toMatchObject({ theme: 'ocean' });
+        expect(result.value.explorerResult?.filepath).toBe(path.join(tmpDir, file));
+    });
+
+    it('finds the compodocx and the compodoc key in package.json', () => {
+        const pkg = path.join(tmpDir, 'package.json');
+        fs.writeFileSync(pkg, JSON.stringify({ name: 'x', compodocx: { theme: 'ocean' } }));
+        const compodocx = loadConfigFile({ cwd: tmpDir });
+        fs.writeFileSync(pkg, JSON.stringify({ name: 'x', compodoc: { theme: 'midnight' } }));
+        const compodoc = loadConfigFile({ cwd: tmpDir });
+        expect(compodocx.ok && compodocx.value.config).toMatchObject({ theme: 'ocean' });
+        expect(compodoc.ok && compodoc.value.config).toMatchObject({ theme: 'midnight' });
+    });
+
+    it('prefers .compodocxrc.json over .compodocrc.json in the same folder', () => {
+        fs.writeFileSync(path.join(tmpDir, '.compodocrc.json'), JSON.stringify({ theme: 'a' }));
+        fs.writeFileSync(path.join(tmpDir, '.compodocxrc.json'), JSON.stringify({ theme: 'b' }));
+        const result = loadConfigFile({ cwd: tmpDir });
+        expect(result.ok).toBe(true);
+        if (!result.ok) {
+            return;
+        }
+        expect(result.value.config).toMatchObject({ theme: 'b' });
+        expect(result.value.explorerResult?.filepath).toContain('.compodocxrc.json');
     });
 
     it('honours explicitConfigPath over cwd search', () => {
@@ -261,6 +295,20 @@ describe('applyConfigToMainData', () => {
         expect(mainData.theme).toBe('midnight');
     });
 
+    it('maxSearchResults: config value applies, the default flag does not override it', () => {
+        const mainData = makeMainData();
+        const program = makeProgram();
+        applyConfigToMainData(mainData, { maxSearchResults: 0 }, program, { cwd: '/tmp/test' });
+        expect(mainData.maxSearchResults).toBe(0);
+    });
+
+    it('maxSearchResults: an explicit flag wins and is a number', () => {
+        const mainData = makeMainData();
+        const program = makeProgram(['--maxSearchResults', '40']);
+        applyConfigToMainData(mainData, { maxSearchResults: 7 }, program, { cwd: '/tmp/test' });
+        expect(mainData.maxSearchResults).toBe(40);
+    });
+
     it('--port from CLI overrides config-file port', () => {
         const mainData = makeMainData();
         const program = makeProgram(['--port', '9000']);
@@ -322,6 +370,15 @@ describe('applyConfigToMainData', () => {
             cwd: '/tmp/test'
         });
         expect(disabled.disableRoutes).toBe(true);
+    });
+
+    it('warns that disableMainGraph is ignored', () => {
+        applyConfigToMainData(makeMainData(), { disableMainGraph: true } as never, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'disableMainGraph is ignored: there is no module graph any more'
+        );
     });
 
     it('keeps valid feature globs and warns about invalid keys', () => {

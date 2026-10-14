@@ -192,6 +192,15 @@ describe('defineFlags', () => {
         ).toEqual({ argv: ['node', 'compodocx', '-s'], removed: ['--disableRoutesGraph'] });
     });
 
+    it('drops the removed main graph flag without taking the next argument', () => {
+        expect(
+            stripRemovedFlags(['node', 'compodocx', '--disableMainGraph', 'src/tsconfig.json'])
+        ).toEqual({
+            argv: ['node', 'compodocx', 'src/tsconfig.json'],
+            removed: ['--disableMainGraph']
+        });
+    });
+
     it('source tracking marks user-provided flags as "cli"', () => {
         const program = makeProgram();
         defineFlags(program);

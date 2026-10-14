@@ -34,6 +34,25 @@ describe('custom templates with removed or renamed override names', () => {
         fs.rmSync(dir, { recursive: true, force: true });
     });
 
+    it('ignores the removed module and modules overrides with a warning', () => {
+        for (const name of ['module', 'modules']) {
+            fs.writeFileSync(
+                path.join(dir, 'partials', `${name}.js`),
+                `module.exports = () => '<p>${name}</p>';`
+            );
+        }
+        loadCustomTemplates(dir);
+        const warnings = vi.mocked(logger.warn).mock.calls.map(call => String(call[0]));
+        expect(warnings).toContain(
+            'Custom template module.js is ignored (its page no longer exists); see `compodocx migrate`'
+        );
+        expect(warnings).toContain(
+            'Custom template modules.js is ignored (its page no longer exists); see `compodocx migrate`'
+        );
+        expect(renderCustomTemplate('module', {})).toBeNull();
+        expect(renderCustomTemplate('modules', {})).toBeNull();
+    });
+
     it('warns once per file and ignores it; other overrides still load', () => {
         loadCustomTemplates(dir);
         const warnings = vi.mocked(logger.warn).mock.calls.map(call => String(call[0]));

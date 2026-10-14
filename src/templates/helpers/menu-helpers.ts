@@ -3,10 +3,9 @@ import Configuration from '../../app/configuration';
 /**
  * Check if a menu section should be initially expanded.
  *
- * `toggleMenuItems` is a whitelist of types that stay OPEN by default; the
- * special token `'all'` collapses everything (overrides any whitelisting).
- * Schema description: "Close by default items in the menu". Anything NOT
- * listed is closed by default; types listed (without `'all'`) are open.
+ * `toggleMenuItems` lists the chapters that start OPEN; the special token
+ * `'all'` collapses everything (overrides any listed chapter). Anything not
+ * listed starts collapsed.
  *
  * Default config has `toggleMenuItems: ['all']` → every section starts
  * collapsed, which matches compodoc's long-standing behaviour.

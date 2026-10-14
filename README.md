@@ -59,7 +59,7 @@ The CLI is also exposed as `compodoc` for drop-in compatibility with existing np
 
 ## Configuration
 
-Drop a `.compodocrc.json` (or `.yaml`, `.js`) into your project root:
+Drop a `.compodocxrc.json` (or `.yaml`, `.js`) into your project root. The older `.compodocrc` names are still found:
 
 ```json
 {

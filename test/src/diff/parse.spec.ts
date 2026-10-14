@@ -48,7 +48,9 @@ describe('diff/parse — schemaVersion gate', () => {
         expect(result.ok).toBe(false);
         if (!result.ok) {
             expect(result.message).toMatch(/no schemaVersion/);
-            expect(result.message).toMatch(/re-export with compodocx ≥ 0\.3\.0/);
+            expect(result.message).toContain(
+                `re-export it with this compodocx version (schema ${EXPORT_SCHEMA_VERSION})`
+            );
         }
     });
 
@@ -63,6 +65,21 @@ describe('diff/parse — schemaVersion gate', () => {
         if (!result.ok) {
             expect(result.message).toMatch(/produced by a newer compodocx/);
             expect(result.message).toMatch(/upgrade compodocx to read it/);
+        }
+    });
+
+    it('rejects an older schemaVersion with a re-export hint', () => {
+        const file = path.join(tmp, 'older-version.json');
+        fs.writeFileSync(
+            file,
+            JSON.stringify({ schemaVersion: EXPORT_SCHEMA_VERSION - 1, generatedAt: '' })
+        );
+        const result = parseExportFile(file);
+        expect(result.ok).toBe(false);
+        if (!result.ok) {
+            expect(result.message).toContain(
+                `schemaVersion ${EXPORT_SCHEMA_VERSION - 1} does not match supported ${EXPORT_SCHEMA_VERSION} - re-export it with this compodocx version`
+            );
         }
     });
 

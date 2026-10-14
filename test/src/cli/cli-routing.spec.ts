@@ -170,6 +170,7 @@ describe('CLI routes', () => {
                 '-e',
                 'json',
                 '--disableRoutesGraph',
+                '--disableMainGraph',
                 '-d',
                 old
             ]);
@@ -194,6 +195,12 @@ describe('CLI routes', () => {
             );
             const data = JSON.parse(read(`${old}/documentation.json`)) as ExportData;
             expect(data.routes?.length).toBe(2);
+        });
+
+        it('ignores disableMainGraph with a warning', () => {
+            expect(oldStdout).toContain(
+                '--disableMainGraph is ignored: there is no module graph any more'
+            );
         });
     });
 });

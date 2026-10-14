@@ -3,10 +3,10 @@
 Compodocx generates static HTML documentation for Angular projects by analyzing TypeScript source code. Every aspect of the output can be configured through three methods:
 
 1. **CLI flags** -- pass options directly when running `compodocx` or `compodoc`
-2. **Config file** -- `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` (also supports legacy `.compodocrc` variants)
+2. **Config file** -- `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` (also `.yml`, `.js`, `.cjs`, `.mjs`, `.ts` and `compodocx.config.*`); the same `.compodocrc` / `compodoc.config.*` names are still found
 3. **package.json** -- under a `compodocx` or `compodoc` property
 
-Options are resolved in this order: CLI flags override config file values, which override defaults. The config file is auto-discovered in the project root unless explicitly specified with `-c`.
+Options are resolved in this order: CLI flags override config file values, which override defaults. The config file is looked up in the folder compodocx runs in (not in parent folders) unless explicitly specified with `-c`. The `compodocx` names are searched first: when a folder holds both a `.compodocxrc.json` and a `.compodocrc.json`, the `.compodocxrc.json` is used, and a `compodocx` key in `package.json` also wins over a `.compodocrc.json`.
 
 ## Quick Start
 
@@ -47,8 +47,10 @@ These options control the basic identity and language of the generated documenta
 |-|-|-|-|-|
 | name | `-n, --name` | string | `'Application documentation'` | Title shown in the sidebar header and browser tab. Also used in the `<title>` element of every generated page |
 | language | `--language` | string | `'en-US'` | UI language for all labels, headings, and navigation. Available: bg-BG, de-DE, en-US, es-ES, fr-FR, hu-HU, it-IT, ja-JP, ka-GE, ko-KR, nl-NL, pl-PL, pt-BR, ru-RU, sk-SK, zh-CN, zh-TW |
-| config | `-c, --config` | string | -- | Explicit path to a config file. If omitted, compodocx searches for `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml`, or a `compodocx`/`compodoc` key in `package.json` |
+| config | `-c, --config` | string | -- | Explicit path to a config file. If omitted, compodocx searches the working folder for `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` (and the other `compodocx` names), a `compodocx` key in `package.json`, then the same `compodoc` names |
 | tsconfig | `-p, --tsconfig` | string | -- | Path to the project's `tsconfig.json`. This is required -- compodocx uses the TypeScript compiler to analyze the source |
+| include | _config-only_ | string[] | `[]` | Extra globs of source files to document, relative to the tsconfig folder. Added to the tsconfig `include` list |
+| exclude | _config-only_ | string[] | `['**/.git', '**/node_modules', '**/*.d.ts', '**/*.spec.ts']` | Globs of source files to skip, relative to the tsconfig folder. Replaces the default list (repeat its entries to keep them) and is combined with the tsconfig `exclude` list |
 
 ## Output
 
@@ -58,6 +60,7 @@ Controls where and how the documentation is generated.
 |-|-|-|-|-|
 | output | `-d, --output` | string | `'./documentation/'` | Directory for the generated static site. Created if it doesn't exist. Contents are overwritten on each run |
 | exportFormat | `-e, --exportFormat` | string | `'html'` | Output format. `html` generates a full static site. `json` exports the parsed data model as JSON files (useful for custom tooling) |
+| jsonIndent | `--jsonIndent` | number | `0` | Indent of `documentation.json` with `exportFormat` `json`: `0` writes one line, `1` to `8` pretty-prints with that many spaces. Any other value stops the build with an error |
 | base | -- | string | `'/'` | Base URL path prepended to all generated links. Set this when hosting docs in a subdirectory (e.g. `'/my-project/'`) |
 | multiVersion | `--multiVersion` / `--no-multiVersion` | boolean | `true` | When `true` (default), HTML output is written to `<output>/<versionLabel>/` and a `versions.json` manifest is maintained next to it; the topbar version switcher reads the manifest at runtime. Pass `--no-multiVersion` to restore the previous flat layout. Non-HTML exports (`json`, `llm-md`) ignore this flag. |
 | versionLabel | `--versionLabel <label>` | string | (auto) | Override the version-subfolder name. Defaults to the nearest `package.json` `version`, prefixed with `v` (`1.2.3` → `v1.2.3`). Use `main`, `next`, `unreleased` for non-package builds. Hard error (exit 2) if no label can be resolved while `multiVersion` is on. |
@@ -156,7 +159,7 @@ Controls sidebar behavior and entity page tab configuration.
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
-| toggleMenuItems | `--toggleMenuItems` | string[] | `['all']` | Sidebar sections that start collapsed. Pass `'all'` to collapse everything, or a comma-separated list of specific sections: `components`, `directives`, `entities`, `classes`, `injectables`, `dependency-injection`, `guards`, `interfaces`, `interceptors`, `pipes`, `resolvers`, `utilities`, `styles` (the Style files chapter under `menuLayout: 'type'`), `additionalPages`, and `features` (the Features chapter under `menuLayout: 'feature'`; References is a single top-level link with no collapsible tree, so it is not a valid key). `miscellaneous` and `tokens` are ignored with a warning |
+| toggleMenuItems | `--toggleMenuItems` | string[] | `['all']` | Sidebar chapters that start open. The default `['all']` keeps every chapter collapsed, and `'all'` anywhere in the list does the same. Otherwise list the chapters to open, comma-separated on the CLI: `components`, `directives`, `entities`, `classes`, `injectables`, `dependency-injection`, `guards`, `interfaces`, `interceptors`, `pipes`, `resolvers`, `utilities`, `styles` (the Style files chapter under `menuLayout: 'type'`), `additionalPages`, and `features` (the Features chapter under `menuLayout: 'feature'`; References is a single top-level link with no collapsible tree, so it is not a valid key). Unlisted chapters start collapsed. `modules`, `miscellaneous` and `tokens` are ignored with a warning. `collapsedAll: true` overrides this list |
 | navTabConfig | `--navTabConfig` | object[] | `[]` | Customize the order and labels of entity page tabs. Array of `{ id, label }` objects. Available tab IDs: `info` (overview/metadata), `readme` (component README), `source` (source code), `templateData` (component template), `styleData` (component styles), `tree` (DOM tree), `example` (live examples). Tabs not listed are hidden. If empty (default), all applicable tabs are shown in their default order |
 
 ## Coverage
@@ -413,7 +416,7 @@ Compodocx uses [Pagefind](https://pagefind.app/) for client-side search. The sea
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
-| maxSearchResults | `--maxSearchResults` | number | `15` | Maximum number of results shown in the search command palette. Set to `0` to show all results (may be slow for large projects) |
+| maxSearchResults | `--maxSearchResults` | number | `15` | Maximum number of results shown in the search command palette, an integer from `0` to `10000`. Set to `0` to show all results (may be slow for large projects). Also read from the config file; the flag wins when both are set. Any other value stops the build with an error |
 
 ## Logging
 
