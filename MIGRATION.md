@@ -102,9 +102,9 @@ Pages: `categories/<bucket>.html` is gone. Every feature has a page, `index.html
 
 Template overrides: `bucket-landing` is removed (a file with that name is ignored with a warning). The new `feature` context targets feature pages (`data.feature`, see docs/custom-templates.md). `menu` and `api-reference` overrides read the feature model from `data.semantic.features`; `data.categorizedByFeature*` and the `data.categorized*` kind groups are gone.
 
-JSON export (schema 4):
+JSON export (schema 4, written as part of schema 5 in 0.9.0):
 
-- `schemaVersion` is 4. `compodocx diff` accepts schema 4 only; re-export older files.
+- `schemaVersion` is 5 in 0.9.0 (see "Breaking change in 0.9.0: typed routes, schema 5 and `disableRoutes`"). `compodocx diff` accepts schema 5 only; re-export older files.
 - `category` and `docsKind` are removed from every entry and member.
 - Symbol entries can carry `feature: { entryPoint, key }`; `semantic.features` lists each feature with `id`, `entryPoint`, `key`, `label`, `detector`, `readme`, `buildsOn` and `extendedBy`.
 
@@ -199,7 +199,7 @@ Configuration and template changes:
 - `toggleMenuItems: ['modules']` is accepted, has no effect and logs a warning. Remove the value.
 - `groupBy` defaults to `'folder'` when unset.
 - The `modules.js` and `module.js` template overrides are removed; a file with either name is ignored with a warning.
-- The i18n keys `module`, `modules`, `bootstrap`, `declarations`, `entrycomponents` and `no-svg` are removed.
+- The i18n keys `module`, `modules`, `declarations`, `entrycomponents` and `no-svg` are removed.
 - The routes tree root node is `{ name: '<root>', kind: 'root' }` (was `kind: 'module'`).
 
 The JSON export moves to `schemaVersion: 3`, see "JSON export shape" below. Re-export older snapshots before comparing them with `compodocx diff`.
@@ -258,7 +258,7 @@ Template overrides (all additive):
 
 `block-theming` also receives `mixins` and `linked`, and `block-theming-token` receives `related`, each only when non-empty. Existing overrides keep working. See docs/custom-templates.md.
 
-JSON export: no breaking change. `schemaVersion` stays 4 and every new field is optional: top-level `styleFiles`, `themeTokens` / `themeOverview` / `themeStyleSources` on directives, `relatedTo` on tokens. A component's theme fields now include the files that theme it with `@themes`. `ExportComponent.themeOverview` is typed as `string` (it was declared `string[]` but always held one string). `compodocx diff` does not compare `styleFiles`.
+JSON export: no breaking change of its own. Every new field is optional (0.9.0 writes `schemaVersion` 5 for the typed routes): top-level `styleFiles`, `themeTokens` / `themeOverview` / `themeStyleSources` on directives, `relatedTo` on tokens. A component's theme fields now include the files that theme it with `@themes`. `ExportComponent.themeOverview` is typed as `string` (it was declared `string[]` but always held one string). `compodocx diff` does not compare `styleFiles`.
 
 To adopt:
 
@@ -378,7 +378,8 @@ To opt INTO the new layout, no migration is needed - set `menuLayout: 'feature'`
 
 - **Typed shape.** `ExportData` and every per-entity field are exported from `@cngxjs/compodocx`. Downstream tooling can import and narrow without `any`.
 - **Schema 3 (v0.9.0+).** The `modules` bucket and `entryComponents` on components are removed. Style sources are shared: a new top-level `styleSources` map holds `{ content, language }` per key, and each component's `themeStyleSources` lists keys into it (project-relative file path, or `<component file>#inline-<n>` for inline styles). `inputsClass`, `outputsClass`, `hostBindings` and `hostListeners` are fed by signal APIs and the `host` object only; `guards` and `interceptors` list functional ones only. Tools reading v2 must gate on `schemaVersion >= 3`.
-- **Schema 5 (v0.9.0+).** `routes` is a typed list of route roots, see "Breaking change in 0.9.0: typed routes, schema 5 and `disableRoutes`". Schema 4 removed `category` and `docsKind`.
+- **Schema 4 (v0.9.0+).** `category` and `docsKind` are removed from every entry and member; symbol entries can carry `feature: { entryPoint, key }` and `semantic.features` lists the features.
+- **Schema 5 (v0.9.0+).** `routes` is a typed list of route roots, see "Breaking change in 0.9.0: typed routes, schema 5 and `disableRoutes`".
 - **Header fields.** `schemaVersion: 5` (v0.9.0+; `2` in v0.6.0 to v0.8.x, `1` in v0.3.0–v0.5.0), `generatedAt` (ISO 8601), `compodocxVersion`. Pre-v0.3.0 outputs had no `schemaVersion` - consumers should treat its absence as version 0. The v0.6.0 bump from `1` to `2` is a non-breaking additive change: `tokens?: ExportInjectable[]` was added as a top-level entry (InjectionToken / HttpContextToken collection - previously dropped from JSON entirely), plus optional per-entity fields `docsKind?: 'primary'`, `wcagLevel?: 'A' \| 'AA' \| 'AAA'`, `a11yNote?: string`, `taggedSelector?: string`, `relatedTo?: string[]` on directives / components / interfaces / classes / tokens. Old v1 readers ignore unknown fields and keep working; downstream tools that want to react to the new surface should gate on `schemaVersion >= 2`.
 - **Indent default `0`.** Single-line by default. Pass `--jsonIndent 2` to restore the previous human-readable formatting. `jq` consumers are unaffected.
 
