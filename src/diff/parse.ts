@@ -48,16 +48,18 @@ export const parseExportSource = (raw: string, label: string): Result<ParsedExpo
     const obj = parsed as Record<string, unknown>;
     const version = obj.schemaVersion;
     if (typeof version !== 'number') {
-        return err(`diff: ${label} has no schemaVersion — re-export with compodocx ≥ 0.3.0`);
+        return err(
+            `diff: ${label} has no schemaVersion - re-export it with this compodocx version (schema ${EXPORT_SCHEMA_VERSION})`
+        );
     }
     if (version !== EXPORT_SCHEMA_VERSION) {
         if (version > EXPORT_SCHEMA_VERSION) {
             return err(
-                `diff: ${label} was produced by a newer compodocx (schemaVersion ${version}, this CLI supports ${EXPORT_SCHEMA_VERSION}) — upgrade compodocx to read it`
+                `diff: ${label} was produced by a newer compodocx (schemaVersion ${version}, this CLI supports ${EXPORT_SCHEMA_VERSION}) - upgrade compodocx to read it`
             );
         }
         return err(
-            `diff: ${label} schemaVersion ${version} does not match supported ${EXPORT_SCHEMA_VERSION} — re-export with compodocx ≥ 0.3.0`
+            `diff: ${label} schemaVersion ${version} does not match supported ${EXPORT_SCHEMA_VERSION} - re-export it with this compodocx version`
         );
     }
     return ok({ schemaVersion: version, data: obj as unknown as ExportData });
