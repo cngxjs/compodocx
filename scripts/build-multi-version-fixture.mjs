@@ -29,8 +29,7 @@ const CLI = './bin/index-cli.js';
 rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 
-const TOGGLE =
-    'modules,components,directives,classes,injectables,interceptors,guards,pipes,interfaces,miscellaneous';
+const TOGGLE = 'components,directives,classes,injectables,interceptors,guards,pipes,interfaces';
 
 const buildV1 = spawnSync(
     'node',
