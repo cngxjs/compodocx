@@ -57,4 +57,12 @@ describe('angular-dependencies — orchestrator wiring', () => {
         );
         expect(detector.detectFunctionalAngularKind(undefined, 'anything')).toBeUndefined();
     });
+
+    it('ProviderDetector.detectFunctionalAngularKind ignores the class interface Resolve', () => {
+        const detector = new ProviderDetector();
+        expect(detector.detectFunctionalAngularKind('Resolve<User>', 'userData')).toBeUndefined();
+        expect(detector.detectFunctionalAngularKind('ResolveFn<User>', 'userData')).toBe(
+            'resolver'
+        );
+    });
 });
