@@ -76,7 +76,8 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     feature: 'feature',
     style: 'style',
     'design-tokens': 'design-tokens',
-    'api-reference': 'api-reference'
+    'api-reference': 'api-reference',
+    'app-config': 'app-config'
 };
 
 export class HtmlEngine {
