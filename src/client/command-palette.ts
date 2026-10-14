@@ -274,7 +274,7 @@ interface SearchResult {
     readonly url: string;
     readonly type: EntityType | 'other';
     readonly name: string;
-    readonly category?: string;
+    readonly feature?: string;
     /** First-sentence fallback from `data-pagefind-meta="description"`. */
     readonly description?: string;
     /** Pagefind's match-context snippet (HTML pre-marked with `<mark>` tags). */
@@ -505,8 +505,8 @@ const renderResults = (list: HTMLElement, empty: HTMLElement, mapped: readonly S
     list.innerHTML = mapped
         .map((r, i) => {
             const meta: string[] = [];
-            if (r.category) {
-                meta.push(`<span class="cdx-cp-category">${escapeHtml(r.category)}</span>`);
+            if (r.feature) {
+                meta.push(`<span class="cdx-cp-category">${escapeHtml(r.feature)}</span>`);
             }
             // Prefer Pagefind's match-context snippet (already HTML with
             // `<mark>` highlights around hit terms) — that's the whole point
@@ -614,7 +614,7 @@ const search = async (query: string) => {
             url: d.url,
             type: metaType ?? parsed.type,
             name: parsed.name,
-            category: [meta.feature, meta.category].find(value => typeof value === 'string'),
+            feature: typeof meta.feature === 'string' ? meta.feature : undefined,
             description: typeof meta.description === 'string' ? meta.description : undefined,
             excerpt: typeof d.excerpt === 'string' ? d.excerpt : undefined
         };
