@@ -63,7 +63,7 @@ export class TypeRenderer {
                 for (const argument of node.type.typeArguments) {
                     typeArguments.push(this.visitType(argument));
                 }
-                _return += typeArguments.join(' | ');
+                _return += typeArguments.join(', ');
                 _return += '>';
             }
             if (node.type.elementType) {
@@ -107,7 +107,7 @@ export class TypeRenderer {
                             for (const argument of type.typeArguments) {
                                 typeArguments.push(this.visitType(argument));
                             }
-                            _return += typeArguments.join(separator);
+                            _return += typeArguments.join(', ');
                             _return += '>';
                         }
                     }

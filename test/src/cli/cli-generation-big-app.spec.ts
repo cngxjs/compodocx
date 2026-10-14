@@ -660,7 +660,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support literal type', () => {
-        expect(typeAliasesFile).to.contain('Pick<NavigationExtras | replaceUrl>');
+        expect(typeAliasesFile).to.contain('Pick<NavigationExtras, replaceUrl>');
     });
 
     it('should support multiple union types with array', () => {
