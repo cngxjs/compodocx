@@ -413,7 +413,7 @@ Compodocx uses [Pagefind](https://pagefind.app/) for client-side search. The sea
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
-| maxSearchResults | `--maxSearchResults` | number | `15` | Maximum number of results shown in the search command palette. Set to `0` to show all results (may be slow for large projects) |
+| maxSearchResults | `--maxSearchResults` | number | `15` | Maximum number of results shown in the search command palette, an integer from `0` to `10000`. Set to `0` to show all results (may be slow for large projects). Also read from the config file; the flag wins when both are set. Any other value stops the build with an error |
 
 ## Logging
 

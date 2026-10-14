@@ -569,7 +569,9 @@
         "maxSearchResults": {
             "$id": "/properties/maxSearchResults",
             "type": "integer",
-            "title": "Max search results on the results page. Set to 0 for unlimited",
+            "minimum": 0,
+            "maximum": 10000,
+            "title": "Max results in the search command palette (0 shows all)",
             "default": 15,
             "examples": [15]
         }

@@ -246,8 +246,8 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
             'Document only symbols exported from index.d.ts files in the specified dist folder'
         )
         .option(
-            '--maxSearchResults [maxSearchResults]',
-            'Max search results on the results page. To show all results, set to 0',
+            '--maxSearchResults <n>',
+            'Max results in the search command palette (0 shows all)',
             String(COMPODOC_DEFAULTS.maxSearchResults)
         )
         .option('--stackblitz', 'Enable StackBlitz integration for examples')

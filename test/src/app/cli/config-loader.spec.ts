@@ -126,6 +126,7 @@ const makeProgram = (argv: readonly string[] = []): Command => {
         .option('--versionLabel [label]')
         .option('--versionsRoot [path]')
         .option('--maxVersionsShown <n>', '', '10')
+        .option('--maxSearchResults <n>', '', '15')
         .option('--gaID [id]')
         .option('--coverageTest [threshold]')
         .option('--showEffects', '', false)
@@ -292,6 +293,20 @@ describe('applyConfigToMainData', () => {
         const program = makeProgram(['--theme', 'midnight']);
         applyConfigToMainData(mainData, { theme: 'ocean' }, program, { cwd: '/tmp/test' });
         expect(mainData.theme).toBe('midnight');
+    });
+
+    it('maxSearchResults: config value applies, the default flag does not override it', () => {
+        const mainData = makeMainData();
+        const program = makeProgram();
+        applyConfigToMainData(mainData, { maxSearchResults: 0 }, program, { cwd: '/tmp/test' });
+        expect(mainData.maxSearchResults).toBe(0);
+    });
+
+    it('maxSearchResults: an explicit flag wins and is a number', () => {
+        const mainData = makeMainData();
+        const program = makeProgram(['--maxSearchResults', '40']);
+        applyConfigToMainData(mainData, { maxSearchResults: 7 }, program, { cwd: '/tmp/test' });
+        expect(mainData.maxSearchResults).toBe(40);
     });
 
     it('--port from CLI overrides config-file port', () => {

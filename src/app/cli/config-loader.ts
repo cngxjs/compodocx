@@ -7,6 +7,7 @@ import { err, ok, type Result } from '../../lib';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { parseJsonIndent } from '../../utils/json-indent.util';
 import { logger } from '../../utils/logger';
+import { parseMaxSearchResults } from '../../utils/max-search-results.util';
 import { parseMaxVersionsShown } from '../../utils/max-versions-shown.util';
 import { isFeatureKey } from '../compiler/semantic/features';
 import I18nEngine from '../engines/i18n.engine';
@@ -174,6 +175,7 @@ export function applyFeatureConfig(
  *
  * Side-effects allowed:
  *  - `process.exit(1)` for invalid `--jsonIndent` / `--maxVersionsShown` /
+ *    `--maxSearchResults` /
  *    missing custom-theme file / `--tsconfig` boolean.
  *  - `process.exit(2)` for invalid `menuLayout` / `collapsedAll` / `featuresName` / `referencesName` config.
  *  - Mutates `logger.silent` and `logger.routeToStderr`.
@@ -813,8 +815,21 @@ export function applyConfigToMainData(
         mainData.tsconfig = programOptions.tsconfig;
     }
 
-    if (programOptions.maxSearchResults) {
-        mainData.maxSearchResults = programOptions.maxSearchResults;
+    if (configFile.maxSearchResults !== undefined) {
+        const result = parseMaxSearchResults(configFile.maxSearchResults, 'config');
+        if (!result.ok) {
+            logger.error(result.message);
+            process.exit(1);
+        }
+        mainData.maxSearchResults = result.value;
+    }
+    if (program.getOptionValueSource('maxSearchResults') === 'cli') {
+        const result = parseMaxSearchResults(programOptions.maxSearchResults, 'flag');
+        if (!result.ok) {
+            logger.error(result.message);
+            process.exit(1);
+        }
+        mainData.maxSearchResults = result.value;
     }
 
     if (configFile.stackblitz) {

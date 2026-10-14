@@ -59,6 +59,7 @@ export interface ConfigurationFileInterface {
     exclude;
     include;
     publicApiOnly: string;
+    maxSearchResults: number;
     infoTabSections: string[];
     apiTabSections: string[];
     themingTabSections: string[];
