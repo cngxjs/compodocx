@@ -198,7 +198,7 @@ Configuration and template changes:
 - `disableMainGraph` is removed (there is no module graph any more).
 - `toggleMenuItems: ['modules']` is accepted, has no effect and logs a warning. Remove the value.
 - `groupBy` defaults to `'folder'` when unset.
-- The `modules.js` and `module.js` template overrides are removed.
+- The `modules.js` and `module.js` template overrides are removed; a file with either name is ignored with a warning.
 - The i18n keys `module`, `modules`, `bootstrap`, `declarations`, `entrycomponents` and `no-svg` are removed.
 - The routes tree root node is `{ name: '<root>', kind: 'root' }` (was `kind: 'module'`).
 
