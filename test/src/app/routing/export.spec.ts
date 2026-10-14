@@ -128,6 +128,41 @@ describe('route export', () => {
         expect(emitRoutes([])).toBe('');
     });
 
+    it('prints pathMatch, matcher and runGuardsAndResolvers on the route line', () => {
+        const text = emitRoutes([
+            {
+                kind: 'unmounted',
+                array: 'R',
+                routes: [
+                    { path: '', fullPath: '/', file: 'f.ts', line: 1, pathMatch: 'full' },
+                    {
+                        path: null,
+                        fullPath: '/{legacyMatcher}',
+                        file: 'f.ts',
+                        line: 2,
+                        matcher: { name: 'legacyMatcher', file: 'f.ts', source: 'legacyMatcher' }
+                    },
+                    {
+                        path: 'a',
+                        fullPath: '/a',
+                        file: 'f.ts',
+                        line: 3,
+                        runGuardsAndResolvers: "'always'"
+                    }
+                ]
+            }
+        ]);
+        expect(text).toBe(
+            [
+                '### Unmounted routes (R)',
+                '',
+                '- `/` pathMatch: full',
+                '- `/{legacyMatcher}` matcher: `legacyMatcher`',
+                "- `/a` runGuardsAndResolvers: 'always'"
+            ].join('\n')
+        );
+    });
+
     it('heads an unmounted root with its array', () => {
         const text = emitRoutes([
             {

@@ -105,6 +105,12 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **Links on the app-config page.** Links from the app-config page to documented provider functions pointed one directory above the docs root and were broken. They now resolve from the page's own location.
 - **Links to tagged miscellaneous symbols.** A function, variable, type alias or enumeration with an `@category` tag has its own page, but type links, function signatures, `{@link}` tags and the coverage report still pointed at its anchor on the shared collection page. They now link to the symbol's own page.
 - **Unresolved `{@link}` targets.** A `{@link Name}` whose target is not a documented symbol rendered as a link to a file named after the symbol, which does not exist. It now renders as inline code, like an unresolved type reference. URLs and file targets are still links.
+- **Generic type arguments.** Types with more than one type argument were written with `|` between the arguments, for example `Record<string | number>` for `Record<string, number>` or `Pick<Options | key>`, in the HTML, the JSON export and the llm-md export. The arguments are now separated by commas. `compodocx diff` between an export from before and after this fix reports these type strings as member changes.
+- **Variable initializers and enum values are escaped.** A default value such as `new Map<string, number>()` was written into the page as raw HTML, so the browser dropped everything between `<` and `>`. Variable initializers and enum member values are now escaped and shown as written.
+- **Rest parameters with a documented type.** A rest parameter whose type links to a documented symbol lost its `...` in function signatures (`provideFeature(features: Feature[])`). The marker is kept now.
+- **Route fields in the llm-md export.** Route lines now include `pathMatch`, `matcher` and `runGuardsAndResolvers`, which the JSON export already had. `data` stays out.
+- **Signal aliases in the llm-md export.** The public name set with the `alias` option of a signal input, output or model was missing from the llm-md export; it was only visible as long as the default value still carried the options object. Each such member line now names the alias after the signature, for example (alias `appTooltip`).
+- **Resolver detection.** A function or constant typed with the class interface `Resolve<T>` was classified as a functional resolver. Only `ResolveFn` marks a functional resolver now.
 
 ## [0.8.0] - 2026-08-03
 

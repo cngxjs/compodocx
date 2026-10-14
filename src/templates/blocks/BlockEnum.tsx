@@ -1,7 +1,7 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { memberAnchor } from '../../app/links/layout';
-import { codeWrap, parseDescription, t } from '../helpers';
+import { codeText, parseDescription, t } from '../helpers';
 
 type EnumChild = {
     readonly name?: string;
@@ -75,7 +75,7 @@ export const BlockEnum = (props: BlockEnumProps): string => {
                                             {child.value && (
                                                 <>
                                                     {' = '}
-                                                    {codeWrap(child.value)}
+                                                    {codeText(child.value)}
                                                 </>
                                             )}
                                             {child.deprecated && (

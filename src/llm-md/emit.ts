@@ -64,10 +64,11 @@ const formatArg = (arg: ExportArg): string => {
 
 const renderProperty = (prop: ExportProperty): string => {
     const sig = formatPropertySignature(prop.name, prop.type, prop.optional, prop.defaultValue);
+    const alias = prop.alias ? ` (alias ${inlineCode(prop.alias)})` : '';
     const dep = deprecatedTail(prop.deprecated, prop.deprecationMessage);
     const desc = collapseDescription(prop.description);
     const tail = desc ? ` — ${escapeMarkdown(desc)}` : '';
-    return `- ${inlineCode(sig)}${dep}${tail}`;
+    return `- ${inlineCode(sig)}${alias}${dep}${tail}`;
 };
 
 const renderMethod = (method: ExportMethod): string => {

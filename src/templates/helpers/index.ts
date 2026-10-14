@@ -1,3 +1,5 @@
+import Html from '@kitajs/html';
+
 export { capitalize } from './capitalize';
 export type { CoverageStats } from './coverage-stats';
 export { computeCoverageStats } from './coverage-stats';
@@ -45,14 +47,27 @@ export {
 export const isInternalMember = (modifierKind?: number[]): boolean =>
     (modifierKind ?? []).some(k => k === 123 || k === 124);
 
+const codeTag = (text: string): 'pre' | 'code' =>
+    text.includes('\n') || text.length > 80 ? 'pre' : 'code';
+
 /** Wrap content in `<code>` (single-line) or `<pre>` (multi-line). Accepts pre-linked HTML. */
 export const codeWrap = (html: unknown): string => {
     const str = String(html ?? '');
     if (!str) {
         return '';
     }
-    const tag = str.includes('\n') || str.length > 80 ? 'pre' : 'code';
+    const tag = codeTag(str);
     return `<${tag}>${str}</${tag}>`;
+};
+
+/** Like `codeWrap` for plain source text: escapes it, picks the tag by the raw length. */
+export const codeText = (text: unknown): string => {
+    const str = String(text ?? '');
+    if (!str) {
+        return '';
+    }
+    const tag = codeTag(str);
+    return `<${tag}>${Html.escapeHtml(str)}</${tag}>`;
 };
 
 export { highlightedCodeWrap } from './highlighted-code-wrap';

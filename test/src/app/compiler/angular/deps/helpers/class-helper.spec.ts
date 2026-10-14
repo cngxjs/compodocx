@@ -132,6 +132,33 @@ describe('ClassHelper', () => {
             const result = classHelper.visitType(node);
             expect(result).toBe('Array<string>');
         });
+
+        describe('type arguments of a declared type', () => {
+            const declared = (type: string): string => {
+                const file = ts.createSourceFile(
+                    't.ts',
+                    `let a: ${type};`,
+                    ts.ScriptTarget.Latest,
+                    true
+                );
+                const statement = file.statements[0] as ts.VariableStatement;
+                return classHelper.visitType(statement.declarationList.declarations[0]);
+            };
+
+            it('separates the arguments of a generic with commas', () => {
+                expect(declared('Record<string, number>')).toBe('Record<string, number>');
+            });
+
+            it('separates the arguments of a generic inside a union with commas', () => {
+                expect(declared('Map<string, number> | undefined')).toBe(
+                    'Map<string, number> | undefined'
+                );
+            });
+
+            it('keeps a single argument as is', () => {
+                expect(declared('Set<string>')).toBe('Set<string>');
+            });
+        });
     });
 
     describe('visitTypeIndex', () => {

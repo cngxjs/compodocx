@@ -660,7 +660,7 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support literal type', () => {
-        expect(typeAliasesFile).to.contain('Pick<NavigationExtras | replaceUrl>');
+        expect(typeAliasesFile).to.contain('Pick<NavigationExtras, replaceUrl>');
     });
 
     it('should support multiple union types with array', () => {
@@ -880,7 +880,7 @@ describe('CLI simple generation - big app', () => {
     it('should support destructuring for variables / array', () => {
         const file = readKindPages(distFolder, 'variable');
         // Variable initializer renders inside Shiki source-style spans.
-        expect(file).to.contain("'Gabriel'");
+        expect(file).to.contain('&#39;Gabriel&#39;');
     });
 
     it('should support JSDoc @link in JSDoc @param tag', () => {

@@ -141,7 +141,7 @@ export class ProviderDetector {
         ) {
             return 'guard';
         }
-        if (/ResolveFn|Resolve</.test(rt)) {
+        if (/\bResolveFn\b/.test(rt)) {
             return 'resolver';
         }
         if (/HttpInterceptorFn|HttpHandlerFn/.test(rt)) {

@@ -100,7 +100,7 @@ New: `features`, `featureContainers` (app folders whose sub-folders are features
 
 Pages: `categories/<bucket>.html` is gone. Every feature has a page, `index.html` in the feature's folder (see "page URLs grouped by entry point and feature" above); `redirects.json` maps the old `categories/` pages whose path matches a feature.
 
-Template overrides: `bucket-landing` is removed (a file with that name is ignored with a warning). The new `feature` context targets feature pages (`data.feature`, see docs/custom-templates.md). `menu` and `api-reference` overrides read the feature model from `data.semantic.features`; `data.categorizedByFeature*` and the `data.categorized*` kind groups are gone.
+Template overrides: `bucket-landing` is removed (a file with that name is ignored with a warning). The new `feature` context targets feature pages (`data.feature`, see docs/custom-templates.md). `menu` and `api-reference` overrides read the feature model from `data.semantic.features`; `data.categorizedByFeature*` and the `data.categorized*` kind groups are gone. Entity heroes write `data-pagefind-meta="feature:<label>"` instead of `category:<bucket>`, and the command palette shows only the `feature` value next to a result; a custom template that still writes `category:` loses that label.
 
 JSON export (schema 4, written as part of schema 5 in 0.9.0):
 

@@ -142,6 +142,26 @@ describe('functionSignature', () => {
             expect(result).toBe('concat(...items: string[])');
         });
 
+        it('keeps the rest marker when the type links', () => {
+            resolving({
+                StatusType: internal({
+                    type: 'miscellaneous',
+                    subtype: 'typealias',
+                    name: 'StatusType'
+                })
+            });
+            const result = functionSignature(
+                {
+                    name: 'provideStatus',
+                    args: [{ name: 'statuses', type: 'StatusType', dotDotDotToken: true }]
+                },
+                1
+            );
+            expect(result).toBe(
+                `provideStatus(...statuses: <a href="${hrefTo('typealias', 'StatusType', 1)}" target="_self">StatusType</a>)`
+            );
+        });
+
         it('joins several arguments', () => {
             resolving({
                 StatusType: internal({

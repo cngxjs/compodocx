@@ -58,6 +58,15 @@ const routeLine = (route: ExportRoute): string => {
     if (route.outlet) {
         parts.push(`outlet: ${route.outlet}`);
     }
+    if (route.pathMatch) {
+        parts.push(`pathMatch: ${route.pathMatch}`);
+    }
+    if (route.matcher) {
+        parts.push(`matcher: \`${refText(route.matcher)}\``);
+    }
+    if (route.runGuardsAndResolvers) {
+        parts.push(`runGuardsAndResolvers: ${inline(route.runGuardsAndResolvers)}`);
+    }
     for (const key of GUARD_KEYS) {
         const refs = route[key];
         if (refs?.length) {
