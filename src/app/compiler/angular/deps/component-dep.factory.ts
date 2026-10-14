@@ -198,6 +198,7 @@ export interface IComponentDep extends IDep {
     beta?: boolean;
     since?: string;
     breaking?: string;
+    aiGenerated?: string | boolean;
     route?: string;
     group?: string;
     order?: number;

@@ -82,5 +82,8 @@ export interface ConfigurationFileInterface {
     featureRoleFolders: string[];
     styleFiles: string[];
     collapsedAll: boolean;
+    featuresName: string;
+    referencesName: string;
+    playgroundDependencies: Record<string, string>;
     shikiTheme: string;
 }
