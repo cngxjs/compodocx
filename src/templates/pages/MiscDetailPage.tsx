@@ -9,6 +9,7 @@ import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
 import { IconEnum, IconFile, IconFunction, IconTypealias, IconVariable } from '../components/Icons';
 import { WcagBadge } from '../components/WcagBadge';
 import {
+    codeText,
     codeWrap,
     deriveLibFromBucket,
     functionSignature,
@@ -192,7 +193,7 @@ const VariableApi = (item: any, depth: number): string => {
         item.defaultValue !== undefined && item.defaultValue !== null && item.defaultValue !== ''
             ? Section({
                   title: t('default-value'),
-                  children: codeWrap(String(item.defaultValue))
+                  children: codeText(item.defaultValue)
               })
             : ''
     ].join('');
@@ -249,7 +250,7 @@ const EnumerationApi = (item: any): string => {
                                     </span>
                                 )}
                             </td>
-                            <td>{member.value ? codeWrap(member.value) : ''}</td>
+                            <td>{member.value ? codeText(member.value) : ''}</td>
                         </tr>
                     ))}
                 </tbody>

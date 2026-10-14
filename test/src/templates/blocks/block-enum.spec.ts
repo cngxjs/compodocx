@@ -25,6 +25,15 @@ describe('BlockEnum', () => {
         expect(html).to.include('Red');
     });
 
+    it('escapes member values', () => {
+        const html = BlockEnum({
+            depth: 1,
+            enums: [{ name: 'Markup', childs: [{ name: 'Bold', value: '<b>' }] }]
+        });
+        expect(html).to.include('<code>&lt;b></code>');
+        expect(html).to.not.include('<code><b></code>');
+    });
+
     it('honours the `block-enum` custom-template override', () => {
         registerCustomTemplate(
             'block-enum',
