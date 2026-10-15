@@ -38,7 +38,7 @@ export type Generated = 'generated' | 'serving';
  * gate or a failed versions manifest always ends the process, and a full
  * rebuild ends it on any halt except a failed resources copy.
  */
-export const haltEndsWatch = (mode: RunMode, stopped: Halt): boolean => {
+const haltEndsWatch = (mode: RunMode, stopped: Halt): boolean => {
     if (stopped.reason === 'coverage-gate' || stopped.reason === 'versions-manifest') {
         return true;
     }
@@ -83,7 +83,7 @@ const hasRootMarkdownFiles = (files: readonly string[]): boolean =>
     files.some(file => path.extname(file) === '.md' && path.dirname(file) === cwd);
 
 /** Watch the sources, root markdown files and includes; rebuild on change. */
-export const startWatch = async (session: Session): Promise<WatchHandle> => {
+const startWatch = async (session: Session): Promise<WatchHandle> => {
     const files = session.files ?? [];
     let sources = [findMainSourceFolder([...files])];
     let watcherReady = false;

@@ -11,7 +11,7 @@ import { posix } from 'node:path';
  * - `export * from '../x'`  → `export * from './x'`
  * - `from '@angular/core'`  → unchanged                (bare specifier)
  *
- * Trailing `.ts`/`.tsx` is stripped — Angular's bundler resolves extensionless.
+ * Trailing `.ts`/`.tsx` is stripped - Angular's bundler resolves extensionless.
  * The quotes must match (backreference): the rewrite writes the specifier back.
  */
 const REL_IMPORT_RE = /(\bfrom\b|\bimport\b)(\s+)(['"])(\.\.?\/[^'"]+)\3/g;
@@ -36,7 +36,7 @@ export function rewriteRelativeImports(source: string): string {
 /**
  * Rewrite `templateUrl`, `styleUrl`, and `styleUrls` decorator values so they
  * resolve against the flat `src/app/` layout the manifest builder ships.
- * Template literals and computed property names are NOT supported — string
+ * Template literals and computed property names are NOT supported - string
  * literals only. Authors with deep example folders should use string literals.
  */
 const TEMPLATE_URL_RE = /(templateUrl\s*:\s*)(['"])(\.\.?\/[^'"]+)\2/g;

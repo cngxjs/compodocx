@@ -42,7 +42,7 @@ describe('buildPlaygroundManifest', () => {
             consumerPkg
         );
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.template).to.equal(STACKBLITZ_TEMPLATE);
@@ -93,7 +93,7 @@ describe('buildPlaygroundManifest', () => {
             consumerPkg
         );
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         // Root file is `src/app/my-button/my-button.component.ts` — the
@@ -125,7 +125,7 @@ describe('buildPlaygroundManifest', () => {
             depth: 1
         });
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(Object.keys(result.value.files)).to.contain('src/app/dep-a.ts');
@@ -150,7 +150,7 @@ describe('buildPlaygroundManifest', () => {
     it('falls back to a known-good Angular major when the consumer omits all peers', () => {
         const result = buildPlaygroundManifest('MyButton', block, resolverFor([rootNode]), {});
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         // Default fallback bumps with the toolchain. Whatever it is, every
@@ -166,7 +166,7 @@ describe('buildPlaygroundManifest', () => {
         const pkg = { dependencies: { '@angular/core': '^21.0.0' } };
         const result = buildPlaygroundManifest('MyButton', block, resolverFor([rootNode]), pkg);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         // None of the other Angular peers were declared by the consumer;
@@ -180,7 +180,7 @@ describe('buildPlaygroundManifest', () => {
     it('always emits zone.js, rxjs, and tslib peers required for an ng-cli boot', () => {
         const result = buildPlaygroundManifest('MyButton', block, resolverFor([rootNode]), {});
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.dependencies).to.have.property('zone.js');
@@ -198,7 +198,7 @@ describe('buildPlaygroundManifest', () => {
         };
         const result = buildPlaygroundManifest('MyButton', block, resolverFor([rootNode]), pkg);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.dependencies['@angular/material']).to.equal('^21.0.0');
@@ -208,7 +208,7 @@ describe('buildPlaygroundManifest', () => {
     it('omits @angular/material and @angular/cdk when the consumer does not declare them', () => {
         const result = buildPlaygroundManifest('MyButton', block, resolverFor([rootNode]), {});
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.dependencies).not.to.have.property('@angular/material');
@@ -229,7 +229,7 @@ describe('buildPlaygroundManifest', () => {
             consumerPkg
         );
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         // Auto-pinned because the snippet referenced mat-* tags.
@@ -257,7 +257,7 @@ describe('buildPlaygroundManifest', () => {
             consumerPkg
         );
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         const appComponent = result.value.files['src/app/app.component.ts'];
@@ -283,7 +283,7 @@ describe('buildPlaygroundManifest', () => {
             consumerPkg
         );
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         const indexHtml = result.value.files['src/index.html'];
@@ -312,7 +312,7 @@ describe('buildPlaygroundManifest', () => {
                 scssBundle("@use '@cngx/themes/material/azure-theme';\n:host { display: block; }\n")
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             const indexHtml = result.value.files['src/index.html'];
@@ -339,7 +339,7 @@ describe('buildPlaygroundManifest', () => {
                 { materialShell: true }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             const indexHtml = result.value.files['src/index.html'];
@@ -359,7 +359,7 @@ describe('buildPlaygroundManifest', () => {
                 scssBundle(':host { color: rebeccapurple; }\n')
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             const indexHtml = result.value.files['src/index.html'];
@@ -382,7 +382,7 @@ describe('buildPlaygroundManifest', () => {
                 scssBundle("@use './material/brand-theme';\n")
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             const indexHtml = result.value.files['src/index.html'];
@@ -419,7 +419,7 @@ describe('buildPlaygroundManifest', () => {
                 configBundle
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             // Author config wins over the default scaffold config.
@@ -453,7 +453,7 @@ describe('buildPlaygroundManifest', () => {
                 }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             const indexHtml = result.value.files['src/index.html'];
@@ -474,7 +474,7 @@ describe('buildPlaygroundManifest', () => {
                 { globalStyles: ':root { --brand: #06f; }' }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             const styles = result.value.files['src/styles.css'];
@@ -493,7 +493,7 @@ describe('buildPlaygroundManifest', () => {
                 { globalStyles: "@import 'https://fonts.example/x.css';\n:root { --brand: #06f; }" }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             const styles = result.value.files['src/styles.css'];
@@ -515,7 +515,7 @@ describe('buildPlaygroundManifest', () => {
                 }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             // Sass-only prelude ⇒ the global sheet must be .scss so the Angular
@@ -541,7 +541,7 @@ describe('buildPlaygroundManifest', () => {
                 { materialShell: true, head: ['<meta name="after-shell" content="1">'] }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             const indexHtml = result.value.files['src/index.html'];
@@ -559,7 +559,7 @@ describe('buildPlaygroundManifest', () => {
                 { head: ['', '   '], globalStyles: '   ' }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             const base = buildPlaygroundManifest(
@@ -568,7 +568,7 @@ describe('buildPlaygroundManifest', () => {
                 resolverFor([rootNode]),
                 consumerPkg
             );
-            if (!base.ok) {
+            if (base.ok === false) {
                 return;
             }
             expect(result.value.files['src/index.html']).to.equal(
@@ -593,7 +593,7 @@ describe('buildPlaygroundManifest', () => {
             consumerPkg
         );
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         const appComponent = result.value.files['src/app/app.component.ts'];
@@ -607,7 +607,7 @@ describe('buildPlaygroundManifest', () => {
         };
         const result = buildPlaygroundManifest('MyButton', block, resolverFor([fat]), consumerPkg);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         const fileBody = result.value.files['src/app/my-button.component.ts'];
@@ -624,7 +624,7 @@ describe('buildPlaygroundManifest', () => {
             fileCap: 500
         });
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         const fileBody = result.value.files['src/app/my-button.component.ts'];
@@ -648,7 +648,7 @@ describe('buildPlaygroundManifest', () => {
             maxFiles: 5
         });
         expect(result.ok).to.be.false;
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).to.contain('"MyButton"');
@@ -683,7 +683,7 @@ describe('buildPlaygroundManifest', () => {
         };
         const result = buildPlaygroundManifest('MyButton', block, resolverFor([node]), pkg);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.dependencies['@my-org/ui-kit']).to.equal('^2.5.0');
@@ -698,7 +698,7 @@ describe('buildPlaygroundManifest', () => {
         };
         const result = buildPlaygroundManifest('MyButton', block, resolverFor([node]), consumerPkg);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.dependencies).not.to.have.property('@unknown/lib');
@@ -719,7 +719,7 @@ describe('buildPlaygroundManifest', () => {
         };
         const result = buildPlaygroundManifest('MyButton', tsBlock, resolverFor([rootNode]), pkg);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.dependencies['@my-org/icons']).to.equal('^4.0.0');
@@ -743,7 +743,7 @@ describe('buildPlaygroundManifest', () => {
         };
         const result = buildPlaygroundManifest('MyButton', block, resolverFor([node]), pkg);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.dependencies['lodash-es']).to.equal('^4.17.21');
@@ -758,7 +758,7 @@ describe('buildPlaygroundManifest', () => {
         };
         const result = buildPlaygroundManifest('MyButton', block, resolverFor([node]), consumerPkg);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         // Already pinned via ANGULAR_PEERS at consumer's @angular/core spec.
@@ -778,7 +778,7 @@ describe('buildPlaygroundManifest', () => {
             extraDependencies: { '@my-org/ui-kit': '^3.0.0-next.1', '@my-org/themes': '*' }
         });
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         // Override beats consumer-declared version.
@@ -812,7 +812,7 @@ describe('buildPlaygroundManifest', () => {
                 { extraDependencies: NON_REGISTRY_SOURCES }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             const pkg = JSON.parse(result.value.files['package.json']);
@@ -838,7 +838,7 @@ describe('buildPlaygroundManifest', () => {
             };
             const result = buildPlaygroundManifest('MyButton', block, resolverFor([node]), pkg);
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             expect(result.value.dependencies['@my-org/ui-kit']).to.equal(
@@ -896,7 +896,7 @@ describe('buildPlaygroundManifest', () => {
                 { vendor: { packages: vendorPackages } }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             // file: entry is authoritative — the auto-forwarded ^1.0.0 is gone.
@@ -927,7 +927,7 @@ describe('buildPlaygroundManifest', () => {
                 { vendor: { packages: vendorPackages } }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             expect(result.value.dependencies).not.to.have.property('@cngx/ui');
@@ -956,7 +956,7 @@ describe('buildPlaygroundManifest', () => {
                 { vendor: { packages: vp } }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             // Full FESM body survives — a truncated bundle would be broken.
@@ -976,7 +976,7 @@ describe('buildPlaygroundManifest', () => {
             );
             // Closure @cngx/ui (60) + @cngx/common (40) = 100 B > 50 B cap.
             expect(result.ok).to.be.false;
-            if (result.ok) {
+            if (result.ok === true) {
                 return;
             }
             expect(result.message).to.contain('@cngx/ui');
@@ -1011,7 +1011,7 @@ describe('buildPlaygroundManifest', () => {
                 { vendor: { packages: themesPkg } }
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             expect(result.value.dependencies['@cngx/themes']).to.equal('file:vendor/@cngx/themes');
@@ -1038,7 +1038,7 @@ describe('buildPlaygroundManifest', () => {
                 { vendor: { packages: vp } } // default cap (1.5 MB) < 2.1 MB
             );
             expect(result.ok).to.be.false;
-            if (result.ok) {
+            if (result.ok === true) {
                 return;
             }
             expect(result.message).to.contain('after slimming + pruning');
@@ -1058,7 +1058,7 @@ describe('buildPlaygroundManifest', () => {
             consumerPkg
         );
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         for (const path of Object.keys(result.value.files)) {
@@ -1090,7 +1090,7 @@ describe('buildPlaygroundManifest', () => {
                 fileBundle
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             // The AppComponent template carries the html-mode body
@@ -1131,7 +1131,7 @@ describe('buildPlaygroundManifest', () => {
                 fileBundle
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             expect(result.value.files['src/app/app.component.ts']).to.contain('class AppEntry');
@@ -1161,7 +1161,7 @@ describe('buildPlaygroundManifest', () => {
                 fileBundle
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             expect(result.value.dependencies['@my-org/ui-kit']).to.equal('^2.5.0');
@@ -1189,7 +1189,7 @@ describe('buildPlaygroundManifest', () => {
                 fileBundle
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             expect(result.value.files).to.not.have.property('src/app/my-button.component.ts');
@@ -1219,7 +1219,7 @@ describe('buildPlaygroundManifest', () => {
                 fileBundle
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             expect(result.value.files['src/app/my-button.component.ts']).to.contain(
@@ -1239,7 +1239,7 @@ describe('buildPlaygroundManifest', () => {
                 consumerPkg
             );
             expect(inlineResult.ok).to.be.true;
-            if (!inlineResult.ok) {
+            if (inlineResult.ok === false) {
                 return;
             }
             expect(inlineResult.value.files).to.have.property('src/app/my-button.component.ts');
@@ -1260,7 +1260,7 @@ describe('buildPlaygroundManifest', () => {
                 htmlBundle
             );
             expect(htmlResult.ok).to.be.true;
-            if (!htmlResult.ok) {
+            if (htmlResult.ok === false) {
                 return;
             }
             expect(htmlResult.value.files).to.have.property('src/app/my-button.component.ts');
@@ -1283,7 +1283,7 @@ describe('buildPlaygroundManifest', () => {
                 fileBundle
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             expect(result.value.dependencies['random-other-pkg']).to.equal('^9.9.9');
@@ -1309,7 +1309,7 @@ describe('buildPlaygroundManifest', () => {
                 fileBundle
             );
             expect(result.ok).to.be.true;
-            if (!result.ok) {
+            if (result.ok === false) {
                 return;
             }
             // emitFileContent applies the cap → truncated copy under file cap

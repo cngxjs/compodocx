@@ -96,7 +96,7 @@ export function MetadataCodeRow(label: string, value: string): string {
  */
 /**
  * Return true if `name` looks like a literal useValue primitive rather
- * than an entity identifier — e.g. `'2.0.0-admin'`, `"abc"`, `42`, `true`.
+ * than an entity identifier - e.g. `'2.0.0-admin'`, `"abc"`, `42`, `true`.
  * Compodoc's provider extractor sometimes passes useValue literals as
  * provider names; they should be filtered out of entity chip lists.
  */
@@ -268,8 +268,8 @@ type ProviderEntry = {
  * classes from `MetadataHostDirectivesRow` and `MetadataHostRow` so the
  * visual grammar stays consistent across all three renderers.
  *
- * Linkable tokens — the provide target for kind: class, the useClass or
- * useExisting target, the factory function, and each entry in deps[] — are
+ * Linkable tokens - the provide target for kind: class, the useClass or
+ * useExisting target, the factory function, and each entry in deps[] - are
  * resolved through `resolveType` and rendered as anchors when the dep
  * engine knows about them. Unresolved tokens fall back to plain spans.
  *
@@ -282,7 +282,7 @@ type ProviderEntry = {
  * `MetadataProvidersRow` (inside metadata card) and `ProvidersListHtml`
  * (standalone section).
  */
-export function renderProvidersListHtml(entries: ProviderEntry[], depth: number): string {
+function renderProvidersListHtml(entries: ProviderEntry[], depth: number): string {
     if (!entries?.length) {
         return '';
     }

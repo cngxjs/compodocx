@@ -1,7 +1,7 @@
 /**
  * JS source emission from a Handlebars AST.
  *
- * `convert(source)` returns the body of the override function — pure string,
+ * `convert(source)` returns the body of the override function - pure string,
  * ready to wrap in `module.exports = function(data, helpers) { return \`<body>\`; }`.
  * `wrapModule(body, ...)` does that wrap.
  *
@@ -12,6 +12,7 @@
 
 import type {
     AstBlockStatement,
+    AstBooleanLiteral,
     AstContentStatement,
     AstExpression,
     AstHash,
@@ -72,7 +73,7 @@ const emitLiteralExpression = (node: AstExpression): string => {
         case 'NumberLiteral':
             return String((node as AstNumberLiteral).value);
         case 'BooleanLiteral':
-            return String((node as { value: boolean }).value);
+            return String((node as AstBooleanLiteral).value);
         case 'NullLiteral':
             return 'null';
         case 'UndefinedLiteral':
@@ -248,7 +249,7 @@ const emitBlock = (node: AstBlockStatement, ctx: EmitContext, sink: Sink): strin
     }
 
     // Custom block helpers like `#compare`, `#or`, `#ifEqualString`. The legacy
-    // forms wrap the inner program when truthy and the inverse when falsy —
+    // forms wrap the inner program when truthy and the inverse when falsy -
     // mapping cleanly to a ternary on the inline emit.
     const mapping = lookupHelper(name);
     const truthy = emitProgramAsTemplate(node.program, ctx, sink);

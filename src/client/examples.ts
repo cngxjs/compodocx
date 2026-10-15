@@ -24,7 +24,7 @@ const resizeIframe = (iframe: HTMLIFrameElement): void => {
             iframe.style.height = `${height}px`;
         }
     } catch {
-        // cross-origin — keep CSS min-height fallback
+        // cross-origin - keep CSS min-height fallback
     }
 };
 
@@ -41,7 +41,7 @@ const observeContent = (iframe: HTMLIFrameElement): void => {
         const ro = new ResizeObserver(() => resizeIframe(iframe));
         ro.observe(target);
     } catch {
-        // cross-origin — silent
+        // cross-origin - silent
     }
 };
 
@@ -59,7 +59,7 @@ const applyThemeToIframe = (iframe: HTMLIFrameElement): void => {
             doc.body?.classList.toggle('dark', dark);
         }
     } catch {
-        // cross-origin — fall through to postMessage
+        // cross-origin - fall through to postMessage
     }
     // Cross-origin or opt-in subscribers: postMessage protocol.
     try {

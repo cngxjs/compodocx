@@ -28,7 +28,7 @@ export interface VersionsManifestEntry {
  *
  * The `versions` array is sorted descending by semver (with a lexicographic
  * tail for non-semver labels like `main` / `next`). The first entry is
- * implicitly the "latest" — there is intentionally no `isLatest` flag,
+ * implicitly the "latest" - there is intentionally no `isLatest` flag,
  * because that would race when two builds for different labels run in
  * parallel.
  */

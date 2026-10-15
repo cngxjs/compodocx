@@ -188,7 +188,7 @@ const StabilityChip = (
         deprecated: 'Deprecated'
     };
     // Checkbox-style visual (✓ + word) but kept as a `<button
-    // aria-pressed>` toggle — the simpler semantic the client filter
+    // aria-pressed>` toggle - the simpler semantic the client filter
     // already wires up, and the only one Biome's a11y rules accept on
     // a `<button>`. Matches the angular.dev/api stability filter idiom.
     return (
@@ -282,7 +282,7 @@ export const ApiReferencePage = (data: any): string => {
     }
 
     // Per-kind and per-stability counts for the chip rail. Kinds with
-    // zero items don't render a chip — empty dimensions stay invisible
+    // zero items don't render a chip - empty dimensions stay invisible
     // (matches the search-palette facet UX).
     const kindCounts = new Map<TableKind, number>();
     const stabilityCounts: Record<'stable' | 'experimental' | 'deprecated', number> = {

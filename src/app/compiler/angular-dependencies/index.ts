@@ -812,7 +812,7 @@ export class AngularDependencies extends FrameworkDependencies {
                                                 infos.initializer
                                             );
                                         // Zoneless detection: if zone.js is not in package.json
-                                        // dependencies, the app is zoneless — regardless of
+                                        // dependencies, the app is zoneless - regardless of
                                         // which provider function is used.
                                         const hasZoneJs = Configuration.mainData.hasZoneJs ?? true;
                                         const isZoneless = !hasZoneJs;
@@ -845,7 +845,7 @@ export class AngularDependencies extends FrameworkDependencies {
                                     }
 
                                     // Detect InjectionToken / HttpContextToken declarations
-                                    // — DI keys, semantically distinct from `@Injectable()`
+                                    // - DI keys, semantically distinct from `@Injectable()`
                                     // service classes. Routed to a separate `tokens`
                                     // collection so the docs surface them under a dedicated
                                     // `tokens/<name>.html` URL with a Token-specific page
@@ -1078,16 +1078,15 @@ export class AngularDependencies extends FrameworkDependencies {
         } else {
             return;
         }
-        ['imports', 'exports', 'declarations', 'providers', 'bootstrap'].forEach(symbols => {
-            if (deps[symbols] && deps[symbols].length > 0) {
-                logger.debug('', `- ${symbols}:`);
-                deps[symbols]
-                    .map(i => i.name)
-                    .forEach(d => {
-                        logger.debug('', `\t- ${d}`);
-                    });
-            }
-        });
+        const providers = deps['providers'];
+        if (providers && providers.length > 0) {
+            logger.debug('', '- providers:');
+            providers
+                .map(i => i.name)
+                .forEach(d => {
+                    logger.debug('', `\t- ${d}`);
+                });
+        }
     }
 
     private ignore(deps: IDep) {

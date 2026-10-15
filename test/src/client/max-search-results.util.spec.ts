@@ -16,12 +16,12 @@ describe('parseMaxSearchResults', () => {
     it.each([-1, 1.5, 10001, '', 'ten', '-3', true, undefined])('rejects %j', raw => {
         const result = parseMaxSearchResults(raw);
         expect(result.ok).toBe(false);
-        expect(!result.ok && result.message).toContain('--maxSearchResults');
+        expect(result.ok === false && result.message).toContain('--maxSearchResults');
     });
 
     it('names the config key for config values', () => {
         const result = parseMaxSearchResults('x', 'config');
-        expect(!result.ok && result.message).toContain('maxSearchResults in config file');
+        expect(result.ok === false && result.message).toContain('maxSearchResults in config file');
     });
 });
 

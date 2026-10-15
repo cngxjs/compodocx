@@ -41,7 +41,7 @@ export type Logger = {
     error(...args: unknown[]): void;
 };
 
-export const createLogger = (): Logger => {
+const createLogger = (): Logger => {
     const state = { silent: true, routeToStderr: false };
 
     const write = (level: LogLevel, args: unknown[]) => {

@@ -7,8 +7,8 @@ import { IconGitBranch } from '../components/Icons';
  * prose, above metadata). Returns empty string when no route is set.
  *
  * Separate from {@link ExternalLinks} because external links (Storybook,
- * Figma, GitHub …) belong in the entity hero — they apply to every tab
- * — while the route is description-level metadata that only needs to
+ * Figma, GitHub …) belong in the entity hero - they apply to every tab
+ * - while the route is description-level metadata that only needs to
  * appear on the Info tab.
  */
 export const RouteChip = (props: { readonly route?: string }): string => {

@@ -2,7 +2,7 @@ import type { TableKind } from '../../app/links/symbol-id';
 
 /**
  * User-facing labels for entity kinds. Surfaced on Pagefind search-result
- * chips so a search hit reads "ToastConfig — Interface — ui/feedback/toast"
+ * chips so a search hit reads "ToastConfig - Interface - ui/feedback/toast"
  * instead of the legacy "Docs" placeholder. Kept in lockstep with the
  * sidebar's per-kind chip colours via `cdx-badge--entity-<kind>` tokens.
  */
@@ -29,7 +29,7 @@ export const KIND_LABELS: Record<TableKind, string> = {
  * Compact 1–2 character identifier used inside the pastel
  * `.cdx-ref-kind-icon` letter-box that appears in API Reference rows and
  * API Reference filter chips. The
- * letter is decorative — the full label travels alongside as visible
+ * letter is decorative - the full label travels alongside as visible
  * text and is also exposed via the chip's `title` attribute for
  * screen-reader users.
  */
@@ -59,7 +59,7 @@ export const KIND_LETTER: Record<TableKind, string> = {
  * marked → HTML); we re-strip rather than re-render to avoid markdown
  * residue like backticks or asterisks bleeding into the search index.
  *
- * Returns `undefined` when the input is empty or strips to whitespace —
+ * Returns `undefined` when the input is empty or strips to whitespace -
  * callers omit the meta block entirely in that case so the Pagefind index
  * stays small.
  */
@@ -76,7 +76,7 @@ export function firstSentence(html: unknown): string | undefined {
     if (!stripped) {
         return undefined;
     }
-    // First sentence — split on `.`, `!`, `?` followed by whitespace OR
+    // First sentence - split on `.`, `!`, `?` followed by whitespace OR
     // anchored at end-of-string. Fallback: the entire stripped string when
     // no sentence terminator exists (single-clause descriptions are common).
     // Trim trailing sentence terminators so the excerpt reads naturally.
@@ -93,7 +93,7 @@ export function firstSentence(html: unknown): string | undefined {
  * Inputs for the Pagefind meta block.
  *
  * Pagefind reads metadata from elements carrying a `data-pagefind-meta`
- * attribute — either in `key:value` literal form or in inner-text form
+ * attribute - either in `key:value` literal form or in inner-text form
  * (`data-pagefind-meta="key"` with text content as the value). The
  * `data-pagefind-meta-X="..."` per-key attribute form looks plausible but
  * is NOT discovered by Pagefind's static scan, so an earlier iteration of
@@ -117,16 +117,16 @@ export interface PagefindMetaInput {
  *     colons, or quotes survive without escaping the `data-pagefind-meta`
  *     attribute parser.
  *
- * Empty / whitespace-only fields are omitted entirely — Pagefind index
+ * Empty / whitespace-only fields are omitted entirely - Pagefind index
  * stays small. The block is rendered inside the entity hero and hidden
  * with the `hidden` attribute (Pagefind's static HTML scan still picks it
  * up; the browser does not render it).
  */
 /** Meta kind label of a feature type page (providers and features on one page). */
-export const CLUSTER_KIND_LABEL = 'Cluster';
+const CLUSTER_KIND_LABEL = 'Cluster';
 
 /** Meta kind label of the routes page. */
-export const ROUTE_KIND_LABEL = 'Route';
+const ROUTE_KIND_LABEL = 'Route';
 
 const metaKindLabel = (kind: PagefindMetaInput['kind']): string | undefined => {
     if (kind === 'cluster') {
@@ -173,7 +173,7 @@ function escapeText(value: string): string {
  * Pagefind 1.x only recognises the canonical
  * `data-pagefind-filter="dim:value"` attribute form during its static
  * HTML scan. The plausible-looking per-suffix variant
- * `data-pagefind-filter-<dim>="value"` is silently ignored — verified
+ * `data-pagefind-filter-<dim>="value"` is silently ignored - verified
  * against `pagefind@1.5.2` (the version bundled with compodocx). One span
  * is emitted per dimension so each carries exactly one `dim:value` pair.
  */
@@ -206,7 +206,7 @@ function kindFilterLabel(kind: TableKind | 'Module' | 'Provider' | undefined): s
  * Pagefind's build-time scan picks it up.
  *
  * Each dimension gets its own span carrying a single canonical
- * `data-pagefind-filter="dim:value"` attribute — that is the only form
+ * `data-pagefind-filter="dim:value"` attribute - that is the only form
  * Pagefind's static scan registers; multi-attribute siblings like
  * `data-pagefind-filter-lib="…"` are silently dropped on the indexer
  * floor.

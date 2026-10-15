@@ -228,18 +228,4 @@ describe('diff/rules — severity classification', () => {
         );
         expect(result.severity).toBe('breaking');
     });
-
-    it('module child group shift → breaking', () => {
-        const result = classifyChange(
-            entityChange('module-changed', 'AppModule', [
-                {
-                    field: 'children.declarations',
-                    kind: 'value-changed',
-                    oldValue: ['Foo'],
-                    newValue: ['Bar']
-                }
-            ])
-        );
-        expect(result.severity).toBe('breaking');
-    });
 });

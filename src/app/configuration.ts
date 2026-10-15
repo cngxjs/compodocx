@@ -42,7 +42,6 @@ export class Configuration implements ConfigurationInterface {
         hideGenerator: false,
         hideDarkModeToggle: false,
         hasFilesToCoverage: false,
-        modules: [],
         readme: false,
         changelog: '',
         contributing: '',

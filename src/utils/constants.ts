@@ -170,11 +170,3 @@ export const MENU_TOGGLE_KEYS: ReadonlyArray<string> = [
     'additionalPages',
     'features'
 ];
-
-export const MAX_SIZE_FILE_SEARCH_INDEX = 50000;
-
-/**
- * Max length for the string of a file during cheerio parsing.
- * Prevent stack size exceeded
- */
-export const MAX_SIZE_FILE_CHEERIO_PARSING = 400000000;

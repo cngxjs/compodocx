@@ -24,7 +24,6 @@ export interface MainDataInterface {
     hideGenerator: boolean;
     hideDarkModeToggle: boolean;
     hasFilesToCoverage: boolean;
-    modules: any;
     readme: boolean;
     readmeAiGenerated?: string | true;
     changelog: string;
@@ -73,14 +72,14 @@ export interface MainDataInterface {
     /**
      * When true, suppresses the Playground tab on component pages even if
      * `@playground` blocks were parsed. Default false. Independent of
-     * `disableDependenciesTab` — that flag only controls the dependency graph.
+     * `disableDependenciesTab` - that flag only controls the dependency graph.
      */
     disablePlaygroundTab: boolean;
     /**
      * Fail the build when a non-vendored `@playground` imports a subpath or
      * named symbol that is absent from the version of the package pinned in
      * the consumer's `node_modules`. Default false → such breakage only warns.
-     * Vendored packages (`playgroundVendor`) are exempt — they ship the local
+     * Vendored packages (`playgroundVendor`) are exempt - they ship the local
      * build, not the registry version. CLI: `--strictPlaygrounds`.
      */
     strictPlaygrounds: boolean;
@@ -160,10 +159,10 @@ export interface MainDataInterface {
     };
     /**
      * Config-only override map for `@playground` manifests. Wins over the
-     * consumer-`package.json` auto-forward — use it for libraries the
+     * consumer-`package.json` auto-forward - use it for libraries the
      * consumer hosts but doesn't `npm install` directly (peer-only CSS
      * themes, dev-time-only deps), or to pin a specific version per build.
-     * No CLI flag — this surfaces only via `compodocx.config.json`.
+     * No CLI flag - this surfaces only via `compodocx.config.json`.
      */
     playgroundDependencies: Record<string, string>;
     /**
@@ -171,7 +170,7 @@ export interface MainDataInterface {
      * `mat-typography mat-app-background` body classes) into every generated
      * `@playground` `index.html`, independent of Material auto-detect. Lets a
      * playground themed to look like Material via a Sass theme bridge get the
-     * shell without pulling `@angular/material`. No CLI flag — config-only.
+     * shell without pulling `@angular/material`. No CLI flag - config-only.
      */
     playgroundMaterialShell: boolean;
     /**
@@ -187,19 +186,19 @@ export interface MainDataInterface {
     playgroundFileCountCap: number;
     /**
      * Per-file character cap before truncation (`playgroundFileCap`, default
-     * `STACKBLITZ_FILE_CAP`). No CLI flag — config-only.
+     * `STACKBLITZ_FILE_CAP`). No CLI flag - config-only.
      */
     playgroundFileCap: number;
     /**
      * Arbitrary `<head>` entries injected into every generated `@playground`
      * `index.html` (after the Material shell links, when present). For custom
-     * fonts, meta tags, CSP, or preloads. No CLI flag — config-only.
+     * fonts, meta tags, CSP, or preloads. No CLI flag - config-only.
      */
     playgroundHead: string[];
     /**
      * Global CSS appended to every generated `@playground` `src/styles.css`,
      * after the default body reset. For fonts, resets, or any global rules the
-     * examples depend on. No CLI flag — config-only.
+     * examples depend on. No CLI flag - config-only.
      */
     playgroundGlobalStyles: string;
     /**
@@ -207,14 +206,14 @@ export interface MainDataInterface {
      * StackBlitz projects from the locally built `dist/`. When a playground
      * imports a matching package, its whole dist dir (plus the transitive
      * closure of other matching packages) is embedded in the manifest and
-     * wired as a `file:` dependency — so the playground runs against the
-     * working tree, not the last published release. No CLI flag — config-only.
+     * wired as a `file:` dependency - so the playground runs against the
+     * working tree, not the last published release. No CLI flag - config-only.
      */
     playgroundVendor: string[];
     /**
      * Base directory the `playgroundVendor` closure is read from. Each matched
      * package is located by its `package.json` `name`, anywhere under this
-     * root. Defaults to `dist`. No CLI flag — config-only.
+     * root. Defaults to `dist`. No CLI flag - config-only.
      */
     playgroundVendorRoot: string;
     /**
@@ -222,14 +221,14 @@ export interface MainDataInterface {
      * closure (`playgroundVendorCap`). Defaults to {@link
      * STACKBLITZ_VENDOR_TOTAL_CAP}, set under StackBlitz's project-POST limit
      * so a build fails fast rather than producing a manifest that 413s. No CLI
-     * flag — config-only.
+     * flag - config-only.
      */
     playgroundVendorCap: number;
     /**
      * Keep `*.map` sourcemaps in vendored packages
      * (`playgroundVendorIncludeSourcemaps`, default `false`). Sourcemaps are a
      * large slice of FESM byte size and the WebContainer build never needs
-     * them, so they are dropped unless this is set. No CLI flag — config-only.
+     * them, so they are dropped unless this is set. No CLI flag - config-only.
      */
     playgroundVendorIncludeSourcemaps: boolean;
     /**
@@ -245,7 +244,7 @@ export interface MainDataInterface {
      * `${componentName}:${blockIndex}`. Populated in `application.ts` after
      * the dep-graph build by walking every component/directive/etc with at
      * least one `@playground` block carrying `fileRef`. Failed reads warn via
-     * `logger.warn` and the entry is skipped — the manifest builder then
+     * `logger.warn` and the entry is skipped - the manifest builder then
      * surfaces a "Project assembly failed" fallback for that block.
      */
     playgroundFiles: Record<string, FileRefBundle>;

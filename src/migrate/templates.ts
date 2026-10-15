@@ -1,5 +1,5 @@
 /**
- * `compodocx migrate templates <hbs-dir> --out <js-dir>` — directory walker.
+ * `compodocx migrate templates <hbs-dir> --out <js-dir>` - directory walker.
  *
  * Walks a compodoc-style template directory looking for `.hbs` partials,
  * converts each one via `convertTemplate`, and writes the result to the

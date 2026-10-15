@@ -32,7 +32,7 @@ export type ShownAlias = string;
 export type HiddenAlias = number;
 `
         );
-        Configuration.mainData.publicApiOnly = true;
+        Configuration.mainData.publicApiOnly = tmpDir;
         Configuration.mainData.publicApiExports = new Map(
             ['shownFn', 'ShownEnum', 'ShownAlias'].map(name => [name, new Set([file])])
         );
@@ -93,7 +93,7 @@ describe('AngularDependencies - public API filter on the resolved map', () => {
             'export function pub(): void {}\nexport function other(): void {}\n'
         );
         fs.writeFileSync(barrel, "export { pub } from './a';\n");
-        Configuration.mainData.publicApiOnly = true;
+        Configuration.mainData.publicApiOnly = tmpDir;
         Configuration.mainData.publicApiExports = new Map([['pub', new Set([barrel])]]);
     });
 

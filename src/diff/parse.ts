@@ -3,7 +3,7 @@
  *
  * Reads a `documentation.json` file from disk, validates the JSON shape, and
  * confirms the snapshot was produced by a compodocx ≥ 0.3.0 release (i.e. has
- * a numeric `schemaVersion` field). Pre-v0.3.0 outputs are unversioned —
+ * a numeric `schemaVersion` field). Pre-v0.3.0 outputs are unversioned -
  * those need re-exporting before the diff can run.
  *
  * The gate is intentionally strict: comparing across schema versions silently
@@ -32,7 +32,7 @@ export const parseExportFile = (file: string): Result<ParsedExport> => {
 
 /**
  * Same gate, but reads from a pre-loaded JSON string. Useful for tests and
- * for piping (`cat ... | compodocx diff ...` — out of scope for v0.3.0 but
+ * for piping (`cat ... | compodocx diff ...` - out of scope for v0.3.0 but
  * the seam is here).
  */
 export const parseExportSource = (raw: string, label: string): Result<ParsedExport> => {

@@ -23,7 +23,7 @@ const ANGULAR_CORE = '@angular/core';
  * Angular APIs that need an injection context unless an injector is passed.
  * `takeUntilDestroyed` is exempt when it gets a `DestroyRef` argument.
  */
-export const CONTEXT_APIS: ReadonlySet<string> = new Set([
+const CONTEXT_APIS: ReadonlySet<string> = new Set([
     'effect',
     'toSignal',
     'toObservable',
@@ -97,7 +97,7 @@ export const injectAliases = (sourceFile: ts.SourceFile): ReadonlySet<string> =>
     );
 
 /** The Angular API a call targets, as `{ name, module }`, or undefined. */
-export const angularCallee = (
+const angularCallee = (
     call: ts.CallExpression,
     imports: AngularImports
 ): { readonly name: string; readonly module: string } | undefined => {

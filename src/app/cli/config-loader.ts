@@ -3,7 +3,7 @@ import type { Command } from 'commander';
 import { type CosmiconfigResult, cosmiconfigSync } from 'cosmiconfig';
 import * as fs from 'fs-extra';
 
-import { err, ok, type Result } from '../../lib';
+import { err, isErr, ok, type Result } from '../../lib';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { parseJsonIndent } from '../../utils/json-indent.util';
 import { logger } from '../../utils/logger';
@@ -100,7 +100,7 @@ const isStringList = (value: unknown): value is string[] =>
  * `styleFiles` from the config file: a list of non-empty glob strings,
  * relative to the config file's folder. Anything else warns and is ignored.
  */
-export function applyStyleFilesConfig(
+function applyStyleFilesConfig(
     configFile: Partial<ConfigurationFileInterface>,
     mainData: MainDataInterface,
     sources: ApplySources
@@ -121,7 +121,7 @@ export function applyStyleFilesConfig(
  * `features`, `featureContainers`, `featureUtilityFolders` and `featureRoleFolders` from the config
  * file. Invalid entries warn once each and are ignored; the run goes on.
  */
-export function applyFeatureConfig(
+function applyFeatureConfig(
     configFile: Partial<ConfigurationFileInterface>,
     mainData: MainDataInterface
 ): void {
@@ -238,7 +238,7 @@ export function applyConfigToMainData(
         mainData.theme = 'default';
     }
 
-    // --extTheme is a deprecated alias — treat as custom theme path
+    // --extTheme is a deprecated alias - treat as custom theme path
     if (mainData.extTheme && !mainData.theme) {
         mainData.theme = mainData.extTheme;
     }
@@ -390,7 +390,7 @@ export function applyConfigToMainData(
     }
 
     // Backstop closure cap. Floor keeps a meaningful payload; ceiling is the
-    // observed StackBlitz POST limit — raising past it re-opens the 413.
+    // observed StackBlitz POST limit - raising past it re-opens the 413.
     setPlaygroundCap(configFile.playgroundVendorCap, 50_000, STACKBLITZ_POST_LIMIT, n => {
         mainData.playgroundVendorCap = n;
     });
@@ -474,7 +474,7 @@ export function applyConfigToMainData(
 
     if (configFile.jsonIndent !== undefined) {
         const result = parseJsonIndent(configFile.jsonIndent, 'config');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }
@@ -488,7 +488,7 @@ export function applyConfigToMainData(
     // override a config-file `4` because both stringify to the default).
     if (program.getOptionValueSource('jsonIndent') === 'cli') {
         const result = parseJsonIndent(programOptions.jsonIndent, 'flag');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }
@@ -497,7 +497,7 @@ export function applyConfigToMainData(
 
     // Multi-version flags. Order matters: pick up config-file values
     // first, then let CLI flags override only when they were actually
-    // passed (F22 — distinguishing default from user-provided).
+    // passed (F22 - distinguishing default from user-provided).
     if (typeof configFile.multiVersion === 'boolean') {
         mainData.multiVersion = configFile.multiVersion;
     }
@@ -524,7 +524,7 @@ export function applyConfigToMainData(
 
     if (configFile.maxVersionsShown !== undefined) {
         const result = parseMaxVersionsShown(configFile.maxVersionsShown, 'config');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }
@@ -532,7 +532,7 @@ export function applyConfigToMainData(
     }
     if (program.getOptionValueSource('maxVersionsShown') === 'cli') {
         const result = parseMaxVersionsShown(programOptions.maxVersionsShown, 'flag');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }
@@ -818,7 +818,7 @@ export function applyConfigToMainData(
 
     if (configFile.maxSearchResults !== undefined) {
         const result = parseMaxSearchResults(configFile.maxSearchResults, 'config');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }
@@ -826,7 +826,7 @@ export function applyConfigToMainData(
     }
     if (program.getOptionValueSource('maxSearchResults') === 'cli') {
         const result = parseMaxSearchResults(programOptions.maxSearchResults, 'flag');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }

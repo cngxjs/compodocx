@@ -3,7 +3,7 @@ import { highlightCode } from '../../app/engines/syntax-highlight.engine';
 /** Remove common leading whitespace from all lines (dedent). */
 const dedent = (code: string): string => {
     const lines = code.split('\n');
-    // Find minimum indentation across non-empty lines (skip first line — often unindented)
+    // Find minimum indentation across non-empty lines (skip first line - often unindented)
     let minIndent = Infinity;
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i];
@@ -24,7 +24,7 @@ const dedent = (code: string): string => {
 /**
  * Wrap raw code in Shiki-highlighted `<pre>` (multi-line / >80 chars) or
  * highlighted inline `<code>` (short single-line). Accepts **plain text only**
- * — never pass pre-linked HTML through this function.
+ * - never pass pre-linked HTML through this function.
  */
 export const highlightedCodeWrap = (raw: unknown, lang = 'typescript'): string => {
     const str = String(raw ?? '');

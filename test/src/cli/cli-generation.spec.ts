@@ -1014,7 +1014,7 @@ describe('CLI simple generation', () => {
                     '-s',
                     '-r',
                     '-r',
-                    port,
+                    String(port),
                     '-d',
                     distFolder
                 ],

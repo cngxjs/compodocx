@@ -29,7 +29,7 @@ export const BlockProperty = (props: BlockPropertyProps): string => {
     if (custom !== null) {
         return custom;
     }
-    // `title: ''` is an explicit opt-out — see BlockMethod for the same pattern.
+    // `title: ''` is an explicit opt-out - see BlockMethod for the same pattern.
     const showHeading = props.title !== '';
     const sectionId = props.id ?? (props.title ? props.title.toLowerCase() : 'properties');
     return (

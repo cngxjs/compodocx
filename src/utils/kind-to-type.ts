@@ -1,6 +1,6 @@
 import { SyntaxKind } from 'ts-morph';
 
-export enum KindType {
+enum KindType {
     UNKNOWN = 'unknown',
     STRING = 'string',
     NUMBER = 'number',

@@ -1,7 +1,7 @@
 import { escapeHtmlText } from '../../templates/helpers/escape';
 
 type ShikiTransformer = {
-    line?: (this: unknown, hast: HastElement, line: number) => HastElement | undefined;
+    line?: (this: unknown, hast: HastElement, line: number) => void;
     postprocess?: (this: unknown, html: string, options: unknown) => string | undefined;
 };
 
@@ -140,7 +140,7 @@ export function highlightCode(code: string, optionsOrLang?: HighlightOptions | s
 // ---------------------------------------------------------------------------
 
 /** Detect foldable import blocks and decorator metadata blocks. */
-export function detectFoldRegions(code: string): FoldRegion[] {
+function detectFoldRegions(code: string): FoldRegion[] {
     const lines = code.split('\n');
     const regions: FoldRegion[] = [];
 
@@ -287,16 +287,16 @@ const KEYWORD_BLACKLIST = new Set([
 ]);
 
 /**
- * Detect class members and top-level declarations. Line-by-line regex — not
+ * Detect class members and top-level declarations. Line-by-line regex - not
  * a full parser. Emits:
  *
- * - Top-level entity-likes (`class`, `interface`, `enum`) — become a scope so
+ * - Top-level entity-likes (`class`, `interface`, `enum`) - become a scope so
  *   subsequent indented modifier/method/property lines get scoped under them
  *   (`ClassName.methodName`).
- * - Top-level non-entities (`function`, exported `const`/`let`, `type`) —
+ * - Top-level non-entities (`function`, exported `const`/`let`, `type`) -
  *   emitted as their own member, do NOT become a scope (indented lines
  *   inside a `const X = { ... }` body are NOT treated as properties).
- * - Class-body members — only when a `currentClass` is set.
+ * - Class-body members - only when a `currentClass` is set.
  */
 /** Count leading whitespace columns (each tab = 4 spaces). */
 const leadingIndent = (line: string): number => {

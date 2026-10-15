@@ -2,7 +2,7 @@ import Html from '@kitajs/html';
 import { linkTypeHtml, parseDescription, t } from '../helpers';
 
 /** Parse inject() modifiers from the defaultValue string. */
-export const parseInjectModifiers = (defaultValue: string): string[] => {
+const parseInjectModifiers = (defaultValue: string): string[] => {
     const mods: string[] = [];
     if (!defaultValue) {
         return mods;

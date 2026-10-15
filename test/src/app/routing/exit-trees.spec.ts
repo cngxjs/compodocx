@@ -20,7 +20,7 @@ const treeOf = (dir: string): string => {
         })
         .sort();
     const program = createSemanticProgram(path.join(root, 'tsconfig.json'), files);
-    if (!program.ok) {
+    if (program.ok === false) {
         throw new Error(program.message);
     }
     const symbolOf = declarationKey(CWD);

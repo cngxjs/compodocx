@@ -11,6 +11,7 @@ import Configuration from './app/configuration';
 import FileEngine from './app/engines/file.engine';
 import type { RunOutcome } from './app/run';
 import { createSession, runSession, serveOnly } from './app/run/run-compodocx';
+import { isErr } from './lib';
 import { parseApiMarkdownExports } from './utils/api-markdown-parser.util';
 import { logger } from './utils/logger';
 import { parsePublicApi } from './utils/public-api-parser.util';
@@ -57,7 +58,7 @@ function exitOnHalt(outcome: RunOutcome): void {
  */
 export async function runCli(argv: string[]): Promise<void> {
     // Intercept `compodocx migrate <subcommand>` BEFORE the main commander
-    // parses argv — the migrate CLI has its own subcommand surface and
+    // parses argv - the migrate CLI has its own subcommand surface and
     // shouldn't be treated as an unknown option.
     if (argv[2] === 'migrate') {
         const { runMigrateCli } = await import('./migrate');
@@ -65,7 +66,7 @@ export async function runCli(argv: string[]): Promise<void> {
         process.exit(exitCode);
     }
 
-    // Same gate for `compodocx diff <flags>` — the diff CLI compares two
+    // Same gate for `compodocx diff <flags>` - the diff CLI compares two
     // documentation.json snapshots and has its own --old/--new surface.
     if (argv[2] === 'diff') {
         const { runDiffCli } = await import('./diff');
@@ -73,7 +74,7 @@ export async function runCli(argv: string[]): Promise<void> {
         process.exit(exitCode);
     }
 
-    // `compodocx playground:validate <docsDir>` — compile every embedded
+    // `compodocx playground:validate <docsDir>` - compile every embedded
     // @playground (npm install + ng build) and report pass/fail. CI gate,
     // decoupled from the doc-generation surface.
     if (argv[2] === 'playground:validate') {
@@ -100,7 +101,7 @@ export async function runCli(argv: string[]): Promise<void> {
         explicitConfigPath: programOptions.config,
         cwd: process.cwd()
     });
-    if (!configResult.ok) {
+    if (isErr(configResult)) {
         logger.error(configResult.message);
         process.exit(1);
     }
@@ -262,7 +263,7 @@ export async function runCli(argv: string[]): Promise<void> {
                 // root, which is only known after tsconfig resolution.
                 //
                 // Non-html exports (json, llm-md) emit a single snapshot
-                // — there is nothing to navigate between — so the
+                // - there is nothing to navigate between - so the
                 // version-folder rewrite is skipped for them and the
                 // user keeps the legacy flat layout for their snapshot.
                 if (
@@ -276,7 +277,7 @@ export async function runCli(argv: string[]): Promise<void> {
                         projectRoot: cwd,
                         cwd: process.cwd()
                     });
-                    if (!resolved.ok) {
+                    if (isErr(resolved)) {
                         logger.error(resolved.message);
                         process.exit(2);
                     }

@@ -19,7 +19,7 @@ import type { MainDataInterface } from '../interfaces/main-data.interface';
 import { featureSegments, placeInFolders, type SymbolTable, toSymbolKey } from '../links';
 
 /** File system answers for the feature detection, paths relative to `cwd`. */
-export const nodeFeatureFs = (cwd: string): FeatureFs => {
+const nodeFeatureFs = (cwd: string): FeatureFs => {
     const stat = (rel: string) => {
         try {
             return fs.statSync(path.resolve(cwd, rel));
@@ -143,7 +143,7 @@ const withStyleMembers = (
         }
         featureOf.set(style.key, id);
         if (!known.has(id)) {
-            added.set(id, { ...feature, styleOnly: true });
+            added.set(id, feature);
         }
     }
     const features = [...detection.model.features, ...added.values()].sort(

@@ -2,7 +2,7 @@
  * Markdown formatting + escaping helpers for the llm-md emitter.
  *
  * Pure functions, no side effects. Output is meant for a model context
- * window — token-density beats visual fidelity, so descriptions collapse to a
+ * window - token-density beats visual fidelity, so descriptions collapse to a
  * single line and inline `code` segments are preferred over fenced blocks.
  */
 
@@ -69,7 +69,7 @@ export const escapeMarkdown = (input: string | undefined): string => {
 
 /**
  * Render a string for an inline ``code`` span. Backticks inside the string
- * force a longer fence so the surrounding span stays balanced — matches
+ * force a longer fence so the surrounding span stays balanced - matches
  * CommonMark's "use n+1 backticks if the content has runs of n" rule.
  */
 export const inlineCode = (input: string | undefined): string => {
@@ -96,7 +96,7 @@ export const inlineCode = (input: string | undefined): string => {
 
 /**
  * Format a property signature: `name: type = default` (with `?` when
- * optional). Backticks in user values are not escaped here — the caller wraps
+ * optional). Backticks in user values are not escaped here - the caller wraps
  * the result via `inlineCode()`, which handles fence widening.
  */
 export const formatPropertySignature = (
@@ -135,7 +135,7 @@ export const formatMethodSignature = (
  * Hard cap on individual signature values (types, default values, return
  * types). Embedded base64 images, very long string literals, and giant
  * union types would otherwise blow the markdown to multi-megabyte size and
- * waste the LLM's context budget. The cap is intentionally tight — anyone
+ * waste the LLM's context budget. The cap is intentionally tight - anyone
  * who needs the full value reads the source.
  */
 export const SIGNATURE_VALUE_CAP = 160;

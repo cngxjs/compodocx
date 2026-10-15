@@ -17,6 +17,3 @@ export const isToggled = (type: string): boolean => {
     }
     return items.indexOf(type) !== -1; // open iff explicitly listed
 };
-
-/** Strip path prefix: 'images/' + 'foo/bar/logo.png' -> 'images/logo.png' */
-export const stripUrl = (prefix: string, url: string): string => prefix + url.split('/').pop();

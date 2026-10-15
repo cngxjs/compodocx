@@ -21,8 +21,8 @@ const routeLines = (routes: readonly ExportRoute[], depth = 0): string[] =>
 const exportedRoutes = (folder: string): ExportRouteRoot[] =>
     (JSON.parse(read(`${folder}/documentation.json`)) as ExportData).routes ?? [];
 
-describe('CLI Routes graph', () => {
-    const distFolder = `${tmp.name}-routes-graph`;
+describe('CLI Routes', () => {
+    const distFolder = `${tmp.name}-routes`;
 
     describe('disable it', () => {
         beforeAll(() => {

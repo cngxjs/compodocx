@@ -155,7 +155,7 @@ describe('loadConfigFile', () => {
     it('returns ok({}) when no config file is found in cwd', () => {
         const result = loadConfigFile({ cwd: tmpDir });
         expect(result.ok).toBe(true);
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.config).toEqual({});
@@ -169,7 +169,7 @@ describe('loadConfigFile', () => {
         );
         const result = loadConfigFile({ cwd: tmpDir });
         expect(result.ok).toBe(true);
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.config).toMatchObject({ theme: 'ocean', port: 9000 });
@@ -180,7 +180,7 @@ describe('loadConfigFile', () => {
         fs.writeFileSync(path.join(tmpDir, file), JSON.stringify({ theme: 'ocean' }));
         const result = loadConfigFile({ cwd: tmpDir });
         expect(result.ok).toBe(true);
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.config).toMatchObject({ theme: 'ocean' });
@@ -202,7 +202,7 @@ describe('loadConfigFile', () => {
         fs.writeFileSync(path.join(tmpDir, '.compodocxrc.json'), JSON.stringify({ theme: 'b' }));
         const result = loadConfigFile({ cwd: tmpDir });
         expect(result.ok).toBe(true);
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.config).toMatchObject({ theme: 'b' });
@@ -214,7 +214,7 @@ describe('loadConfigFile', () => {
         fs.writeFileSync(explicit, JSON.stringify({ theme: 'midnight' }));
         const result = loadConfigFile({ explicitConfigPath: explicit, cwd: tmpDir });
         expect(result.ok).toBe(true);
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.config).toMatchObject({ theme: 'midnight' });
@@ -225,7 +225,7 @@ describe('loadConfigFile', () => {
         fs.writeFileSync(broken, '{ this is not json');
         const result = loadConfigFile({ explicitConfigPath: broken, cwd: tmpDir });
         expect(result.ok).toBe(false);
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).toContain('Failed to load configuration file');

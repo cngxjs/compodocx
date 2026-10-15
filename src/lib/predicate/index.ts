@@ -15,7 +15,7 @@ export const isUnique = <T>(value: T, index: number, array: readonly T[]): boole
 /**
  * Curried own-property guard. `hasProp('foo')(obj)` narrows `obj` to
  * `obj & Record<'foo', unknown>`. Uses `Object.prototype.hasOwnProperty.call`
- * (not `in`) so inherited properties are excluded — matches how
+ * (not `in`) so inherited properties are excluded - matches how
  * structured-data parsers treat plain JSON objects.
  */
 export const hasProp =

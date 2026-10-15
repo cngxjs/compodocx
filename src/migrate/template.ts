@@ -1,8 +1,8 @@
 /**
- * `compodocx migrate template <file.hbs>` — single-file converter.
+ * `compodocx migrate template <file.hbs>` - single-file converter.
  *
  * Pipeline:
- *  1. Hard-limit detection (page-layout, unknown override) — rejects with
+ *  1. Hard-limit detection (page-layout, unknown override) - rejects with
  *     a descriptive error and no output.
  *  2. AST parse + emit (`emit.ts`).
  *  3. Format the wrapped JS via Biome (best-effort; raw output if Biome fails).

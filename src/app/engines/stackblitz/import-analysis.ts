@@ -8,7 +8,7 @@ import { resolvePackageRoot } from './import-specifiers';
  * symbol that only exists in the working tree (or a yet-unreleased version),
  * it compiles locally but hard-fails in the StackBlitz sandbox. This module
  * resolves each bare import against the version actually installed in the
- * consumer's `node_modules` and reports what the pinned version is missing —
+ * consumer's `node_modules` and reports what the pinned version is missing -
  * catching the breakage at docs-build time instead of on Launch.
  *
  * Two layers: a pure source scanner (`extractImports`) and a pure validator
@@ -24,7 +24,7 @@ export interface ParsedImport {
     /** Full module specifier, incl. subpath (`@cngx/ui/tabs`). */
     specifier: string;
     /**
-     * Exported names the statement pulls in — the ORIGINAL export name, not
+     * Exported names the statement pulls in - the ORIGINAL export name, not
      * the local alias (`import { A as B }` → `A`). A default import records
      * `default`; namespace (`* as N`) and side-effect imports record nothing.
      */
@@ -119,7 +119,7 @@ const parseClause = (clause: string): string[] => {
 
 /**
  * Scan TS/JS source for bare (non-relative) imports. Relative imports are
- * skipped — they ship inlined, not from the registry. Deduped by specifier,
+ * skipped - they ship inlined, not from the registry. Deduped by specifier,
  * with names merged. Pure.
  */
 export function extractImports(source: string): ParsedImport[] {
@@ -205,7 +205,7 @@ const normalizeRel = (p: string): string => p.replace(/^\.?\//, '');
  * Heuristic export-presence check over a `.d.ts`. Returns `true` if the symbol
  * is exported, `false` if it is provably absent, and `null` when the file
  * re-exports via wildcard (`export * from`) so presence can't be determined
- * statically — callers treat `null` as "don't warn".
+ * statically - callers treat `null` as "don't warn".
  */
 const symbolPresence = (dts: string, symbol: string): boolean | null => {
     if (symbol === 'default') {
@@ -219,7 +219,7 @@ const symbolPresence = (dts: string, symbol: string): boolean | null => {
         return true;
     }
     if (/\bexport\s*\*\s*from\b/.test(dts)) {
-        return null; // wildcard re-export — indeterminate
+        return null; // wildcard re-export - indeterminate
     }
     return false;
 };
@@ -227,7 +227,7 @@ const symbolPresence = (dts: string, symbol: string): boolean | null => {
 /**
  * Validate every bare import in `imports` against the installed version of its
  * package. `skip` holds specifiers/roots handled elsewhere (Angular peers,
- * vendored `file:` packages). Packages not installed are skipped silently —
+ * vendored `file:` packages). Packages not installed are skipped silently -
  * the manifest's auto-forward already dropped them. Pure apart from `reader`.
  */
 export function validateImports(
@@ -250,7 +250,7 @@ export function validateImports(
         }
         const subpath = subpathOf(imp.specifier, root);
 
-        // Subpath check — only meaningful when the package declares `exports`.
+        // Subpath check - only meaningful when the package declares `exports`.
         if (pkg.exports !== undefined && !subpathResolves(pkg.exports, subpath)) {
             issues.push({
                 specifier: imp.specifier,
@@ -261,7 +261,7 @@ export function validateImports(
             continue; // can't check symbols of an unresolved subpath
         }
 
-        // Symbol check — read the entry typings and look for each name.
+        // Symbol check - read the entry typings and look for each name.
         if (imp.names.length === 0) {
             continue;
         }

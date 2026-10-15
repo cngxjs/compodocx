@@ -10,7 +10,7 @@ interface EmptyStateProps {
 }
 
 /**
- * Shared empty state component — renders server-side, no client JS.
+ * Shared empty state component - renders server-side, no client JS.
  *
  * - compact: inline row for member sections (no inputs, no methods)
  * - full: centered column for empty tabs, empty index listings

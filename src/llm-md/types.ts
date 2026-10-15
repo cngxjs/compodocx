@@ -13,7 +13,7 @@ import type { ExportData, VolatileExportField } from '../app/interfaces/export-d
 /**
  * Subset of `ExportData` reused for the llm-md preamble line. Derived from the
  * runtime constant via `(typeof VOLATILE_EXPORT_FIELDS)[number]` so adding a
- * new volatile field automatically widens this shape — never hand-spell the
+ * new volatile field automatically widens this shape - never hand-spell the
  * field literal here.
  */
 export type LlmMdSnapshotMeta = Pick<ExportData, VolatileExportField>;

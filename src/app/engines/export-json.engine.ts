@@ -51,7 +51,7 @@ const styleSourceKey = (componentFile: string, source: StyleSource): string => {
  * used by several components is exported once. Each component keeps the keys
  * of its sources, in collection order.
  */
-export const shareStyleSources = <T extends { file?: string; themeStyleSources?: unknown }>(
+const shareStyleSources = <T extends { file?: string; themeStyleSources?: unknown }>(
     components: readonly T[]
 ): { components: T[]; styleSources: Record<string, ExportStyleSource> } => {
     const styleSources: Record<string, ExportStyleSource> = {};
@@ -173,7 +173,7 @@ const exportFeatureRef = (feature: Feature | undefined): { feature?: ExportFeatu
         : {};
 
 /** The export fields of one symbol's facts; empty lists and `false` are left out. */
-export const exportSemanticFacts = (facts: SymbolFacts, feature?: Feature): ExportSemanticFacts => {
+const exportSemanticFacts = (facts: SymbolFacts, feature?: Feature): ExportSemanticFacts => {
     const di = exportDi(facts.di);
     return {
         ...(facts.entryPoint ? { entryPoint: facts.entryPoint } : {}),
@@ -311,7 +311,7 @@ export const factsJoiner =
         model ? mapEntries(entries, model, space) : entries;
 
 /** Every feature with its family links in both directions. */
-export const exportFeatures = (model: FeatureModel): ExportFeature[] => {
+const exportFeatures = (model: FeatureModel): ExportFeature[] => {
     const linked =
         (pick: (link: FamilyLink) => string, match: (link: FamilyLink) => string) =>
         (id: string): string[] =>

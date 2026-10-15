@@ -6,12 +6,12 @@
  * `@angular/material` + `@angular/cdk` as runtime peers, and adds a prebuilt
  * theme to the project's styles list.
  *
- * Coverage is intentionally narrow — the most common Angular Material 21
+ * Coverage is intentionally narrow - the most common Angular Material 21
  * surfaces. Adding a mapping is a one-line change.
  */
 
 export interface MaterialImport {
-    /** Standalone module symbol — the value that goes into `imports: [...]`. */
+    /** Standalone module symbol - the value that goes into `imports: [...]`. */
     module: string;
     /** Secondary entry to import the module from. */
     importPath: string;
@@ -138,8 +138,8 @@ const SCSS_USE_SPEC_RE = /@(?:use|forward)\s+['"]([^'".~/][^'"]*)['"]/g;
 
 /**
  * Every bare-specifier `@use`/`@forward` target in a Sass source, verbatim
- * (subpath kept). Pure. An SCSS-only dependency — a theme bridge a component
- * pulls in via `@use '@cngx/themes/…'` — is invisible to the TS import scan, so
+ * (subpath kept). Pure. An SCSS-only dependency - a theme bridge a component
+ * pulls in via `@use '@cngx/themes/…'` - is invisible to the TS import scan, so
  * the vendor closure must seed from these too or it ships the dep stale from
  * the registry.
  */

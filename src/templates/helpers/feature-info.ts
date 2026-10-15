@@ -46,12 +46,6 @@ const derive = (model: FeatureModel): Derived => {
     return result;
 };
 
-/** Every feature with its page segments, in model order. */
-export const placedFeatures = (semantic: SemanticModel | undefined): readonly PlacedFeature[] => {
-    const model = semantic?.features;
-    return model ? model.features.map(f => derive(model).byId.get(f.id) as PlacedFeature) : [];
-};
-
 /** The feature of a table entry, its page and its entry point's root feature. */
 export const featureInfoOf = (
     semantic: SemanticModel | undefined,
@@ -95,7 +89,7 @@ export const appRootPath = (semantic: SemanticModel | undefined): string | undef
 };
 
 /** Root-relative path of a feature page's segments, the key of its group. */
-export const featurePathKey = (segments: readonly string[]): string => segments.join('/');
+const featurePathKey = (segments: readonly string[]): string => segments.join('/');
 
 const asItem = (entry: SymbolEntry): EntityWithKind => ({
     ...(entry.data as object),
@@ -159,7 +153,13 @@ export const featureGroups = (
     return groups;
 };
 
-const itemGroups = new WeakMap<object, { model: FeatureModel; groups: Record<string, any[]> }>();
+/** An engine object as far as the grouping reads it. */
+type GroupableItem = { readonly name?: unknown; readonly file?: unknown };
+
+const itemGroups = new WeakMap<
+    object,
+    { model: FeatureModel; groups: Record<string, GroupableItem[]> }
+>();
 
 /**
  * Engine objects of one kind grouped by the page path of their feature, for
@@ -170,8 +170,8 @@ export const groupItemsByFeature = (
     semantic: SemanticModel | undefined,
     table: SymbolTable | undefined,
     kind: TableKind,
-    items: readonly any[] | undefined
-): Record<string, any[]> => {
+    items: readonly GroupableItem[] | undefined
+): Record<string, GroupableItem[]> => {
     const model = semantic?.features;
     if (model === undefined || table === undefined || items === undefined || items.length === 0) {
         return {};
@@ -180,7 +180,7 @@ export const groupItemsByFeature = (
     if (known && known.model === model) {
         return known.groups;
     }
-    const groups: Record<string, any[]> = {};
+    const groups: Record<string, GroupableItem[]> = {};
     for (const item of items) {
         const file = typeof item?.file === 'string' ? item.file : undefined;
         const entry =

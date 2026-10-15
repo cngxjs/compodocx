@@ -80,7 +80,7 @@ export const itemId = (kind: EntityKind | TableKind, item: NamedItem): SymbolId 
 };
 
 /** The placement of the engine object of `kind`. */
-export const placementOfItem = (
+const placementOfItem = (
     view: DiView | undefined,
     kind: EntityKind | TableKind,
     item: NamedItem
@@ -143,18 +143,6 @@ export const isMovedPage = (
         ? !hasOwnPage(view, kind as EntityKind, item as NamedItem)
         : false;
 };
-
-/** Grouped engine objects (each with its own `kind`) without the hidden ones. */
-export const withoutHiddenItems = <T extends { readonly kind?: unknown }>(
-    groups: Record<string, readonly T[]>,
-    view: DiView | undefined
-): Record<string, T[]> =>
-    Object.fromEntries(
-        Object.entries(groups).map(([key, items]) => [
-            key,
-            items.filter(item => !isHiddenItem(view, item.kind as EntityKind, item as never))
-        ])
-    );
 
 /** The feature type whose page documents a symbol with this placement. */
 const clusterOf = (

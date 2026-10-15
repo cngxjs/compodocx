@@ -1,5 +1,5 @@
 /**
- * `compodocx migrate jsdoc` — strips the `@category` and `@docsKind` tags
+ * `compodocx migrate jsdoc` - strips the `@category` and `@docsKind` tags
  * compodocx no longer reads from TypeScript sources. Pure per file; the CLI
  * walks the tree and writes through an `FsAdapter`.
  */
@@ -109,7 +109,7 @@ export const stripRemovedJsdocTags = (file: string, source: string): JsdocStripR
 };
 
 /** `.ts` files below `root` (declaration files, `node_modules` and `dist` skipped), sorted. */
-export const jsdocTargetFiles = (root: string, fs: FsAdapter): string[] => {
+const jsdocTargetFiles = (root: string, fs: FsAdapter): string[] => {
     if (fs.isFile(root)) {
         return root.endsWith('.ts') && !root.endsWith('.d.ts') ? [root] : [];
     }

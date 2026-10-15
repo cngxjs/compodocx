@@ -213,7 +213,7 @@ const SidebarHeader = (props: {
 /**
  * Right-aligned action strip slotted at the very top of the main content
  * area. Holds the theme picker, dark-mode toggle, and (when multi-version
- * is active) the version-switcher dropdown — exactly the controls that
+ * is active) the version-switcher dropdown - exactly the controls that
  * used to live in `cdx-sidebar-actions`. The mobile topbar still carries
  * its own copies; this strip is hidden on viewports where the topbar is
  * shown so we never duplicate visible controls.

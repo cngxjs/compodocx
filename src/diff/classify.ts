@@ -79,9 +79,9 @@ export const summarize = (
 /**
  * Exit-code mapping for the CLI dispatcher.
  *
- *   0 — no breaking, no additive (pure docs-only or unchanged)
- *   1 — at least one additive but no breaking (warning territory)
- *   2 — at least one breaking (CI fail-fast)
+ *   0 - no breaking, no additive (pure docs-only or unchanged)
+ *   1 - at least one additive but no breaking (warning territory)
+ *   2 - at least one breaking (CI fail-fast)
  */
 export const exitCodeFromSummary = (summary: { breaking: number; additive: number }): 0 | 1 | 2 => {
     if (summary.breaking > 0) {

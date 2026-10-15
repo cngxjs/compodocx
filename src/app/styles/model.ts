@@ -44,7 +44,7 @@ export interface StyleSourceFile {
     readonly content: string;
 }
 
-export const styleFileId = (file: string): string => `style:${file}`;
+const styleFileId = (file: string): string => `style:${file}`;
 
 /**
  * A token counts as documented when it has a description, a group, or a type

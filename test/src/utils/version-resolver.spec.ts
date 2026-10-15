@@ -96,7 +96,7 @@ describe('resolveVersion', () => {
             cwd: isolated
         });
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/Cannot determine version label/);
             expect(result.message).toMatch(/--versionLabel/);
             expect(result.message).toMatch(/--no-multiVersion/);

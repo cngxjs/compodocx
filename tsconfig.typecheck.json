@@ -1,0 +1,5 @@
+{
+    "extends": "./tsconfig.json",
+    "include": ["src/**/*", "test/src/**/*", "schematics/**/*"],
+    "exclude": ["src/client", "test/src/client"]
+}

@@ -9,7 +9,7 @@ const splitCommaList = (val: string): string[] => val.split(',');
 /**
  * Register every commander option against the given program in source order.
  * Returns the same program for chaining. Caller is responsible for invoking
- * `.parse(...)` — this function does not touch `process.argv`.
+ * `.parse(...)` - this function does not touch `process.argv`.
  */
 export function defineFlags(program: Command): Command {
     return program
@@ -117,7 +117,6 @@ export function defineFlags(program: Command): Command {
 Double-quotes must be escaped with '\\'. \
 Available tab IDs are "info", "readme", "source", "templateData", "styleData", "tree", and "example". \
 Note: Certain tabs will only be shown if applicable to a given dependency`,
-            splitCommaList,
             JSON.stringify(COMPODOC_DEFAULTS.navTabConfig)
         )
         .option(
@@ -264,16 +263,13 @@ export const REMOVED_FLAG_REASONS: Readonly<Record<string, string>> = {
 };
 
 /** Removed flags that may take a value: a following non-flag token is dropped with them. */
-export const REMOVED_FLAGS: readonly string[] = ['--groupBy', '--groupDepth'];
+const REMOVED_FLAGS: readonly string[] = ['--groupBy', '--groupDepth'];
 
 /**
  * Removed boolean flags: they never take the next token. An inline value
  * (`--disableRoutesGraph=false`) is dropped with the flag.
  */
-export const REMOVED_BOOLEAN_FLAGS: readonly string[] = [
-    '--disableRoutesGraph',
-    '--disableMainGraph'
-];
+const REMOVED_BOOLEAN_FLAGS: readonly string[] = ['--disableRoutesGraph', '--disableMainGraph'];
 
 /**
  * `argv` without the removed flags (and a value following a value flag),

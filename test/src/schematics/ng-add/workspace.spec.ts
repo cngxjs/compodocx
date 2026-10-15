@@ -16,7 +16,7 @@ describe('resolveWorkspaceTarget', () => {
         const result = resolveWorkspaceTarget(tree, '');
 
         expect(result.ok).toBe(true);
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value).toEqual({
@@ -38,7 +38,7 @@ describe('resolveWorkspaceTarget', () => {
         const result = resolveWorkspaceTarget(tree, '');
 
         expect(result.ok).toBe(true);
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.projectName).toBe('my-app');
@@ -59,7 +59,7 @@ describe('resolveWorkspaceTarget', () => {
         const result = resolveWorkspaceTarget(tree, 'app-b');
 
         expect(result.ok).toBe(true);
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.projectName).toBe('app-b');
@@ -80,7 +80,7 @@ describe('resolveWorkspaceTarget', () => {
         const result = resolveWorkspaceTarget(tree, '');
 
         expect(result.ok).toBe(false);
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).toContain('Multiple Angular projects');
@@ -103,7 +103,7 @@ describe('resolveWorkspaceTarget', () => {
         const result = resolveWorkspaceTarget(tree, 'unknown-app');
 
         expect(result.ok).toBe(false);
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).toContain("Project 'unknown-app' not found");
@@ -119,7 +119,7 @@ describe('resolveWorkspaceTarget', () => {
         const result = resolveWorkspaceTarget(tree, '');
 
         expect(result.ok).toBe(false);
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).toMatch(/Could not parse angular\.json/);

@@ -100,7 +100,7 @@ const reinitPage = async () => {
     initCoverage();
     initExamples();
     initAnimations();
-    // Re-bind StackBlitz launchers — `<button class="cdx-playground-launch">`
+    // Re-bind StackBlitz launchers - `<button class="cdx-playground-launch">`
     // tags from the swapped page need a fresh click handler. WeakSet guards
     // inside `initStackblitz` make this idempotent for already-bound buttons.
     initStackblitz();
@@ -127,7 +127,7 @@ const updateActiveLink = (url: string, clickedAnchor: HTMLAnchorElement | null =
     }
 
     const pathname = new URL(url, window.location.origin).pathname;
-    // Normalize: "/" -> "index.html", "/components/Foo.html" -> "components/Foo.html"
+    // Normalize: "/" -> "index.html", "/forms/Foo.html" -> "forms/Foo.html"
     let normalizedPath = pathname.replace(/^\//, '').toLowerCase();
     if (normalizedPath === '' || normalizedPath.endsWith('/')) {
         normalizedPath += 'index.html';

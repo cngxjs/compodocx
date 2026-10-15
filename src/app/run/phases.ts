@@ -225,7 +225,7 @@ const withSemantic = (ctx: RunContext): RunContext => {
         files: ctx.files,
         cwd
     });
-    if (!analyzed.ok) {
+    if (isErr(analyzed)) {
         logger.warn(`Semantic analysis skipped: ${analyzed.message}`);
         mainData.semantic = undefined;
         return { ...ctx, semantic: undefined };
@@ -505,7 +505,7 @@ const PHASE_IMPLS: Readonly<Record<PhaseKey, Stage>> = {
 };
 
 /** The implementation of one phase. */
-export const phaseImpl = (key: PhaseKey): Stage => PHASE_IMPLS[key];
+const phaseImpl = (key: PhaseKey): Stage => PHASE_IMPLS[key];
 
 /**
  * Run every phase of `ctx.mode` in order; the first halt stops the run.

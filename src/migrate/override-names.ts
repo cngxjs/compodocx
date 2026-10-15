@@ -11,7 +11,7 @@
  * The published tarball does NOT include `src/app/` or `src/templates/`, so
  * runtime grep is not an option. The two arrays below are hand-mirrored from
  * those source files; `override-names.spec.ts` enforces parity by re-deriving
- * the lists from disk and comparing — drift fails the test suite.
+ * the lists from disk and comparing - drift fails the test suite.
  */
 
 export const PAGE_LEVEL_OVERRIDES: readonly string[] = [
@@ -96,5 +96,3 @@ export const REMOVED_OVERRIDES: readonly string[] = ['bucket-landing', 'module',
 
 /** The current name of an override, following a rename. */
 export const currentOverrideName = (name: string): string => RENAMED_OVERRIDES[name] ?? name;
-
-export const allWiredOverrides = (): readonly string[] => Array.from(ALL).sort();

@@ -11,7 +11,7 @@ const getCurrentDirectory = ts.sys.getCurrentDirectory;
 const useCaseSensitiveFileNames = ts.sys.useCaseSensitiveFileNames;
 const newLine = ts.sys.newLine;
 
-export function getNewLine(): string {
+function getNewLine(): string {
     return newLine;
 }
 
@@ -19,11 +19,11 @@ export function cleanNameWithoutSpaceAndToLowerCase(name: string): string {
     return name.toLowerCase().replace(/ /g, '-');
 }
 
-export function getCanonicalFileName(fileName: string): string {
+function getCanonicalFileName(fileName: string): string {
     return useCaseSensitiveFileNames ? fileName : fileName.toLowerCase();
 }
 
-export const formatDiagnosticsHost: ts.FormatDiagnosticsHost = {
+const formatDiagnosticsHost: ts.FormatDiagnosticsHost = {
     getCurrentDirectory,
     getCanonicalFileName,
     getNewLine
@@ -100,7 +100,7 @@ export function readConfig(configFile: string): any {
  * Resolve `compilerOptions.paths` and `compilerOptions.baseUrl` from a
  * tsconfig file, following its `extends` chain. TypeScript natively
  * walks the chain when `parseJsonConfigFileContent` is given a fresh
- * readResult — values from the leaf override those from ancestors.
+ * readResult - values from the leaf override those from ancestors.
  *
  * `paths` is returned verbatim; `baseUrl` is rewritten from the
  * absolute path returned by the compiler API back to a path relative
@@ -130,29 +130,15 @@ export function resolveTsconfigPaths(
     return { paths, baseUrl };
 }
 
-export function stripBom(source: string): string {
+function stripBom(source: string): string {
     if (source.charCodeAt(0) === 0xfeff) {
         return source.slice(1);
     }
     return source;
 }
 
-export function hasBom(source: string): boolean {
+function hasBom(source: string): boolean {
     return source.charCodeAt(0) === 0xfeff;
-}
-
-export function handlePath(files: Array<string>, cwd: string): Array<string> {
-    const _files = files;
-    let i = 0;
-    const len = files.length;
-
-    for (i; i < len; i++) {
-        if (files[i].indexOf(cwd) === -1) {
-            files[i] = path.resolve(cwd + path.sep + files[i]);
-        }
-    }
-
-    return _files;
 }
 
 export function cleanLifecycleHooksFromMethods(methods: Array<any>): Array<any> {
@@ -425,37 +411,6 @@ export function detectIndent(str, count): string {
     };
 
     return indentString(stripIndent(str), count || 0);
-}
-
-export function getSubstringFromMultilineString(
-    multilineString: string,
-    startLine: number,
-    startColumn: number,
-    endLine: number,
-    endColumn: number
-) {
-    // Split the string into lines
-    const lines = multilineString.split('\n');
-
-    // Slice the lines from startLine to endLine
-    const selectedLines = lines.slice(startLine - 1, endLine);
-
-    // If startLine and endLine are the same, slice the line from startColumn to endColumn
-    if (startLine === endLine) {
-        selectedLines[0] = selectedLines[0].slice(startColumn + 1, endColumn - 1);
-    } else {
-        // Otherwise, slice the start line from startColumn to the end
-        selectedLines[0] = selectedLines[0].slice(startColumn + 1);
-
-        // And slice the end line from the start to endColumn
-        selectedLines[selectedLines.length - 1] = selectedLines[selectedLines.length - 1].slice(
-            0,
-            endColumn - 1
-        );
-    }
-
-    // Join the lines back together into a single string
-    return selectedLines.join('\n');
 }
 
 export const INCLUDE_PATTERNS = ['**/*.ts', '**/*.tsx'];

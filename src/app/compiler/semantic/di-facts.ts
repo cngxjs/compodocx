@@ -430,7 +430,7 @@ const isPrimitive = (node: ts.TypeNode): boolean =>
     ts.isLiteralTypeNode(node);
 
 /** Shape of a token's type argument. */
-export const tokenShape = (node: ts.TypeNode | undefined, checker: ts.TypeChecker): TokenShape => {
+const tokenShape = (node: ts.TypeNode | undefined, checker: ts.TypeChecker): TokenShape => {
     if (!node) {
         return 'other';
     }

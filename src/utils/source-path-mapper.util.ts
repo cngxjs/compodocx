@@ -5,7 +5,7 @@ import { logger } from './logger';
 /**
  * Utility class for mapping dist declaration file paths to source file paths
  */
-export class SourcePathMapper {
+class SourcePathMapper {
     private distPath: string;
     private sourceRoot: string;
     private cachedMappings: Map<string, string>;

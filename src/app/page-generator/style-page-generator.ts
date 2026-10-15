@@ -100,7 +100,7 @@ const manifestReader = (cwd: string) => {
 };
 
 /** The style entries of the symbol table, in file order. */
-export const styleEntries = (entries: Iterable<SymbolEntry>): readonly SymbolEntry[] =>
+const styleEntries = (entries: Iterable<SymbolEntry>): readonly SymbolEntry[] =>
     [...entries]
         .filter(entry => entry.ref.kind === 'style')
         .sort((a, b) => (a.ref.file < b.ref.file ? -1 : a.ref.file > b.ref.file ? 1 : 0));

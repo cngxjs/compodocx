@@ -1,5 +1,5 @@
 /**
- * `compodocx migrate css <file-or-dir> [--aggressive]` — class-name rewriter.
+ * `compodocx migrate css <file-or-dir> [--aggressive]` - class-name rewriter.
  *
  * Two modes:
  *  - Conservative (default): rewrite class names in `.css` / `.scss` / `.sass`
@@ -165,7 +165,7 @@ const rewriteMarkupOrCode = (file: string, source: string, audit: boolean): Rewr
         const { line, lineText } = lineOf(offset);
         // Never-touch: any line containing `data-compodoc` is preserved as-is.
         // The `data-compodoc="<block-name>"` attribute is the stable
-        // downstream-scraping selector — corrupting the surrounding class is a
+        // downstream-scraping selector - corrupting the surrounding class is a
         // user-visible regression even if the attribute name itself survives.
         if (/data-compodoc/.test(lineText)) {
             return match;

@@ -64,7 +64,7 @@ beforeAll(() => {
         .filter(file => file.endsWith('.ts'))
         .map(file => path.join(dir, file));
     const program = createSemanticProgram(path.join(dir, 'tsconfig.json'), files);
-    if (!program.ok) {
+    if (program.ok === false) {
         throw new Error(program.message);
     }
     const symbolOf = declarationKey(dir);

@@ -6,7 +6,7 @@
  * versions' `redirects.json`: the target's map forward, else the current
  * version's map backward.
  *
- * On `file://`, fetch is uniformly blocked across browsers — render a
+ * On `file://`, fetch is uniformly blocked across browsers - render a
  * static hint and disable the trigger rather than ship a half-working
  * dropdown.
  */
@@ -82,7 +82,7 @@ function wire(widget: HTMLElement): void {
         }
         const sliced = sliceForCap(m.versions, getCap(widget));
         if (sliced.shown.length <= 1) {
-            // Hide entirely — single-version sites don't need a dropdown.
+            // Hide entirely - single-version sites don't need a dropdown.
             collapse(trigger, menu);
             widget.dataset.cdxSingleVersion = 'true';
             widget.style.display = 'none';
@@ -319,9 +319,9 @@ async function redirectCandidates(
 /**
  * Compute the URL that mirrors the current page in the target version.
  *
- * Example: location = `https://docs.example.com/v0.3.0/components/Foo.html`,
+ * Example: location = `https://docs.example.com/v0.3.0/forms/Foo.html`,
  * currentLabel = `v0.3.0`, targetPath = `v0.2.0/` →
- * `https://docs.example.com/v0.2.0/components/Foo.html`.
+ * `https://docs.example.com/v0.2.0/forms/Foo.html`.
  *
  * If the current label is not in the URL (sub-directory misconfiguration,
  * stale switcher script, etc.), returns null and the caller falls back to

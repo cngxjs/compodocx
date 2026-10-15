@@ -5,7 +5,7 @@
  * Panel activation lives here (not in tabs.ts) so the import graph
  * stays one-way: tabs -> hash-router, code-blocks -> hash-router.
  *
- * Line hashes always target the #source panel — template/style tabs
+ * Line hashes always target the #source panel - template/style tabs
  * aren't addressable yet. If you add CSS transitions to tab panels,
  * scrollIntoView will need a rAF wait.
  */
@@ -27,7 +27,7 @@ export const registerLineHandler = (
 };
 
 /** Parse a URL hash into a routing target. Line patterns (#L42)
- *  are checked before DOM lookups — intentional, even if an element
+ *  are checked before DOM lookups - intentional, even if an element
  *  happens to have id="L1". */
 export const resolveHash = (hash: string): HashTarget | null => {
     if (!hash || hash === '#') {
@@ -62,7 +62,7 @@ export const resolveHash = (hash: string): HashTarget | null => {
         return { kind: 'element', panel, element: direct };
     }
 
-    // Element exists but no tab panel — collection pages and other tab-less
+    // Element exists but no tab panel - collection pages and other tab-less
     // layouts (miscellaneous functions/variables/typealiases/enumerations).
     // Without this branch `applyHashTarget` returns early and the SPA router's
     // scroll path silently drops the anchor.
@@ -127,7 +127,7 @@ export const updateHash = (hash: string): void => {
 };
 
 export const initHashRouter = (): void => {
-    // Delegated tab clicks — no re-binding needed after SPA swaps.
+    // Delegated tab clicks - no re-binding needed after SPA swaps.
     document.addEventListener('click', e => {
         const tab = (e.target as HTMLElement).closest<HTMLElement>('[data-cdx-toggle="tab"]');
         if (!tab) {

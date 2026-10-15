@@ -11,7 +11,7 @@ export const tap =
 
 /**
  * Async variant: awaits the side-effect before returning the value.
- * Rejections propagate — a rejected side-effect aborts the pipe.
+ * Rejections propagate - a rejected side-effect aborts the pipe.
  */
 export const tapAsync =
     <T>(fn: (value: T) => void | Promise<void>) =>

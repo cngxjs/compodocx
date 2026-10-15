@@ -208,8 +208,3 @@ export interface Deps {
     imports?: Deps[];
     exports?: Deps[];
 }
-
-export interface SymbolDeps {
-    full: string;
-    alias: string;
-}

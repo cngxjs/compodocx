@@ -182,32 +182,27 @@ test.describe('SPA navigation', () => {
         const initialUrl = page.url();
 
         const entityLink = page.locator('#sidebar a[data-type="entity-link"]').first();
+        await expect(entityLink).toBeAttached();
 
         // Expand the first section unless it already starts expanded
         if (!(await entityLink.isVisible())) {
             const toggler = page.locator('#sidebar [data-cdx-toggle="collapse"]').first();
             await toggler.click();
-            await page.waitForTimeout(300);
         }
+        await expect(entityLink).toBeVisible();
 
-        if ((await entityLink.count()) > 0) {
-            // Mark the sidebar DOM to verify it wasn't replaced
-            await page.evaluate(() => {
-                document.querySelector('#sidebar')?.setAttribute('data-spa-marker', '1');
-            });
+        // Mark the sidebar DOM to verify it wasn't replaced
+        await page.evaluate(() => {
+            document.querySelector('#sidebar')?.setAttribute('data-spa-marker', '1');
+        });
 
-            await entityLink.click();
-            await page.waitForTimeout(500);
+        await entityLink.click();
 
-            // URL changed
-            expect(page.url()).not.toBe(initialUrl);
+        // URL changed
+        await expect(page).not.toHaveURL(initialUrl);
 
-            // Sidebar DOM was preserved (not replaced)
-            const marker = await page.evaluate(() =>
-                document.querySelector('#sidebar')?.getAttribute('data-spa-marker')
-            );
-            expect(marker).toBe('1');
-        }
+        // Sidebar DOM was preserved (not replaced)
+        await expect(page.locator('#sidebar')).toHaveAttribute('data-spa-marker', '1');
     });
 
     test('content scripts execute after SPA navigation', async ({ page }) => {

@@ -26,7 +26,7 @@ export const BlockMethod = (props: BlockMethodProps): string => {
     if (custom !== null) {
         return custom;
     }
-    // `title: ''` is an explicit opt-out — collection pages and misc detail
+    // `title: ''` is an explicit opt-out - collection pages and misc detail
     // pages wrap each block under their own section heading, so the inner
     // `<h3>methods</h3>` would render an empty heading with a stray permalink.
     const showHeading = props.title !== '';

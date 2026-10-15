@@ -43,7 +43,7 @@ const SEVERITY_RANK: Record<Severity, number> = {
 };
 
 /**
- * Console output for a `DiffResult`. Side-effecting — writes via
+ * Console output for a `DiffResult`. Side-effecting - writes via
  * `printLine`/`printSummary`. Returns nothing; caller decides exit code.
  */
 export const renderConsole = (result: DiffResult, suppressNonBreaking: boolean): void => {
@@ -68,7 +68,7 @@ export const renderConsole = (result: DiffResult, suppressNonBreaking: boolean):
 };
 
 /**
- * TTY-aware banner gate (F10 — same shape as the migrate CLI). Banner
+ * TTY-aware banner gate (F10 - same shape as the migrate CLI). Banner
  * suppressed for `--json`, `--md`, `--help`, and any non-TTY (CI / pipe).
  */
 export const shouldShowDiffBanner = (argv: readonly string[]): boolean => {

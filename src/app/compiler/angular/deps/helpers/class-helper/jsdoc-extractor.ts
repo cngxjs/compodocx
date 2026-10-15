@@ -43,7 +43,7 @@ export class JsdocExtractor {
             logger.warn(w);
         }
 
-        // Component-level `@playgroundConfig <path>` — ships an app.config.ts
+        // Component-level `@playgroundConfig <path>` - ships an app.config.ts
         // into every playground project. Only meaningful alongside blocks.
         const { configRef, warnings: configWarnings } = extractJsdocPlaygroundConfig(tags);
         for (const w of configWarnings) {

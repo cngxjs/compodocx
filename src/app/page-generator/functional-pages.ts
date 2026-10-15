@@ -11,7 +11,7 @@ type FunctionalKind = Extract<TableKind, 'guard' | 'interceptor' | 'resolver'>;
  * Functions and constants the table documents as guards, interceptors or
  * resolvers. The engine keeps them with the miscellaneous symbols.
  */
-export const functionalEntries = (kind: FunctionalKind): SymbolEntry[] =>
+const functionalEntries = (kind: FunctionalKind): SymbolEntry[] =>
     [...(Configuration.mainData.symbols?.byId.values() ?? [])].filter(
         entry =>
             entry.ref.kind === kind &&

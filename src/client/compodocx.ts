@@ -37,7 +37,7 @@ const init = () => {
     // initToc(); // TODO: enable when ToC styling is finalized
 };
 
-// ESM modules are deferred — DOMContentLoaded may have already fired
+// ESM modules are deferred - DOMContentLoaded may have already fired
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {

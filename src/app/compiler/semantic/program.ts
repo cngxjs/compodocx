@@ -1,6 +1,6 @@
 import { ts } from 'ts-morph';
 
-import { err, ok, type Result } from '../../../lib';
+import { err, isErr, ok, type Result } from '../../../lib';
 
 /** "No inputs were found": the root files come from the caller, not from the tsconfig. */
 const NO_INPUTS = 18003;
@@ -14,7 +14,7 @@ const formatDiagnostic = (diagnostic: ts.Diagnostic): string =>
  * Compiler options from the tsconfig, following `extends`, `paths` and
  * `baseUrl`. Nothing is emitted and no library or `@types` file is loaded.
  */
-export const readSemanticOptions = (tsconfigPath: string): Result<ts.CompilerOptions> => {
+const readSemanticOptions = (tsconfigPath: string): Result<ts.CompilerOptions> => {
     let unrecoverable: ts.Diagnostic | undefined;
     const parsed = ts.getParsedCommandLineOfConfigFile(
         tsconfigPath,
@@ -76,7 +76,7 @@ export const createSemanticProgram = (
     oldProgram?: ts.Program
 ): Result<ts.Program> => {
     const options = readSemanticOptions(tsconfigPath);
-    if (!options.ok) {
+    if (isErr(options)) {
         return options;
     }
     return ok(

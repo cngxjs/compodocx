@@ -1,5 +1,5 @@
 import { posix } from 'node:path';
-import type { Result } from '../../../lib';
+import { isErr, type Result } from '../../../lib';
 import { extractBareSpecifiers } from './build-playground-manifest';
 import { STACKBLITZ_FILE_COUNT_CAP } from './constants';
 import { rewriteDecoratorUrls, rewriteRelativeImports } from './rewrite-imports';
@@ -7,7 +7,7 @@ import { rewriteDecoratorUrls, rewriteRelativeImports } from './rewrite-imports'
 /**
  * Tiny FS abstraction so the engine module stays I/O-free at its boundary.
  * Production wiring in `application.ts` plugs `readFileSync`/`existsSync`;
- * tests pass a static map. `readFile` returns `null` (not throw) on miss —
+ * tests pass a static map. `readFile` returns `null` (not throw) on miss -
  * keeping the result type local to this module.
  */
 export interface FsReader {
@@ -71,7 +71,7 @@ export interface PlaygroundConfigBundle {
 export type PlaygroundConfigResult = Result<PlaygroundConfigBundle>;
 const STYLE_URLS_RE = /styleUrls\s*:\s*\[([^\]]+)\]/;
 const STYLE_URLS_ITEM_RE = /['"`]([^'"`]+)['"`]/g;
-// "Key is present" detectors — used to turn a key whose value our extractor
+// "Key is present" detectors - used to turn a key whose value our extractor
 // can't parse (computed identifier, interpolated literal) into a clear error
 // instead of a silently-missing sibling.
 const TEMPLATE_URL_PRESENT = /\btemplateUrl\s*:/;
@@ -91,7 +91,7 @@ const flatPath = (resolved: string): string => `${APP_DIR}/${posix.basename(reso
 /**
  * Resolve a `@playground` file reference and (for `.ts` mode) walk its
  * decorator siblings + transitive relative imports into a flat bundle. Pure
- * apart from the injected `FsReader` — easy to unit-test against a static map.
+ * apart from the injected `FsReader` - easy to unit-test against a static map.
  *
  * Result.err on:
  *  - unsupported extension (anything other than `.html` or `.ts`)
@@ -149,14 +149,14 @@ const readTsFileRef = (
     const bareSpecifiers = new Set<string>();
     const entryDir = posix.dirname(entryPath);
 
-    // Decorator siblings — templateUrl / styleUrl / styleUrls. Each is parsed
+    // Decorator siblings - templateUrl / styleUrl / styleUrls. Each is parsed
     // from a string OR plain template literal; a key that is present but whose
     // value our extractor can't resolve (computed identifier or interpolated
     // literal) is reported, never silently skipped into a broken playground.
     const tplMatch = entryContent.match(TEMPLATE_URL_RE);
     if (tplMatch) {
         const sibling = readSibling(entryDir, tplMatch[1], 'templateUrl', fs);
-        if (!sibling.ok) {
+        if (isErr(sibling)) {
             return sibling;
         }
         files[flatPath(sibling.value.path)] = sibling.value.content;
@@ -167,7 +167,7 @@ const readTsFileRef = (
     const styleUrlMatch = entryContent.match(STYLE_URL_RE);
     if (styleUrlMatch) {
         const sibling = readSibling(entryDir, styleUrlMatch[1], 'styleUrl', fs);
-        if (!sibling.ok) {
+        if (isErr(sibling)) {
             return sibling;
         }
         files[flatPath(sibling.value.path)] = sibling.value.content;
@@ -183,12 +183,12 @@ const readTsFileRef = (
         while ((m = STYLE_URLS_ITEM_RE.exec(styleUrlsMatch[1])) !== null) {
             matchedAny = true;
             const sibling = readSibling(entryDir, m[1], 'styleUrls', fs);
-            if (!sibling.ok) {
+            if (isErr(sibling)) {
                 return sibling;
             }
             files[flatPath(sibling.value.path)] = sibling.value.content;
         }
-        // `styleUrls: [foo]` (non-literal items) — array found, nothing parsed.
+        // `styleUrls: [foo]` (non-literal items) - array found, nothing parsed.
         if (!matchedAny) {
             return { ok: false, message: unparseableUrlError('styleUrls') };
         }
@@ -196,7 +196,7 @@ const readTsFileRef = (
         return { ok: false, message: unparseableUrlError('styleUrls') };
     }
 
-    // Pack the entry as app.component.ts. Both transforms run — relative
+    // Pack the entry as app.component.ts. Both transforms run - relative
     // imports flatten to './basename', decorator urls flatten to './basename'.
     // Then append an `AppComponent` alias so `src/main.ts`'s
     // `import { AppComponent } from './app/app.component'` resolves regardless
@@ -257,7 +257,7 @@ const readTsFileRef = (
  * Resolve a `@playgroundConfig <path>` reference. Reads the config `.ts`,
  * places it at `src/app/app.config.ts` (where `src/main.ts` imports
  * `appConfig` from), rewrites its relative imports, and BFS-walks the
- * transitive relative-import closure into flat `src/app/<basename>` paths —
+ * transitive relative-import closure into flat `src/app/<basename>` paths -
  * the same packing the TS file-ref walk uses. The config file must export
  * `appConfig`.
  *
@@ -323,7 +323,7 @@ type SiblingResult = Result<{ path: string; content: string }>;
 
 /**
  * Clear message for a decorator url whose value is present but not a plain
- * string / template literal — a computed identifier or an interpolated
+ * string / template literal - a computed identifier or an interpolated
  * `${…}` path the file-ref walker can't statically resolve.
  */
 const unparseableUrlError = (label: string): string =>

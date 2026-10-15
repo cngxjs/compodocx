@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra';
 
+import { isErr } from '../../lib';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import {
@@ -14,13 +15,13 @@ import {
  * Walk every entity kind that may carry `@playground fileRef` blocks
  * (components/directives/injectables/etc) and resolve each fileRef into
  * a `FileRefBundle` keyed by `${entityName}:${blockIndex}`. Read failures
- * surface as `logger.warn` and skip that block — the manifest builder
+ * surface as `logger.warn` and skip that block - the manifest builder
  * then falls back to its "Project assembly failed" path. Inline-only
  * playgrounds never enter this loop.
  *
  * Also resolves a component-level `@playgroundConfig <path>` once per entity
  * and merges the resulting `app.config.ts` (plus its import closure) into
- * EVERY playground block on that entity — inline blocks get a bundle created
+ * EVERY playground block on that entity - inline blocks get a bundle created
  * for them. The config file overrides the scaffold's default `app.config.ts`,
  * so `bootstrapApplication(App, appConfig)` picks up the author's providers.
  */
@@ -84,7 +85,7 @@ export class PlaygroundFileResolver {
                     const result = readFileRef(block.fileRef, hostFile, fsReader, {
                         maxFiles: Configuration.mainData.playgroundFileCountCap
                     });
-                    if (!result.ok) {
+                    if (isErr(result)) {
                         logger.warn(
                             `Playground "${block.title ?? '<untitled>'}" on ${entity.name}: ${result.message}`
                         );
@@ -93,12 +94,12 @@ export class PlaygroundFileResolver {
                     out[`${entity.name}:${i}`] = result.value;
                 }
 
-                // Component-level `@playgroundConfig` — resolve once, merge into
+                // Component-level `@playgroundConfig` - resolve once, merge into
                 // every block on the entity (creating a bundle for inline ones).
                 const configRef = (entity as { playgroundConfig?: string }).playgroundConfig;
                 if (configRef && hasHost) {
                     const configResult = readPlaygroundConfig(configRef, hostFile, fsReader);
-                    if (!configResult.ok) {
+                    if (isErr(configResult)) {
                         logger.warn(
                             `@playgroundConfig "${configRef}" on ${entity.name}: ${configResult.message}`
                         );
@@ -126,7 +127,7 @@ export class PlaygroundFileResolver {
  * deps win on collision, so the annotation beats a re-exported config). For an
  * inline block (no existing bundle) a minimal config-only bundle is created:
  * `replacesAppComponent: false` and no `htmlSnippet`, so the manifest builder
- * still treats the block as inline but ships the config files — overriding the
+ * still treats the block as inline but ships the config files - overriding the
  * scaffold's default `app.config.ts`.
  */
 const mergeConfigIntoBundle = (

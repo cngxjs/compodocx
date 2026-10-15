@@ -20,14 +20,14 @@ export type EntityIndex = Record<string, EntityIndexEntry>;
 const INDEX_KIND: Readonly<Record<string, string>> = { enumeration: 'enum' };
 
 /** Key prefix of the route entries; symbol names never contain `:`. */
-export const ROUTE_ENTRY_PREFIX = 'route:';
+const ROUTE_ENTRY_PREFIX = 'route:';
 
 /**
  * One entry per distinct full path of the route model, linking its first
  * row on the routes page (`route:/users` -> `routes.html#route-0-2`). The
  * command palette matches them without the search index.
  */
-export const routeEntries = (model: RoutingModel | undefined): EntityIndex => {
+const routeEntries = (model: RoutingModel | undefined): EntityIndex => {
     const entries: EntityIndex = {};
     const walk = (nodes: readonly RouteNode[]): void => {
         for (const node of nodes) {

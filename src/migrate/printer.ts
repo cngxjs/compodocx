@@ -73,7 +73,7 @@ export const printError = (msg: string): void => {
 /**
  * Resolve `src/banner` from either dev-tree (`__dirname/../../src/banner`)
  * or the published tarball (`__dirname/../src/banner` per the `files` whitelist).
- * Returns null if the asset is missing — callers fall back to a plain version
+ * Returns null if the asset is missing - callers fall back to a plain version
  * line so the migrate CLI never crashes on a corrupted install.
  */
 const resolveBannerPath = (): string | null => {
@@ -85,11 +85,11 @@ const resolveBannerPath = (): string | null => {
 };
 
 /**
- * Print the compodocx banner + version + Node info — same block the main CLI
+ * Print the compodocx banner + version + Node info - same block the main CLI
  * shows when a doc-generation run starts. Migrate uses the same block so
  * `compodocx migrate ...` carries the same visual identity as `compodocx -p ...`.
  *
- * Caller decides when to show this — typically `process.stdout.isTTY && !json`.
+ * Caller decides when to show this - typically `process.stdout.isTTY && !json`.
  */
 export const printBanner = (version: string): void => {
     const bannerPath = resolveBannerPath();

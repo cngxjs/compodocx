@@ -1,11 +1,11 @@
 /**
- * `compodocx playground:validate <docsDir>` — CLI dispatcher.
+ * `compodocx playground:validate <docsDir>` - CLI dispatcher.
  *
  * Compiles every `@playground` embedded in a generated documentation folder
  * (`npm install` + `npm run build` per project) and prints a per-playground
  * pass/fail summary. This is the CI gate that catches a broken playground
  * before a user ever clicks Launch. Opt-in and decoupled from the docs build
- * — it reads the produced HTML, never the live pipeline.
+ * - it reads the produced HTML, never the live pipeline.
  *
  * `src/index-cli.ts` intercepts `process.argv[2] === 'playground:validate'`
  * and delegates here. Exit codes: `0` all passed / none found, `1` at least
@@ -73,7 +73,7 @@ const collectManifests = (docsDir: string): ExtractedManifest[] => {
             continue;
         }
         for (const extracted of extractManifestsFromHtml(html, rel)) {
-            // The same playground may render on more than one page — dedupe by id.
+            // The same playground may render on more than one page - dedupe by id.
             if (seen.has(extracted.id)) {
                 continue;
             }

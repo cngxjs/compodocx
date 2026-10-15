@@ -3,7 +3,7 @@
  *
  * Walks the matched entity buckets in two `ExportData` snapshots and emits a
  * flat list of `EntityChange` records. The classifier (`./classify.ts`) is
- * the only stage that assigns severity — `compare()` keeps every change
+ * the only stage that assigns severity - `compare()` keeps every change
  * record at severity `'docs-only'` until the classifier inspects it. That
  * split lets unit tests target rule classification independent of the walk.
  *
@@ -337,7 +337,7 @@ const compareBucket = <T extends ExportEntityCommon>(
     return out;
 };
 
-/** Total entity count across every bucket — drives the `unchanged` summary. */
+/** Total entity count across every bucket - drives the `unchanged` summary. */
 const countEntities = (data: ExportData): number => {
     let total = 0;
     for (const bucket of buckets(data)) {
@@ -359,7 +359,7 @@ export const compare = (
 ): { changes: EntityChange[]; unchanged: number } => {
     // Volatile-strip is required for any byte-equal comparison the consumer
     // does (`unchanged` count, future structural-equal short-circuit). The
-    // strip is iteration-driven via VOLATILE_EXPORT_FIELDS — never duplicate
+    // strip is iteration-driven via VOLATILE_EXPORT_FIELDS - never duplicate
     // the field list (F16).
     const oldStripped = stripVolatileFields(oldData) as ExportData;
     const newStripped = stripVolatileFields(newData) as ExportData;

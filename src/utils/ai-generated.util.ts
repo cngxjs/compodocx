@@ -12,7 +12,7 @@
  * present, or `false` when absent. The marker must appear before any
  * non-whitespace, non-comment content.
  */
-export const AI_GENERATED_MARKER = /^\s*<!--\s*@aiGenerated\s*([^>]*?)\s*-->/i;
+const AI_GENERATED_MARKER = /^\s*<!--\s*@aiGenerated\s*([^>]*?)\s*-->/i;
 
 export const detectAiGeneratedMarker = (
     markdown: string | undefined | null

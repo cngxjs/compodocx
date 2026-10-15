@@ -35,7 +35,7 @@ const ENTITY_TYPES = [
 
 type EntityType = (typeof ENTITY_TYPES)[number];
 
-/** Map entity types to `cdx-badge--entity-<kind>` CSS class suffixes — kept
+/** Map entity types to `cdx-badge--entity-<kind>` CSS class suffixes - kept
  *  in sync with the rules in `src/styles/components/badges.css`. Returns
  *  `'other'` only for non-entity pages (README, CHANGELOG, ...) so they fall
  *  through to the muted "Docs" pill. */
@@ -300,7 +300,7 @@ const FACET_VALUE_LABELS: Record<FacetDim, Record<string, string>> = {
     wcag: {}
 };
 
-/** Active filter state — per dimension, multi-select within (OR), AND
+/** Active filter state - per dimension, multi-select within (OR), AND
  *  across dimensions. Mirrors Pagefind's filter API. */
 const activeFilters: Record<FacetDim, Set<string>> = {
     kind: new Set(),
@@ -334,7 +334,7 @@ const getLoading = (): HTMLElement | null => getDialog()?.querySelector(LOADING_
 
 const getFacets = (): HTMLElement | null => getDialog()?.querySelector('.cdx-cp-facets') ?? null;
 
-/** Pagefind expects `filters: { kind: 'Component' | ['Component', 'Pipe'] }` —
+/** Pagefind expects `filters: { kind: 'Component' | ['Component', 'Pipe'] }` -
  *  single string when one value is selected in a dimension, array otherwise.
  *  Empty dimensions are omitted entirely so they don't constrain the query. */
 const buildFiltersObj = (): Record<string, string | string[]> | undefined => {
@@ -372,7 +372,7 @@ const updateUrlFromState = () => {
     history.replaceState(history.state, '', url);
 };
 
-/** Hydrate active filters + initial query from the current URL — called on
+/** Hydrate active filters + initial query from the current URL - called on
  *  every `openCommandPalette()` so a user navigating into a deep-linked
  *  search URL sees the same state. */
 const hydrateStateFromUrl = (): string => {
@@ -393,7 +393,7 @@ const hydrateStateFromUrl = (): string => {
 };
 
 /** Render the facet rail. Dimensions with 0 or 1 distinct value are
- *  hidden — there's nothing to choose. Active chips stay visible even
+ *  hidden - there's nothing to choose. Active chips stay visible even
  *  when their count drops to 0 (so users can unselect from an empty
  *  intersection). Non-active 0-count chips are filtered out so a
  *  narrow query doesn't drown the dropdown in dead values; remaining
@@ -467,12 +467,12 @@ const loadPagefind = async (): Promise<any> => {
     try {
         pagefind = await import(/* @vite-ignore */ pagefindUrl);
         await pagefind.init();
-        // Pagefind 1.x lazy-loads its filter index — the first `search()`
+        // Pagefind 1.x lazy-loads its filter index - the first `search()`
         // call after `init()` returns `filters: {}` until something
         // touches `filters()`. Warm it up here so the facet rail
         // populates on the very first query instead of staying empty
         // until the user types a second character. Cache the
-        // index-wide result for the empty-palette state — no query, no
+        // index-wide result for the empty-palette state - no query, no
         // active filter → render these global counts so the rail
         // doubles as a "browse the API" affordance.
         try {
@@ -481,7 +481,7 @@ const loadPagefind = async (): Promise<any> => {
                 Record<string, number>
             >;
         } catch {
-            // Indexes built without any filters throw here — silently
+            // Indexes built without any filters throw here - silently
             // ignore so search still works in that case.
             globalFilterCounts = null;
         }
@@ -509,7 +509,7 @@ const renderResults = (list: HTMLElement, empty: HTMLElement, mapped: readonly S
                 meta.push(`<span class="cdx-cp-category">${escapeHtml(r.feature)}</span>`);
             }
             // Prefer Pagefind's match-context snippet (already HTML with
-            // `<mark>` highlights around hit terms) — that's the whole point
+            // `<mark>` highlights around hit terms) - that's the whole point
             // of the search result. Fall back to the cleaned first-sentence
             // description meta when no excerpt is available (Pagefind has no
             // context, e.g. score-driven hits on the title alone).
@@ -555,7 +555,7 @@ const search = async (query: string) => {
         empty.hidden = false;
         empty.textContent = 'Start typing to see results';
         // Surface the global filter counts so an empty palette is a
-        // valid "browse the API" entry point — clicking Interface
+        // valid "browse the API" entry point - clicking Interface
         // narrows to all interfaces without ever typing. Falls back to
         // a hidden rail when no global counts are available (Pagefind
         // still loading, `file://` mode, or an index built without
@@ -605,7 +605,7 @@ const search = async (query: string) => {
         const meta = d.meta || {};
         const parsed = parseEntityType(meta.title || '');
         // Prefer the explicit `data-pagefind-meta="kind:..."` value emitted by
-        // entity heroes (v0.6.0+) — robust against title-format drift. Fall
+        // entity heroes (v0.6.0+) - robust against title-format drift. Fall
         // back to title parsing for pages that predate the meta block
         // (custom templates, README/CHANGELOG without a kind, etc.).
         const metaType = typeof meta.kind === 'string' ? KIND_LABEL_TO_TYPE[meta.kind] : undefined;
@@ -696,7 +696,7 @@ export const openCommandPalette = () => {
         return;
     }
     dialog.showModal();
-    // Hydrate filters + initial query from the current URL — supports
+    // Hydrate filters + initial query from the current URL - supports
     // deep links of the form `?q=toast&kind=Component`.
     const initialQuery = hydrateStateFromUrl();
     const input = getInput();
@@ -736,8 +736,8 @@ export const openCommandPalette = () => {
  *  an active filter the user thought they had dismissed, or a
  *  still-populated input value. The URL is also rolled back to a bare
  *  path so the back/forward buttons stay sane. Wired to the dialog's
- *  native `close` event so it fires for every close path — Esc,
- *  programmatic `close()`, X-button click, and backdrop click — not
+ *  native `close` event so it fires for every close path - Esc,
+ *  programmatic `close()`, X-button click, and backdrop click - not
  *  just the paths that route through `closePalette()`.
  */
 const resetState = () => {
@@ -802,8 +802,8 @@ export const initCommandPalette = () => {
     // X-button close
     dialog.querySelector('.cdx-cp-close')?.addEventListener('click', () => closePalette());
 
-    // The `<dialog>` element fires `close` for every close path —
-    // native Esc, programmatic `close()`, X click, backdrop click —
+    // The `<dialog>` element fires `close` for every close path -
+    // native Esc, programmatic `close()`, X click, backdrop click -
     // so resetting state here covers all of them in one place.
     dialog.addEventListener('close', () => {
         resetState();

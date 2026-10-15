@@ -449,7 +449,8 @@ test.describe('Dependency Graph — Overview', () => {
     test('graph has entity-colored nodes', async ({ page }) => {
         await page.goto('/overview.html');
         const circles = page.locator('#dependency-graph-container circle');
-        expect(await circles.count()).toBeGreaterThanOrEqual(3);
+        // The client draws the graph after load; poll instead of counting once.
+        await expect.poll(() => circles.count()).toBeGreaterThanOrEqual(3);
     });
 
     test('graph has arrow markers on edges', async ({ page }) => {

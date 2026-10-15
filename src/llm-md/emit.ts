@@ -3,7 +3,7 @@
  *
  * Mirrors the dispatcher shape in `src/diff/compare.ts`: walk every entity
  * bucket of `ExportData`, switch on the entity kind, and concatenate the
- * per-kind output. Every emit function is pure — it takes an immutable
+ * per-kind output. Every emit function is pure - it takes an immutable
  * `Export*` record and returns a markdown string.
  *
  * Source code is intentionally out of scope. We emit signatures + collapsed
@@ -390,12 +390,4 @@ export const emitVariable = (entity: ExportVariable): string => {
     const tail = desc ? ` — ${escapeMarkdown(desc)}` : '';
     const fileTail = entity.file ? `\n  Defined in ${inlineCode(entity.file)}` : '';
     return `- ${inlineCode(sig)}${dep}${tail}${fileTail}`;
-};
-
-/** Re-exported for tests. */
-export const _internals = {
-    formatArg,
-    renderProperty,
-    renderMethod,
-    regularProperties
 };

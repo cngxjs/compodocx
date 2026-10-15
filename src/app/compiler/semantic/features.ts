@@ -22,8 +22,6 @@ export interface Feature {
     readonly detector: FeatureDetector;
     /** `README.md` of the feature, relative to the cwd. */
     readonly readme?: string;
-    /** Only style files (no symbol) fall into this feature. */
-    readonly styleOnly?: true;
 }
 
 export interface FamilyLink {
@@ -618,7 +616,7 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
 };
 
 /** Detector counts for the build log. */
-export const featureCounts = (model: FeatureModel): Readonly<Record<FeatureDetector, number>> => {
+const featureCounts = (model: FeatureModel): Readonly<Record<FeatureDetector, number>> => {
     const counts: Record<FeatureDetector, number> = {
         config: 0,
         tag: 0,

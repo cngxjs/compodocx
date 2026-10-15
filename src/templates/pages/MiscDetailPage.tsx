@@ -103,7 +103,7 @@ const Section = (props: SectionProps): string => {
 };
 
 /** JSDoc `@example` comments are pre-rendered by `markedtags()` in
- * `src/utils/utils.ts` — by the time we see them here `tag.comment` already
+ * `src/utils/utils.ts` - by the time we see them here `tag.comment` already
  * contains the Shiki output (`<div class="cdx-code-snippet">...`). We collect
  * those rendered strings directly; routing them through
  * `extractJsdocCodeExamples` would re-wrap and html-entity-escape the already-
@@ -275,7 +275,7 @@ const ApiContent = (props: MiscDetailProps): string => {
 
 //  Examples-tab content (@example JSDoc blocks)
 // Same rendering pipeline as the markdown-engine code renderer
-// (`<div class="cdx-code-snippet">` with Shiki output) — see `collectExampleComments`
+// (`<div class="cdx-code-snippet">` with Shiki output) - see `collectExampleComments`
 // for why we don't go through JsdocExamplesBlock/extractJsdocCodeExamples here.
 
 const ExamplesContent = (item: any): string => {
@@ -354,7 +354,7 @@ export const TabBar = (tabs: MiscTab[]): string =>
         </ul>
     ) as string;
 
-/** Panels MUST be wrapped in a single parent element — `hash-router.ts`
+/** Panels MUST be wrapped in a single parent element - `hash-router.ts`
  * `activatePanel()` finds the tab bar via `panel.parentElement.previousElementSibling`. */
 export const TabPanels = (tabs: MiscTab[]): string =>
     (

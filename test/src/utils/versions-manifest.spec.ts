@@ -57,7 +57,7 @@ describe('readManifest', () => {
         );
         const result = readManifest(tempRoot);
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/newer than/);
         }
     });
@@ -69,7 +69,7 @@ describe('readManifest', () => {
         );
         const result = readManifest(tempRoot);
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/Delete the file/);
         }
     });
@@ -78,7 +78,7 @@ describe('readManifest', () => {
         writeFileSync(getManifestPath(tempRoot), '{ not json');
         const result = readManifest(tempRoot);
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/Failed to parse/);
         }
     });
@@ -90,7 +90,7 @@ describe('readManifest', () => {
         );
         const result = readManifest(tempRoot);
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/versions/);
         }
     });

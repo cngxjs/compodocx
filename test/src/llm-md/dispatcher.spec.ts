@@ -11,7 +11,6 @@ const baseExport = (overrides: Partial<ExportData> = {}): ExportData => ({
     compodocxVersion: '0.3.0',
     components: [],
     pipes: [],
-    modules: [],
     directives: [],
     injectables: [],
     guards: [],

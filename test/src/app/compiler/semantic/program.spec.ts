@@ -17,7 +17,7 @@ const write = (file: string, text: string): string => {
 
 const program = (rootFiles: readonly string[], tsconfig = 'tsconfig.json') => {
     const created = createSemanticProgram(path.join(root, tsconfig), rootFiles);
-    if (!created.ok) {
+    if (created.ok === false) {
         throw new Error(created.message);
     }
     return created.value;

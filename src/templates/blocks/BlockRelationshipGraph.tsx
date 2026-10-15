@@ -80,7 +80,7 @@ const linkFor = (name: string, depth: number): { href: string; target: string } 
     return { href: '#', target: '_self' };
 };
 
-/** Row rendered inside the "Used By" container — tall, description-friendly. */
+/** Row rendered inside the "Used By" container - tall, description-friendly. */
 const IncomingRow = (node: RelationshipNode, depth: number): string => {
     const kind = normaliseType(node.type);
     const link = linkFor(node.name, depth);
@@ -104,7 +104,7 @@ const IncomingRow = (node: RelationshipNode, depth: number): string => {
     ) as string;
 };
 
-/** Row rendered inside the "Depends On" container — icon box + name + subtype. */
+/** Row rendered inside the "Depends On" container - icon box + name + subtype. */
 const OutgoingRow = (node: RelationshipNode, depth: number): string => {
     const kind = normaliseType(node.type);
     const link = linkFor(node.name, depth);

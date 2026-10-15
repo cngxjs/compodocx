@@ -40,7 +40,6 @@ interface MenuDataFixture {
 }
 
 const baseData = (overrides: Partial<MenuDataFixture>): MenuDataFixture => ({
-    modules: [],
     components: [],
     directives: [],
     injectables: [],

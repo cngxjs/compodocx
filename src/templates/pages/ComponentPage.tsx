@@ -88,7 +88,7 @@ const ComponentMetadata = (c: any, depth: number): string => {
         }
     };
 
-    // Scalar source-of-truth values — kept in the table. Boolean/enum traits
+    // Scalar source-of-truth values - kept in the table. Boolean/enum traits
     // (standalone, changeDetection, encapsulation, preserveWhitespaces) ALSO
     // ship as hero badges for visual emphasis, but the underlying decorator
     // option is restored to the metadata table for compodoc-line compatibility

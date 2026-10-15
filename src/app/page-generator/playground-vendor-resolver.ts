@@ -14,7 +14,7 @@ import { resolveVendorPackages, type VendorFsReader } from '../engines/stackblit
  * Mirrors {@link PlaygroundFileResolver}: real `fs` plugs an in-module reader;
  * the resolution logic itself is the pure `resolveVendorPackages`. Hard errors
  * (missing vendor root, an explicitly-named package absent) FAIL the build by
- * throwing — vendoring an unbuilt library would silently fall back to stale
+ * throwing - vendoring an unbuilt library would silently fall back to stale
  * registry versions, the exact skew this feature exists to kill. Glob misses
  * only warn.
  */
@@ -70,7 +70,7 @@ export class PlaygroundVendorResolver {
 
 /**
  * Recursively list every file under `dir` (POSIX-joined). Skips nested
- * `node_modules` — a built `dist/` should not contain them, and walking one
+ * `node_modules` - a built `dist/` should not contain them, and walking one
  * would be both wrong and slow. Returns `[]` when `dir` is unreadable.
  */
 const listFilesRecursive = (dir: string): string[] => {

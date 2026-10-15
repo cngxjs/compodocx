@@ -12,11 +12,11 @@ import { logger } from './logger';
 export interface ThemeToken {
     /** Variable name including prefix: `--cngx-alert-padding` or `$alert-padding` */
     name: string;
-    /** Source kind — drives rendering and the prefix in the name column */
+    /** Source kind - drives rendering and the prefix in the name column */
     kind: 'css-custom-property' | 'scss-variable' | 'css-at-property';
-    /** Resolved type — from @type tag, from @property syntax, or '' */
+    /** Resolved type - from @type tag, from @property syntax, or '' */
     type: string;
-    /** Resolved default — from @default tag or the literal declaration value */
+    /** Resolved default - from @default tag or the literal declaration value */
     defaultValue: string;
     /** Markdown description (everything before the tag block) */
     description: string;
@@ -26,7 +26,7 @@ export interface ThemeToken {
     examples: string[];
     /** @since version string or '' */
     since: string;
-    /** @deprecated marker — null = not deprecated, '' = deprecated without reason, string = deprecated with reason */
+    /** @deprecated marker - null = not deprecated, '' = deprecated without reason, string = deprecated with reason */
     deprecated: string | null;
     /** @see entries (URLs or token names) in source order */
     see: string[];
@@ -169,7 +169,7 @@ export function parseDocBody(body: string): {
  *
  * Returns `null` when the block has no `@overview` tag.
  */
-export function extractOverview(body: string): string | null {
+function extractOverview(body: string): string | null {
     const parsed = parseDocBody(body);
     const overviewTags = parsed.tags.filter(tag => tag.name === 'overview');
     if (overviewTags.length === 0) {
@@ -189,7 +189,7 @@ export function extractOverview(body: string): string | null {
 }
 
 /** Names in a `@themes` / `@relatedTo` value: its first line, comma or space separated. */
-export const tagNames = (value: string): string[] =>
+const tagNames = (value: string): string[] =>
     (value.split('\n')[0] ?? '')
         .split(/[\s,]+/)
         .map(name => name.trim())
@@ -265,7 +265,7 @@ const readFileLevelBlock = (
  * `inferredType` and `literalDefault` are used as fallbacks when `@type` or
  * `@default` are absent. For `@property` rules, callers pre-extract the
  * `syntax` and `initial-value` descriptors and pass them as `inferredType` /
- * `literalDefault` — this implements the design's "@property merge" rule.
+ * `literalDefault` - this implements the design's "@property merge" rule.
  */
 function buildToken(args: {
     name: string;
@@ -345,7 +345,7 @@ function buildToken(args: {
 }
 
 // ---------------------------------------------------------------------------
-// SCSS scanner — `///` line blocks above `$var: value [!default];`
+// SCSS scanner - `///` line blocks above `$var: value [!default];`
 // ---------------------------------------------------------------------------
 
 const SCSS_VAR_DECL_RE = /^[ \t]*\$([\w-]+)\s*:\s*([\s\S]*?)(?:\s*!default)?\s*;/;
@@ -617,7 +617,7 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
 }
 
 // ---------------------------------------------------------------------------
-// CSS scanner — `/** */` blocks above `--prop: value;` or `@property --prop`
+// CSS scanner - `/** */` blocks above `--prop: value;` or `@property --prop`
 // ---------------------------------------------------------------------------
 
 // Strip a doc-comment block to its plain body, dropping leading-asterisk gutters.
@@ -651,7 +651,7 @@ function scanJsdocBlocks(
         if (open === -1) {
             break;
         }
-        // Reject `/***` (three asterisks) only if followed by `*` again — pure
+        // Reject `/***` (three asterisks) only if followed by `*` again - pure
         // `/**` followed by alphanumerics is fine. Single-asterisk `/*` was
         // already filtered by the indexOf('/**') above.
         const close = source.indexOf('*/', open + 3);
@@ -862,7 +862,7 @@ export function parseStyleSource(
 }
 
 // ---------------------------------------------------------------------------
-// Source resolver — pulls styleUrls + inline styles, follows @import/@use one
+// Source resolver - pulls styleUrls + inline styles, follows @import/@use one
 // level deep for SCSS partials.
 // ---------------------------------------------------------------------------
 
