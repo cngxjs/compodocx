@@ -10,6 +10,7 @@ import {
     type VendorPackage
 } from '../../app/engines/stackblitz';
 import { highlightCode } from '../../app/engines/syntax-highlight.engine';
+import { isErr } from '../../lib';
 import { logger } from '../../utils/logger';
 import type { ComponentPlaygroundBlock } from '../helpers/jsdoc';
 
@@ -129,7 +130,7 @@ export function BlockPlayground(props: BlockPlaygroundProps): string {
     const blockId = `playground-${slugifyId(props.componentName)}-${props.index}`;
     const titleId = `${blockId}-title`;
 
-    if (!built.ok) {
+    if (isErr(built)) {
         logger.warn(
             `Playground "${props.block.title}" on ${props.componentName} could not be assembled: ${built.message}`
         );

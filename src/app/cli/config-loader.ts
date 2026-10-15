@@ -3,7 +3,7 @@ import type { Command } from 'commander';
 import { type CosmiconfigResult, cosmiconfigSync } from 'cosmiconfig';
 import * as fs from 'fs-extra';
 
-import { err, ok, type Result } from '../../lib';
+import { err, isErr, ok, type Result } from '../../lib';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { parseJsonIndent } from '../../utils/json-indent.util';
 import { logger } from '../../utils/logger';
@@ -474,7 +474,7 @@ export function applyConfigToMainData(
 
     if (configFile.jsonIndent !== undefined) {
         const result = parseJsonIndent(configFile.jsonIndent, 'config');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }
@@ -488,7 +488,7 @@ export function applyConfigToMainData(
     // override a config-file `4` because both stringify to the default).
     if (program.getOptionValueSource('jsonIndent') === 'cli') {
         const result = parseJsonIndent(programOptions.jsonIndent, 'flag');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }
@@ -524,7 +524,7 @@ export function applyConfigToMainData(
 
     if (configFile.maxVersionsShown !== undefined) {
         const result = parseMaxVersionsShown(configFile.maxVersionsShown, 'config');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }
@@ -532,7 +532,7 @@ export function applyConfigToMainData(
     }
     if (program.getOptionValueSource('maxVersionsShown') === 'cli') {
         const result = parseMaxVersionsShown(programOptions.maxVersionsShown, 'flag');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }
@@ -818,7 +818,7 @@ export function applyConfigToMainData(
 
     if (configFile.maxSearchResults !== undefined) {
         const result = parseMaxSearchResults(configFile.maxSearchResults, 'config');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }
@@ -826,7 +826,7 @@ export function applyConfigToMainData(
     }
     if (program.getOptionValueSource('maxSearchResults') === 'cli') {
         const result = parseMaxSearchResults(programOptions.maxSearchResults, 'flag');
-        if (!result.ok) {
+        if (isErr(result)) {
             logger.error(result.message);
             process.exit(1);
         }

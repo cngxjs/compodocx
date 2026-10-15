@@ -1,5 +1,6 @@
 import * as fs from 'fs-extra';
 
+import { isErr } from '../../lib';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import {
@@ -84,7 +85,7 @@ export class PlaygroundFileResolver {
                     const result = readFileRef(block.fileRef, hostFile, fsReader, {
                         maxFiles: Configuration.mainData.playgroundFileCountCap
                     });
-                    if (!result.ok) {
+                    if (isErr(result)) {
                         logger.warn(
                             `Playground "${block.title ?? '<untitled>'}" on ${entity.name}: ${result.message}`
                         );
@@ -98,7 +99,7 @@ export class PlaygroundFileResolver {
                 const configRef = (entity as { playgroundConfig?: string }).playgroundConfig;
                 if (configRef && hasHost) {
                     const configResult = readPlaygroundConfig(configRef, hostFile, fsReader);
-                    if (!configResult.ok) {
+                    if (isErr(configResult)) {
                         logger.warn(
                             `@playgroundConfig "${configRef}" on ${entity.name}: ${configResult.message}`
                         );

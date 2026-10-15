@@ -86,7 +86,7 @@ export function ngAdd(options: NgAddSchema = {}): Rule {
         const resolved = resolveOptions(options);
 
         const targetResult = resolveWorkspaceTarget(tree, resolved.project);
-        if (!targetResult.ok) {
+        if (targetResult.ok === false) {
             throw new SchematicsException(targetResult.message);
         }
         const target = targetResult.value;

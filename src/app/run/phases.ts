@@ -225,7 +225,7 @@ const withSemantic = (ctx: RunContext): RunContext => {
         files: ctx.files,
         cwd
     });
-    if (!analyzed.ok) {
+    if (isErr(analyzed)) {
         logger.warn(`Semantic analysis skipped: ${analyzed.message}`);
         mainData.semantic = undefined;
         return { ...ctx, semantic: undefined };

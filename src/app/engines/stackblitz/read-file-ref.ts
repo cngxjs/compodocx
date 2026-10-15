@@ -1,5 +1,5 @@
 import { posix } from 'node:path';
-import type { Result } from '../../../lib';
+import { isErr, type Result } from '../../../lib';
 import { extractBareSpecifiers } from './build-playground-manifest';
 import { STACKBLITZ_FILE_COUNT_CAP } from './constants';
 import { rewriteDecoratorUrls, rewriteRelativeImports } from './rewrite-imports';
@@ -156,7 +156,7 @@ const readTsFileRef = (
     const tplMatch = entryContent.match(TEMPLATE_URL_RE);
     if (tplMatch) {
         const sibling = readSibling(entryDir, tplMatch[1], 'templateUrl', fs);
-        if (!sibling.ok) {
+        if (isErr(sibling)) {
             return sibling;
         }
         files[flatPath(sibling.value.path)] = sibling.value.content;
@@ -167,7 +167,7 @@ const readTsFileRef = (
     const styleUrlMatch = entryContent.match(STYLE_URL_RE);
     if (styleUrlMatch) {
         const sibling = readSibling(entryDir, styleUrlMatch[1], 'styleUrl', fs);
-        if (!sibling.ok) {
+        if (isErr(sibling)) {
             return sibling;
         }
         files[flatPath(sibling.value.path)] = sibling.value.content;
@@ -183,7 +183,7 @@ const readTsFileRef = (
         while ((m = STYLE_URLS_ITEM_RE.exec(styleUrlsMatch[1])) !== null) {
             matchedAny = true;
             const sibling = readSibling(entryDir, m[1], 'styleUrls', fs);
-            if (!sibling.ok) {
+            if (isErr(sibling)) {
                 return sibling;
             }
             files[flatPath(sibling.value.path)] = sibling.value.content;

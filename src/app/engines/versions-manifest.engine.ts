@@ -1,4 +1,5 @@
 import { mkdirSync } from 'node:fs';
+import { isErr } from '../../lib';
 import { logger } from '../../utils/logger';
 import {
     emptyManifest,
@@ -31,7 +32,7 @@ export function updateVersionsManifest(input: VersionsManifestUpdateInput): void
     const read = readManifest(input.versionsRoot);
     const builtAt = input.builtAt ?? new Date().toISOString();
     const baseManifest = read.ok ? read.value : emptyManifest(builtAt);
-    if (!read.ok) {
+    if (isErr(read)) {
         logger.error(read.message);
         throw new Error(read.message);
     }

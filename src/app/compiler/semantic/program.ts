@@ -1,6 +1,6 @@
 import { ts } from 'ts-morph';
 
-import { err, ok, type Result } from '../../../lib';
+import { err, isErr, ok, type Result } from '../../../lib';
 
 /** "No inputs were found": the root files come from the caller, not from the tsconfig. */
 const NO_INPUTS = 18003;
@@ -76,7 +76,7 @@ export const createSemanticProgram = (
     oldProgram?: ts.Program
 ): Result<ts.Program> => {
     const options = readSemanticOptions(tsconfigPath);
-    if (!options.ok) {
+    if (isErr(options)) {
         return options;
     }
     return ok(

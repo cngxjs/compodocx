@@ -1,5 +1,5 @@
 import { posix } from 'node:path';
-import type { Result } from '../../../lib';
+import { isErr, type Result } from '../../../lib';
 import type { ComponentPlaygroundBlock } from '../../../templates/helpers/jsdoc';
 import {
     STACKBLITZ_POST_LIMIT,
@@ -646,7 +646,7 @@ export function buildPlaygroundManifest(
     const emit = (content: unknown): string => emitFileContent(content, options.fileCap);
 
     const walk = walkDepGraph(componentName, resolve, options);
-    if (!walk.ok) {
+    if (isErr(walk)) {
         return walk;
     }
 

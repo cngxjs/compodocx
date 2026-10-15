@@ -11,6 +11,7 @@ import Configuration from './app/configuration';
 import FileEngine from './app/engines/file.engine';
 import type { RunOutcome } from './app/run';
 import { createSession, runSession, serveOnly } from './app/run/run-compodocx';
+import { isErr } from './lib';
 import { parseApiMarkdownExports } from './utils/api-markdown-parser.util';
 import { logger } from './utils/logger';
 import { parsePublicApi } from './utils/public-api-parser.util';
@@ -100,7 +101,7 @@ export async function runCli(argv: string[]): Promise<void> {
         explicitConfigPath: programOptions.config,
         cwd: process.cwd()
     });
-    if (!configResult.ok) {
+    if (isErr(configResult)) {
         logger.error(configResult.message);
         process.exit(1);
     }
@@ -276,7 +277,7 @@ export async function runCli(argv: string[]): Promise<void> {
                         projectRoot: cwd,
                         cwd: process.cwd()
                     });
-                    if (!resolved.ok) {
+                    if (isErr(resolved)) {
                         logger.error(resolved.message);
                         process.exit(2);
                     }

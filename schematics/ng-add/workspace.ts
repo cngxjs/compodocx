@@ -74,7 +74,7 @@ export function resolveWorkspaceTarget(
     }
 
     const parsed = parseAngularJson(buffer);
-    if (!parsed.ok) {
+    if (parsed.ok === false) {
         return parsed;
     }
 
