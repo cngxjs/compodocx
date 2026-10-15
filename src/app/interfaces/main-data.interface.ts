@@ -141,6 +141,8 @@ export interface MainDataInterface {
     maxSearchResults: number;
     publicApiOnly: string;
     publicApiExports: Map<string, Set<string>>;
+    /** `publicApiExports` followed through barrels to the declarations; read by the filter. */
+    publicApiDeclarations: Map<string, Set<string>>;
     infoTabSections: string[];
     apiTabSections: string[];
     themingTabSections: string[];

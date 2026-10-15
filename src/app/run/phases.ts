@@ -12,7 +12,12 @@ import {
 } from '../../utils/theme-doc-parser';
 import { formatLegacyNotice } from '../compiler/legacy-scan';
 import { findRemovedTags, formatRemovedTagNotice } from '../compiler/removed-tags';
-import { analyzeProject, formatFeatureSummary, formatSemanticSummary } from '../compiler/semantic';
+import {
+    analyzeProject,
+    formatFeatureSummary,
+    formatSemanticSummary,
+    resolvePublicApi
+} from '../compiler/semantic';
 import { buildDiView, formatHiddenList } from '../di';
 import DependenciesEngine from '../engines/dependencies.engine';
 import ExportEngine from '../engines/export.engine';
@@ -289,9 +294,25 @@ const sharedSourceFiles = (ctx: RunContext) => {
     return program ? (fileName: string) => program.getSourceFile(fileName) : undefined;
 };
 
-/** The semantic state and the route draft, read before the crawler touches the files. */
+/**
+ * The public API map followed to the declarations through the semantic
+ * program; without semantic facts the recorded map is used as it is.
+ */
+const withPublicApi = (ctx: RunContext): void => {
+    const { mainData } = ctx.config;
+    if (!mainData.publicApiOnly) {
+        return;
+    }
+    const program = ctx.semantic?.program;
+    mainData.publicApiDeclarations = program
+        ? resolvePublicApi(program, mainData.publicApiExports)
+        : mainData.publicApiExports;
+};
+
+/** Semantic state, public API and route draft, read before the crawler touches the files. */
 const withSemanticAndRoutes = (current: RunContext): RunContext => {
     const ctx = withSemantic(current);
+    withPublicApi(ctx);
     const routing = draftRoutes(
         ctx.semantic?.program,
         ctx.files,

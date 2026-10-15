@@ -12,12 +12,12 @@ export class PublicApiFilter {
     public initializePublicApiFiltering(): void {
         if (
             Configuration.mainData.publicApiOnly &&
-            Configuration.mainData.publicApiExports.size > 0
+            Configuration.mainData.publicApiDeclarations.size > 0
         ) {
             logger.info('Public API filtering enabled');
 
             // Build set of allowed symbols and files
-            for (const [symbolName, sourceFiles] of Configuration.mainData.publicApiExports) {
+            for (const [symbolName, sourceFiles] of Configuration.mainData.publicApiDeclarations) {
                 this.allowedSymbols.add(symbolName);
                 for (const sourceFile of sourceFiles) {
                     this.allowedFiles.add(path.resolve(sourceFile));
@@ -49,7 +49,7 @@ export class PublicApiFilter {
         // Check if the symbol is explicitly allowed
         if (this.allowedSymbols.has(symbolName)) {
             // Verify the symbol is from an allowed file
-            const allowedSourceFiles = Configuration.mainData.publicApiExports.get(symbolName);
+            const allowedSourceFiles = Configuration.mainData.publicApiDeclarations.get(symbolName);
             if (allowedSourceFiles?.has(resolvedFileName)) {
                 return true;
             }

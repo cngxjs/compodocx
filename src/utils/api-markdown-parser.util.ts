@@ -42,12 +42,15 @@ export class ApiMarkdownParser {
             };
         }
 
-        // Find all *.api.md files recursively
-        const pattern = path.join(this.sourceRoot, '**/*.api.md');
-        const apiMdFiles = await fg(pattern, {
-            absolute: true,
-            ignore: ['**/node_modules/**']
-        });
+        // Find all *.api.md files recursively. The pattern stays relative: Windows
+        // backslashes or a `(` in the folder name would be read as glob syntax.
+        const apiMdFiles = (
+            await fg('**/*.api.md', {
+                cwd: this.sourceRoot,
+                absolute: true,
+                ignore: ['**/node_modules/**']
+            })
+        ).map(file => path.resolve(file));
 
         logger.info(`Found ${apiMdFiles.length} *.api.md file(s)`);
 

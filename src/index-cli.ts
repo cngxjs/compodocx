@@ -451,9 +451,13 @@ function findSourceFileForSymbol(symbolName: string, sourceRoot: string): string
     const sourceFolder = sourceRoot;
 
     try {
-        const files = fg.sync(path.join(sourceFolder, '**/*.ts'), {
-            ignore: ['**/node_modules/**', '**/*.spec.ts', '**/*.d.ts']
-        });
+        const files = fg
+            .sync('**/*.ts', {
+                cwd: sourceFolder,
+                absolute: true,
+                ignore: ['**/node_modules/**', '**/*.spec.ts', '**/*.d.ts']
+            })
+            .map(file => path.resolve(file));
 
         for (const file of files) {
             const content = fs.readFileSync(file, 'utf-8');
