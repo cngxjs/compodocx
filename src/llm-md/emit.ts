@@ -3,7 +3,7 @@
  *
  * Mirrors the dispatcher shape in `src/diff/compare.ts`: walk every entity
  * bucket of `ExportData`, switch on the entity kind, and concatenate the
- * per-kind output. Every emit function is pure — it takes an immutable
+ * per-kind output. Every emit function is pure - it takes an immutable
  * `Export*` record and returns a markdown string.
  *
  * Source code is intentionally out of scope. We emit signatures + collapsed

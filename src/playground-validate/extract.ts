@@ -6,7 +6,7 @@ import type { PlaygroundManifest } from '../app/engines/stackblitz';
  * Every `@playground` block ships its project file map inside a
  * `<script type="application/json" data-cdx-stackblitz-manifest-data="…">`
  * tag (see `BlockPlayground.tsx`). `playground:validate` reads those back out
- * of the produced HTML and compiles each one — validating exactly the
+ * of the produced HTML and compiles each one - validating exactly the
  * artifact that ships, decoupled from the generation pipeline.
  *
  * The JSON body escapes `<`/`>`/`&`/U+2028/U+2029 as `\uXXXX`, so a literal
@@ -42,7 +42,7 @@ export function extractManifestsFromHtml(html: string, sourceFile?: string): Ext
             }
         } catch {
             // A manifest that won't even parse is itself a defect, but it is
-            // caught by the existing client-side JSON tests — skip here.
+            // caught by the existing client-side JSON tests - skip here.
         }
     }
     return out;

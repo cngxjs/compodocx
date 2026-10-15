@@ -24,7 +24,7 @@ export const VersionSwitcher = (props: VersionSwitcherProps): string => {
     if (custom !== null) {
         return custom;
     }
-    // The manifest sits at <versionsRoot>/versions.json — one folder ABOVE
+    // The manifest sits at <versionsRoot>/versions.json - one folder ABOVE
     // <versionsRoot>/<label>/<page-path>. So every page needs one extra
     // parent traversal beyond `props.depth`.
     const manifestUrl = hrefText(

@@ -13,7 +13,7 @@ type MemberCardProps = {
  * Renders `<article class="cdx-member-card">` with a flat layout (header
  * + body). Previously supported a `collapsible` variant that wrapped the
  * card in `<details>/<summary>` for methods and host listeners, but the
- * collapse toggle was removed — the API tab now renders every card
+ * collapse toggle was removed - the API tab now renders every card
  * expanded so readers can scan the full member surface without clicking.
  */
 export function MemberCard({ id, deprecated, header, children }: MemberCardProps): string {

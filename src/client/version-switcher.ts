@@ -6,7 +6,7 @@
  * versions' `redirects.json`: the target's map forward, else the current
  * version's map backward.
  *
- * On `file://`, fetch is uniformly blocked across browsers — render a
+ * On `file://`, fetch is uniformly blocked across browsers - render a
  * static hint and disable the trigger rather than ship a half-working
  * dropdown.
  */
@@ -82,7 +82,7 @@ function wire(widget: HTMLElement): void {
         }
         const sliced = sliceForCap(m.versions, getCap(widget));
         if (sliced.shown.length <= 1) {
-            // Hide entirely — single-version sites don't need a dropdown.
+            // Hide entirely - single-version sites don't need a dropdown.
             collapse(trigger, menu);
             widget.dataset.cdxSingleVersion = 'true';
             widget.style.display = 'none';

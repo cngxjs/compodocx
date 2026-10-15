@@ -90,7 +90,7 @@ export const IconInjectable = () =>
 export const IconToken = () =>
     svg(
         '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>'
-    ); // key — DI-key idiom
+    ); // key - DI-key idiom
 export const IconInterceptor = () =>
     svg(
         '<path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>'
@@ -113,15 +113,15 @@ export const IconFile = () =>
     '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg>';
 
 // --- Language-specific file icons (14x14 for source-viewer tab header) ---
-// TypeScript / JavaScript — file outline + angle-brackets glyph inside.
+// TypeScript / JavaScript - file outline + angle-brackets glyph inside.
 export const IconFileTs = () =>
     '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m10 13-2 2 2 2"/><path d="m14 13 2 2-2 2"/></svg>';
 
-// HTML / template — file outline + explicit `<>` glyph.
+// HTML / template - file outline + explicit `<>` glyph.
 export const IconFileHtml = () =>
     '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 14-2 2 2 2"/><path d="m15 14 2 2-2 2"/></svg>';
 
-// SCSS / CSS — file outline + hash glyph (CSS selector hint).
+// SCSS / CSS - file outline + hash glyph (CSS selector hint).
 export const IconFileCss = () =>
     '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><line x1="9" y1="13" x2="9" y2="19"/><line x1="14" y1="13" x2="14" y2="19"/><line x1="7" y1="15" x2="16" y2="15"/><line x1="7" y1="17" x2="16" y2="17"/></svg>';
 
@@ -190,25 +190,25 @@ const IconArchive = () =>
 export const IconFunction = () =>
     svg(
         '<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 0 1 0 10h-2"/><line x1="8" x2="16" y1="12" y2="12"/>'
-    ); // link/chain — standalone function
+    ); // link/chain - standalone function
 export const IconVariable = () =>
     svg('<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 12h8"/><path d="M8 8h8"/>');
-// box with lines — variable/constant
+// box with lines - variable/constant
 export const IconTypealias = () =>
     svg(
         '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/>'
     );
-// T-shape — type alias
+// T-shape - type alias
 export const IconEnum = () =>
     svg(
         '<line x1="4" x2="20" y1="9" y2="9"/><line x1="4" x2="20" y1="15" y2="15"/><line x1="10" x2="8" y1="3" y2="21"/><line x1="16" x2="14" y1="3" y2="21"/>'
     );
-// hash # — enumeration (named constants)
+// hash # - enumeration (named constants)
 export const IconProject = () =>
     svg(
         '<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7-7H4a2 2 0 0 0-2 2z"/><path d="M14 2v7h7"/><path d="M12 18v-6"/><path d="M8 18v-1"/><path d="M16 18v-3"/>'
     );
-// file-bar-chart — project dashboard overview
+// file-bar-chart - project dashboard overview
 
 /**
  * Map legacy Ionicon class names to Lucide icon functions.

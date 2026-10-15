@@ -14,7 +14,7 @@ import type { Result } from '../lib';
  *      `projectRoot` (and then from cwd if that walk turns up nothing).
  *      `1.2.3` becomes `v1.2.3`; pre-prefixed labels (`v1.2.3`, `next`)
  *      pass through unchanged.
- *   3. Hard error — caller is expected to surface the message and exit.
+ *   3. Hard error - caller is expected to surface the message and exit.
  *
  * Returns a `Result` so the caller decides how to surface failure (CLI prints
  * and exits 2; tests assert on `message`). No `process.exit` here.

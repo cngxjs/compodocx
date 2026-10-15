@@ -30,7 +30,7 @@ export type BlockPlaygroundProps = {
     readonly index: number;
     readonly resolve?: DepGraphResolver;
     readonly workspacePackage?: ConsumerPackageJson;
-    /** Config-file `playgroundDependencies` — wins over consumer-pkg auto-forward. */
+    /** Config-file `playgroundDependencies` - wins over consumer-pkg auto-forward. */
     readonly extraDependencies?: Record<string, string>;
     /**
      * Config-file `playgroundMaterialShell` - forces the Material font links and
@@ -41,9 +41,9 @@ export type BlockPlaygroundProps = {
     readonly depth?: number;
     readonly maxFiles?: number;
     readonly fileCap?: number;
-    /** Config-file `playgroundHead` — extra `<head>` entries for `index.html`. */
+    /** Config-file `playgroundHead` - extra `<head>` entries for `index.html`. */
     readonly head?: string[];
-    /** Config-file `playgroundGlobalStyles` — CSS appended to `src/styles.css`. */
+    /** Config-file `playgroundGlobalStyles` - CSS appended to `src/styles.css`. */
     readonly globalStyles?: string;
     /**
      * Vendor packages resolved from `playgroundVendor`, keyed by full package
@@ -51,7 +51,7 @@ export type BlockPlaygroundProps = {
      * embeds its closure as `file:` deps. Empty/undefined → registry-only.
      */
     readonly vendorPackages?: Record<string, VendorPackage>;
-    /** Config-file `playgroundVendorCap` — backstop on the vendored closure. */
+    /** Config-file `playgroundVendorCap` - backstop on the vendored closure. */
     readonly vendorCap?: number;
     /**
      * Pre-resolved file-ref bundle for `block.fileRef` blocks. Populated by
@@ -168,12 +168,12 @@ export function BlockPlayground(props: BlockPlaygroundProps): string {
         mode: 'snippet'
     });
     // Robust JSON encoding for inline `<script type="application/json">` payloads.
-    // We can't trust naive `replaceAll('</', '<\\/')` — under specific
+    // We can't trust naive `replaceAll('</', '<\\/')` - under specific
     // HTML-parser conditions (notably with very long script bodies that contain
     // angle brackets or unicode line separators) the body is mis-tokenised and
     // JSON.parse on the client trips over an "unterminated string". The
     // canonical hardening (used by React/Next.js for hydration) escapes every
-    // potentially-disruptive char as `\uXXXX` — JSON.parse decodes them back.
+    // potentially-disruptive char as `\uXXXX` - JSON.parse decodes them back.
     const manifestJson = JSON.stringify(manifest).replace(
         /[<>&\u2028\u2029]/g,
         c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`

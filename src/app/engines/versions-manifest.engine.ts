@@ -15,7 +15,7 @@ import {
  * so a successful run results in a manifest that includes the version
  * the user just built.
  *
- * Failure modes are surfaced via `logger.error` and re-thrown — a corrupt
+ * Failure modes are surfaced via `logger.error` and re-thrown - a corrupt
  * manifest in a CI pipeline should fail the build, not silently skip the
  * write and leave consumers with a stale dropdown.
  */

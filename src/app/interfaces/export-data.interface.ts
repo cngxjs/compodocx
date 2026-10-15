@@ -105,7 +105,7 @@ export type ExportSchemaVersion = typeof EXPORT_SCHEMA_VERSION;
 /**
  * Header fields on `ExportData` that change on every run even when the source
  * code is unchanged. Byte-equal comparators (notably the upcoming sprint-3
- * API Diff) must strip these before diffing — otherwise every comparison
+ * API Diff) must strip these before diffing - otherwise every comparison
  * reports churn.
  *
  * Exported as a runtime array so consumers can iterate it without mirroring
@@ -556,18 +556,18 @@ export interface ExportCoverage {
  *
  * Volatile header fields: `generatedAt` and `compodocxVersion` change on
  * every run even when the source is unchanged. Byte-equal comparators must
- * strip them — see `VOLATILE_EXPORT_FIELDS` for the canonical list.
+ * strip them - see `VOLATILE_EXPORT_FIELDS` for the canonical list.
  */
 export interface ExportData {
     schemaVersion: ExportSchemaVersion;
     /**
      * ISO 8601 timestamp of when this snapshot was generated.
-     * Volatile — listed in `VOLATILE_EXPORT_FIELDS`; strip before byte-equal diffs.
+     * Volatile - listed in `VOLATILE_EXPORT_FIELDS`; strip before byte-equal diffs.
      */
     generatedAt: string;
     /**
      * Version of `@cngxjs/compodocx` that produced this snapshot.
-     * Volatile — listed in `VOLATILE_EXPORT_FIELDS`; strip before byte-equal diffs.
+     * Volatile - listed in `VOLATILE_EXPORT_FIELDS`; strip before byte-equal diffs.
      */
     compodocxVersion: string;
     pipes?: ExportPipe[];

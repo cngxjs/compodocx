@@ -8,7 +8,7 @@
  *
  * Architectural mirror of `src/diff/compare.ts`: a runtime bucket list
  * followed by a kind-specific switch. Adding a new entity kind to
- * `ExportData` means adding one bucket entry and one emit function — no other
+ * `ExportData` means adding one bucket entry and one emit function - no other
  * code path needs to change.
  */
 

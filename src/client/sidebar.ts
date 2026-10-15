@@ -131,7 +131,7 @@ const bindTogglers = () => {
             // it also wraps a real `<a data-cdx-bucket-link>`. When the
             // click originates inside the anchor, let the browser run
             // its native navigation (incl. Cmd/middle-click new-tab)
-            // — we deliberately avoid `event.stopPropagation()` on the
+            // - we deliberately avoid `event.stopPropagation()` on the
             // anchor itself so modifier-key flows stay intact.
             if (clickedEl.closest('[data-cdx-bucket-link]')) {
                 return;
@@ -158,7 +158,7 @@ const bindTogglers = () => {
 
         // Keyboard support for bucket rows: the row carries
         // `role="button"` + `tabindex="0"`, so Enter/Space must toggle
-        // the same as a click — unless focus is on the inner anchor,
+        // the same as a click - unless focus is on the inner anchor,
         // where the browser's native Enter handles navigation.
         if (toggler.matches('[data-cdx-bucket-row]')) {
             toggler.addEventListener('keydown', e => {

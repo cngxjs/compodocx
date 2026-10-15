@@ -5,7 +5,7 @@ import { BARE_SPEC_RE } from './import-specifiers';
  * Vendoring the locally built library into the StackBlitz file map.
  *
  * StackBlitz resolves registry `dependencies` against the last PUBLISHED
- * version, never the working tree — so a playground that imports an
+ * version, never the working tree - so a playground that imports an
  * unreleased symbol hard-fails in the sandbox. compodocx already inlines the
  * example sources into the project file map; vendoring is the same mechanism
  * one level deeper: read the locally built `dist/<pkg>` at docs-build time and
@@ -13,7 +13,7 @@ import { BARE_SPEC_RE } from './import-specifiers';
  * `file:` dependency so the WebContainer's `npm install` resolves it (and its
  * inter-package deps) locally instead of from the registry.
  *
- * This module is the PURE half — directory walking and file reads come through
+ * This module is the PURE half - directory walking and file reads come through
  * an injected {@link VendorFsReader}, mirroring `read-file-ref.ts`. The
  * page-generator wrapper plugs the real `fs`.
  */
@@ -25,12 +25,12 @@ export interface VendorPackage {
     /** Files under the package dir, keyed by POSIX path relative to the dir. */
     files: Record<string, string>;
     /**
-     * Names of OTHER vendored packages this one depends on — the closure
+     * Names of OTHER vendored packages this one depends on - the closure
      * edges. Computed as `(dependencies ∪ peerDependencies) ∩ vendoredNames`,
      * so registry-only peers (`@angular/*`, `rxjs`, `tslib`) are excluded.
      */
     vendorDeps: string[];
-    /** Sum of `files` content byte lengths — drives the payload size guard. */
+    /** Sum of `files` content byte lengths - drives the payload size guard. */
     byteSize: number;
 }
 
@@ -57,7 +57,7 @@ export interface VendorResolveResult {
 /** Knobs for the read loop's non-runtime-file slimming. */
 export interface VendorResolveOptions {
     /**
-     * Keep `*.map` sourcemaps in the vendored set. Default `false` — sourcemaps
+     * Keep `*.map` sourcemaps in the vendored set. Default `false` - sourcemaps
      * are dead weight in the WebContainer and a large slice of FESM byte size.
      * Set from the `playgroundVendorIncludeSourcemaps` config key.
      */
@@ -95,7 +95,7 @@ const isGlob = (pattern: string): boolean => pattern.includes('*');
 /**
  * Match a package name against a vendor pattern. `*` matches any run of
  * characters (including `/`), so `@cngx/*` matches `@cngx/ui` and an exact
- * name matches only itself. Intentionally simple — vendor patterns are short
+ * name matches only itself. Intentionally simple - vendor patterns are short
  * package globs, not full minimatch.
  */
 const matchesPattern = (name: string, pattern: string): boolean => {
@@ -117,7 +117,7 @@ const isAncestorDir = (ancestor: string, dir: string): boolean =>
 /**
  * Resolve the set of vendor packages available under `vendorRoot` that match
  * any of `patterns`. Primary package roots are detected by `package.json`
- * `name` (convention-free — works regardless of the dist directory layout);
+ * `name` (convention-free - works regardless of the dist directory layout);
  * secondary-entry-point `package.json`s nested inside a primary root are kept
  * as files but never treated as their own package. Pure apart from `fs`.
  */
@@ -249,7 +249,7 @@ export function resolveVendorPackages(
 /**
  * Walk the vendor dependency closure for one playground. Given the package
  * roots the playground's imports reference directly (`seeds`), follow each
- * vendored package's `vendorDeps` to collect the FULL set that must ship — so
+ * vendored package's `vendorDeps` to collect the FULL set that must ship - so
  * vendoring `@cngx/ui` also vendors `@cngx/common`/`@cngx/core` rather than
  * pulling them stale from the registry. Pure graph traversal over the
  * in-memory package map. Seeds not present in `packages` are ignored.
@@ -288,7 +288,7 @@ export function vendorClosure(
 // one is the main payload lever. `pruneVendorClosure` keeps, per package, only
 // the entry points actually reachable: the ones imported from the playground
 // sources, plus any sibling/cross-package entry point a kept FESM chunk (or its
-// typings) references — followed transitively. Everything unreached is dropped.
+// typings) references - followed transitively. Everything unreached is dropped.
 // On any structural ambiguity it falls back to shipping the whole (slimmed)
 // package: a wrong prune breaks the build, a fat one only costs bytes.
 // ---------------------------------------------------------------------------
@@ -302,7 +302,7 @@ export function vendorClosure(
 const RELATIVE_SPEC_RE = /(?:from|import|export\s+[^'"]*from)\s*['"](\.[^'"]*)['"]/g;
 
 /**
- * Every bare-specifier import/export in `source`, verbatim (subpath kept —
+ * Every bare-specifier import/export in `source`, verbatim (subpath kept -
  * `@cngx/ui/tabs`, not `@cngx/ui`). Pure. Distinct from the manifest builder's
  * `extractBareSpecifiers`, which collapses to package roots for dependency
  * lookup; pruning needs the subpath to map to an entry point.
@@ -399,7 +399,7 @@ const pickFesm = (
 /** Resolve an entry's typings via the `types`/`typings` export condition.
  * ng-packagr emits per-entry typings into a FLAT `types/` dir and points at
  * them through this condition (`@cngx/ui/tabs` → `./types/cngx-ui-tabs.d.ts`),
- * NOT into the entry's own directory — so they must be resolved from the
+ * NOT into the entry's own directory - so they must be resolved from the
  * condition, never by directory prefix. Without this the entry FESM ships but
  * its `.d.ts` is dropped, and the AOT build fails with TS7016 → NG1010. */
 const pickTypes = (
@@ -437,7 +437,7 @@ const buildEntryIndex = (pkg: VendorPackage): EntryIndex => {
     // Only prune packages whose entry-point structure we can read with
     // confidence: a parseable root `package.json` with an `exports` map (every
     // ng-packagr build since Angular 13 emits one). Anything older / hand-rolled
-    // is shipped whole — a fat payload beats a wrong prune.
+    // is shipped whole - a fat payload beats a wrong prune.
     const exportsMap = root?.exports;
     if (!root || !exportsMap || typeof exportsMap !== 'object') {
         index.keepAll = true;
@@ -454,7 +454,7 @@ const buildEntryIndex = (pkg: VendorPackage): EntryIndex => {
         }
     }
 
-    // Typings resolved via the `types` export condition (see `pickTypes`) —
+    // Typings resolved via the `types` export condition (see `pickTypes`) -
     // tracked so the directory-prefix fallback below does not re-assign them to
     // the root entry (their `types/` path never matches a secondary entry dir).
     const claimedTypings = new Set<string>();
@@ -557,13 +557,13 @@ const ownerOf = (specifier: string, names: string[]): string | null => {
 
 /**
  * Prune each package in a vendor closure down to the entry points reachable
- * from the playground's own imports (`importedRawSpecs` — raw subpaths from TS
+ * from the playground's own imports (`importedRawSpecs` - raw subpaths from TS
  * imports AND SCSS `@use`), following intra- and cross-package entry-point
  * references transitively. Returns the kept file map per package, keyed by full
  * package name. Packages whose structure can't be read, or for which an
  * imported subpath matches no known entry point, are returned whole (slimmed).
  *
- * Pure — operates entirely on the in-memory package map.
+ * Pure - operates entirely on the in-memory package map.
  */
 export function pruneVendorClosure(
     closureNames: string[],

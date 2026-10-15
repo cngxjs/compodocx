@@ -76,7 +76,7 @@ type MenuProps = {
     readonly data: any;
 };
 
-/** Chevron icon — CSS rotation handles open/closed state */
+/** Chevron icon - CSS rotation handles open/closed state */
 const chevron = (): string => IconChevronRight('cdx-chevron');
 
 /** Config-only `collapsedAll: true` forces every chapter AND every nested folder
@@ -286,7 +286,7 @@ const DependencyInjectionChapter = (d: any): string => {
  * leave a confusing fragment in the address bar.
  *
  * Typealias + variable detail pages (MiscDetailPage) only render Info
- * tab — their API surface IS the description / signature, surfaced
+ * tab - their API surface IS the description / signature, surfaced
  * inline. Modules / Routes / Coverage are not entity pages.
  */
 const KINDS_WITH_API_TAB: ReadonlySet<EntityKind> = new Set<EntityKind>([
@@ -307,7 +307,7 @@ const KINDS_WITH_API_TAB: ReadonlySet<EntityKind> = new Set<EntityKind>([
  * Sidebar-link href with optional `#api` default-tab hint. The hint is
  * appended only when the target page actually has an API tab and the
  * existing href carries no fragment (anchor-style miscellaneous URLs
- * already encode the target row — never stack `#api` on top of `#name`).
+ * already encode the target row - never stack `#api` on top of `#name`).
  */
 /** A feature-folder entry may live on a provider or cluster page; link it there. */
 const placedEntityHref = (item: any): string => {
@@ -524,10 +524,10 @@ const FeatureEntityLink = (item: EntityWithKind, defaultTab?: 'api'): string =>
  *  the collapse-toggle attributes (`role="button"`, `tabindex="0"`,
  *  `data-cdx-toggle="collapse"`, `aria-expanded`, `aria-controls`).
  *  Clicking anywhere in the row toggles expand, EXCEPT when the click
- *  originates inside the `<a data-cdx-bucket-link>` label — the
+ *  originates inside the `<a data-cdx-bucket-link>` label - the
  *  client-side handler short-circuits there so the anchor's native
  *  navigation (including Cmd/middle-click new-tab) fires unaltered.
- *  No `<a>` nested in `<button>` — HTML5 forbids it; row + sibling
+ *  No `<a>` nested in `<button>` - HTML5 forbids it; row + sibling
  *  anchor keeps the markup valid and the a11y tree clean.
  *
  *  A node whose path is a feature's page links its label there; a folder

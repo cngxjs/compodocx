@@ -1,17 +1,17 @@
 /**
  * Mapping from legacy compodoc Handlebars helper names to compodocx JS actions.
  *
- * The keys are the names users wrote in `.hbs` templates — i.e. the strings
+ * The keys are the names users wrote in `.hbs` templates - i.e. the strings
  * passed to `Handlebars.registerHelper` by compodoc, plus the unregistered
  * legacy link helpers (`functionSignature`, `linkType`, `parseDescription`,
  * `relativeURL`). The frozen name list lives in `helper-map.spec.ts`.
  *
  * Five mapping kinds:
- * - `rename`        — legacy → modern barrel name; emit `helpers.<to>(...args)`.
- * - `lossy-rename`  — modern equivalent isn't byte-identical; same emit, yellow.
- * - `inline`        — pure JS replacement; emit function returns the source.
- * - `removed`       — no analog; emit empty string + warning.
- * - `unknown`       — never seen by the converter; emit TODO + red fidelity.
+ * - `rename`        - legacy → modern barrel name; emit `helpers.<to>(...args)`.
+ * - `lossy-rename`  - modern equivalent isn't byte-identical; same emit, yellow.
+ * - `inline`        - pure JS replacement; emit function returns the source.
+ * - `removed`       - no analog; emit empty string + warning.
+ * - `unknown`       - never seen by the converter; emit TODO + red fidelity.
  *
  * Forward coverage (every registered helper has a mapping) and reverse
  * coverage (every `rename` target is exported by the modern helper barrel)
@@ -39,7 +39,7 @@ const COMPARE_OP_MAP: Readonly<Record<string, string>> = {
 };
 
 export const HELPER_MAP: Readonly<Record<string, HelperMapping>> = {
-    // 1:1 renames — legacy registered name → modern barrel export.
+    // 1:1 renames - legacy registered name → modern barrel export.
     relativeURL: { kind: 'rename', to: 'relativeUrl' },
     t: { kind: 'rename', to: 't' },
     capitalize: { kind: 'rename', to: 'capitalize' },
@@ -60,14 +60,14 @@ export const HELPER_MAP: Readonly<Record<string, HelperMapping>> = {
     'short-url': { kind: 'rename', to: 'shortUrl' },
     highlightCode: { kind: 'rename', to: 'highlightedCodeWrap' },
 
-    // Lossy renames — close-enough modern equivalent, fidelity goes yellow.
+    // Lossy renames - close-enough modern equivalent, fidelity goes yellow.
     breaklines: {
         kind: 'lossy-rename',
         to: 'parseDescription',
         reason: String.raw`breaklines was a one-shot \n→<br>; parseDescription runs full markdown`
     },
 
-    // Inline JS replacements — HBS-only constructs with no helper analog.
+    // Inline JS replacements - HBS-only constructs with no helper analog.
     // Type links need the depth of the page they are rendered on.
     functionSignature: {
         kind: 'inline',
@@ -133,7 +133,7 @@ export const HELPER_MAP: Readonly<Record<string, HelperMapping>> = {
         emit: ([prefix, url]) => `(${prefix} + String(${url}).split('/').pop())`
     },
 
-    // Stripped — debug-only or replaced by Configuration access.
+    // Stripped - debug-only or replaced by Configuration access.
     debug: { kind: 'removed', reason: 'debugging helper, no equivalent' },
     isNotToggle: {
         kind: 'removed',
@@ -159,7 +159,7 @@ export const HELPER_MAP: Readonly<Record<string, HelperMapping>> = {
 
 export const lookupHelper = (name: string): HelperMapping | undefined => HELPER_MAP[name];
 
-/** All legacy helper names this map covers — used by coverage specs. */
+/** All legacy helper names this map covers - used by coverage specs. */
 export const knownLegacyHelpers = (): readonly string[] => Object.keys(HELPER_MAP);
 
 /** All modern helper names referenced as `rename` / `lossy-rename` targets. */

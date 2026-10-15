@@ -1,5 +1,5 @@
 /**
- * Result<T, E> — discriminated-union return type for operations that can fail.
+ * Result<T, E> - discriminated-union return type for operations that can fail.
  * Replaces `process.exit(2)` / throw-on-validation-error patterns at module
  * boundaries. Callers narrow with `isOk` / `isErr` before consuming.
  */

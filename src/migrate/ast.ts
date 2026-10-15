@@ -1,10 +1,10 @@
 /**
  * Handlebars AST helpers shared by the converter pipeline.
  *
- * - `parse(source)` — wraps `Handlebars.parse`, returning the typed AST.
- * - `normalizePath(node, scopes)` — converts a `PathExpression` into a JS access
+ * - `parse(source)` - wraps `Handlebars.parse`, returning the typed AST.
+ * - `normalizePath(node, scopes)` - converts a `PathExpression` into a JS access
  *   string using the active scope stack.
- * - `walk(program, visit)` — depth-first walk that surfaces every statement and
+ * - `walk(program, visit)` - depth-first walk that surfaces every statement and
  *   expression node back to the caller.
  *
  * Pure functions throughout: every helper returns a fresh value, no internal
@@ -35,7 +35,7 @@ export const parse = (source: string): AstProgram => Handlebars.parse(source);
  * Each `#each` / `#with` block pushes its loop variable name on top.
  *
  * Block-param aliases (`{{#each items as |row idx|}}`) bind extra HBS names
- * to JS identifiers visible inside the block — `aliases` maps the HBS-side
+ * to JS identifiers visible inside the block - `aliases` maps the HBS-side
  * name to the JS expression to use when a path starts with that name.
  */
 export interface ScopeFrame {

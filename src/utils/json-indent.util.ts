@@ -1,7 +1,7 @@
 /**
  * Validate the `--jsonIndent` flag (and the matching config-file field).
  *
- * Accepts an integer between 0 and 8, inclusive — same range Node's
+ * Accepts an integer between 0 and 8, inclusive - same range Node's
  * `JSON.stringify(value, replacer, space)` honours before silently capping.
  * Returns a `Result` so callers (CLI, programmatic consumers, tests) decide
  * how to surface failures. The CLI in `src/index-cli.ts` exits the process

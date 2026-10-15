@@ -223,14 +223,14 @@ const initLinePermalinks = () => {
  * them. Drives two DOM consumers simultaneously:
  *
  *   1. The text scope indicator in the tab header
- *      (`.cdx-source-viewer-header .cdx-source-scope`) — shows the
+ *      (`.cdx-source-viewer-header .cdx-source-scope`) - shows the
  *      full dotted scope (e.g. `UserListComponent › ngOnInit`).
- *   2. The sticky scroll stack (`.cdx-source-viewer-sticky-stack`) —
+ *   2. The sticky scroll stack (`.cdx-source-viewer-sticky-stack`) -
  *      clones up to 3 real decl lines (depth 0, 1, 2) with their
  *      Shiki highlighting preserved, stacked below the header.
  *
  * Driven by a scroll listener on the outer page scroll container
- * (`.content`) — the source viewer itself has no internal scroll in
+ * (`.content`) - the source viewer itself has no internal scroll in
  * this phase. On every scroll frame we compute, per depth level, the
  * most-recently scrolled-past member line whose natural position is
  * above the sticky stack's pin point, and render the resulting chain.
@@ -362,18 +362,18 @@ const initSourceScope = () => {
             // on initial load, before user switches to the Source
             // tab). All member rects would also be zero, which would
             // incorrectly mark every decl as "scrolled past" and
-            // render a stale chain on mount. Bail out — we'll re-run
+            // render a stale chain on mount. Bail out - we'll re-run
             // when the user scrolls after the tab is visible.
             if (viewerRect.width === 0 || viewerRect.height === 0) {
                 return;
             }
-            // Viewer out of view entirely — nothing to pin.
+            // Viewer out of view entirely - nothing to pin.
             if (viewerRect.bottom < 0 || viewerRect.top > window.innerHeight) {
                 renderStack([]);
                 return;
             }
 
-            // Pin trigger Y coordinate — everything above this is
+            // Pin trigger Y coordinate - everything above this is
             // "scrolled past" and eligible for the stack.
             const triggerY = STICKY_STACK_LINE_OFFSET;
 
@@ -402,7 +402,7 @@ const initSourceScope = () => {
             renderStack(chain);
         };
 
-        // Initial render — pin the first member as the scope so the
+        // Initial render - pin the first member as the scope so the
         // header is never visually empty on mount.
         update();
 

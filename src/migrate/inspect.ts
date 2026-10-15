@@ -1,5 +1,5 @@
 /**
- * `compodocx migrate inspect <project-path>` — audit-only project scanner.
+ * `compodocx migrate inspect <project-path>` - audit-only project scanner.
  *
  * Walks a compodoc project directory and surfaces:
  *  - .hbs files: classified as migrate-able vs hard-limit (page.hbs / unknown).
@@ -7,7 +7,7 @@
  *  - ESM-package corner case: `"type": "module"` blocks the .js loader's
  *    require() call, so converted overrides need a `.cjs` extension.
  *
- * No writes — just a structured report. The CLI prints a console summary or
+ * No writes - just a structured report. The CLI prints a console summary or
  * `--json` payload depending on flags.
  */
 
@@ -103,7 +103,7 @@ const STALE_CLI_FLAGS: Readonly<Record<string, { reason: string; replacement: st
     }
 };
 
-/** Compodocx-bundled themes — anything outside this set is a stale theme name. */
+/** Compodocx-bundled themes - anything outside this set is a stale theme name. */
 const COMPODOCX_THEMES: ReadonlySet<string> = new Set([
     'default',
     'gitbook',
@@ -142,7 +142,7 @@ const inspectConfigFile = (file: string, fs: FsAdapter): readonly InspectFinding
     try {
         parsed = JSON.parse(fs.readFile(file)) as Record<string, unknown>;
     } catch {
-        // YAML is not parsed (no js-yaml dep) — bail with a hint instead of crashing.
+        // YAML is not parsed (no js-yaml dep) - bail with a hint instead of crashing.
         if (file.endsWith('.yaml') || file.endsWith('.yml')) {
             return [
                 {
@@ -209,7 +209,7 @@ const inspectPackageJson = (file: string, fs: FsAdapter): InspectFinding | null 
             };
         }
     } catch {
-        // ignore unreadable / non-JSON package.json — not a migrate concern
+        // ignore unreadable / non-JSON package.json - not a migrate concern
     }
     return null;
 };

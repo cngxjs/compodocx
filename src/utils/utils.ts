@@ -100,7 +100,7 @@ export function readConfig(configFile: string): any {
  * Resolve `compilerOptions.paths` and `compilerOptions.baseUrl` from a
  * tsconfig file, following its `extends` chain. TypeScript natively
  * walks the chain when `parseJsonConfigFileContent` is given a fresh
- * readResult — values from the leaf override those from ancestors.
+ * readResult - values from the leaf override those from ancestors.
  *
  * `paths` is returned verbatim; `baseUrl` is rewritten from the
  * absolute path returned by the compiler API back to a path relative

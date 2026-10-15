@@ -32,13 +32,13 @@ import {
  * The shape that ships in the per-block `<script type="application/json">`
  * payload and is consumed by `@stackblitz/sdk`'s `openProject(...)`.
  *
- * Stable contract — clients cache and replay manifests across page loads, so
+ * Stable contract - clients cache and replay manifests across page loads, so
  * adding optional fields is safe but renaming or removing fields is breaking.
  *
  * The client splits this into two SDK args: project body (title / description
  * / template / files / dependencies / tags) and SDK options (`openFile`,
  * `startScript`). `startScript: 'start'` is what makes WebContainer actually
- * run `npm start` (= `ng serve`) after `npm install` — without it, you get
+ * run `npm start` (= `ng serve`) after `npm install` - without it, you get
  * stuck on "Starting dev server".
  */
 export interface PlaygroundManifest {
@@ -47,9 +47,9 @@ export interface PlaygroundManifest {
     template: typeof STACKBLITZ_TEMPLATE;
     /** POSIX-only file paths; values may be truncated by the file emitter. */
     files: { [posixPath: string]: string };
-    /** Runtime npm packages — Angular peers, ecosystem, and Angular toolchain. */
+    /** Runtime npm packages - Angular peers, ecosystem, and Angular toolchain. */
     dependencies: { [pkg: string]: string };
-    /** Surfaced as StackBlitz project tags — discoverability only. */
+    /** Surfaced as StackBlitz project tags - discoverability only. */
     tags: string[];
     /** Initial file the StackBlitz editor opens after boot. */
     openFile: string;
@@ -96,13 +96,13 @@ export interface BuildOptions extends WalkOptions {
     /**
      * Arbitrary `<head>` entries appended to the generated `index.html` (after
      * the Material shell links, when present). From the `playgroundHead` config
-     * — for fonts, meta tags, CSP, preloads. Emitted verbatim; blank entries
+     * - for fonts, meta tags, CSP, preloads. Emitted verbatim; blank entries
      * are dropped.
      */
     head?: string[];
     /**
      * Global CSS appended verbatim to the generated `src/styles.css`, after the
-     * default body reset. From the `playgroundGlobalStyles` config — for fonts,
+     * default body reset. From the `playgroundGlobalStyles` config - for fonts,
      * resets, or any global rules the example depends on.
      */
     globalStyles?: string;
@@ -110,7 +110,7 @@ export interface BuildOptions extends WalkOptions {
      * Vendoring input from the `playgroundVendor` config. When set, any
      * imported package that matches a vendored name (plus its transitive
      * vendor-dep closure) is embedded into the file map under `vendor/<pkg>/`
-     * and wired as a `file:vendor/<pkg>` dependency — overriding the registry
+     * and wired as a `file:vendor/<pkg>` dependency - overriding the registry
      * version so the playground runs against the locally built `dist/` instead
      * of the last published release. Populated by `PlaygroundVendorResolver`.
      */
@@ -155,12 +155,12 @@ const NON_ANGULAR_PEER_DEFAULTS: Record<string, string> = {
 
 // Angular CLI tooling that StackBlitz's WebContainer must install to run
 // `ng serve`. These travel as devDependencies inside the emitted package.json
-// — keeping them out of `dependencies` keeps the runtime tree honest.
+// - keeping them out of `dependencies` keeps the runtime tree honest.
 const ANGULAR_DEV_PEERS = ['@angular/cli', '@angular/build', '@angular/compiler-cli'];
 
 const TYPESCRIPT_DEV_PEER_DEFAULT = '~5.9.2';
 
-// Optional ecosystem peers — only forwarded when the consumer declares them.
+// Optional ecosystem peers - only forwarded when the consumer declares them.
 const OPTIONAL_ANGULAR_PEERS = ['@angular/cdk', '@angular/material'];
 
 const PROJECT_NAME = 'compodocx-playground';
@@ -180,7 +180,7 @@ export const AUTO_FORWARD_SKIP = new Set<string>([
  * Scan a source file for bare-specifier imports and return the deduped set
  * of resolved package roots, so consumer-defined libraries referenced in
  * inlined sources or HTML snippets can be auto-forwarded as runtime deps.
- * Pure — no I/O.
+ * Pure - no I/O.
  */
 export const extractBareSpecifiers = (source: string): Set<string> => {
     const found = new Set<string>();
@@ -229,7 +229,7 @@ const collectAllDeps = (
     for (const [peer, fallback] of Object.entries(NON_ANGULAR_PEER_DEFAULTS)) {
         dependencies[peer] = provided[peer] ?? fallback;
     }
-    // Angular CLI tooling — needed for `ng serve` to run inside WebContainer.
+    // Angular CLI tooling - needed for `ng serve` to run inside WebContainer.
     for (const peer of ANGULAR_DEV_PEERS) {
         devDependencies[peer] = provided[peer] ?? angularRef;
     }
@@ -403,7 +403,7 @@ const MATERIAL_SHELL_BODY_CLASS = 'mat-typography mat-app-background';
 /**
  * Single `index.html` writer for every playground. `includeShell` adds the
  * Material font links + body classes; `extraHead` appends arbitrary author
- * `<head>` entries (`playgroundHead`) AFTER the shell links — fonts, meta,
+ * `<head>` entries (`playgroundHead`) AFTER the shell links - fonts, meta,
  * CSP, preloads. Each entry is indented to match the surrounding markup but
  * otherwise emitted verbatim. Keeping this the ONE index.html path means the
  * shell and custom-head contributions never fork into competing writers.
@@ -439,7 +439,7 @@ const buildIndexHtml = (includeShell: boolean, extraHead: string[] = []): string
  * True when the author's global styles carry a Sass-only statement prelude
  * (`@use` / `@forward`). Those resolve only when the stylesheet is compiled by
  * Sass, and the Angular application builder picks Sass purely by file
- * extension — so a global sheet carrying them must ship as `.scss`, not `.css`
+ * extension - so a global sheet carrying them must ship as `.scss`, not `.css`
  * (see the `stylesFile` selection in `buildPlaygroundManifest`). `@import` /
  * `@charset` / `@layer` are valid CSS and do NOT force `.scss`.
  */
@@ -475,7 +475,7 @@ const buildStylesCss = (extraStyles = ''): string => {
     // at-rules that must come before any style rule. Match the statement form
     // only (terminated by `;` with no block), so a `@layer x { ... }` block stays
     // with the body CSS. `@use`/`@forward` are Sass preludes and are even
-    // stricter — Sass errors if they follow any rule — so they are hoisted too.
+    // stricter - Sass errors if they follow any rule - so they are hoisted too.
     const preludeRe = /@(?:import|charset|layer|use|forward)\b[^;{]*;/gi;
     const prelude = trimmed.match(preludeRe) ?? [];
     const rest = trimmed.replace(preludeRe, '').trim();
@@ -520,7 +520,7 @@ const escapeBacktick = (s: string): string => s.replaceAll('\\', '\\\\').replace
  * builder without nesting. Without this the emitted `template: \`…\``
  * literal looks like a wall of left-aligned tags.
  *
- * The indenter is intentionally simple — counts `<tag>` opens vs. `</tag>`
+ * The indenter is intentionally simple - counts `<tag>` opens vs. `</tag>`
  * closes per line, ignoring self-closing tags. Multi-line attribute lists
  * inside a single tag are not supported (rare in playground snippets).
  */
@@ -610,7 +610,7 @@ const buildAppComponentTs = (
 const APP_COMPONENT_PATH = 'src/app/app.component.ts';
 
 /**
- * Pure builder. Result-typed (F14) — caller decides how to surface failure
+ * Pure builder. Result-typed (F14) - caller decides how to surface failure
  * (typically: render a static "project assembly failed" fallback and route
  * the message through `logger.warn`).
  *
@@ -620,13 +620,13 @@ const APP_COMPONENT_PATH = 'src/app/app.component.ts';
  * that hosts the user's snippet and imports the consumed component.
  *
  * Three input modes (mutually exclusive, dispatched by `block.fileRef` upstream):
- *  1. inline (no `fileBundle`): existing behaviour — `block.snippet` becomes the
+ *  1. inline (no `fileBundle`): existing behaviour - `block.snippet` becomes the
  *     AppComponent template.
  *  2. HTML-mode `fileBundle` (`htmlSnippet` set): synthesizes an inline-block
  *     from the file body so the rest of the pipeline (Material auto-detect,
  *     AppComponent template) stays unchanged.
  *  3. TS-mode `fileBundle` (`replacesAppComponent: true`): the entry source
- *     IS the AppComponent — read-file-ref already rewrote relative imports
+ *     IS the AppComponent - read-file-ref already rewrote relative imports
  *     and decorator urls, packed siblings and transitive imports into
  *     `fileBundle.files` under flat `src/app/<basename>` paths. Merge wins
  *     over the dep-graph walked copy on collision.
@@ -660,7 +660,7 @@ export function buildPlaygroundManifest(
             ? { ...block, snippet: fileBundle.htmlSnippet, language: 'html' }
             : block;
 
-    // The class identifier and the file basename rarely match —
+    // The class identifier and the file basename rarely match -
     // `ButtonComponent` lives at `button.component.ts`, so the AppComponent
     // must `import {...} from './button.component'`.
     const rootBasename = posix.basename(walk.value[0].file.replaceAll('\\', '/'), '.ts');
@@ -702,7 +702,7 @@ export function buildPlaygroundManifest(
     // Auto-forward consumer-declared third-party packages referenced in the
     // inlined source, the snippet itself, and any fileBundle bare-specifier
     // discovered by read-file-ref's BFS walk. The consumer's `package.json`
-    // dictates the version — packages it doesn't declare are skipped silently
+    // dictates the version - packages it doesn't declare are skipped silently
     // (their build is already broken). `options.extraDependencies` overrides.
     const consumerDeps: Record<string, string> = {
         ...(workspaceManifest?.dependencies ?? {}),
@@ -741,11 +741,11 @@ export function buildPlaygroundManifest(
     // Vendor the locally built library (`playgroundVendor`). Seed the closure
     // from the packages this playground actually imports, walk their
     // vendor-dep edges to the FULL closure, and embed each under `vendor/<pkg>/`
-    // wired as a `file:` dependency. The `file:` entry is authoritative — it
+    // wired as a `file:` dependency. The `file:` entry is authoritative - it
     // overwrites any registry version auto-forward added AND overrides
     // transitive semver ranges inside the WebContainer's `npm install`, so no
     // closure package is pulled stale from the registry. Vendored files bypass
-    // the per-file truncation cap (emitted raw below) — a sliced FESM bundle is
+    // the per-file truncation cap (emitted raw below) - a sliced FESM bundle is
     // a broken FESM bundle; the closure is size-guarded as a whole instead.
     let vendorFiles: Record<string, string> | null = null;
     if (options.vendor && Object.keys(options.vendor.packages).length > 0) {
@@ -754,7 +754,7 @@ export function buildPlaygroundManifest(
         // Raw subpath specifiers (`@cngx/ui/tabs`, not just `@cngx/ui`) from the
         // SAME sources the Material-shell heuristic scans: walked TS, the
         // snippet, and the fileBundle. TS imports/exports AND SCSS `@use` both
-        // count — an SCSS-only theme bridge must seed the closure or it ships
+        // count - an SCSS-only theme bridge must seed the closure or it ships
         // stale from the registry. These also drive the entry-point prune.
         const rawSpecs = new Set<string>();
         const scanSources = [
@@ -831,7 +831,7 @@ export function buildPlaygroundManifest(
     files['src/app/app.config.ts'] = emit(buildAppConfigTs());
 
     if (replacesAppComponent && fileBundle) {
-        // Entry source pre-rewritten by read-file-ref — relative imports and
+        // Entry source pre-rewritten by read-file-ref - relative imports and
         // decorator urls already flattened. Just emit-format and ship.
         files[APP_COMPONENT_PATH] = emit(fileBundle.files[APP_COMPONENT_PATH] ?? '');
     } else {
@@ -871,7 +871,7 @@ export function buildPlaygroundManifest(
         }
     }
 
-    // Vendored dist files ship verbatim — NOT through `emitFileContent`, whose
+    // Vendored dist files ship verbatim - NOT through `emitFileContent`, whose
     // per-file truncation would corrupt a FESM bundle. CRLF is still normalised
     // for byte-stability across platforms.
     if (vendorFiles) {

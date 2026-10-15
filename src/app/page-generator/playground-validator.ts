@@ -17,12 +17,12 @@ import {
  * the bundled TS sources and check each bare import against the version of the
  * package actually installed in the consumer's `node_modules`. A subpath or
  * named symbol the pinned version is missing means the playground compiles
- * locally but fails in StackBlitz — surfaced here at docs-build time.
+ * locally but fails in StackBlitz - surfaced here at docs-build time.
  *
  * Default behaviour is a `logger.warn` per issue; `--strictPlaygrounds`
  * promotes any issue to a hard build failure. Vendored packages
- * (`playgroundVendor`) are exempt — they ship the local build, not the
- * registry version — and so are framework peers (`@angular/*`, `rxjs`, …).
+ * (`playgroundVendor`) are exempt - they ship the local build, not the
+ * registry version - and so are framework peers (`@angular/*`, `rxjs`, …).
  *
  * The validation logic itself is the pure `validateImports`; this class only
  * collects per-playground sources from `mainData` and plugs a real
@@ -35,7 +35,7 @@ export class PlaygroundValidator {
      */
     public resolve(reader: PackageReader = createNodeModulesReader(process.cwd())): void {
         // Skip framework peers (handled by the manifest's explicit dep table)
-        // and any package that COULD be vendored — vendored packages ship the
+        // and any package that COULD be vendored - vendored packages ship the
         // local build, so the registry version is irrelevant to them.
         const skip = new Set<string>([
             ...AUTO_FORWARD_SKIP,

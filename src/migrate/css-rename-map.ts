@@ -2,10 +2,10 @@
  * CSS class-rename rules for `compodocx migrate css`.
  *
  * Three rule kinds:
- *  - `never-touch`  — pattern that must NEVER be rewritten (e.g. `data-compodoc`
+ *  - `never-touch`  - pattern that must NEVER be rewritten (e.g. `data-compodoc`
  *                     attributes are intentionally preserved per CLAUDE.md).
- *  - `exact`        — exact-match class name → replacement.
- *  - `prefix`       — class names with this prefix get the prefix replaced.
+ *  - `exact`        - exact-match class name → replacement.
+ *  - `prefix`       - class names with this prefix get the prefix replaced.
  *
  * Order matters: never-touch wins, then exact, then prefix. Encoded as an
  * ordered array so the rewriter can short-circuit on the first match.
@@ -17,10 +17,10 @@ export type RenameRule =
     | { readonly kind: 'prefix'; readonly from: string; readonly to: string };
 
 export const CSS_RENAME_RULES: readonly RenameRule[] = [
-    // Never-touch — `data-compodoc="<block-name>"` attributes are emitted by
+    // Never-touch - `data-compodoc="<block-name>"` attributes are emitted by
     // every section in src/templates/blocks/*.tsx and src/templates/pages/*.tsx
     // as a stable downstream-scraping contract. CLAUDE.md flags these as
-    // "intentionally kept — do NOT rename".
+    // "intentionally kept - do NOT rename".
     {
         kind: 'never-touch',
         match: /\bdata-compodoc\b/,
@@ -62,10 +62,10 @@ export const CSS_RENAME_RULES: readonly RenameRule[] = [
     { kind: 'prefix', from: 'compodoc-', to: 'cdx-' }
 ];
 
-/** Names that cannot be auto-rewritten — emit an audit warning instead. */
+/** Names that cannot be auto-rewritten - emit an audit warning instead. */
 export const AUDIT_ONLY_PATTERNS: readonly string[] = [
     // `.menu` and `.collapse` are emitted by compodocx but used by the legacy
-    // accordion JS — context-dependent rename, user must check by hand.
+    // accordion JS - context-dependent rename, user must check by hand.
     'menu',
     'collapse',
     // Bootstrap grid removed entirely; user must redesign these.

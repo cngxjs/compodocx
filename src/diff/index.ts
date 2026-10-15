@@ -1,5 +1,5 @@
 /**
- * `compodocx diff <flags>` — CLI dispatcher.
+ * `compodocx diff <flags>` - CLI dispatcher.
  *
  * Surface mirrors the migrate CLI: a small commander instance lazily
  * configured on the first invocation, returning a process exit code.
@@ -7,9 +7,9 @@
  * main commander parses the doc-generation surface and delegates here.
  *
  * Exit code semantics (matches plan):
- *   0 — no breaking, no additive
- *   1 — additive only (warning territory)
- *   2 — at least one breaking, OR a fatal error (parse failure, schemaVersion mismatch, missing flag)
+ *   0 - no breaking, no additive
+ *   1 - additive only (warning territory)
+ *   2 - at least one breaking, OR a fatal error (parse failure, schemaVersion mismatch, missing flag)
  */
 
 import { Command } from 'commander';

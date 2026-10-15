@@ -1,11 +1,11 @@
 /**
- * `compodocx migrate <subcommand>` — CLI dispatcher.
+ * `compodocx migrate <subcommand>` - CLI dispatcher.
  *
  * Wires the five subcommands behind a small commander instance that's
  * created lazily on demand (the migrate path is rarely the user's primary
  * use-case, so we don't want to pay its setup cost on every invocation).
  *
- * Designed to be re-entrant from `src/index-cli.ts` — that file detects the
+ * Designed to be re-entrant from `src/index-cli.ts` - that file detects the
  * `migrate` first arg before commander is configured for the main CLI and
  * delegates here.
  */
@@ -91,7 +91,7 @@ const runTemplate = async (
     } else if (!result.hardLimit) {
         // No --out and no --dry-run: stream the converted source to stdout so
         // the user sees what the converter produced. Without this branch the
-        // command was silent — output was computed but discarded — which read
+        // command was silent - output was computed but discarded - which read
         // as a broken tool. `cat`/`sed`/`awk` all stream-by-default, this matches.
         printLine('--- preview ---');
         process.stdout.write(`${result.output}\n`);

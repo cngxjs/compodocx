@@ -83,7 +83,7 @@ export interface EntityWithKind {
 
 /**
  * Convert flat `Record<string, items[]>` into a GroupNode tree.
- * Mirrors the actual folder structure — no path compression.
+ * Mirrors the actual folder structure - no path compression.
  */
 export function buildGroupTree(groups: Record<string, any[]>): GroupNode[] {
     interface TrieNode {

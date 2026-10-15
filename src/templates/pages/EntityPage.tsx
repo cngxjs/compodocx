@@ -386,7 +386,7 @@ const InfoContent = (props: EntityInfoProps): string => {
                         // Constructor with no public deps but with explicit
                         // modifiers (e.g. `private constructor()`) still
                         // deserves a Constructor section so the modifier
-                        // surfaces — fall back to BlockConstructor.
+                        // surfaces - fall back to BlockConstructor.
                         const ctorModifiers = e.constructorObj?.modifierKind ?? [];
                         if (e.constructorObj && ctorModifiers.length > 0) {
                             return BlockConstructor({

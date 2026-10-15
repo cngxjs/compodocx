@@ -1,7 +1,7 @@
 /**
  * Public types for the `compodocx diff` CLI.
  *
- * The diff pipeline is deliberately data-shaped — every stage takes
+ * The diff pipeline is deliberately data-shaped - every stage takes
  * immutable inputs and returns a new record. Output formatters consume
  * `DiffResult` directly; they don't mutate it.
  */
@@ -9,7 +9,7 @@
 import type { ExportData, VolatileExportField } from '../app/interfaces/export-data.interface';
 
 /**
- * Envelope captured for each side of a diff — uses the volatile-field type
+ * Envelope captured for each side of a diff - uses the volatile-field type
  * derived from `VOLATILE_EXPORT_FIELDS` so adding a field to the constant
  * automatically widens this shape (F16). Never hand-write the field list.
  */
@@ -49,7 +49,7 @@ export type ChangeKind =
     | 'interface-removed'
     | 'interface-changed';
 
-/** Coarse entity kind — drives both diff dispatch and output formatting. */
+/** Coarse entity kind - drives both diff dispatch and output formatting. */
 export type EntityKind =
     | 'component'
     | 'directive'
@@ -102,7 +102,7 @@ export interface DiffSummary {
 
 /**
  * Full diff payload produced by `compare()` and consumed by every formatter.
- * Header fields mirror `ExportData` for traceability — the volatile fields
+ * Header fields mirror `ExportData` for traceability - the volatile fields
  * (`generatedAt`, `compodocxVersion`) ARE captured here on purpose so the
  * machine-readable output can attribute the diff, but the byte-equal
  * comparator strips them via VOLATILE_EXPORT_FIELDS before computing
@@ -118,7 +118,7 @@ export interface DiffResult {
 }
 
 export type ParsedExport = {
-    /** Always-defined post-parse — the gate fills in 0 for legacy exports. */
+    /** Always-defined post-parse - the gate fills in 0 for legacy exports. */
     schemaVersion: number;
     data: ExportData;
 };

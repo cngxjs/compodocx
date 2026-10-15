@@ -1,5 +1,5 @@
 /**
- * Severity rule table — domain-aware classification of diff changes.
+ * Severity rule table - domain-aware classification of diff changes.
  *
  * Reads as a sequence of predicate → severity pairs. The classifier walks
  * the table in order and picks the FIRST match per change record. Order
@@ -9,7 +9,7 @@
  * The plan-document table (`.internal/2026-05-07-api-diff-plan.md`) is the
  * authoritative reference; this file is the runtime mirror. A drift spec
  * could later assert this list stays aligned with the plan, but the cost of
- * authoring that spec exceeds its value at v0.3.0 — the unit tests in
+ * authoring that spec exceeds its value at v0.3.0 - the unit tests in
  * `test/src/diff/rules.spec.ts` cover each row directly.
  */
 
@@ -17,7 +17,7 @@ import type { EntityChange, FieldChange, Severity } from './types';
 
 /**
  * A predicate decides whether a rule matches an entity-level change. Some
- * rules also drill into a single FieldChange (the second arg) — those rules
+ * rules also drill into a single FieldChange (the second arg) - those rules
  * are evaluated per-field-change inside `classify()`.
  */
 export interface SeverityRule {
@@ -102,7 +102,7 @@ const isSignalDepsField = (fieldChange: FieldChange | undefined): boolean => {
 };
 
 /**
- * Public rule table. Order is significant — more specific rules first.
+ * Public rule table. Order is significant - more specific rules first.
  * Each rule's `matches` is called either at the entity level (when no
  * fieldChange is supplied) or once per field-level shift inside the
  * classifier's loop.
@@ -119,7 +119,7 @@ export const SEVERITY_RULES: ReadonlyArray<SeverityRule> = [
         matches: (c, f) => isChangedKind(c) && fieldNameMatches(f, 'selector')
     },
 
-    // Component / directive input shape — required-input detection has
+    // Component / directive input shape - required-input detection has
     // priority over the broader "input added" rule.
     {
         id: 'required-input-added',
@@ -188,7 +188,7 @@ export const SEVERITY_RULES: ReadonlyArray<SeverityRule> = [
         matches: (c, f) => isChangedKind(c) && f?.kind === 'member-added' && isThemeTokenChange(f)
     },
 
-    // Signal deps — internal derivation, not public
+    // Signal deps - internal derivation, not public
     {
         id: 'signal-deps-shift',
         severity: 'docs-only',
@@ -219,7 +219,7 @@ export const SEVERITY_RULES: ReadonlyArray<SeverityRule> = [
         matches: (c, f) => isChangedKind(c) && isSinceField(f)
     },
 
-    // Member-level value swap that doesn't fit a more specific rule —
+    // Member-level value swap that doesn't fit a more specific rule -
     // treat as breaking unless it's purely a description shift on the
     // member; classify recurses into nested for that.
     {

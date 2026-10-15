@@ -5,7 +5,7 @@
 
 import { updateHash } from './hash-router';
 
-/** Switch tab from keyboard — updates the URL hash and moves focus. */
+/** Switch tab from keyboard - updates the URL hash and moves focus. */
 const activateTab = (tab: HTMLElement) => {
     const href = tab.getAttribute('href');
     if (href) {

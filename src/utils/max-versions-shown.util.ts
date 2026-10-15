@@ -2,7 +2,7 @@
  * Validate the `--maxVersionsShown` flag (and the matching config-file field).
  *
  * Accepts an integer between 0 and 1000, inclusive. `0` is treated as
- * "unlimited" by the switcher widget — the upper bound exists to catch
+ * "unlimited" by the switcher widget - the upper bound exists to catch
  * typos / runaway config rather than to express a real product cap.
  *
  * Returns a `Result` so callers (CLI, programmatic consumers, tests) decide

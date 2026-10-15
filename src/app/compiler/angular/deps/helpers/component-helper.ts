@@ -46,7 +46,7 @@ export type HostDirectiveEntry = {
     readonly name: string;
     readonly inputs?: string[];
     readonly outputs?: string[];
-    /** True if `name` is an unresolved identifier — no matching directive class or local const. */
+    /** True if `name` is an unresolved identifier - no matching directive class or local const. */
     readonly unresolved?: boolean;
     /** Original identifier text when the entry was dereferenced from a local const. */
     readonly refName?: string;
@@ -137,12 +137,12 @@ export class ComponentHelper {
      * Classify a single element of the `hostDirectives: [...]` array into a
      * `HostDirectiveEntry`. Handles three shapes:
      *
-     * 1. Inline `{ directive, inputs, outputs }` object literal — parsed directly.
+     * 1. Inline `{ directive, inputs, outputs }` object literal - parsed directly.
      * 2. `Identifier` that resolves to a local `const FOO = { directive: ... }`
-     *    variable declaration in the same source file — dereferenced and the
+     *    variable declaration in the same source file - dereferenced and the
      *    original identifier text is preserved as `refName`.
      * 3. `Identifier` that does not resolve locally (bare directive class
-     *    reference OR const imported from another file) — emits `{ name }`.
+     *    reference OR const imported from another file) - emits `{ name }`.
      *    For bare class references this is already the correct rendering;
      *    for imported const refs this is a deliberate MVP fallback flagged
      *    as `unresolved: true` so the renderer can treat it differently if
@@ -179,7 +179,7 @@ export class ComponentHelper {
                 }
             }
 
-            // Could not dereference — either a bare directive class reference
+            // Could not dereference - either a bare directive class reference
             // (correct rendering) or an imported const (Phase 1.5 territory).
             // Flag unresolved so the renderer can optionally distinguish.
             return { name: identifierName, unresolved: true };
@@ -235,7 +235,7 @@ export class ComponentHelper {
      * `const NAME = { ... }` (or `let` / `var`) whose initializer is an
      * ObjectLiteralExpression, and return its property list. Returns
      * `undefined` when no matching local variable exists. This deliberately
-     * does NOT consult the global ts-morph `ast` Project from ImportsUtil —
+     * does NOT consult the global ts-morph `ast` Project from ImportsUtil -
      * that dependency would break the in-memory unit test infrastructure and
      * only adds cross-file resolution which is Phase 1.5 scope.
      */
@@ -597,11 +597,11 @@ export class ComponentHelper {
      * Literal kinds (`StringLiteral`, `NoSubstitutionTemplateLiteral`,
      * `NumericLiteral`) and `Identifier` expose a native `.text` field that
      * already returns the inner content with surrounding quotes / backticks
-     * stripped. Everything else — `CallExpression`, `PropertyAccessExpression`,
+     * stripped. Everything else - `CallExpression`, `PropertyAccessExpression`,
      * `TemplateExpression`, `ObjectLiteralExpression`, computed property
-     * names, etc. — falls back to `getText()` so complex initializers keep
+     * names, etc. - falls back to `getText()` so complex initializers keep
      * their full source instead of collapsing to `undefined` the way the
-     * previous `initializer?.text` access did. Phase 2a bug fix — see
+     * previous `initializer?.text` access did. Phase 2a bug fix - see
      * .internal/compiler-metadata-extraction-fix-plan.md.
      */
     private readNodeText(node: ts.Node | undefined): string | undefined {

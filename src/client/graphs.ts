@@ -148,7 +148,7 @@ const initDomTree = async () => {
             .attr('transform', (d: any) => `translate(${d.x},${d.y})`)
             .style('cursor', (d: any) => (d.data.isComponent ? 'pointer' : 'default'));
 
-        // Node ellipses — entity-color tokens
+        // Node ellipses - entity-color tokens
         node.append('ellipse')
             .attr('rx', (d: any) => {
                 const label = d.data.name;
@@ -177,7 +177,7 @@ const initDomTree = async () => {
             return d.data.name;
         });
 
-        // Node labels — white on colored entity nodes, dark on plain HTML
+        // Node labels - white on colored entity nodes, dark on plain HTML
         node.append('text')
             .attr('dy', 4)
             .attr('text-anchor', 'middle')

@@ -2,9 +2,9 @@
  * Fidelity scoring + warning aggregation.
  *
  * Per-file score:
- * - `green`  — every node mapped via `rename` or `inline`, zero warnings.
- * - `yellow` — every node mapped, but at least one lossy/aggressive warning.
- * - `red`    — at least one unknown helper, unsupported block, or partial
+ * - `green`  - every node mapped via `rename` or `inline`, zero warnings.
+ * - `yellow` - every node mapped, but at least one lossy/aggressive warning.
+ * - `red`    - at least one unknown helper, unsupported block, or partial
  *              with no target. Output emitted with TODO comments; user MUST
  *              review before using.
  *

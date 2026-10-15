@@ -122,7 +122,7 @@ export const extractJsdocCodeExamples = (jsdocTags: JsdocTagSource[]): JsdocTag[
     return tags;
 };
 
-/** Extract @example tags (simple — caption replacement only). */
+/** Extract @example tags (simple - caption replacement only). */
 export const extractJsdocExamples = (jsdocTags: JsdocTagSource[]): JsdocTag[] => {
     const tags: JsdocTag[] = [];
     for (const jt of jsdocTags) {
@@ -222,7 +222,7 @@ export const extractJsdocPlaygroundBlocks = (
         const fenceSearch = lines.slice(titleLine + 1).join('\n');
 
         // File-ref form: trailing `.html` / `.ts` path token on the title line.
-        // Mutually exclusive with a fenced body — having both is ambiguous and
+        // Mutually exclusive with a fenced body - having both is ambiguous and
         // dropped with a warning so the author can pick one.
         const pathMatch = rawTitleLine.match(PLAYGROUND_PATH_SUFFIX);
         if (pathMatch) {
@@ -267,11 +267,11 @@ export const extractJsdocPlaygroundBlocks = (
     return { blocks, warnings };
 };
 
-// A relative `.ts` path token — the only valid `@playgroundConfig` value.
+// A relative `.ts` path token - the only valid `@playgroundConfig` value.
 const PLAYGROUND_CONFIG_PATH = /^(\.\.?\/[^\s]+\.ts)$/;
 
 /**
- * Parse a component-level `@playgroundConfig <path>` tag — the supported way to
+ * Parse a component-level `@playgroundConfig <path>` tag - the supported way to
  * ship an `app.config.ts` (with `provideRouter`, interceptors, …) into the
  * component's `@playground` projects and wire `bootstrapApplication(App,
  * appConfig)`. Replaces the undocumented `export { appConfig } from

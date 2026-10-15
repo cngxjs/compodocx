@@ -1,10 +1,10 @@
 /**
- * Markdown formatter for `compodocx diff --md` — output suitable for
+ * Markdown formatter for `compodocx diff --md` - output suitable for
  * pasting into a CHANGELOG entry or PR description.
  *
  * Layout:
  *
- *   ## API changes — <fromVersion> → <toVersion>
+ *   ## API changes - <fromVersion> → <toVersion>
  *
  *   ### Breaking changes (<n>)
  *   - **`Foo`** removed
@@ -17,7 +17,7 @@
  *
  * Empty severity sections are omitted so a docs-only diff doesn't render
  * three empty `<n>=0` headings. Markdown renderers treat the output as a
- * regular section — no front-matter, no HTML.
+ * regular section - no front-matter, no HTML.
  */
 
 import type { DiffResult, EntityChange, Severity } from '../types';

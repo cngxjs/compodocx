@@ -100,7 +100,7 @@ const reinitPage = async () => {
     initCoverage();
     initExamples();
     initAnimations();
-    // Re-bind StackBlitz launchers — `<button class="cdx-playground-launch">`
+    // Re-bind StackBlitz launchers - `<button class="cdx-playground-launch">`
     // tags from the swapped page need a fresh click handler. WeakSet guards
     // inside `initStackblitz` make this idempotent for already-bound buttons.
     initStackblitz();

@@ -12,7 +12,7 @@ import { t } from '../helpers';
  * cross-links to the named symbols. Resolved via
  * `DependenciesEngine.findInCompodoc()` plus a fallback lookup against
  * `tokens` (not included in the merged-data list there). Unresolved
- * symbols still render as an inactive grey chip — and emit a build-time
+ * symbols still render as an inactive grey chip - and emit a build-time
  * warn so the docs author can see the typo.
  *
  * Override name: `related`.

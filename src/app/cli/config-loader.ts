@@ -238,7 +238,7 @@ export function applyConfigToMainData(
         mainData.theme = 'default';
     }
 
-    // --extTheme is a deprecated alias — treat as custom theme path
+    // --extTheme is a deprecated alias - treat as custom theme path
     if (mainData.extTheme && !mainData.theme) {
         mainData.theme = mainData.extTheme;
     }
@@ -390,7 +390,7 @@ export function applyConfigToMainData(
     }
 
     // Backstop closure cap. Floor keeps a meaningful payload; ceiling is the
-    // observed StackBlitz POST limit — raising past it re-opens the 413.
+    // observed StackBlitz POST limit - raising past it re-opens the 413.
     setPlaygroundCap(configFile.playgroundVendorCap, 50_000, STACKBLITZ_POST_LIMIT, n => {
         mainData.playgroundVendorCap = n;
     });
@@ -497,7 +497,7 @@ export function applyConfigToMainData(
 
     // Multi-version flags. Order matters: pick up config-file values
     // first, then let CLI flags override only when they were actually
-    // passed (F22 — distinguishing default from user-provided).
+    // passed (F22 - distinguishing default from user-provided).
     if (typeof configFile.multiVersion === 'boolean') {
         mainData.multiVersion = configFile.multiVersion;
     }

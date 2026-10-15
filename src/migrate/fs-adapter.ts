@@ -1,5 +1,5 @@
 /**
- * Minimal filesystem adapter — keeps `templates.ts` testable without mocks
+ * Minimal filesystem adapter - keeps `templates.ts` testable without mocks
  * by isolating every disk touch behind a small interface.
  */
 
@@ -16,7 +16,7 @@ export const realFs = (): FsAdapter => ({
     ensureDir: dir => fs.mkdirSync(dir, { recursive: true })
 });
 
-/** In-memory adapter used by tests — no disk I/O. */
+/** In-memory adapter used by tests - no disk I/O. */
 export interface MemoryFsContents {
     [absolutePath: string]: string;
 }

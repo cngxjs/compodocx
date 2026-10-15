@@ -1,7 +1,7 @@
 import type { Result } from '../../../lib';
 import { STACKBLITZ_DEP_DEPTH, STACKBLITZ_FILE_COUNT_CAP } from './constants';
 
-// Local POSIX basename — keeps this module free of a node:path import so it
+// Local POSIX basename - keeps this module free of a node:path import so it
 // stays trivially portable. Splits on both separators for cross-platform paths.
 const posixBasename = (file: string): string => {
     const parts = file.replaceAll('\\', '/').split('/');
@@ -12,7 +12,7 @@ const posixBasename = (file: string): string => {
  * One entry in the playground dep graph. `imports` is a list of named
  * dependencies (entity names) that the resolver knows how to map back to
  * source. `internal` flags @internal-tagged exports so they can be filtered
- * out before serialisation — private code never leaks into a public
+ * out before serialisation - private code never leaks into a public
  * StackBlitz project.
  */
 export interface DepGraphNode {
@@ -39,7 +39,7 @@ export type WalkResult = Result<DepGraphNode[]>;
  * Walks the dependency graph rooted at `rootName` in BFS order. Filters out
  * @internal-tagged nodes, dedupes by name, and aborts with a descriptive
  * error when either the depth or file-count cap is exceeded. Pure function:
- * the resolver is the single I/O boundary — production callers wire it to
+ * the resolver is the single I/O boundary - production callers wire it to
  * the live source provider, tests pass a static map.
  */
 export function walkDepGraph(

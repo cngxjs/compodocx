@@ -1,5 +1,5 @@
 /**
- * `compodocx migrate jsdoc` — strips the `@category` and `@docsKind` tags
+ * `compodocx migrate jsdoc` - strips the `@category` and `@docsKind` tags
  * compodocx no longer reads from TypeScript sources. Pure per file; the CLI
  * walks the tree and writes through an `FsAdapter`.
  */

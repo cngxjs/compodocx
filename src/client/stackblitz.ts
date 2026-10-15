@@ -1,9 +1,9 @@
 /**
  * StackBlitz integration. Two surfaces:
  *
- * 1. Author-supplied @stackblitz JSDoc tag links (legacy) — open the linked
+ * 1. Author-supplied @stackblitz JSDoc tag links (legacy) - open the linked
  *    project in a new tab via `window.open` with no SDK loaded.
- * 2. `@playground` blocks — click on a `.cdx-playground-launch` button
+ * 2. `@playground` blocks - click on a `.cdx-playground-launch` button
  *    materializes the SDK lazily via dynamic `import('@stackblitz/sdk')`
  *    and calls `openProject(project, { openFile, startScript, newWindow: true })`.
  *    Static doc pages do not pay the SDK byte cost until the user opts in.
@@ -53,7 +53,7 @@ async function launchPlayground(buttonEl: HTMLButtonElement): Promise<void> {
     // SDK contract: { title, description, template, files, dependencies, tags } as
     // the project payload, { openFile, startScript, newWindow } as options.
     // `startScript: 'start'` makes WebContainer run `npm start` (= `ng serve`)
-    // after install — without it, the dev server never boots.
+    // after install - without it, the dev server never boots.
     const { openFile, startScript, ...project } = manifest;
     try {
         const mod = await import('@stackblitz/sdk');

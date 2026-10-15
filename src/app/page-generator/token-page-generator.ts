@@ -12,7 +12,7 @@ import type { NavTabsResolver } from './nav-tabs';
  * Emits one HTML page per `InjectionToken` / `HttpContextToken`
  * declaration, at `tokens/<name>.html`. Mirrors
  * `InjectablePageGenerator` but routes to the leaner `TokenPage`
- * template instead of the shared entity page — tokens have no
+ * template instead of the shared entity page - tokens have no
  * methods / inputs / outputs / API tab.
  */
 export class TokenPageGenerator {

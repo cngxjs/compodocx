@@ -134,7 +134,7 @@ function isManifestEntry(value: unknown): value is VersionsManifestEntry {
 
 /**
  * Insert (or replace) the given entry into the manifest, then re-sort.
- * Returns a new manifest object — does NOT mutate the input.
+ * Returns a new manifest object - does NOT mutate the input.
  */
 export function mergeEntry(
     manifest: VersionsManifest,
@@ -206,7 +206,7 @@ export function writeManifest(versionsRoot: string, manifest: VersionsManifest):
         writeSync(fd, '');
         fsyncSync(fd);
     } catch {
-        /* fsync best-effort — rename still atomic */
+        /* fsync best-effort - rename still atomic */
     } finally {
         if (fd !== undefined) {
             try {

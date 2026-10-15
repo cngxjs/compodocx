@@ -17,15 +17,15 @@ export type PlaygroundContentProps = {
     readonly resolve?: DepGraphResolver;
     readonly workspacePackage?: ConsumerPackageJson;
     readonly extraDependencies?: Record<string, string>;
-    /** Config-file `playgroundMaterialShell` — forwarded to each block. */
+    /** Config-file `playgroundMaterialShell` - forwarded to each block. */
     readonly materialShell?: boolean;
     /** Config caps forwarded to each block. */
     readonly depth?: number;
     readonly maxFiles?: number;
     readonly fileCap?: number;
-    /** Config-file `playgroundHead` — extra `<head>` entries, forwarded to each block. */
+    /** Config-file `playgroundHead` - extra `<head>` entries, forwarded to each block. */
     readonly head?: string[];
-    /** Config-file `playgroundGlobalStyles` — global CSS, forwarded to each block. */
+    /** Config-file `playgroundGlobalStyles` - global CSS, forwarded to each block. */
     readonly globalStyles?: string;
     /**
      * Vendor packages resolved from `playgroundVendor`, keyed by full package
@@ -33,7 +33,7 @@ export type PlaygroundContentProps = {
      * per-playground import closure.
      */
     readonly vendorPackages?: Record<string, VendorPackage>;
-    /** Config-file `playgroundVendorCap` — forwarded to each block. */
+    /** Config-file `playgroundVendorCap` - forwarded to each block. */
     readonly vendorCap?: number;
     /**
      * Pre-resolved file-ref bundles, keyed by block index in

@@ -9,7 +9,7 @@ const splitCommaList = (val: string): string[] => val.split(',');
 /**
  * Register every commander option against the given program in source order.
  * Returns the same program for chaining. Caller is responsible for invoking
- * `.parse(...)` — this function does not touch `process.argv`.
+ * `.parse(...)` - this function does not touch `process.argv`.
  */
 export function defineFlags(program: Command): Command {
     return program

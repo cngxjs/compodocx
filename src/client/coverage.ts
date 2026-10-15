@@ -1,5 +1,5 @@
 /**
- * Coverage page — sort + filter (client-side).
+ * Coverage page - sort + filter (client-side).
  * Also handles generic table sorting for UnitTestReport.
  */
 
