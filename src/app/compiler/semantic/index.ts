@@ -1,4 +1,5 @@
 export * from './analyze';
+export * from './axes';
 export * from './declarations';
 export * from './di-facts';
 export * from './entry-points';

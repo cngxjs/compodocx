@@ -49,7 +49,7 @@ const SYMBOL_KINDS: ReadonlySet<string> = new Set<TableKind>([
     'style'
 ]);
 
-const isTableKind = (value: string): value is TableKind => SYMBOL_KINDS.has(value);
+export const isTableKind = (value: string): value is TableKind => SYMBOL_KINDS.has(value);
 
 /** `kind:file#name`. Overloads share one id; a const and a type of one name do not. */
 export const symbolId = (ref: SymbolRef): SymbolId =>

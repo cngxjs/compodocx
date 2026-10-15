@@ -1,3 +1,4 @@
+import type { AxisConfig } from '../compiler/semantic/axes';
 import type { SemanticModel } from '../compiler/semantic/model';
 import type { DiView } from '../di/model';
 import type { FileRefBundle, VendorPackage } from '../engines/stackblitz';
@@ -258,6 +259,8 @@ export interface MainDataInterface {
     featureUtilityFolders: string[];
     /** Entry point and app folders named after a role; their files join the feature they name. */
     featureRoleFolders: string[];
+    /** Declared classification axes by name; `{}` turns them off. */
+    classificationAxes: Readonly<Record<string, AxisConfig>>;
     /** Globs of free-standing style files, relative to `styleFilesBase`. */
     styleFiles: string[];
     /** Absolute folder the `styleFiles` globs are relative to; `''` = the tsconfig folder. */

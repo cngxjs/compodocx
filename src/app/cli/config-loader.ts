@@ -9,11 +9,13 @@ import { parseJsonIndent } from '../../utils/json-indent.util';
 import { logger } from '../../utils/logger';
 import { parseMaxSearchResults } from '../../utils/max-search-results.util';
 import { parseMaxVersionsShown } from '../../utils/max-versions-shown.util';
+import { parseAxesConfig } from '../compiler/semantic/axes';
 import { isFeatureKey } from '../compiler/semantic/features';
 import I18nEngine from '../engines/i18n.engine';
 import { STACKBLITZ_POST_LIMIT } from '../engines/stackblitz/constants';
 import type { ConfigurationFileInterface } from '../interfaces/configuration-file.interface';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
+import { isTableKind } from '../links/symbol-id';
 
 /** Config names in search order: `.compodocxrc*` / `compodocx` key first, then the `compodoc` ones. */
 const COSMICONFIG_MODULE_NAMES: readonly string[] = ['compodocx', 'compodoc'];
@@ -164,6 +166,27 @@ function applyFeatureConfig(
             logger.warn('featureRoleFolders: expected a list of folder names; ignored');
         }
     }
+}
+
+/**
+ * `classificationAxes` from the config file. Invalid parts warn once each and
+ * are dropped; the run goes on.
+ */
+function applyAxesConfig(
+    configFile: Partial<ConfigurationFileInterface>,
+    mainData: MainDataInterface
+): void {
+    if (configFile.classificationAxes === undefined) {
+        return;
+    }
+    const parsed = parseAxesConfig(
+        configFile.classificationAxes,
+        kind => kind !== 'style' && isTableKind(kind)
+    );
+    for (const warning of parsed.warnings) {
+        logger.warn(warning);
+    }
+    mainData.classificationAxes = parsed.axes;
 }
 
 /**
@@ -863,6 +886,7 @@ export function applyConfigToMainData(
     }
 
     applyFeatureConfig(configFile, mainData);
+    applyAxesConfig(configFile, mainData);
     applyStyleFilesConfig(configFile, mainData, sources);
 
     if (configFile.featuresName !== undefined) {
