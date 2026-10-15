@@ -109,7 +109,7 @@ export const stripRemovedJsdocTags = (file: string, source: string): JsdocStripR
 };
 
 /** `.ts` files below `root` (declaration files, `node_modules` and `dist` skipped), sorted. */
-export const jsdocTargetFiles = (root: string, fs: FsAdapter): string[] => {
+const jsdocTargetFiles = (root: string, fs: FsAdapter): string[] => {
     if (fs.isFile(root)) {
         return root.endsWith('.ts') && !root.endsWith('.d.ts') ? [root] : [];
     }

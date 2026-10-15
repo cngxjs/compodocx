@@ -100,7 +100,7 @@ const isStringList = (value: unknown): value is string[] =>
  * `styleFiles` from the config file: a list of non-empty glob strings,
  * relative to the config file's folder. Anything else warns and is ignored.
  */
-export function applyStyleFilesConfig(
+function applyStyleFilesConfig(
     configFile: Partial<ConfigurationFileInterface>,
     mainData: MainDataInterface,
     sources: ApplySources
@@ -121,7 +121,7 @@ export function applyStyleFilesConfig(
  * `features`, `featureContainers`, `featureUtilityFolders` and `featureRoleFolders` from the config
  * file. Invalid entries warn once each and are ignored; the run goes on.
  */
-export function applyFeatureConfig(
+function applyFeatureConfig(
     configFile: Partial<ConfigurationFileInterface>,
     mainData: MainDataInterface
 ): void {

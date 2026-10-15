@@ -505,7 +505,7 @@ const PHASE_IMPLS: Readonly<Record<PhaseKey, Stage>> = {
 };
 
 /** The implementation of one phase. */
-export const phaseImpl = (key: PhaseKey): Stage => PHASE_IMPLS[key];
+const phaseImpl = (key: PhaseKey): Stage => PHASE_IMPLS[key];
 
 /**
  * Run every phase of `ctx.mode` in order; the first halt stops the run.

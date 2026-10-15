@@ -58,7 +58,7 @@ const highlightLines = (container: Element, start: number, end: number) => {
 };
 
 /** Called by hash-router when it resolves a #L{n} deep-link. */
-export const highlightLineRange = (panel: HTMLElement, start: number, end: number): void => {
+const highlightLineRange = (panel: HTMLElement, start: number, end: number): void => {
     const pre = panel.querySelector<HTMLElement>('.cdx-source-viewer pre');
     if (pre) {
         highlightLines(pre, start, end);

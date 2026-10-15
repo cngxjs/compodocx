@@ -11,7 +11,7 @@ const getCurrentDirectory = ts.sys.getCurrentDirectory;
 const useCaseSensitiveFileNames = ts.sys.useCaseSensitiveFileNames;
 const newLine = ts.sys.newLine;
 
-export function getNewLine(): string {
+function getNewLine(): string {
     return newLine;
 }
 
@@ -19,11 +19,11 @@ export function cleanNameWithoutSpaceAndToLowerCase(name: string): string {
     return name.toLowerCase().replace(/ /g, '-');
 }
 
-export function getCanonicalFileName(fileName: string): string {
+function getCanonicalFileName(fileName: string): string {
     return useCaseSensitiveFileNames ? fileName : fileName.toLowerCase();
 }
 
-export const formatDiagnosticsHost: ts.FormatDiagnosticsHost = {
+const formatDiagnosticsHost: ts.FormatDiagnosticsHost = {
     getCurrentDirectory,
     getCanonicalFileName,
     getNewLine
@@ -130,14 +130,14 @@ export function resolveTsconfigPaths(
     return { paths, baseUrl };
 }
 
-export function stripBom(source: string): string {
+function stripBom(source: string): string {
     if (source.charCodeAt(0) === 0xfeff) {
         return source.slice(1);
     }
     return source;
 }
 
-export function hasBom(source: string): boolean {
+function hasBom(source: string): boolean {
     return source.charCodeAt(0) === 0xfeff;
 }
 

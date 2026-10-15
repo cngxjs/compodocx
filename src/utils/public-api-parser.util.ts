@@ -19,7 +19,7 @@ export interface PublicApiExports {
 /**
  * Utility class for parsing index.d.ts files to extract public API exports
  */
-export class PublicApiParser {
+class PublicApiParser {
     private distPath: string;
     private symbolToFiles: Map<string, Set<string>>;
     private indexFiles: Set<string>;

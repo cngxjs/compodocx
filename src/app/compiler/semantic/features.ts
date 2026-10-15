@@ -616,7 +616,7 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
 };
 
 /** Detector counts for the build log. */
-export const featureCounts = (model: FeatureModel): Readonly<Record<FeatureDetector, number>> => {
+const featureCounts = (model: FeatureModel): Readonly<Record<FeatureDetector, number>> => {
     const counts: Record<FeatureDetector, number> = {
         config: 0,
         tag: 0,

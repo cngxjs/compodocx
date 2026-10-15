@@ -140,7 +140,7 @@ export function highlightCode(code: string, optionsOrLang?: HighlightOptions | s
 // ---------------------------------------------------------------------------
 
 /** Detect foldable import blocks and decorator metadata blocks. */
-export function detectFoldRegions(code: string): FoldRegion[] {
+function detectFoldRegions(code: string): FoldRegion[] {
     const lines = code.split('\n');
     const regions: FoldRegion[] = [];
 

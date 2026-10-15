@@ -89,7 +89,7 @@ export const appRootPath = (semantic: SemanticModel | undefined): string | undef
 };
 
 /** Root-relative path of a feature page's segments, the key of its group. */
-export const featurePathKey = (segments: readonly string[]): string => segments.join('/');
+const featurePathKey = (segments: readonly string[]): string => segments.join('/');
 
 const asItem = (entry: SymbolEntry): EntityWithKind => ({
     ...(entry.data as object),

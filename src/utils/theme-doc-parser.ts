@@ -169,7 +169,7 @@ export function parseDocBody(body: string): {
  *
  * Returns `null` when the block has no `@overview` tag.
  */
-export function extractOverview(body: string): string | null {
+function extractOverview(body: string): string | null {
     const parsed = parseDocBody(body);
     const overviewTags = parsed.tags.filter(tag => tag.name === 'overview');
     if (overviewTags.length === 0) {
@@ -189,7 +189,7 @@ export function extractOverview(body: string): string | null {
 }
 
 /** Names in a `@themes` / `@relatedTo` value: its first line, comma or space separated. */
-export const tagNames = (value: string): string[] =>
+const tagNames = (value: string): string[] =>
     (value.split('\n')[0] ?? '')
         .split(/[\s,]+/)
         .map(name => name.trim())

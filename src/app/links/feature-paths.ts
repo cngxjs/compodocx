@@ -16,7 +16,7 @@ const safeSegment = (segment: string): string =>
         .replace(/-{2,}/g, '-') || 'feature';
 
 /** The `@scope/` every entry point's import path starts with, if they share one. */
-export const sharedScope = (features: readonly Feature[]): string | undefined => {
+const sharedScope = (features: readonly Feature[]): string | undefined => {
     const scopes = new Set(
         features.flatMap(feature =>
             feature.entryPoint === undefined ? [] : [/^(@[^/]+)\//.exec(feature.entryPoint)?.[1]]

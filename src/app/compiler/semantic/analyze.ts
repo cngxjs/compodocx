@@ -44,7 +44,7 @@ const isSameOrInside = (dir: string, other: string): boolean =>
  * The directory searched for entry points: the cwd when the tsconfig lies
  * inside it or above it, else the tsconfig's directory.
  */
-export const workspaceRootOf = (tsconfigPath: string, cwd: string): string => {
+const workspaceRootOf = (tsconfigPath: string, cwd: string): string => {
     const tsconfigDir = path.dirname(tsconfigPath);
     return isSameOrInside(cwd, tsconfigDir) || isSameOrInside(tsconfigDir, cwd) ? cwd : tsconfigDir;
 };

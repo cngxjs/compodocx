@@ -14,7 +14,7 @@ const formatDiagnostic = (diagnostic: ts.Diagnostic): string =>
  * Compiler options from the tsconfig, following `extends`, `paths` and
  * `baseUrl`. Nothing is emitted and no library or `@types` file is loaded.
  */
-export const readSemanticOptions = (tsconfigPath: string): Result<ts.CompilerOptions> => {
+const readSemanticOptions = (tsconfigPath: string): Result<ts.CompilerOptions> => {
     let unrecoverable: ts.Diagnostic | undefined;
     const parsed = ts.getParsedCommandLineOfConfigFile(
         tsconfigPath,

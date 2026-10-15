@@ -108,7 +108,7 @@ const memberCount = (members: FeatureMembers): number =>
     Object.values(members).reduce((sum, list) => sum + list.length, 0);
 
 /** Members of every feature, sorted by name inside each section. */
-export const featureMembers = (
+const featureMembers = (
     semantic: SemanticModel,
     table: SymbolTable,
     view: DiView | undefined
@@ -156,7 +156,7 @@ const EXTERNAL = /^([a-z][a-z0-9+.-]*:|\/\/|#)/i;
  * points at that feature's page, anchor kept; any other such link is
  * dropped, its text kept.
  */
-export const rewriteReadmeLinks = (
+const rewriteReadmeLinks = (
     html: string,
     readme: string,
     featureAt: (folder: string) => readonly string[] | undefined,

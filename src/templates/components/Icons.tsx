@@ -29,10 +29,10 @@ export const IconHome = () =>
     svg(
         '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'
     );
-export const IconChevronDown = (cls?: string) => svg('<path d="m6 9 6 6 6-6"/>', cls);
-export const IconChevronUp = (cls?: string) => svg('<path d="m18 15-6-6-6 6"/>', cls);
+const IconChevronDown = (cls?: string) => svg('<path d="m6 9 6 6 6-6"/>', cls);
+const IconChevronUp = (cls?: string) => svg('<path d="m18 15-6-6-6 6"/>', cls);
 export const IconChevronRight = (cls?: string) => svg('<path d="m9 18 6-6-6-6"/>', cls);
-export const IconLink = () =>
+const IconLink = () =>
     svg(
         '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'
     );
@@ -164,7 +164,7 @@ export const IconGrid = () =>
     );
 
 // --- Actions ---
-export const IconMaximize = () =>
+const IconMaximize = () =>
     svg(
         '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>'
     );
@@ -172,9 +172,8 @@ export const IconArrowLeft = () => svg('<path d="m12 19-7-7 7-7"/><path d="M19 1
 export const IconArrowRight = () => svg('<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>');
 
 // --- App config provider icons ---
-export const IconCloud = () =>
-    svg('<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>');
-export const IconFilm = () =>
+const IconCloud = () => svg('<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>');
+const IconFilm = () =>
     svg(
         '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/>'
     );
@@ -182,7 +181,7 @@ export const IconZap = () =>
     svg(
         '<path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/>'
     );
-export const IconArchive = () =>
+const IconArchive = () =>
     svg(
         '<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>'
     );

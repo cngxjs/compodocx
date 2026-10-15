@@ -52,7 +52,7 @@ export const KIND_FOLDER = {
 export const REDIRECTS_FILE = 'redirects.json';
 
 /** File name of a feature page inside the feature's folder. */
-export const FEATURE_INDEX = 'index';
+const FEATURE_INDEX = 'index';
 
 /**
  * Folders the output root already holds (assets, additional pages, search

@@ -443,7 +443,7 @@ const buildIndexHtml = (includeShell: boolean, extraHead: string[] = []): string
  * (see the `stylesFile` selection in `buildPlaygroundManifest`). `@import` /
  * `@charset` / `@layer` are valid CSS and do NOT force `.scss`.
  */
-export const hasSassPrelude = (styles?: string): boolean =>
+const hasSassPrelude = (styles?: string): boolean =>
     typeof styles === 'string' && /@(?:use|forward)\b[^;{]*;/i.test(styles);
 
 /**

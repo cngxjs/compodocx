@@ -282,7 +282,7 @@ type ProviderEntry = {
  * `MetadataProvidersRow` (inside metadata card) and `ProvidersListHtml`
  * (standalone section).
  */
-export function renderProvidersListHtml(entries: ProviderEntry[], depth: number): string {
+function renderProvidersListHtml(entries: ProviderEntry[], depth: number): string {
     if (!entries?.length) {
         return '';
     }

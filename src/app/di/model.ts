@@ -80,7 +80,7 @@ export const itemId = (kind: EntityKind | TableKind, item: NamedItem): SymbolId 
 };
 
 /** The placement of the engine object of `kind`. */
-export const placementOfItem = (
+const placementOfItem = (
     view: DiView | undefined,
     kind: EntityKind | TableKind,
     item: NamedItem

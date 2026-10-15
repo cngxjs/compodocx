@@ -123,10 +123,10 @@ export interface PagefindMetaInput {
  * up; the browser does not render it).
  */
 /** Meta kind label of a feature type page (providers and features on one page). */
-export const CLUSTER_KIND_LABEL = 'Cluster';
+const CLUSTER_KIND_LABEL = 'Cluster';
 
 /** Meta kind label of the routes page. */
-export const ROUTE_KIND_LABEL = 'Route';
+const ROUTE_KIND_LABEL = 'Route';
 
 const metaKindLabel = (kind: PagefindMetaInput['kind']): string | undefined => {
     if (kind === 'cluster') {
