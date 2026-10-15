@@ -1,4 +1,5 @@
-import { isFeatureKey } from './features';
+import { globToRegExp, isFeatureKey } from './features';
+import type { AxisTag } from './model';
 
 /** One declared classification axis, validated. */
 export interface AxisConfig {
@@ -171,3 +172,177 @@ export const parseAxesConfig = (
     }
     return { axes, warnings };
 };
+
+/** A documented symbol to classify. */
+export interface AxisSymbol {
+    /** Fact key. */
+    readonly key: string;
+    /** File path relative to the working directory. */
+    readonly file: string;
+    readonly name: string;
+    /** Symbol table kind. */
+    readonly kind: string;
+    readonly tags?: readonly AxisTag[];
+}
+
+export interface AxisValueCount {
+    readonly value: string;
+    readonly count: number;
+}
+
+export interface AxisSummary {
+    readonly name: string;
+    readonly label: string;
+    /** Every declared value with its symbol count, in config order. */
+    readonly values: readonly AxisValueCount[];
+    readonly classified: number;
+    readonly unclassified: number;
+}
+
+export interface AxisModel {
+    readonly axes: readonly AxisSummary[];
+    /** Fact key -> axis name -> value; symbols without a value are absent. */
+    readonly valuesOf: ReadonlyMap<string, ReadonlyMap<string, string>>;
+}
+
+export interface AxisClassification {
+    /** Absent when no axis is declared. */
+    readonly model?: AxisModel;
+    readonly warnings: readonly string[];
+}
+
+const SHOWN_LOCATIONS = 3;
+
+/** Problems collected per message, reported once each with their locations. */
+const findings = () => {
+    const byMessage = new Map<string, string[]>();
+    return {
+        add: (message: string, symbol: AxisSymbol) => {
+            const list = byMessage.get(message) ?? [];
+            list.push(`${symbol.file}#${symbol.name}`);
+            byMessage.set(message, list);
+        },
+        lines: (): string[] =>
+            [...byMessage].map(([message, at]) => {
+                const shown = at.slice(0, SHOWN_LOCATIONS).join(', ');
+                const more =
+                    at.length > SHOWN_LOCATIONS ? `, ... ${at.length - SHOWN_LOCATIONS} more` : '';
+                return `Axes: ${message} (${at.length}: ${shown}${more})`;
+            })
+    };
+};
+
+const appliesTo = (axis: AxisConfig, kind: string): boolean =>
+    axis.kinds === undefined || axis.kinds.includes(kind);
+
+/** The tagged values of one symbol, checked against the declared axes. */
+const taggedValues = (
+    symbol: AxisSymbol,
+    axes: Readonly<Record<string, AxisConfig>>,
+    report: ReturnType<typeof findings>
+): Map<string, string> => {
+    const tagged = new Map<string, string>();
+    for (const tag of symbol.tags ?? []) {
+        const axis = Object.hasOwn(axes, tag.name) ? axes[tag.name] : undefined;
+        if (tag.name === '') {
+            report.add('@axis without an axis name', symbol);
+        } else if (tag.value === undefined) {
+            report.add(`@axis ${tag.name} has no value`, symbol);
+        } else if (!axis) {
+            report.add(`@axis "${tag.name}" is not a declared axis`, symbol);
+        } else if (!axis.values.includes(tag.value)) {
+            report.add(`@axis ${tag.name} "${tag.value}" is not a declared value`, symbol);
+        } else if (!appliesTo(axis, symbol.kind)) {
+            report.add(`@axis ${tag.name} does not apply to kind ${symbol.kind}`, symbol);
+        } else if (tagged.has(tag.name)) {
+            report.add(`@axis ${tag.name} given more than once, first one kept`, symbol);
+        } else {
+            tagged.set(tag.name, tag.value);
+        }
+    }
+    return tagged;
+};
+
+/**
+ * Give every symbol its value on each declared axis: the `@axis` tag, else
+ * the first matching path glob, else the axis default. Symbols of a kind the
+ * axis does not apply to are not counted. Values never move a symbol.
+ */
+export const classifyAxes = (
+    symbols: readonly AxisSymbol[],
+    axes: Readonly<Record<string, AxisConfig>>
+): AxisClassification => {
+    const names = Object.keys(axes);
+    if (names.length === 0) {
+        const tags = symbols.reduce((sum, symbol) => sum + (symbol.tags?.length ?? 0), 0);
+        return tags === 0
+            ? { warnings: [] }
+            : {
+                  warnings: [
+                      `Axes: ${tags} @axis tags found, no classificationAxes declared; ignored`
+                  ]
+              };
+    }
+    const report = findings();
+    const globs = new Map(
+        names.map(name => [
+            name,
+            Object.entries(axes[name].paths).map(([glob, value]) => ({
+                re: globToRegExp(glob),
+                value
+            }))
+        ])
+    );
+    const valuesOf = new Map<string, ReadonlyMap<string, string>>();
+    const counts = new Map(names.map(name => [name, new Map<string, number>()]));
+    const unclassified = new Map(names.map(name => [name, 0]));
+    for (const symbol of symbols) {
+        const tagged = taggedValues(symbol, axes, report);
+        const values = new Map<string, string>();
+        for (const name of names) {
+            const axis = axes[name];
+            if (!appliesTo(axis, symbol.kind)) {
+                continue;
+            }
+            const value =
+                tagged.get(name) ??
+                globs.get(name)?.find(g => g.re.test(symbol.file))?.value ??
+                axis.default;
+            if (value === undefined) {
+                unclassified.set(name, (unclassified.get(name) ?? 0) + 1);
+                continue;
+            }
+            values.set(name, value);
+            const perValue = counts.get(name);
+            perValue?.set(value, (perValue.get(value) ?? 0) + 1);
+        }
+        if (values.size > 0) {
+            valuesOf.set(symbol.key, values);
+        }
+    }
+    const summaries = names.map((name): AxisSummary => {
+        const axis = axes[name];
+        const values = axis.values.map(value => ({
+            value,
+            count: counts.get(name)?.get(value) ?? 0
+        }));
+        return {
+            name,
+            label: axis.label,
+            values,
+            classified: values.reduce((sum, v) => sum + v.count, 0),
+            unclassified: unclassified.get(name) ?? 0
+        };
+    });
+    return { model: { axes: summaries, valuesOf }, warnings: report.lines() };
+};
+
+/** The one-line build log summary of the axes. */
+export const formatAxesSummary = (model: AxisModel): string =>
+    `Axes: ${model.axes
+        .map(axis => {
+            const total = axis.classified + axis.unclassified;
+            const rest = axis.unclassified > 0 ? ` (${axis.unclassified} unclassified)` : '';
+            return `${axis.name} ${axis.classified}/${total} classified${rest}`;
+        })
+        .join(', ')}`;

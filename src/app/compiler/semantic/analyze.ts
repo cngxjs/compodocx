@@ -13,7 +13,13 @@ import {
     toEntryPoint
 } from './entry-points';
 import { buildImportGraph } from './imports';
-import { factKey, type SemanticModel, type SymbolFacts, type SymbolKey } from './model';
+import {
+    type AxisTag,
+    factKey,
+    type SemanticModel,
+    type SymbolFacts,
+    type SymbolKey
+} from './model';
 import { createSemanticProgram } from './program';
 import { usedByEdges } from './used-by';
 
@@ -62,6 +68,22 @@ const featureTagField = (declaration: Declaration): { featureTag?: string } => {
     return key ? { featureTag: key } : {};
 };
 
+/** `@axis <name> <value>` tags, first line each, as written. */
+const axisTagsField = (declaration: Declaration): { axisTags?: readonly AxisTag[] } => {
+    const tags = ts
+        .getJSDocTags(declaration.node)
+        .filter(t => t.tagName.text === 'axis')
+        .flatMap((t): AxisTag[] => {
+            const words = (ts.getTextOfJSDocComment(t.comment) ?? '')
+                .split('\n')[0]
+                .trim()
+                .split(/\s+/);
+            const [name = '', value] = words;
+            return [value ? { name, value } : { name }];
+        });
+    return tags.length > 0 ? { axisTags: tags } : {};
+};
+
 const symbolFacts = (
     declaration: Declaration,
     exportFacts: ExportFacts,
@@ -81,7 +103,8 @@ const symbolFacts = (
         di: di.di.get(key),
         token: di.tokens.get(key),
         usedBy: usedBy.get(key) ?? [],
-        ...featureTagField(declaration)
+        ...featureTagField(declaration),
+        ...axisTagsField(declaration)
     };
 };
 

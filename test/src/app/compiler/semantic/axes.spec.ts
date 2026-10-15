@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseAxesConfig } from '../../../../../src/app/compiler/semantic';
+import {
+    type AxisConfig,
+    type AxisSymbol,
+    classifyAxes,
+    formatAxesSummary,
+    parseAxesConfig
+} from '../../../../../src/app/compiler/semantic';
 
 const anyKind = (kind: string) => ['component', 'directive', 'function'].includes(kind);
 
@@ -68,5 +74,123 @@ describe('parseAxesConfig', () => {
             'classificationAxes: "tier.default" "none" is not a declared value; ignored',
             'classificationAxes: "tier.kinds" ignores "pipe" (not a symbol kind)'
         ]);
+    });
+});
+
+const symbol = (name: string, file: string, kind = 'component', tags?: AxisSymbol['tags']) => ({
+    key: `${file}#${name}`,
+    file,
+    name,
+    kind,
+    ...(tags ? { tags } : {})
+});
+
+const stability: AxisConfig = {
+    label: 'Stability',
+    values: ['stable', 'experimental'],
+    paths: { 'src/labs/**': 'experimental' },
+    default: 'stable'
+};
+const level: AxisConfig = {
+    label: 'level',
+    values: ['atom', 'molecule'],
+    paths: {},
+    kinds: ['directive']
+};
+
+describe('classifyAxes', () => {
+    it('takes the tag, else the first path rule, else the default', () => {
+        const result = classifyAxes(
+            [
+                symbol('Tagged', 'src/labs/a.ts', 'component', [
+                    { name: 'stability', value: 'stable' }
+                ]),
+                symbol('Lab', 'src/labs/b.ts'),
+                symbol('Plain', 'src/c.ts')
+            ],
+            { stability }
+        );
+        expect(result.warnings).toEqual([]);
+        const values = result.model?.valuesOf;
+        expect(values?.get('src/labs/a.ts#Tagged')?.get('stability')).toBe('stable');
+        expect(values?.get('src/labs/b.ts#Lab')?.get('stability')).toBe('experimental');
+        expect(values?.get('src/c.ts#Plain')?.get('stability')).toBe('stable');
+        expect(result.model?.axes).toEqual([
+            {
+                name: 'stability',
+                label: 'Stability',
+                values: [
+                    { value: 'stable', count: 2 },
+                    { value: 'experimental', count: 1 }
+                ],
+                classified: 3,
+                unclassified: 0
+            }
+        ]);
+    });
+
+    it('counts only the kinds an axis applies to, unclassified without a value', () => {
+        const result = classifyAxes(
+            [
+                symbol('Atom', 'a.ts', 'directive', [{ name: 'level', value: 'atom' }]),
+                symbol('Bare', 'b.ts', 'directive'),
+                symbol('Fn', 'c.ts', 'function')
+            ],
+            { level }
+        );
+        expect(result.model?.axes[0]).toMatchObject({ classified: 1, unclassified: 1 });
+        expect(result.model?.valuesOf.has('c.ts#Fn')).toBe(false);
+        expect(result.model?.valuesOf.has('b.ts#Bare')).toBe(false);
+        expect(formatAxesSummary(result.model!)).toBe(
+            'Axes: level 1/2 classified (1 unclassified)'
+        );
+    });
+
+    it('reports bad tags once per problem with their locations', () => {
+        const bad = (name: string, tags: AxisSymbol['tags']) =>
+            symbol(name, 'x.ts', 'function', tags);
+        const result = classifyAxes(
+            [
+                bad('A', [{ name: 'tier', value: 'core' }]),
+                bad('B', [{ name: 'tier', value: 'core' }]),
+                bad('C', [{ name: 'stability', value: 'beta' }]),
+                bad('D', [{ name: 'stability' }]),
+                bad('E', [{ name: '' }]),
+                bad('F', [{ name: 'level', value: 'atom' }]),
+                bad('G', [
+                    { name: 'stability', value: 'experimental' },
+                    { name: 'stability', value: 'stable' }
+                ])
+            ],
+            { stability, level }
+        );
+        expect(result.warnings).toEqual([
+            'Axes: @axis "tier" is not a declared axis (2: x.ts#A, x.ts#B)',
+            'Axes: @axis stability "beta" is not a declared value (1: x.ts#C)',
+            'Axes: @axis stability has no value (1: x.ts#D)',
+            'Axes: @axis without an axis name (1: x.ts#E)',
+            'Axes: @axis level does not apply to kind function (1: x.ts#F)',
+            'Axes: @axis stability given more than once, first one kept (1: x.ts#G)'
+        ]);
+        expect(result.model?.valuesOf.get('x.ts#G')?.get('stability')).toBe('experimental');
+        expect(result.model?.valuesOf.get('x.ts#C')?.get('stability')).toBe('stable');
+    });
+
+    it('lists at most three locations per problem', () => {
+        const many = ['A', 'B', 'C', 'D', 'E'].map(name =>
+            symbol(name, 'y.ts', 'component', [{ name: 'tier', value: 'x' }])
+        );
+        expect(classifyAxes(many, { stability }).warnings).toEqual([
+            'Axes: @axis "tier" is not a declared axis (5: y.ts#A, y.ts#B, y.ts#C, ... 2 more)'
+        ]);
+    });
+
+    it('has no model without declared axes and notes tags found anyway', () => {
+        expect(classifyAxes([symbol('A', 'a.ts')], {})).toEqual({ warnings: [] });
+        expect(
+            classifyAxes([symbol('A', 'a.ts', 'component', [{ name: 'level', value: 'atom' }])], {})
+        ).toEqual({
+            warnings: ['Axes: 1 @axis tags found, no classificationAxes declared; ignored']
+        });
     });
 });

@@ -13,10 +13,17 @@ import {
     factKey,
     linkFamilies,
     relativeFile,
-    type SemanticModel
+    type SemanticModel,
+    type SymbolFacts
 } from '../compiler/semantic';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
-import { featureSegments, placeInFolders, type SymbolTable, toSymbolKey } from '../links';
+import {
+    featureSegments,
+    placeInFolders,
+    type SymbolEntry,
+    type SymbolTable,
+    toSymbolKey
+} from '../links';
 
 /** File system answers for the feature detection, paths relative to `cwd`. */
 const nodeFeatureFs = (cwd: string): FeatureFs => {
@@ -48,15 +55,23 @@ interface Inputs {
     readonly families: readonly FamilySymbol[];
 }
 
+/** A documented symbol that is not hidden, with its fact key and facts. */
+export interface DocumentedSymbol {
+    readonly key: string;
+    readonly entry: SymbolEntry;
+    readonly facts?: SymbolFacts;
+}
+
 /**
- * One entry per documented symbol that is not hidden, in table order. A
- * symbol without facts (a module augmentation, a destructured constant) is
- * placed by its file alone.
+ * One entry per documented symbol that is not hidden and not a style page,
+ * in table order; same-key copies once.
  */
-const symbolInputs = (symbols: SymbolTable, model: SemanticModel): Inputs => {
+export const documentedSymbols = (
+    symbols: SymbolTable,
+    model: SemanticModel
+): readonly DocumentedSymbol[] => {
     const seen = new Set<string>();
-    const features: FeatureSymbol[] = [];
-    const families: FamilySymbol[] = [];
+    const result: DocumentedSymbol[] = [];
     for (const entry of symbols.byId.values()) {
         if (entry.ref.kind === 'style') {
             continue;
@@ -67,10 +82,30 @@ const symbolInputs = (symbols: SymbolTable, model: SemanticModel): Inputs => {
             continue;
         }
         seen.add(key);
-        features.push({ key, file: entry.ref.file, tag: facts?.featureTag });
-        families.push({ key, kind: entry.ref.kind, usedBy: (facts?.usedBy ?? []).map(factKey) });
+        result.push({ key, entry, facts });
     }
-    return { features, families };
+    return result;
+};
+
+/**
+ * The feature and family inputs of the documented symbols. A symbol without
+ * facts (a module augmentation, a destructured constant) is placed by its
+ * file alone.
+ */
+const symbolInputs = (symbols: SymbolTable, model: SemanticModel): Inputs => {
+    const documented = documentedSymbols(symbols, model);
+    return {
+        features: documented.map(({ key, entry, facts }) => ({
+            key,
+            file: entry.ref.file,
+            tag: facts?.featureTag
+        })),
+        families: documented.map(({ key, entry, facts }) => ({
+            key,
+            kind: entry.ref.kind,
+            usedBy: (facts?.usedBy ?? []).map(factKey)
+        }))
+    };
 };
 
 /**
