@@ -72,7 +72,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 ### Removed
 
 - **Module pages, chapter and graph.** `modules.html`, the per-module pages, the Modules sidebar chapter, the module dependency graphs and the `@compodoc/ngd-transformer` dependency are gone, together with the `disableMainGraph` option and the `modules.js`/`module.js` template overrides. The `toggleMenuItems` value `modules` is ignored with a warning.
-- **i18n keys** `module`, `modules`, `bootstrap`, `declarations`, `entrycomponents` and `no-svg`.
+- **i18n keys** `module`, `modules`, `bootstrap`, `declarations`, `entrycomponents`, `no-svg`, `category`, `empty-category-desc`, `empty-category-title` and `no-graph`.
 - **`referencedBy` in the JSON export.** The field came from a text search for the symbol name; use `usedBy`.
 - **`toggleMenuItems` values `miscellaneous` and `tokens`.** They are ignored with a warning; use `utilities` and `dependency-injection`.
 - **`@category` and `@docsKind`.** Both tags are ignored; a build that still finds them logs one warning listing every location. `@docsKind primary` promotions and the Primary badge are gone; `compodocx migrate jsdoc` strips the tags.
@@ -83,6 +83,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **`disableRoutesGraph`.** The `--disableRoutesGraph` flag is dropped with a warning and the config key is ignored with a warning; use `disableRoutes`.
 - **`json5` dependency.**
 - **`factoryKind` in the JSON export (schema 6, breaking for export consumers).** The field on function entries was guessed from the name prefix (`provideX`, `withX`, `injectX`, `createX`). Use the semantic fields instead (`di.role`, `di.featureType`, `di.usesInjectionContext`). `schemaVersion` is 6; `compodocx diff` exits with code 2 and the re-export message for a schema 5 export. See MIGRATION.md.
+- **`js/libs/jszip.min.js`.** The jszip library was copied into every generated site and published with the package, but nothing loaded it.
 ### Fixed
 
 - **Config files named `.compodocxrc` are found.** Without `-c`, compodocx only looked for `.compodocrc*` files and a `compodoc` key in `package.json`, although the docs and the CLI help name `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` and a `compodocx` key. Both sets of names are searched now, the `compodocx` ones first. `.compodocrc*` files keep working.
