@@ -11,12 +11,31 @@ export type JsdocTag = {
     [key: string]: unknown;
 };
 
+/** A JSDoc tag (TS node or marked copy) as far as these helpers read it. */
+type JsdocTagSource = {
+    readonly tagName?: { readonly text?: string };
+    readonly comment?: string;
+    readonly typeExpression?: {
+        readonly type?: { readonly name?: { readonly text?: string }; readonly kind?: number };
+    };
+    readonly type?: string;
+    readonly defaultValue?: string;
+    readonly name?: string | { readonly text?: string };
+    readonly optional?: boolean;
+};
+
+/** A tag read by the playground parsers; `comment` may be a TS `NodeArray`. */
+type PlaygroundTagSource = {
+    readonly tagName?: { readonly text?: string };
+    readonly comment?: unknown;
+};
+
 /** Check if any JSDoc tag is a @param tag. */
-export const hasJsdocParams = (tags: any[]): boolean =>
+export const hasJsdocParams = (tags: JsdocTagSource[]): boolean =>
     tags.some(tag => tag.tagName?.text === 'param');
 
 /** Extract structured @param tags from JSDoc. */
-export const extractJsdocParams = (jsdocTags: any[]): JsdocTag[] => {
+export const extractJsdocParams = (jsdocTags: JsdocTagSource[]): JsdocTag[] => {
     const tags: JsdocTag[] = [];
     for (const jt of jsdocTags) {
         if (jt.tagName?.text !== 'param') {
@@ -37,7 +56,7 @@ export const extractJsdocParams = (jsdocTags: any[]): JsdocTag[] => {
         if (jt.defaultValue) {
             tag.defaultValue = jt.defaultValue;
         }
-        tag.name = jt.name?.text ?? jt.name;
+        tag.name = (jt.name as { readonly text?: string })?.text ?? (jt.name as string);
         if (jt.optional) {
             tag.optional = true;
         }
@@ -80,7 +99,7 @@ function parseCodeFences(comment: string): CodeBlock[] {
 }
 
 /** Extract @example tags with code fence parsing (rendered as <pre><code>). */
-export const extractJsdocCodeExamples = (jsdocTags: any[]): JsdocTag[] => {
+export const extractJsdocCodeExamples = (jsdocTags: JsdocTagSource[]): JsdocTag[] => {
     const tags: JsdocTag[] = [];
     for (const jt of jsdocTags) {
         if (jt.tagName?.text !== 'example' || !jt.comment) {
@@ -104,7 +123,7 @@ export const extractJsdocCodeExamples = (jsdocTags: any[]): JsdocTag[] => {
 };
 
 /** Extract @example tags (simple — caption replacement only). */
-export const extractJsdocExamples = (jsdocTags: any[]): JsdocTag[] => {
+export const extractJsdocExamples = (jsdocTags: JsdocTagSource[]): JsdocTag[] => {
     const tags: JsdocTag[] = [];
     for (const jt of jsdocTags) {
         if (jt.tagName?.text !== 'example') {
@@ -150,13 +169,13 @@ const FENCE_BLOCK_REGEX = /```(\w+)?[ \t]*\r?\n([\s\S]*?)```/;
  */
 const PLAYGROUND_PATH_SUFFIX = /(?:^|\s)(\.\.?\/[^\s]+\.(?:html|ts))\s*$/;
 
-const readTagComment = (tag: any): string => {
+const readTagComment = (tag: PlaygroundTagSource | undefined): string => {
     const c = tag?.comment;
     if (typeof c === 'string') {
         return c;
     }
     if (Array.isArray(c)) {
-        return c.map((part: any) => part?.text ?? '').join('');
+        return c.map((part: { readonly text?: string } | undefined) => part?.text ?? '').join('');
     }
     return '';
 };
@@ -170,7 +189,7 @@ const readTagComment = (tag: any): string => {
  * `logger.warn`. No `console.log` inside this helper (build-path discipline).
  */
 export const extractJsdocPlaygroundBlocks = (
-    jsdocTags: any[]
+    jsdocTags: PlaygroundTagSource[]
 ): { blocks: ComponentPlaygroundBlock[]; warnings: string[] } => {
     const blocks: ComponentPlaygroundBlock[] = [];
     const warnings: string[] = [];
@@ -263,7 +282,7 @@ const PLAYGROUND_CONFIG_PATH = /^(\.\.?\/[^\s]+\.ts)$/;
  * tags after the first are ignored with a warning.
  */
 export const extractJsdocPlaygroundConfig = (
-    jsdocTags: any[]
+    jsdocTags: PlaygroundTagSource[]
 ): { configRef?: string; warnings: string[] } => {
     const warnings: string[] = [];
     if (!Array.isArray(jsdocTags)) {
@@ -294,7 +313,7 @@ export const extractJsdocPlaygroundConfig = (
 };
 
 /** Get the comment from the first @returns/@return tag. */
-export const jsdocReturnsComment = (jsdocTags: any[]): string => {
+export const jsdocReturnsComment = (jsdocTags: JsdocTagSource[]): string => {
     for (const jt of jsdocTags) {
         if (jt.tagName?.text === 'returns' || jt.tagName?.text === 'return') {
             return jt.comment ?? '';
@@ -304,5 +323,5 @@ export const jsdocReturnsComment = (jsdocTags: any[]): string => {
 };
 
 /** The first @returns/@return comment with its links resolved for a page at `depth`. */
-export const returnsHtml = (jsdocTags: any[], depth: number): string =>
+export const returnsHtml = (jsdocTags: JsdocTagSource[], depth: number): string =>
     parseDescription(jsdocReturnsComment(jsdocTags), depth);

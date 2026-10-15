@@ -5,9 +5,34 @@ import { placeTarget, targetOfData } from '../../app/links/resolve';
 import BasicTypeUtil from '../../utils/basic-type.util';
 import { escapeHtmlText } from './escape';
 
+/** One parameter of a function-typed argument (`arg.function`). */
+type SignatureFunctionParam = {
+    readonly name?: string | { readonly text?: string };
+    readonly type?: string;
+};
+
+/** One argument of a rendered signature, as the fields this helper reads. */
+type SignatureArg = {
+    readonly name?: string;
+    readonly type?: string;
+    readonly optional?: boolean;
+    readonly destructuredParameter?: boolean;
+    readonly dotDotDotToken?: boolean;
+    readonly function?: readonly SignatureFunctionParam[];
+};
+
+/** A method, accessor signature, constructor or function with its arguments. */
+type SignatureSource = {
+    readonly name?: string;
+    readonly args?: readonly SignatureArg[];
+};
+
 // TODO: Refactor this helper to be more modular and testable, and to handle more complex type scenarios (e.g., generics, unions, intersections).
 /** Link from a page at `depth` to the page of an engine object, or null without one. */
-function buildHrefForInternalType(data: any, depth: number): string | null {
+function buildHrefForInternalType(
+    data: { readonly name?: unknown; readonly file?: unknown },
+    depth: number
+): string | null {
     const target = targetOfData(data, Configuration.mainData.symbols);
     const link = target && placeTarget(target, data, Configuration.mainData);
     return link ? hrefText(hrefFor(link.target, depth, link.anchor)) : null;
@@ -33,15 +58,15 @@ function resolveTypeLink(typeName: string, depth: number): string | null {
     return null;
 }
 
-function getOptionalString(arg: any): string {
+function getOptionalString(arg: { readonly optional?: boolean }): string {
     return arg.optional ? '?' : '';
 }
 
-function handleFunction(arg: any, depth: number): string {
+function handleFunction(arg: SignatureArg, depth: number): string {
     if (arg.function.length === 0) {
         return `${arg.name}${getOptionalString(arg)}: () => void`;
     }
-    const argums = arg.function.map((argu: any) => {
+    const argums = arg.function.map(argu => {
         const link = resolveTypeLink(argu.type, depth);
         if (link) {
             return `${argu.name}${getOptionalString(arg)}: ${link}`;
@@ -49,7 +74,7 @@ function handleFunction(arg: any, depth: number): string {
         if (argu.name && argu.type) {
             return `${argu.name}${getOptionalString(arg)}: ${argu.type}`;
         }
-        return argu.name?.text ?? '';
+        return (argu.name as { readonly text?: string })?.text ?? '';
     });
     return `${arg.name}${getOptionalString(arg)}: (${argums.join(', ')}) => void`;
 }
@@ -58,19 +83,19 @@ function handleFunction(arg: any, depth: number): string {
  * Render a method's full signature as HTML string with type links.
  * `depth` is the directory depth of the page the signature is rendered on.
  */
-export const functionSignature = (method: any, depth: number): string => {
+export const functionSignature = (method: SignatureSource, depth: number): string => {
     let args = '';
     let destructuredCounterInitial = 0;
     let destructuredCounterReal = 0;
 
     if (method.args) {
-        method.args.forEach((arg: any) => {
+        method.args.forEach(arg => {
             if (arg.destructuredParameter) {
                 destructuredCounterInitial += 1;
             }
         });
 
-        method.args.forEach((arg: any, index: number) => {
+        method.args.forEach((arg, index) => {
             if (arg.destructuredParameter) {
                 if (destructuredCounterReal === 0) {
                     args += '__namedParameters: {';

@@ -153,7 +153,13 @@ export const featureGroups = (
     return groups;
 };
 
-const itemGroups = new WeakMap<object, { model: FeatureModel; groups: Record<string, any[]> }>();
+/** An engine object as far as the grouping reads it. */
+type GroupableItem = { readonly name?: unknown; readonly file?: unknown };
+
+const itemGroups = new WeakMap<
+    object,
+    { model: FeatureModel; groups: Record<string, GroupableItem[]> }
+>();
 
 /**
  * Engine objects of one kind grouped by the page path of their feature, for
@@ -164,8 +170,8 @@ export const groupItemsByFeature = (
     semantic: SemanticModel | undefined,
     table: SymbolTable | undefined,
     kind: TableKind,
-    items: readonly any[] | undefined
-): Record<string, any[]> => {
+    items: readonly GroupableItem[] | undefined
+): Record<string, GroupableItem[]> => {
     const model = semantic?.features;
     if (model === undefined || table === undefined || items === undefined || items.length === 0) {
         return {};
@@ -174,7 +180,7 @@ export const groupItemsByFeature = (
     if (known && known.model === model) {
         return known.groups;
     }
-    const groups: Record<string, any[]> = {};
+    const groups: Record<string, GroupableItem[]> = {};
     for (const item of items) {
         const file = typeof item?.file === 'string' ? item.file : undefined;
         const entry =
