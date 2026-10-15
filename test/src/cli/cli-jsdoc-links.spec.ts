@@ -42,6 +42,18 @@ describe('CLI links in JSDoc tag comments', () => {
             expect(card()?.relatedTo).toEqual(['Foo']);
         });
 
+        it('keeps the label of a labelled link in place in tag comments', () => {
+            const fn = data.miscellaneous.functions.find(f => f.name === 'labelled');
+            const comments = (fn?.jsdoctags ?? []).map(t => String(t.comment));
+            for (const label of ['pipe foo', 'space foo', 'bracket foo', 'returned foo']) {
+                const comment = comments.find(c => c.includes(label));
+                expect(comment).toMatch(new RegExp(`the .*${label}.* ?(value)?`));
+                expect(comment).not.toContain(`|${label}`);
+                expect(comment).not.toContain(`${label}{@link`);
+            }
+            expect(comments.find(c => c.includes('Angular'))).not.toContain('://angular.dev|');
+        });
+
         it('stores a linked constructor @param of a parameter property as text', () => {
             const name = named()?.properties?.find(p => p.name === 'name');
             expect(typeof name?.description).toBe('string');
