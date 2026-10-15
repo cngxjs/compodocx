@@ -1,0 +1,11 @@
+{
+    "extends": "./tsconfig.json",
+    "include": ["src/**/*", "test/src/**/*", "schematics/**/*"],
+    "exclude": [
+        "src/client",
+        "test/src/client",
+        "src/playground-demo",
+        "test/src/bar.component.ts",
+        "test/src/bar.component-watch.ts"
+    ]
+}

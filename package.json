@@ -44,6 +44,7 @@
         "test-e2e-playwright": "npx playwright test",
         "*********QUALITY********": "*******************",
         "lint": "biome check",
+        "typecheck": "tsc -p tsconfig.typecheck.json && tsc -p tsconfig.typecheck.client.json && tsc -p schematics/tsconfig.json --noEmit",
         "lint:fix": "biome check --fix",
         "format:check": "biome format",
         "format:write": "biome format --write"
