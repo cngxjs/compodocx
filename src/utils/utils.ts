@@ -4,7 +4,6 @@ import { ts } from 'ts-morph';
 import { AngularLifecycleHooks } from './angular-lifecycles-hooks';
 import { JsdocParserUtil } from './jsdoc-parser.util';
 import { kindToType } from './kind-to-type';
-import { LinkParser } from './link-parser';
 import { logger } from './logger';
 import { markedAcl } from './marked.acl';
 
@@ -35,7 +34,8 @@ export function markedtags(tags: Array<any>) {
     const mtags = tags;
     mtags.forEach(tag => {
         const rawComment = jsdocParserUtil.parseJSDocNode(tag);
-        tag.comment = markedAcl(LinkParser.resolveLinks(rawComment));
+        // links stay as written; parseDescription resolves them at render time
+        tag.comment = markedAcl(rawComment);
     });
     return mtags;
 }

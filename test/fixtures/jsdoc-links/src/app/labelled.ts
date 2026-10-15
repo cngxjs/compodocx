@@ -7,10 +7,21 @@ import { Foo } from './foo';
  * @param space the {@link Foo space foo} value
  * @param bracket the [bracket foo]{@link Foo} value
  * @param url see {@link https://angular.dev|Angular}
+ * @param missing the {@link Missing|missing foo} value
+ * @param site see {@link https://angular.dev Angular site}
+ * @param path the {@link /src/app/foo.ts foo source} value
  * @returns the {@link Foo|returned foo}
  */
-export function labelled(pipe: Foo, space: Foo, bracket: Foo, url: string): Foo {
-    return url ? pipe : (space ?? bracket);
+export function labelled(
+    pipe: Foo,
+    space: Foo,
+    bracket: Foo,
+    url: string,
+    missing?: Foo,
+    site?: string,
+    path?: string
+): Foo {
+    return url || site || path ? pipe : (missing ?? space ?? bracket);
 }
 
 /**

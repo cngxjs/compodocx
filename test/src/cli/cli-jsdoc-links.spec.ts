@@ -42,16 +42,18 @@ describe('CLI links in JSDoc tag comments', () => {
             expect(card()?.relatedTo).toEqual(['Foo']);
         });
 
-        it('keeps the label of a labelled link in place in tag comments', () => {
+        it('keeps labelled links in tag comments as written', () => {
             const fn = data.miscellaneous.functions.find(f => f.name === 'labelled');
             const comments = (fn?.jsdoctags ?? []).map(t => String(t.comment));
-            for (const label of ['pipe foo', 'space foo', 'bracket foo', 'returned foo']) {
-                const comment = comments.find(c => c.includes(label));
-                expect(comment).toMatch(new RegExp(`the .*${label}.* ?(value)?`));
-                expect(comment).not.toContain(`|${label}`);
-                expect(comment).not.toContain(`${label}{@link`);
+            for (const link of [
+                '{@link Foo|pipe foo}',
+                '{@link Foo space foo}',
+                '[bracket foo]{@link Foo}',
+                '{@link Missing|missing foo}',
+                '{@link Foo|returned foo}'
+            ]) {
+                expect(comments.some(c => c.includes(link))).toBe(true);
             }
-            expect(comments.find(c => c.includes('Angular'))).not.toContain('://angular.dev|');
         });
 
         it('stores a linked constructor @param of a parameter property as text', () => {
@@ -71,7 +73,7 @@ describe('CLI links in JSDoc tag comments', () => {
         });
         afterAll(() => tmp.clean(out));
 
-        const page = (name: string, kind: 'component' | 'class' = 'component') => {
+        const page = (name: string, kind: 'component' | 'class' | 'function' = 'component') => {
             const path = pages.of(kind, name);
             return { html: read(`${out}/${path}`), depth: pages.depthOf(path) };
         };
@@ -86,6 +88,35 @@ describe('CLI links in JSDoc tag comments', () => {
             const { html, depth } = page('CardComponent');
             const related = html.slice(html.indexOf('id="related"'));
             expect(related).toContain(`href="${pages.href('class', 'Foo', depth)}"`);
+        });
+
+        it('resolves every labelled link form of a function @param and @returns', () => {
+            const { html, depth } = page('labelled', 'function');
+            const foo = pages.href('class', 'Foo', depth);
+            for (const label of ['pipe foo', 'space foo', 'bracket foo', 'returned foo']) {
+                expect(html).toContain(`<a href="${foo}">${label}</a>`);
+            }
+            expect(html).not.toContain('{@link');
+        });
+
+        it('resolves labelled links of a method @param and @returns', () => {
+            const { html, depth } = page('Labeller', 'class');
+            const foo = pages.href('class', 'Foo', depth);
+            expect(html).toContain(`<a href="${foo}">method foo</a>`);
+            expect(html).toContain(`<a href="${foo}">labelled foo</a>`);
+            expect(html).not.toContain('{@link');
+        });
+
+        it('renders a missing target and a source path as code', () => {
+            const { html } = page('labelled', 'function');
+            expect(html).toContain('the <code>missing foo</code> value');
+            expect(html).toContain('the <code>foo source</code> value');
+        });
+
+        it('renders URL forms as external links with their label', () => {
+            const { html } = page('labelled', 'function');
+            expect(html).toContain('<a href="https://angular.dev">Angular</a>');
+            expect(html).toContain('<a href="https://angular.dev">Angular site</a>');
         });
 
         it('builds the page of a class whose constructor @param holds a link', () => {

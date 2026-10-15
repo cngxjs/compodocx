@@ -9,6 +9,10 @@ const isSymbolReference = (target: string): boolean =>
     /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)*(#[\w$.-]*)?$/.test(target) &&
     !/\.(md|html?)$/i.test(target);
 
+/** A URL (`https:`, `mailto:`, ...), an anchor or a doc file (`.md`, `.html`): a real link target. */
+const isLinkTarget = (target: string): boolean =>
+    /^([a-z][a-z\d+.-]*:|#)/i.test(target) || /\.(md|html?)(#.*)?$/i.test(target);
+
 /**
  * Process {@link ...} tags in a description string, resolving targets
  * via DependenciesEngine and building relative hrefs based on depth.
@@ -99,10 +103,12 @@ export const parseDescription = (description: string, depth: number): string => 
             result = result.replace(stringToReplace, newLink);
         } else {
             const label = leading.leadingText ?? split.linkText ?? split.target;
-            // An undocumented symbol has no page to link to; a URL or file stays a link.
-            const replacement = isSymbolReference(split.target)
-                ? `<code>${label}</code>`
-                : `<a href="${split.target}">${label}</a>`;
+            // An undocumented symbol or a source path has no page to link to;
+            // a URL or a doc file stays a link.
+            const replacement =
+                isSymbolReference(split.target) || !isLinkTarget(split.target)
+                    ? `<code>${label}</code>`
+                    : `<a href="${split.target}">${label}</a>`;
             result = result.replace(stringToReplace, replacement);
         }
     } while (matches && previousResult !== result);

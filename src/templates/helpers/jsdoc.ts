@@ -1,4 +1,5 @@
 import { kindToType } from '../../utils/kind-to-type';
+import { parseDescription } from './parse-description';
 
 export type JsdocTag = {
     name?: string;
@@ -308,3 +309,7 @@ export const jsdocReturnsComment = (jsdocTags: any[]): string => {
     }
     return '';
 };
+
+/** The first @returns/@return comment with its links resolved for a page at `depth`. */
+export const returnsHtml = (jsdocTags: any[], depth: number): string =>
+    parseDescription(jsdocReturnsComment(jsdocTags), depth);

@@ -919,8 +919,9 @@ describe('CLI simple generation - big app', () => {
 
     it('should not crash with invalid JSDoc @link tags', () => {
         const file = read(`${distFolder}/${pages.of('component', 'AboutComponent')}`);
-        expect(file).to.contain('if this {@link AboutComponent.fullName} does not crash');
-        expect(file).to.contain('if this {@link undefined} does not crash');
+        // Neither target has a page: both render as code, not as raw tags.
+        expect(file).to.contain('if this <code>AboutComponent.fullName</code> does not crash');
+        expect(file).to.contain('if this <code>undefined</code> does not crash');
     });
 
     it('should support multiple decorators for component for example', () => {
