@@ -46,12 +46,15 @@ export class PublicApiParser {
             };
         }
 
-        // Find all index.d.ts files recursively
-        const pattern = path.join(this.distPath, '**/index.d.ts');
-        const indexFiles = await fg(pattern, {
-            absolute: true,
-            ignore: ['**/node_modules/**']
-        });
+        // Find all index.d.ts files recursively. The pattern stays relative: Windows
+        // backslashes or a `(` in the folder name would be read as glob syntax.
+        const indexFiles = (
+            await fg('**/index.d.ts', {
+                cwd: this.distPath,
+                absolute: true,
+                ignore: ['**/node_modules/**']
+            })
+        ).map(file => path.resolve(file));
 
         logger.info(`Found ${indexFiles.length} index.d.ts file(s)`);
 

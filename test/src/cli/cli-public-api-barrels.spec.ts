@@ -10,7 +10,7 @@ const documented = (out: string, project: string, publicApi: string): ExportData
         './bin/index-cli.js',
         '--no-multiVersion',
         '-p',
-        `${FIXTURE}/${project}/tsconfig.json`,
+        `${project}/tsconfig.json`,
         '-e',
         'json',
         '-d',
@@ -34,7 +34,7 @@ describe('CLI public-api-only option with barrel re-exports', () => {
         let data: ExportData;
 
         beforeAll(() => {
-            data = documented(out, 'declarations', `${FIXTURE}/declarations/types`);
+            data = documented(out, `${FIXTURE}/declarations`, `${FIXTURE}/declarations/types`);
         });
         afterAll(() => tmp.clean(out));
 
@@ -65,7 +65,7 @@ describe('CLI public-api-only option with barrel re-exports', () => {
         let data: ExportData;
 
         beforeAll(() => {
-            data = documented(out, 'api-report', `${FIXTURE}/api-report`);
+            data = documented(out, `${FIXTURE}/api-report`, `${FIXTURE}/api-report`);
         });
         afterAll(() => tmp.clean(out));
 
@@ -81,6 +81,25 @@ describe('CLI public-api-only option with barrel re-exports', () => {
 
         it('drops a symbol the report does not list', () => {
             expect(functionNames(data)).not.toContain('hiddenFn');
+        });
+    });
+
+    describe('*.api.md report in a folder whose name holds glob syntax', () => {
+        const out = `${tmp.name}-public-api-barrels-glob`;
+        const copy = `${tmp.name}-public-api-barrels (copy)`;
+        let data: ExportData;
+
+        beforeAll(() => {
+            tmp.copy(`${FIXTURE}/api-report`, copy);
+            data = documented(out, copy, copy);
+        });
+        afterAll(() => {
+            tmp.clean(out);
+            tmp.clean(copy);
+        });
+
+        it('finds the report and the declaring files', () => {
+            expect(functionNames(data)).toEqual(['deep', 'localFn', 'pub', 'starFn', 'zed']);
         });
     });
 });
