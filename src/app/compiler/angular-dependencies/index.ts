@@ -610,11 +610,6 @@ export class AngularDependencies extends FrameworkDependencies {
                             ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
                             ...(infos.a11yNote && { a11yNote: infos.a11yNote })
                         };
-                        // Detect factory function kind by naming convention
-                        const factoryKind = this.providerDetector.detectFactoryKind(name);
-                        if (factoryKind) {
-                            functionDep.factoryKind = factoryKind;
-                        }
                         // Detect functional guard/resolver/interceptor from return type
                         const functionalKind = this.providerDetector.detectFunctionalAngularKind(
                             infos.returnType,

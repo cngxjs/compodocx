@@ -1,5 +1,4 @@
 import { ts } from 'ts-morph';
-import type { IFunctionDecDep } from '../angular/dependencies.interfaces';
 
 /** A provider written as a call: `provideFoo(withBar())` or `...provideFoo()`. */
 export interface ProviderCall {
@@ -150,22 +149,6 @@ export class ProviderDetector {
         // Check variable type annotations (for arrow function exports)
         if (/Guard/i.test(name) && /boolean|Observable<boolean>|Promise<boolean>/.test(rt)) {
             return 'guard';
-        }
-        return undefined;
-    }
-
-    public detectFactoryKind(name: string): IFunctionDecDep['factoryKind'] | undefined {
-        if (/^provide[A-Z]/.test(name)) {
-            return 'provider';
-        }
-        if (/^with[A-Z]/.test(name)) {
-            return 'feature';
-        }
-        if (/^inject[A-Z]/.test(name)) {
-            return 'inject';
-        }
-        if (/^create[A-Z]/.test(name)) {
-            return 'factory';
         }
         return undefined;
     }

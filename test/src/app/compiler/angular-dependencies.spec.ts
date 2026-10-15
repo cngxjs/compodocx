@@ -37,15 +37,6 @@ describe('angular-dependencies — orchestrator wiring', () => {
         expect(new JsdocTags(new JsdocParserUtil())).toBeInstanceOf(JsdocTags);
     });
 
-    it('ProviderDetector.detectFactoryKind recognises factory naming conventions', () => {
-        const detector = new ProviderDetector();
-        expect(detector.detectFactoryKind('provideRouter')).toBe('provider');
-        expect(detector.detectFactoryKind('withDebugTracing')).toBe('feature');
-        expect(detector.detectFactoryKind('injectFoo')).toBe('inject');
-        expect(detector.detectFactoryKind('createBar')).toBe('factory');
-        expect(detector.detectFactoryKind('plain')).toBeUndefined();
-    });
-
     it('ProviderDetector.detectFunctionalAngularKind classifies by return type', () => {
         const detector = new ProviderDetector();
         expect(detector.detectFunctionalAngularKind('CanActivateFn', 'authGuard')).toBe('guard');

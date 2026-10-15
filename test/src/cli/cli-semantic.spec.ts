@@ -71,6 +71,7 @@ describe('CLI semantic analysis', () => {
         const fn = (name: string) => data.miscellaneous.functions.find((f: any) => f.name === name);
         expect(fn('provideFoo').entryPoint).to.equal('@sem/core');
         expect(fn('provideFoo').di.role).to.equal('provider');
+        expect(fn('provideFoo')).not.toHaveProperty('factoryKind');
         expect(fn('withMode').di.featureType).to.deep.equal({
             name: 'FooFeature',
             file: `${FILE}/core/src/di/foo.providers.ts`

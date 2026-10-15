@@ -83,7 +83,6 @@ export interface EntityWithKind {
     standalone?: boolean;
     isToken?: boolean;
     beta?: boolean;
-    factoryKind?: string;
     selector?: string;
     description?: string;
     inputsClass?: unknown[];

@@ -98,7 +98,7 @@ export interface ExportRouteRoot {
  * other place in `src/` writes a numeric literal as the schema version
  * instead of importing this constant.
  */
-export const EXPORT_SCHEMA_VERSION = 5 as const;
+export const EXPORT_SCHEMA_VERSION = 6 as const;
 
 export type ExportSchemaVersion = typeof EXPORT_SCHEMA_VERSION;
 
@@ -452,7 +452,6 @@ export interface ExportFunction extends ExportSemanticFacts {
     deprecated?: boolean;
     deprecationMessage?: string;
     description?: string;
-    factoryKind?: 'provider' | 'feature' | 'inject' | 'factory';
     returnType?: string;
     args?: ExportArg[];
     jsdoctags?: JsdocTagInterface[];
