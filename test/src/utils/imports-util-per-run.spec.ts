@@ -40,4 +40,19 @@ describe('ImportsUtil - one project per run', () => {
         ImportsUtil.resetProject();
         expect(keysOf()).toEqual(['after']);
     });
+
+    it('finds a value imported through a re-exporting file', () => {
+        const barrelHost = path.join(tmpDir, 'barrel-host.ts');
+        const text = "import { SHARED } from './barrel';\nexport const used = SHARED;\n";
+        fs.writeFileSync(barrelHost, text);
+        fs.writeFileSync(path.join(tmpDir, 'barrel.ts'), "export * from './shared';\n");
+        fs.writeFileSync(
+            path.join(tmpDir, 'shared.ts'),
+            'export const SHARED = { viaExport: 1 };\n'
+        );
+        ImportsUtil.resetProject();
+        const sf = ts.createSourceFile(barrelHost, text, ts.ScriptTarget.Latest, true);
+        const props = ImportsUtil.findValueInImportOrLocalVariables('SHARED', sf) as any;
+        expect(Array.from(props ?? []).map((p: any) => p.name.getText())).toEqual(['viaExport']);
+    });
 });

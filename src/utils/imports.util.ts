@@ -132,14 +132,14 @@ export class ImportsUtil {
                                 _exportDeclarationKey,
                                 exportDeclarationValues
                             ] of exportDeclarations) {
-                                exportDeclarationValues.forEach(exportDeclarationValue => {
-                                    if (
-                                        exportDeclarationValue instanceof VariableDeclaration &&
-                                        exportDeclarationValue.getName() === variableName
-                                    ) {
-                                        return hasFoundValues(exportDeclarationValue);
-                                    }
-                                });
+                                const found = exportDeclarationValues.find(
+                                    value =>
+                                        value instanceof VariableDeclaration &&
+                                        value.getName() === variableName
+                                );
+                                if (found) {
+                                    return hasFoundValues(found);
+                                }
                             }
                         }
                     }
