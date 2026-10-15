@@ -41,9 +41,8 @@ const buildLegacyHandlebars = (): typeof Handlebars => {
     // with no helpers / partials registered.
     const hbs = Handlebars.create();
 
-    // SafeString wraps HTML so Handlebars won't double-escape — matches how
-    // the legacy helpers in src/app/engines/html-engine-helpers/ wrap their
-    // output (e.g. break-comma.helper.ts:11 returns `new Handlebars.SafeString(...)`).
+    // SafeString wraps HTML so Handlebars does not double-escape it, the way
+    // the legacy compodoc helpers returned `new Handlebars.SafeString(...)`.
     const safe = (html: string) => new Handlebars.SafeString(html);
     hbs.registerHelper('t', (key: string) => oracleModernHelpers.t(key));
     hbs.registerHelper('capitalize', (s: string) => oracleModernHelpers.capitalize(s));

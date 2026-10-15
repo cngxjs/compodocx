@@ -1,39 +1,60 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
 import { HELPER_MAP, knownLegacyHelpers, renameTargets } from '../../../src/migrate/helper-map';
 import * as modernHelpers from '../../../src/templates/helpers';
 
-const REPO_ROOT = path.resolve(__dirname, '../../..');
-const REGISTRATION_FILE = path.join(REPO_ROOT, 'src/app/engines/html.engine.helpers.ts');
-
 /**
- * Source-of-truth: every `registerHelper(bars, '<name>', ...)` call in
- * `html.engine.helpers.ts`. Parsing the registration file directly means a
- * new legacy helper added to compodoc's engine fails this spec until the
- * mapping is added.
+ * Every Handlebars helper name a compodoc `.hbs` template can call: the
+ * helpers compodoc registered, plus the legacy link helpers that were no
+ * longer registered (the templates resolve links through the page layout)
+ * but that users still write. The list is frozen: compodocx renders with
+ * TSX and registers no Handlebars helpers, so `compodocx migrate` must keep
+ * mapping exactly these names.
  */
-/**
- * Legacy link helpers that are no longer registered (the templates resolve
- * links through the page layout now) but that users still write in `.hbs`
- * templates, so `compodocx migrate` must keep mapping them.
- */
-const UNREGISTERED_LEGACY_HELPERS = [
+const LEGACY_HELPERS = [
+    'compare',
+    'or',
+    'isNotToggle',
+    'isInitialTab',
+    'isTabEnabled',
+    'ifString',
+    'ifEqualString',
+    'orLength',
+    'filterAngular2Modules',
+    'debug',
+    'breaklines',
+    'clean-paragraph',
+    'escapeSimpleQuote',
+    'breakComma',
+    'modifKind',
+    'modifIcon',
+    'jsdoc-returns-comment',
+    'jsdoc-code-example',
+    'jsdoc-example',
+    'jsdoc-params',
+    'jsdoc-params-valid',
+    'jsdoc-default',
+    'indexableSignature',
+    'object',
+    'objectLength',
+    'one-parameter-has',
+    'hasOwn',
+    'short-url',
+    'strip-url',
+    't',
+    'capitalize',
+    'parse-property',
+    'isInfoSection',
+    'isApiSection',
+    'highlightCode',
     'functionSignature',
     'linkType',
     'parseDescription',
     'relativeURL'
 ] as const;
 
-const registeredHelpers = (): readonly string[] => {
-    const source = fs.readFileSync(REGISTRATION_FILE, 'utf8');
-    const matches = source.matchAll(/registerHelper\(\s*bars\s*,\s*['"]([^'"]+)['"]/g);
-    return [...Array.from(matches, m => m[1]), ...UNREGISTERED_LEGACY_HELPERS];
-};
-
 describe('migrate/helper-map — forward coverage', () => {
-    it('every registered legacy helper has a HELPER_MAP entry', () => {
+    it('every legacy helper has a HELPER_MAP entry', () => {
         const known = new Set(knownLegacyHelpers());
-        const missing = registeredHelpers().filter(name => !known.has(name));
+        const missing = LEGACY_HELPERS.filter(name => !known.has(name));
         expect(missing).toEqual([]);
     });
 });

@@ -2,10 +2,9 @@
  * Mapping from legacy compodoc Handlebars helper names to compodocx JS actions.
  *
  * The keys are the names users wrote in `.hbs` templates — i.e. the strings
- * passed to `Handlebars.registerHelper`. Source of truth: the
- * `registerHelper(...)` calls in `src/app/engines/html.engine.helpers.ts`,
- * plus the unregistered legacy link helpers listed in `helper-map.spec.ts`
- * (`functionSignature`, `linkType`, `parseDescription`, `relativeURL`).
+ * passed to `Handlebars.registerHelper` by compodoc, plus the unregistered
+ * legacy link helpers (`functionSignature`, `linkType`, `parseDescription`,
+ * `relativeURL`). The frozen name list lives in `helper-map.spec.ts`.
  *
  * Five mapping kinds:
  * - `rename`        — legacy → modern barrel name; emit `helpers.<to>(...args)`.
