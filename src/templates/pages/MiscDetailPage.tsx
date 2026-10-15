@@ -14,11 +14,11 @@ import {
     deriveLibFromBucket,
     functionSignature,
     hasJsdocParams,
-    jsdocReturnsComment,
     linkTypeHtml,
     pagefindFilterBlock,
     pagefindMetaBlock,
     parseDescription,
+    returnsHtml,
     t
 } from '../helpers';
 import { routedAt } from '../helpers/routed-at';
@@ -150,7 +150,7 @@ const InfoContent = (item: any, depth: number, kind: MiscDetailKind): string => 
 const FunctionApi = (item: any, depth: number): string => {
     const hasSignature = (item.args?.length ?? 0) > 0 || item.returnType;
     const hasParams = item.jsdoctags && hasJsdocParams(item.jsdoctags);
-    const returnsComment = item.jsdoctags ? jsdocReturnsComment(item.jsdoctags) : '';
+    const returnsComment = item.jsdoctags ? returnsHtml(item.jsdoctags, depth) : '';
     return [
         hasSignature
             ? Section({

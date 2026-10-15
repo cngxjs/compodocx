@@ -102,9 +102,9 @@ Pages: `categories/<bucket>.html` is gone. Every feature has a page, `index.html
 
 Template overrides: `bucket-landing` is removed (a file with that name is ignored with a warning). The new `feature` context targets feature pages (`data.feature`, see docs/custom-templates.md). `menu` and `api-reference` overrides read the feature model from `data.semantic.features`; `data.categorizedByFeature*` and the `data.categorized*` kind groups are gone. Entity heroes write `data-pagefind-meta="feature:<label>"` instead of `category:<bucket>`, and the command palette shows only the `feature` value next to a result; a custom template that still writes `category:` loses that label.
 
-JSON export (schema 4, written as part of schema 5 in 0.9.0):
+JSON export (schema 4, written as part of schema 6 in 0.9.0):
 
-- `schemaVersion` is 5 in 0.9.0 (see "Breaking change in 0.9.0: typed routes, schema 5 and `disableRoutes`"). `compodocx diff` accepts schema 5 only; re-export older files.
+- `schemaVersion` is 6 in 0.9.0 (see "Breaking change in 0.9.0: `factoryKind` removed, schema 6"). `compodocx diff` accepts schema 6 only; re-export older files.
 - `category` and `docsKind` are removed from every entry and member.
 - Symbol entries can carry `feature: { entryPoint, key }`; `semantic.features` lists each feature with `id`, `entryPoint`, `key`, `label`, `detector`, `readme`, `buildsOn` and `extendedBy`.
 
@@ -231,6 +231,11 @@ Routes are read through the project analysis: a router starts at `bootstrapAppli
 - **New block override `block-routed-at`.** Renders "Routed at" on component pages and "Mounted at" on route array variables; receives `{ id, title, links }` with `links` as `{ label, href }[]`.
 - **Route file variables.** Variables in files with a `Routes` array show their source as default value instead of a rewritten one, and an exported route array that the former parser could not read is now documented.
 
+## Breaking change in 0.9.0: `factoryKind` removed, schema 6
+
+- **JSON export schema 6.** Function entries no longer carry `factoryKind` (`'provider' | 'feature' | 'inject' | 'factory'`). The value was guessed from the name prefix (`provideX`, `withX`, `injectX`, `createX`) and nothing in compodocx read it. There is no replacement field: what a function does for dependency injection is in its semantic facts (`di.role`, `di.featureType`, `di.usesInjectionContext`, see "Semantic fields in the JSON export" in docs/configuration.md), which come from the project analysis.
+- `schemaVersion` is 6. `compodocx diff` of a schema 5 export against a schema 6 one exits with code 2 and the "re-export" message, so stored baselines must be re-exported.
+
 ## Changes in 0.9.0: style files and design tokens
 
 compodocx can document style files that no component reads (theme bridges, directive assets, global token sheets), give them pages and collect global tokens on a design tokens page. Nothing changes until you set `styleFiles`, except the two behaviour changes below.
@@ -258,7 +263,7 @@ Template overrides (all additive):
 
 `block-theming` also receives `mixins` and `linked`, and `block-theming-token` receives `related`, each only when non-empty. Existing overrides keep working. See docs/custom-templates.md.
 
-JSON export: no breaking change of its own. Every new field is optional (0.9.0 writes `schemaVersion` 5 for the typed routes): top-level `styleFiles`, `themeTokens` / `themeOverview` / `themeStyleSources` on directives, `relatedTo` on tokens. A component's theme fields now include the files that theme it with `@themes`. `ExportComponent.themeOverview` is typed as `string` (it was declared `string[]` but always held one string). `compodocx diff` does not compare `styleFiles`.
+JSON export: no breaking change of its own. Every new field is optional (0.9.0 writes `schemaVersion` 6, see the typed routes and `factoryKind` entries): top-level `styleFiles`, `themeTokens` / `themeOverview` / `themeStyleSources` on directives, `relatedTo` on tokens. A component's theme fields now include the files that theme it with `@themes`. `ExportComponent.themeOverview` is typed as `string` (it was declared `string[]` but always held one string). `compodocx diff` does not compare `styleFiles`.
 
 To adopt:
 
@@ -381,7 +386,8 @@ To opt INTO the new layout, no migration is needed - set `menuLayout: 'feature'`
 - **Schema 3 (v0.9.0+).** The `modules` bucket and `entryComponents` on components are removed. Style sources are shared: a new top-level `styleSources` map holds `{ content, language }` per key, and each component's `themeStyleSources` lists keys into it (project-relative file path, or `<component file>#inline-<n>` for inline styles). `inputsClass`, `outputsClass`, `hostBindings` and `hostListeners` are fed by signal APIs and the `host` object only; `guards` and `interceptors` list functional ones only. Tools reading v2 must gate on `schemaVersion >= 3`.
 - **Schema 4 (v0.9.0+).** `category` and `docsKind` are removed from every entry and member; symbol entries can carry `feature: { entryPoint, key }` and `semantic.features` lists the features.
 - **Schema 5 (v0.9.0+).** `routes` is a typed list of route roots, see "Breaking change in 0.9.0: typed routes, schema 5 and `disableRoutes`".
-- **Header fields.** `schemaVersion: 5` (v0.9.0+; `2` in v0.6.0 to v0.8.x, `1` in v0.3.0–v0.5.0), `generatedAt` (ISO 8601), `compodocxVersion`. Pre-v0.3.0 outputs had no `schemaVersion` - consumers should treat its absence as version 0. The v0.6.0 bump from `1` to `2` is a non-breaking additive change: `tokens?: ExportInjectable[]` was added as a top-level entry (InjectionToken / HttpContextToken collection - previously dropped from JSON entirely), plus optional per-entity fields `docsKind?: 'primary'`, `wcagLevel?: 'A' \| 'AA' \| 'AAA'`, `a11yNote?: string`, `taggedSelector?: string`, `relatedTo?: string[]` on directives / components / interfaces / classes / tokens. Old v1 readers ignore unknown fields and keep working; downstream tools that want to react to the new surface should gate on `schemaVersion >= 2`.
+- **Schema 6 (v0.9.0+).** `factoryKind` is removed from function entries, see "Breaking change in 0.9.0: `factoryKind` removed, schema 6".
+- **Header fields.** `schemaVersion: 6` (v0.9.0+; `2` in v0.6.0 to v0.8.x, `1` in v0.3.0–v0.5.0), `generatedAt` (ISO 8601), `compodocxVersion`. Pre-v0.3.0 outputs had no `schemaVersion` - consumers should treat its absence as version 0. The v0.6.0 bump from `1` to `2` is a non-breaking additive change: `tokens?: ExportInjectable[]` was added as a top-level entry (InjectionToken / HttpContextToken collection - previously dropped from JSON entirely), plus optional per-entity fields `docsKind?: 'primary'`, `wcagLevel?: 'A' \| 'AA' \| 'AAA'`, `a11yNote?: string`, `taggedSelector?: string`, `relatedTo?: string[]` on directives / components / interfaces / classes / tokens. Old v1 readers ignore unknown fields and keep working; downstream tools that want to react to the new surface should gate on `schemaVersion >= 2`.
 - **Indent default `0`.** Single-line by default. Pass `--jsonIndent 2` to restore the previous human-readable formatting. `jq` consumers are unaffected.
 
 ## Themes

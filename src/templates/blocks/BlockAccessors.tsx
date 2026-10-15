@@ -5,9 +5,9 @@ import {
     functionSignature,
     hasJsdocParams,
     isTabEnabled,
-    jsdocReturnsComment,
     linkTypeHtml,
     parseDescription,
+    returnsHtml,
     t
 } from '../helpers';
 import { ParamsTable } from './ParamsTable';
@@ -115,7 +115,7 @@ export const BlockAccessors = (props: BlockAccessorsProps): string => {
                             )}
                         {returnType && acc.getSignature?.jsdoctags && (
                             <div class="cdx-io-member-desc">
-                                {jsdocReturnsComment(acc.getSignature.jsdoctags)}
+                                {returnsHtml(acc.getSignature.jsdoctags, props.depth)}
                             </div>
                         )}
                         {(() => {

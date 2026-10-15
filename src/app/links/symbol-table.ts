@@ -257,11 +257,12 @@ export const emptySymbolTable = (): SymbolTable => ({
  *   score wins, the last match inside that kind wins. A kind with several
  *   contained names and no exact one does not match.
  * - `doc-link`: `{@link}` targets. First exact name, no tokens.
+ * - `related`: `@relatedTo` names. `doc-link`, then tokens.
  * - `entity-index`: the client's entity index. Last exact name; misc kinds
  *   after the class-like kinds, no tokens or entities.
  * - `diff`: export diffs. Last exact name; callers narrow by kind.
  */
-export type LookupPolicy = 'type-link' | 'doc-link' | 'entity-index' | 'diff';
+export type LookupPolicy = 'type-link' | 'doc-link' | 'related' | 'entity-index' | 'diff';
 
 const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
     'type-link': [
@@ -295,6 +296,23 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
         'typealias',
         'variable',
         'function'
+    ],
+    related: [
+        'component',
+        'entity',
+        'directive',
+        'injectable',
+        'interceptor',
+        'guard',
+        'resolver',
+        'interface',
+        'pipe',
+        'class',
+        'enumeration',
+        'typealias',
+        'variable',
+        'function',
+        'token'
     ],
     'entity-index': [
         'component',
@@ -395,6 +413,7 @@ const lookupOccurrence = (
         case 'type-link':
             return lastOfFirstKind(exact) ?? containedMatch(table, name, kinds, exclude);
         case 'doc-link':
+        case 'related':
             return exact[0];
         default:
             return exact.at(-1);

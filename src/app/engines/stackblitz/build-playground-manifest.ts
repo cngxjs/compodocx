@@ -1,4 +1,5 @@
 import { posix } from 'node:path';
+import type { Result } from '../../../lib';
 import type { ComponentPlaygroundBlock } from '../../../templates/helpers/jsdoc';
 import {
     STACKBLITZ_POST_LIMIT,
@@ -6,6 +7,7 @@ import {
     STACKBLITZ_VENDOR_TOTAL_CAP
 } from './constants';
 import { emitFileContent } from './format-files';
+import { BARE_SPEC_RE, resolvePackageRoot } from './import-specifiers';
 import {
     detectMaterialImports,
     extractScssUseSpecifiers,
@@ -120,7 +122,7 @@ export interface BuildOptions extends WalkOptions {
     };
 }
 
-export type BuildResult = { ok: true; value: PlaygroundManifest } | { ok: false; error: string };
+export type BuildResult = Result<PlaygroundManifest>;
 
 const DEFAULT_SOURCE_ROOT = 'src/app/';
 
@@ -163,13 +165,6 @@ const OPTIONAL_ANGULAR_PEERS = ['@angular/cdk', '@angular/material'];
 
 const PROJECT_NAME = 'compodocx-playground';
 
-// Bare-specifier import scanner. Picks up any non-relative `import` source
-// (`from 'pkg'` / `from "pkg/sub"`) so consumer-defined libraries referenced
-// in inlined sources or HTML snippets can be auto-forwarded as runtime deps.
-// Side imports (`import 'foo';`) and re-exports (`export ... from 'foo'`)
-// both match.
-const BARE_SPEC_RE = /(?:from|import|export\s+[^'"]*from)\s*['"]([^'".][^'"]*)['"]/g;
-
 // Specifiers handled separately by the explicit dep table above. Skipping
 // these keeps auto-forward focused on the user's own libraries. Exported so
 // the pre-publish import validator shares one source of "framework peers".
@@ -182,21 +177,10 @@ export const AUTO_FORWARD_SKIP = new Set<string>([
 ]);
 
 /**
- * Map a possibly-deep specifier (`@my-org/ui-kit/button`, `lodash-es/cloneDeep`)
- * back to its package root for npm-dependency lookup. Scoped packages keep
- * the first two segments (`@scope/name`); unscoped keep the first segment.
- */
-const resolvePackageRoot = (specifier: string): string => {
-    if (specifier.startsWith('@')) {
-        const parts = specifier.split('/');
-        return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : specifier;
-    }
-    return specifier.split('/')[0];
-};
-
-/**
  * Scan a source file for bare-specifier imports and return the deduped set
- * of resolved package roots. Pure — no I/O.
+ * of resolved package roots, so consumer-defined libraries referenced in
+ * inlined sources or HTML snippets can be auto-forwarded as runtime deps.
+ * Pure — no I/O.
  */
 export const extractBareSpecifiers = (source: string): Set<string> => {
     const found = new Set<string>();
@@ -821,7 +805,7 @@ export function buildPlaygroundManifest(
                         : '';
                 return {
                     ok: false,
-                    error: `Playground vendor closure for "${componentName}" is ${totalBytes} B after slimming + pruning, over the ${cap} B cap: ${breakdown}.${overPost}`
+                    message: `Playground vendor closure for "${componentName}" is ${totalBytes} B after slimming + pruning, over the ${cap} B cap: ${breakdown}.${overPost}`
                 };
             }
             vendorFiles = staged;

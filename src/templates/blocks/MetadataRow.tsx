@@ -134,6 +134,7 @@ type HostDirective = {
     readonly outputs?: string[];
 };
 
+// Element text only, never an attribute, so `"` is left as is (unlike escapeHtmlText).
 const escapeHtml = (s: string): string =>
     s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c] as string);
 

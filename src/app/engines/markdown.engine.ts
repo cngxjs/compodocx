@@ -136,6 +136,7 @@ export class MarkdownEngine {
         return this.addEndings(foundFiles);
     }
 
+    // Fenced-code fallback; unlike escapeHtmlText it also escapes `'` and `@`, kept so its bytes stay the same.
     private escape(html: string): string {
         return html
             .replace(/&/g, '&amp;')

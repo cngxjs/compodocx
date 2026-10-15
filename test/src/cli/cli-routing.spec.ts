@@ -150,7 +150,7 @@ describe('CLI routes', () => {
         it('writes no routes key', () => {
             const data = JSON.parse(read(`${out}/documentation.json`)) as ExportData;
             expect(data.routes).toBeUndefined();
-            expect(data.schemaVersion).toBe(5);
+            expect(data.schemaVersion).toBe(6);
         });
     });
 

@@ -124,8 +124,6 @@ export interface IFunctionDecDep extends IDep {
     deprecationMessage: string;
     description: string;
 
-    factoryKind?: 'provider' | 'feature' | 'inject' | 'factory';
-
     returnType?: string;
     args?: Array<any>;
     jsdoctags?: string;

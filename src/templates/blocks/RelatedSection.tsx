@@ -22,23 +22,20 @@ export type RelatedEntry = { name: string; href?: string };
 
 /** The link of a `@relatedTo` name from a page at `depth`; no `href` when unresolved. */
 export const resolveRelated = (name: string, depth: number): RelatedEntry => {
-    const hit = DependenciesEngine.findInCompodoc(name);
-    if (hit && typeof hit !== 'boolean') {
-        const target = targetOfData(hit, Configuration.mainData.symbols);
-        if (target?.type !== 'symbol') {
-            return { name };
-        }
-        const link = placeTarget({ ...target, name }, hit, Configuration.mainData);
-        return link ? { name, href: hrefText(hrefFor(link.target, depth, link.anchor)) } : { name };
+    const entry = DependenciesEngine.findRelated(name);
+    if (!entry) {
+        return { name };
     }
-    // Tokens aren't included in findInCompodoc's merged-data list.
-    const tokens = (DependenciesEngine as any).tokens as any[] | undefined;
-    const token = tokens?.find((tk: any) => tk.name === name);
-    if (token) {
-        const target = itemTarget(Configuration.mainData.symbols, 'token', token);
+    if (entry.ref.kind === 'token') {
+        const target = itemTarget(Configuration.mainData.symbols, 'token', entry.data);
         return { name, href: hrefText(hrefFor(target, depth)) };
     }
-    return { name };
+    const target = targetOfData(entry.data, Configuration.mainData.symbols);
+    if (target?.type !== 'symbol') {
+        return { name };
+    }
+    const link = placeTarget({ ...target, name }, entry.data, Configuration.mainData);
+    return link ? { name, href: hrefText(hrefFor(link.target, depth, link.anchor)) } : { name };
 };
 
 type RelatedSectionProps = {

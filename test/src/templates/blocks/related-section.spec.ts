@@ -1,4 +1,6 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import Configuration from '../../../../src/app/configuration';
+import { itemId } from '../../../../src/app/di/model';
 import {
     clearCustomTemplates,
     registerCustomTemplate
@@ -10,8 +12,9 @@ import { logger } from '../../../../src/utils/logger';
 import { hrefTo } from '../../helpers/pages';
 
 /**
- * RelatedSection resolves @relatedTo targets via DependenciesEngine.findInCompodoc
- * with a tokens-array fallback. Each spec snapshots the singleton's collections,
+ * RelatedSection resolves @relatedTo targets through the symbol table (`related`
+ * policy: the `doc-link` kinds first, then tokens; hidden symbols skipped). The
+ * table is built from the engine here. Each spec snapshots the singleton's collections,
  * stamps the seed for the test, and restores the originals in afterEach so the
  * other specs that lean on the engine stay green.
  */
@@ -96,7 +99,7 @@ describe('RelatedSection', () => {
         expect(html).toContain('>CngxToast<');
     });
 
-    it('falls back to the tokens collection when findInCompodoc misses', () => {
+    it('resolves a token through the table after the doc-link kinds', () => {
         (DependenciesEngine as any).tokens = [{ name: 'CNGX_KEY', type: 'token' }];
         const html = RelatedSection({
             entityName: 'CngxButton',
@@ -104,6 +107,39 @@ describe('RelatedSection', () => {
             depth: 1
         });
         expect(html).toContain(`href="${hrefTo('token', 'CNGX_KEY', 1)}"`);
+    });
+
+    it('picks the doc-link kind over a token of the same name', () => {
+        (DependenciesEngine as any).classes = [{ name: 'SHARED_NAME', type: 'class' }];
+        (DependenciesEngine as any).tokens = [{ name: 'SHARED_NAME', type: 'token' }];
+        const html = RelatedSection({ entityName: 'Host', relatedTo: ['SHARED_NAME'], depth: 1 });
+        expect(html).toContain(`href="${hrefTo('class', 'SHARED_NAME', 1)}"`);
+        expect(html).not.toContain(`href="${hrefTo('token', 'SHARED_NAME', 1)}"`);
+    });
+
+    it('renders a hidden token as an unresolved pill', () => {
+        const spy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        const token = { name: 'HIDDEN_KEY', type: 'token' };
+        (DependenciesEngine as any).tokens = [token];
+        const id = itemId('token', token) as string;
+        const saved = Configuration.mainData.di;
+        Configuration.mainData.di = {
+            ...saved,
+            hidden: [id],
+            placement: new Map([[id, { type: 'hidden' }]])
+        } as any;
+        try {
+            const html = RelatedSection({
+                entityName: 'Host',
+                relatedTo: ['HIDDEN_KEY'],
+                depth: 1
+            });
+            expect(html).toContain('cdx-related-pill--unresolved');
+            expect(html).not.toContain(`href="${hrefTo('token', 'HIDDEN_KEY', 1)}"`);
+        } finally {
+            Configuration.mainData.di = saved;
+            spy.mockRestore();
+        }
     });
 
     it('renders unresolved targets as a dashed pill + emits a build-time warn', () => {

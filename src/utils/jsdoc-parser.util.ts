@@ -320,28 +320,66 @@ export class JsdocParserUtil {
                             rawDescription += JSDocNode.text;
                             break;
                         case SyntaxKind.JSDocLink:
-                            if (JSDocNode.name) {
-                                let text = JSDocNode.name.escapedText;
-                                if (
-                                    text === undefined &&
-                                    JSDocNode.name.left &&
-                                    JSDocNode.name.right
-                                ) {
-                                    text =
-                                        JSDocNode.name.left.escapedText +
-                                        '.' +
-                                        JSDocNode.name.right.escapedText;
-                                }
-                                rawDescription += `${JSDocNode.text}{@link ${text}}`;
-                            }
+                        case SyntaxKind.JSDocLinkCode:
+                        case SyntaxKind.JSDocLinkPlain:
+                            rawDescription += linkSource(JSDocNode);
                             break;
                         default:
                             break;
                     }
                 }
+                rawDescription = joinOpenLinks(rawDescription);
             }
         }
 
         return rawDescription;
     }
 }
+
+/**
+ * TypeScript ends a link node at a line break and leaves the rest, comment
+ * star included, in the next text node; a link left open at a line end is
+ * joined with the next line by one space.
+ */
+const OPEN_LINK_LINE_RE = /(\{@link(?:code|plain)?\s[^}\n]*)\r?\n\s*\*?\s*/;
+const joinOpenLinks = (text: string): string => {
+    let joined = text;
+    while (OPEN_LINK_LINE_RE.test(joined)) {
+        joined = joined.replace(OPEN_LINK_LINE_RE, '$1 ');
+    }
+    return joined;
+};
+
+const LINK_KEYWORD: Readonly<Record<number, string>> = {
+    [SyntaxKind.JSDocLink]: 'link',
+    [SyntaxKind.JSDocLinkCode]: 'linkcode',
+    [SyntaxKind.JSDocLinkPlain]: 'linkplain'
+};
+
+/** `Foo`, `Foo.bar` or `Foo#bar` of a link name node. */
+const linkName = (name: any): string => {
+    if (!name) {
+        return '';
+    }
+    if (name.escapedText !== undefined) {
+        return String(name.escapedText);
+    }
+    const sep = name.kind === SyntaxKind.JSDocMemberName ? '#' : '.';
+    return `${linkName(name.left)}${sep}${linkName(name.right)}`;
+};
+
+/**
+ * An inline `{@link}`, `{@linkcode}` or `{@linkplain}` as written: label,
+ * pipe and URL kept, so the one resolver (`parseDescription`) sees the
+ * source form. Without a source file the link is rebuilt from its parts.
+ */
+const linkSource = (node: any): string => {
+    const sourceFile = typeof node.getSourceFile === 'function' ? node.getSourceFile() : undefined;
+    if (sourceFile?.text) {
+        return sourceFile.text.slice(node.pos, node.end);
+    }
+    const name = linkName(node.name);
+    const text: string = node.text ?? '';
+    const sep = !name || !text || /^[|#:]/.test(text) ? '' : ' ';
+    return `{@${LINK_KEYWORD[node.kind]} ${name}${sep}${text}}`;
+};

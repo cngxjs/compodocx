@@ -1,5 +1,6 @@
 import { JsdocCodeExampleHelper } from '../../../../../src/app/engines/html-engine-helpers/jsdoc-code-example.helper';
 import { JsdocTagInterface } from '../../../../../src/app/interfaces/jsdoc-tag.interface';
+import { escapeHtmlText } from '../../../../../src/templates/helpers/escape';
 
 describe('JsdocCodeExampleHelper', () => {
     let helper: JsdocCodeExampleHelper;
@@ -108,21 +109,21 @@ describe('JsdocCodeExampleHelper', () => {
         });
     });
 
-    describe('getHtmlEntities method', () => {
+    describe('code escaping (escapeHtmlText)', () => {
         it('should escape HTML entities', () => {
-            const result = helper['getHtmlEntities']('<div class="test">Hello & goodbye</div>');
+            const result = escapeHtmlText('<div class="test">Hello & goodbye</div>');
             expect(result).to.equal(
                 '&lt;div class=&quot;test&quot;&gt;Hello &amp; goodbye&lt;/div&gt;'
             );
         });
 
         it('should handle empty string', () => {
-            const result = helper['getHtmlEntities']('');
+            const result = escapeHtmlText('');
             expect(result).to.equal('');
         });
 
         it('should handle string without HTML entities', () => {
-            const result = helper['getHtmlEntities']('Plain text');
+            const result = escapeHtmlText('Plain text');
             expect(result).to.equal('Plain text');
         });
     });

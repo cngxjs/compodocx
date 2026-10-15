@@ -43,14 +43,8 @@ export class JsdocTags {
                 continue;
             }
             const name = tag.tagName.text;
-            const rawComment = tag.comment;
-            const comment = (
-                typeof rawComment === 'string'
-                    ? rawComment
-                    : Array.isArray(rawComment)
-                      ? rawComment.map((c: any) => c.text || '').join('')
-                      : ''
-            ).trim();
+            // tag.comment is a NodeArray when it holds an inline {@link}
+            const comment = (this.jsdocParserUtil.parseJSDocNode(tag) || '').trim();
 
             switch (name) {
                 case 'signal':
@@ -111,6 +105,7 @@ export class JsdocTags {
                 case 'relatedTo': {
                     const symbols = comment
                         .split('\n')[0]
+                        .replace(/\{@link(?:code|plain)?\s+([^\s|}]+)[^}]*\}/g, '$1')
                         .split(',')
                         .map(s => s.trim())
                         .filter(Boolean);
@@ -120,18 +115,18 @@ export class JsdocTags {
                     break;
                 }
                 case 'slot': {
-                    // @slot name - description
+                    // @slot name - description; a repeated name keeps the first
                     if (!result.slots) {
                         result.slots = [];
                     }
                     const parts = comment.match(/^(\S+)\s*-?\s*(.*)$/);
-                    if (parts) {
+                    const slotName = parts ? parts[1] : comment;
+                    const slotDesc = parts ? parts[2] || '' : '';
+                    if (slotName && !result.slots.some((s: any) => s.name === slotName)) {
                         result.slots.push({
-                            name: parts[1],
-                            description: parts[2] || ''
+                            name: slotName,
+                            description: slotDesc
                         });
-                    } else if (comment) {
-                        result.slots.push({ name: comment, description: '' });
                     }
                     break;
                 }

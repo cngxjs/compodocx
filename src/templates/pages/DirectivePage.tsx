@@ -39,7 +39,7 @@ const DirectiveMetadata = (directive: any, depth: number): string => {
     rows.push(MetadataChipsRow('extends', (directive.extends as string[]) ?? [], depth));
     rows.push(MetadataChipsRow('implements', (directive.implements as string[]) ?? [], depth));
 
-    return MetadataSection({ rows }) + ContentSlotsSection(directive.slots);
+    return MetadataSection({ rows }) + ContentSlotsSection(directive.slots, depth);
 };
 
 /** The Theming tab of a directive: the style files that theme it (`@themes`). */

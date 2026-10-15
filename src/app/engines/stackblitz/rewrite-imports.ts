@@ -12,6 +12,7 @@ import { posix } from 'node:path';
  * - `from '@angular/core'`  → unchanged                (bare specifier)
  *
  * Trailing `.ts`/`.tsx` is stripped — Angular's bundler resolves extensionless.
+ * The quotes must match (backreference): the rewrite writes the specifier back.
  */
 const REL_IMPORT_RE = /(\bfrom\b|\bimport\b)(\s+)(['"])(\.\.?\/[^'"]+)\3/g;
 

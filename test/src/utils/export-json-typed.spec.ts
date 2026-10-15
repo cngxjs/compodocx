@@ -91,8 +91,8 @@ describe('export-json typed snapshot — todomvc fixture', () => {
         expect(snapshot.schemaVersion).toBe(EXPORT_SCHEMA_VERSION);
     });
 
-    it('writes typed routes (schema 5)', () => {
-        expect(EXPORT_SCHEMA_VERSION).toBe(5);
+    it('writes typed routes (schema 5 and later)', () => {
+        expect(EXPORT_SCHEMA_VERSION).toBe(6);
         const [root] = snapshot.routes ?? [];
         expect(root.kind).toBe('router');
         expect(root.config).toBe('appConfig');

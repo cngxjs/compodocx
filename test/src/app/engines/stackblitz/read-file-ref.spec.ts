@@ -35,7 +35,7 @@ describe('readFileRef — HTML mode', () => {
         if (result.ok) {
             return;
         }
-        expect(result.error).to.contain('./missing.html');
+        expect(result.message).to.contain('./missing.html');
     });
 });
 
@@ -165,8 +165,8 @@ export class X {}
         if (result.ok) {
             return;
         }
-        expect(result.error).to.contain('templateUrl');
-        expect(result.error).to.contain('missing.html');
+        expect(result.message).to.contain('templateUrl');
+        expect(result.message).to.contain('missing.html');
     });
 
     it('returns Result.err when the entry file is missing', () => {
@@ -176,7 +176,7 @@ export class X {}
         if (result.ok) {
             return;
         }
-        expect(result.error).to.contain('./not-here.ts');
+        expect(result.message).to.contain('./not-here.ts');
     });
 
     it('returns Result.err when the file walk exceeds maxFiles', () => {
@@ -191,9 +191,9 @@ export class X {}
         if (result.ok) {
             return;
         }
-        expect(result.error).to.contain('2-file cap');
-        expect(result.error).to.contain('playgroundFileCountCap');
-        expect(result.error).to.contain('Walked:');
+        expect(result.message).to.contain('2-file cap');
+        expect(result.message).to.contain('playgroundFileCountCap');
+        expect(result.message).to.contain('Walked:');
     });
 
     it('rejects unsupported extensions', () => {
@@ -203,7 +203,7 @@ export class X {}
         if (result.ok) {
             return;
         }
-        expect(result.error).to.contain('.html or .ts');
+        expect(result.message).to.contain('.html or .ts');
     });
 
     it('supports a plain template-literal templateUrl/styleUrl (no interpolation)', () => {
@@ -246,8 +246,8 @@ export class X {}
         if (result.ok) {
             return;
         }
-        expect(result.error).to.contain('templateUrl');
-        expect(result.error).to.contain('non-literal');
+        expect(result.message).to.contain('templateUrl');
+        expect(result.message).to.contain('non-literal');
     });
 
     it('reports a computed (identifier) styleUrls instead of silently dropping it', () => {
@@ -267,8 +267,8 @@ export class X {}
         if (result.ok) {
             return;
         }
-        expect(result.error).to.contain('styleUrls');
-        expect(result.error).to.contain('non-literal');
+        expect(result.message).to.contain('styleUrls');
+        expect(result.message).to.contain('non-literal');
     });
 
     it('appends an AppComponent alias when the entry class has a different name', () => {
@@ -357,7 +357,7 @@ describe('readPlaygroundConfig', () => {
         if (result.ok) {
             return;
         }
-        expect(result.error).to.contain('.ts');
+        expect(result.message).to.contain('.ts');
     });
 
     it('errors when the config file is missing', () => {
@@ -367,7 +367,7 @@ describe('readPlaygroundConfig', () => {
         if (result.ok) {
             return;
         }
-        expect(result.error).to.contain('Cannot find playground config');
+        expect(result.message).to.contain('Cannot find playground config');
     });
 
     it('errors when a transitively imported file is missing', () => {
@@ -379,6 +379,6 @@ describe('readPlaygroundConfig', () => {
         if (result.ok) {
             return;
         }
-        expect(result.error).to.contain('Cannot find imported file');
+        expect(result.message).to.contain('Cannot find imported file');
     });
 });

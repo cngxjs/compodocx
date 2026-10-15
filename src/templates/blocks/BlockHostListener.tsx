@@ -3,11 +3,11 @@ import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import {
     codeWrap,
     hasJsdocParams,
-    jsdocReturnsComment,
     linkTypeHtml,
     modifKind,
     modifSlug,
     parseDescription,
+    returnsHtml,
     t
 } from '../helpers';
 import { DefinedInRow } from './DefinedInRow';
@@ -134,7 +134,7 @@ export const BlockHostListener = (props: BlockHostListenerProps): string => {
                         )}
                         {m.returnType && m.jsdoctags && (
                             <div class="cdx-member-description">
-                                {jsdocReturnsComment(m.jsdoctags)}
+                                {returnsHtml(m.jsdoctags, props.depth)}
                             </div>
                         )}
                     </>

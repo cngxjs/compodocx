@@ -207,7 +207,7 @@ const InfoContent = (data: any): string => {
 
             {isInfoSection('metadata') && ComponentMetadata(c, depth)}
 
-            {isInfoSection('metadata') && ContentSlotsSection(c.slots)}
+            {isInfoSection('metadata') && ContentSlotsSection(c.slots, depth)}
 
             {isInfoSection('host') && c.hostStructured?.length > 0 && HostSection(c.hostStructured)}
 

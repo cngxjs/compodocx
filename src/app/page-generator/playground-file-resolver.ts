@@ -86,7 +86,7 @@ export class PlaygroundFileResolver {
                     });
                     if (!result.ok) {
                         logger.warn(
-                            `Playground "${block.title ?? '<untitled>'}" on ${entity.name}: ${result.error}`
+                            `Playground "${block.title ?? '<untitled>'}" on ${entity.name}: ${result.message}`
                         );
                         continue;
                     }
@@ -100,7 +100,7 @@ export class PlaygroundFileResolver {
                     const configResult = readPlaygroundConfig(configRef, hostFile, fsReader);
                     if (!configResult.ok) {
                         logger.warn(
-                            `@playgroundConfig "${configRef}" on ${entity.name}: ${configResult.error}`
+                            `@playgroundConfig "${configRef}" on ${entity.name}: ${configResult.message}`
                         );
                     } else {
                         for (let i = 0; i < playgrounds.length; i++) {

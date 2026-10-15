@@ -5,10 +5,10 @@ import {
     functionSignature,
     hasJsdocParams,
     isTabEnabled,
-    jsdocReturnsComment,
     linkTypeHtml,
     modifKind,
     parseDescription,
+    returnsHtml,
     t
 } from '../helpers';
 import { ParamsTable } from './ParamsTable';
@@ -107,7 +107,9 @@ export const BlockMethod = (props: BlockMethodProps): string => {
                             </div>
                         )}
                         {m.returnType && m.jsdoctags && (
-                            <div class="cdx-io-member-desc">{jsdocReturnsComment(m.jsdoctags)}</div>
+                            <div class="cdx-io-member-desc">
+                                {returnsHtml(m.jsdoctags, props.depth)}
+                            </div>
                         )}
                         {m.line && isTabEnabled(props.navTabs, 'source') && (
                             <div class="cdx-io-member-source">

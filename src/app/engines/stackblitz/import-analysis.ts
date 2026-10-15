@@ -1,3 +1,5 @@
+import { resolvePackageRoot } from './import-specifiers';
+
 /**
  * Pre-publish breakage guard (non-vendored path).
  *
@@ -64,17 +66,11 @@ export interface ImportIssue {
 
 // Captures `import ... from 'spec'` and `export ... from 'spec'`, keeping the
 // clause (between the keyword and `from`) and the specifier. Also matches a
-// bare side-effect `import 'spec'` (empty clause).
+// bare side-effect `import 'spec'` (empty clause). Stricter than BARE_SPEC_RE
+// (keywords on word boundaries, clause captured): it feeds symbol checks, so
+// a prose `from 'x'` must not count as an import.
 const IMPORT_STMT_RE =
     /\b(?:import|export)\b([^'";]*?)\bfrom\b\s*['"]([^'"]+)['"]|(?:\bimport\b)\s*['"]([^'"]+)['"]/g;
-
-const resolvePackageRoot = (specifier: string): string => {
-    if (specifier.startsWith('@')) {
-        const parts = specifier.split('/');
-        return parts.length >= 2 ? `${parts[0]}/${parts[1]}` : specifier;
-    }
-    return specifier.split('/')[0];
-};
 
 const subpathOf = (specifier: string, root: string): string => {
     const rest = specifier.slice(root.length);

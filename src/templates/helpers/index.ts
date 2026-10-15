@@ -13,7 +13,8 @@ export {
     extractJsdocParams,
     extractJsdocPlaygroundBlocks,
     hasJsdocParams,
-    jsdocReturnsComment
+    jsdocReturnsComment,
+    returnsHtml
 } from './jsdoc';
 export { linkTypeHtml, resolveType } from './link-type';
 export { modifIcon, modifIconFromArray } from './modif-icon';

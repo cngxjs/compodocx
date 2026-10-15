@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { Project, SyntaxKind, ts } from 'ts-morph';
 import { isIgnore, JsdocParserUtil } from '../../../utils';
 import ExtendsMerger from '../../../utils/extends-merger.util';
+import ImportsUtil from '../../../utils/imports.util';
 import { logger } from '../../../utils/logger';
 import { markedAcl } from '../../../utils/marked.acl';
 import { getNodeDecorators, nodeHasDecorator } from '../../../utils/node.util';
@@ -33,8 +34,6 @@ import { MetadataPredicates } from './metadata-predicates';
 import { ProviderDetector } from './provider-detector';
 import { PublicApiFilter } from './public-api-filter';
 
-const project = new Project();
-
 // TypeScript reference : https://github.com/Microsoft/TypeScript/blob/master/lib/typescript.d.ts
 
 /**
@@ -59,6 +58,8 @@ export class AngularDependencies extends FrameworkDependencies {
     private metadataPredicates = new MetadataPredicates();
     private jsdocTags = new JsdocTags(this.jsdocParserUtil);
     private publicApiFilter = new PublicApiFilter();
+    /** Files read for import aliases; a new project per crawl, so a rebuild sees edited files. */
+    private project = new Project();
     private expressionFinder = new ExpressionFinder();
     private providerDetector = new ProviderDetector();
     private ioExtractor: IoExtractor;
@@ -76,6 +77,8 @@ export class AngularDependencies extends FrameworkDependencies {
     }
 
     public getDependencies() {
+        this.project = new Project();
+        ImportsUtil.resetProject();
         let deps = {
             aliases: {},
             components: [],
@@ -222,9 +225,9 @@ export class AngularDependencies extends FrameworkDependencies {
 
     private getTypescriptImportsAliases(initialSrcFile: ts.SourceFile, outputSymbols: any): void {
         const astFile =
-            typeof project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
-                ? project.getSourceFile(initialSrcFile.fileName)
-                : project.addSourceFileAtPath(initialSrcFile.fileName);
+            typeof this.project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
+                ? this.project.getSourceFile(initialSrcFile.fileName)
+                : this.project.addSourceFileAtPath(initialSrcFile.fileName);
 
         if (astFile) {
             const importDeclarations = astFile.getImportDeclarations();
@@ -253,9 +256,9 @@ export class AngularDependencies extends FrameworkDependencies {
 
     private getTypescriptExportsAliases(initialSrcFile: ts.SourceFile, outputSymbols: any): void {
         const astFile =
-            typeof project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
-                ? project.getSourceFile(initialSrcFile.fileName)
-                : project.addSourceFileAtPath(initialSrcFile.fileName);
+            typeof this.project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
+                ? this.project.getSourceFile(initialSrcFile.fileName)
+                : this.project.addSourceFileAtPath(initialSrcFile.fileName);
 
         if (astFile) {
             const exportDeclarations = astFile.getExportDeclarations();
@@ -293,9 +296,9 @@ export class AngularDependencies extends FrameworkDependencies {
         const scannedFile = initialSrcFile;
 
         const astFile =
-            typeof project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
-                ? project.getSourceFile(initialSrcFile.fileName)
-                : project.addSourceFileAtPath(initialSrcFile.fileName);
+            typeof this.project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
+                ? this.project.getSourceFile(initialSrcFile.fileName)
+                : this.project.addSourceFileAtPath(initialSrcFile.fileName);
 
         ts.forEachChild(scannedFile, (initialNode: ts.Node) => {
             if (
@@ -607,11 +610,6 @@ export class AngularDependencies extends FrameworkDependencies {
                             ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
                             ...(infos.a11yNote && { a11yNote: infos.a11yNote })
                         };
-                        // Detect factory function kind by naming convention
-                        const factoryKind = this.providerDetector.detectFactoryKind(name);
-                        if (factoryKind) {
-                            functionDep.factoryKind = factoryKind;
-                        }
                         // Detect functional guard/resolver/interceptor from return type
                         const functionalKind = this.providerDetector.detectFunctionalAngularKind(
                             infos.returnType,
@@ -750,9 +748,9 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
                     }
                 } else {
-                    if (ts.isClassDeclaration(node)) {
-                        this.processClass(node, file, srcFile, outputSymbols, fileBody, astFile);
-                    }
+                    // Every class, function, enum and type alias declaration is bound,
+                    // so it carries node.symbol and is handled above; only variable
+                    // statements (no symbol of their own) reach this branch.
                     if (ts.isVariableStatement(node)) {
                         const isRoutesVariable = hasBareRoutesType(node);
                         // Process all variables, including exported routes variables for miscellaneous
@@ -1051,106 +1049,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                 visitVariableNode(node);
                             }
                         } // End of new if condition for isRoutesVariable || isExportedVariable
-                    }
-                    if (ts.isTypeAliasDeclaration(node)) {
-                        const infos = this.entityVisitor.visitTypeDeclaration(node);
-                        const name = infos.name;
-                        const deprecated = infos.deprecated;
-                        const deprecationMessage = infos.deprecationMessage;
-                        const deps: ITypeAliasDecDep = {
-                            name,
-                            ctype: 'miscellaneous',
-                            subtype: 'typealias',
-                            rawtype: this.classHelper.visitType(node),
-                            file: file,
-                            deprecated,
-                            deprecationMessage,
-                            description:
-                                this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
-                                    node
-                                ),
-                            ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
-                            ...(infos.a11yNote && { a11yNote: infos.a11yNote })
-                        };
-                        if (node.type) {
-                            deps.kind = node.type.kind;
-                        }
-                        if (
-                            deps.kind &&
-                            deps.kind === SyntaxKind.TemplateLiteralType &&
-                            node.type
-                        ) {
-                            deps.rawtype = srcFile.text.substring(node.type.pos, node.type.end);
-                        }
-                        if (!isIgnore(node)) {
-                            this.debug(deps);
-                            outputSymbols.miscellaneous.typealiases.push(deps);
-                        }
-                    }
-                    if (ts.isFunctionDeclaration(node)) {
-                        const infos = this.entityVisitor.visitFunctionDeclaration(node);
-                        const name = infos.name;
-                        const deprecated = infos.deprecated;
-                        const deprecationMessage = infos.deprecationMessage;
-                        const functionDep: IFunctionDecDep = {
-                            name,
-                            ctype: 'miscellaneous',
-                            subtype: 'function',
-                            file: file,
-                            deprecated,
-                            deprecationMessage,
-                            description:
-                                this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
-                                    node
-                                ),
-                            ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
-                            ...(infos.a11yNote && { a11yNote: infos.a11yNote })
-                        };
-                        if (infos.args) {
-                            functionDep.args = infos.args;
-                        }
-                        if (infos.returnType) {
-                            functionDep.returnType = infos.returnType;
-                        }
-                        if (infos.jsdoctags && infos.jsdoctags.length > 0) {
-                            functionDep.jsdoctags = infos.jsdoctags;
-                        }
-                        if (typeof infos.ignore === 'undefined') {
-                            if (
-                                !(
-                                    this.entityVisitor.hasPrivateJSDocTag(functionDep.jsdoctags) &&
-                                    Configuration.mainData.disablePrivate
-                                )
-                            ) {
-                                this.debug(functionDep);
-                                outputSymbols.miscellaneous.functions.push(functionDep);
-                            }
-                        }
-                    }
-                    if (ts.isEnumDeclaration(node)) {
-                        const infos = this.entityVisitor.visitEnumDeclaration(node);
-                        const name = infos.name;
-                        const deprecated = infos.deprecated;
-                        const deprecationMessage = infos.deprecationMessage;
-                        const enumDeps: IEnumDecDep = {
-                            name,
-                            childs: infos.members,
-                            ctype: 'miscellaneous',
-                            subtype: 'enum',
-                            deprecated,
-                            deprecationMessage,
-                            description:
-                                this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
-                                    node
-                                ),
-                            file: file,
-                            ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
-                            ...(infos.a11yNote && { a11yNote: infos.a11yNote })
-                        };
-                        if (!isIgnore(node)) {
-                            this.debug(enumDeps);
-                            outputSymbols.miscellaneous.enumerations.push(enumDeps);
-                        }
                     }
                 }
             };

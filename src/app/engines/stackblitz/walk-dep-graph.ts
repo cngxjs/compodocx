@@ -1,3 +1,4 @@
+import type { Result } from '../../../lib';
 import { STACKBLITZ_DEP_DEPTH, STACKBLITZ_FILE_COUNT_CAP } from './constants';
 
 // Local POSIX basename — keeps this module free of a node:path import so it
@@ -32,7 +33,7 @@ export interface WalkOptions {
     maxFiles?: number;
 }
 
-export type WalkResult = { ok: true; value: DepGraphNode[] } | { ok: false; error: string };
+export type WalkResult = Result<DepGraphNode[]>;
 
 /**
  * Walks the dependency graph rooted at `rootName` in BFS order. Filters out
@@ -51,10 +52,10 @@ export function walkDepGraph(
 
     const root = resolve(rootName);
     if (!root) {
-        return { ok: false, error: `Cannot locate source for "${rootName}"` };
+        return { ok: false, message: `Cannot locate source for "${rootName}"` };
     }
     if (root.internal) {
-        return { ok: false, error: `"${rootName}" is marked @internal` };
+        return { ok: false, message: `"${rootName}" is marked @internal` };
     }
 
     const visited = new Set<string>([rootName]);
@@ -84,7 +85,7 @@ export function walkDepGraph(
             const walked = collected.map(n => posixBasename(n.file)).join(', ');
             return {
                 ok: false,
-                error:
+                message:
                     `Playground dep walk for "${rootName}" exceeded the ${maxFiles}-file cap ` +
                     `(playgroundFileCountCap). Walked: ${walked}. ` +
                     `Trim the example's imports or raise playgroundFileCountCap.`

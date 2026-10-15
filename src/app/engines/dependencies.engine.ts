@@ -20,7 +20,12 @@ import { hiddenFilter } from '../di/model';
 import type { MiscellaneousData } from '../interfaces/miscellaneous-data.interface';
 import type { ParsedData } from '../interfaces/parsed-data.interface';
 import type { TableKind } from '../links/symbol-id';
-import { buildSymbolTable, lookupEntry, type SymbolTable } from '../links/symbol-table';
+import {
+    buildSymbolTable,
+    lookupEntry,
+    type SymbolEntry,
+    type SymbolTable
+} from '../links/symbol-table';
 
 export interface GroupNode {
     name: string; // segment name (single folder)
@@ -78,7 +83,6 @@ export interface EntityWithKind {
     standalone?: boolean;
     isToken?: boolean;
     beta?: boolean;
-    factoryKind?: string;
     selector?: string;
     description?: string;
     inputsClass?: unknown[];
@@ -372,6 +376,12 @@ export class DependenciesEngine {
         this.prepareMiscellaneous();
     }
 
+    /** Resolve a `@relatedTo` name (`related` policy: `doc-link`, then tokens), hidden skipped. */
+    public findRelated(name: string): SymbolEntry | undefined {
+        const hidden = hiddenFilter(Configuration.mainData.di);
+        return lookupEntry(this.symbolTable(), name, 'related', undefined, hidden);
+    }
+
     /** Resolve a `{@link}` target (`doc-link` policy); `false` when unknown. */
     public findInCompodoc(name: string) {
         const hidden = hiddenFilter(Configuration.mainData.di);
@@ -572,20 +582,10 @@ export class DependenciesEngine {
             : firstSentence;
     }
 
-    /**
-     * Look up an entity by name across all known dep stores.
-     */
+    /** A relationship-graph node by name (`doc-link` policy, hidden symbols skipped). */
     private resolveEntityByName(name: string): any {
-        return (
-            (this.components as any[]).find(e => e.name === name) ||
-            (this.directives as any[]).find(e => e.name === name) ||
-            (this.pipes as any[]).find(e => e.name === name) ||
-            (this.injectables as any[]).find(e => e.name === name) ||
-            (this.interfaces as any[]).find(e => e.name === name) ||
-            (this.classes as any[]).find(e => e.name === name) ||
-            (this.guards as any[]).find(e => e.name === name) ||
-            (this.interceptors as any[]).find(e => e.name === name)
-        );
+        const hidden = hiddenFilter(Configuration.mainData.di);
+        return lookupEntry(this.symbolTable(), name, 'doc-link', undefined, hidden)?.data;
     }
 
     /**

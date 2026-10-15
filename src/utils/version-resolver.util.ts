@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
+import type { Result } from '../lib';
 // `dirname` is used inside walkUpForPackageJson; the linter flags it
 // when only the `walkUp` helper is invoked but the import remains active.
 
@@ -25,9 +26,7 @@ export interface ResolvedVersion {
     root: string;
 }
 
-export type ResolveVersionResult =
-    | { ok: true; value: ResolvedVersion }
-    | { ok: false; message: string };
+export type ResolveVersionResult = Result<ResolvedVersion>;
 
 export interface ResolveVersionInput {
     /** Value of the `--versionLabel` flag, if the user passed one. */

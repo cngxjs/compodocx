@@ -1,4 +1,6 @@
 import { kindToType } from '../../utils/kind-to-type';
+import { escapeHtmlText } from './escape';
+import { parseDescription } from './parse-description';
 
 export type JsdocTag = {
     name?: string;
@@ -43,14 +45,6 @@ export const extractJsdocParams = (jsdocTags: any[]): JsdocTag[] => {
     }
     return tags;
 };
-
-function htmlEntities(str: string): string {
-    return str
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;');
-}
 
 type CodeBlock = { language: string; code: string };
 
@@ -102,7 +96,7 @@ export const extractJsdocCodeExamples = (jsdocTags: any[]): JsdocTag[] => {
 
         for (const block of parseCodeFences(comment)) {
             tags.push({
-                comment: `<pre class="cdx-code-example"><code class="language-${block.language}">${htmlEntities(block.code)}</code></pre>`
+                comment: `<pre class="cdx-code-example"><code class="language-${block.language}">${escapeHtmlText(block.code)}</code></pre>`
             });
         }
     }
@@ -308,3 +302,7 @@ export const jsdocReturnsComment = (jsdocTags: any[]): string => {
     }
     return '';
 };
+
+/** The first @returns/@return comment with its links resolved for a page at `depth`. */
+export const returnsHtml = (jsdocTags: any[], depth: number): string =>
+    parseDescription(jsdocReturnsComment(jsdocTags), depth);

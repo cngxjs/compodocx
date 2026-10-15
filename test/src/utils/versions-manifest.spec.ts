@@ -31,8 +31,8 @@ describe('readManifest', () => {
         const result = readManifest(tempRoot);
         expect(result.ok).toBe(true);
         if (result.ok) {
-            expect(result.manifest.versions).toEqual([]);
-            expect(result.manifest.schemaVersion).toBe(VERSIONS_JSON_SCHEMA_VERSION);
+            expect(result.value.versions).toEqual([]);
+            expect(result.value.schemaVersion).toBe(VERSIONS_JSON_SCHEMA_VERSION);
         }
     });
 
@@ -46,7 +46,7 @@ describe('readManifest', () => {
         const result = readManifest(tempRoot);
         expect(result.ok).toBe(true);
         if (result.ok) {
-            expect(result.manifest.versions).toHaveLength(1);
+            expect(result.value.versions).toHaveLength(1);
         }
     });
 
@@ -151,7 +151,7 @@ describe('writeManifest', () => {
         const back = readManifest(tempRoot);
         expect(back.ok).toBe(true);
         if (back.ok) {
-            expect(back.manifest.versions.map(v => v.label)).toEqual(['v2.0.0', 'v1.0.0']);
+            expect(back.value.versions.map(v => v.label)).toEqual(['v2.0.0', 'v1.0.0']);
         }
     });
 
