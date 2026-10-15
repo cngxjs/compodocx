@@ -32,6 +32,7 @@ import { RelatedSection } from '../blocks/RelatedSection';
 import { RouteChip } from '../blocks/RouteChip';
 import { SourceViewer } from '../blocks/SourceViewer';
 import { AiGeneratedBadge } from '../components/AiGeneratedBadge';
+import { AxisBadges, entityAxes } from '../components/AxisBadges';
 import { EmptyState } from '../components/EmptyState';
 import {
     EmptyIconBook,
@@ -394,6 +395,7 @@ export const ComponentPage = (data: any): string => {
         : null;
 
     const feature = entityFeature('component', c);
+    const axes = entityAxes('component', c);
     const searchMeta = pagefindMetaBlock({
         kind: 'component',
         feature: feature?.feature.label,
@@ -404,7 +406,8 @@ export const ComponentPage = (data: any): string => {
         lib: deriveLibFromBucket(c.file),
         feature: feature?.feature.label,
         entryPoint: feature?.feature.entryPoint,
-        wcag: c.wcagLevel
+        wcag: c.wcagLevel,
+        axes
     });
 
     return (
@@ -471,6 +474,7 @@ export const ComponentPage = (data: any): string => {
                     )}
                     {AiGeneratedBadge({ aiGenerated: c.aiGenerated })}
                     {WcagBadge({ wcagLevel: c.wcagLevel })}
+                    {AxisBadges({ axes })}
                 </div>
                 {!data.disableFilePath && c.file && (
                     <p class="cdx-entity-hero-file" title="Source file">

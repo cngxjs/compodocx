@@ -5,6 +5,7 @@ import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { ExternalLinks } from '../blocks/ExternalLinks';
 import { ReferencedBySection, SymbolChips } from '../blocks/ReferencedBySection';
 import { RelatedSection } from '../blocks/RelatedSection';
+import { AxisBadges, entityAxes } from '../components/AxisBadges';
 import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
 import { IconToken } from '../components/Icons';
 import { WcagBadge } from '../components/WcagBadge';
@@ -67,6 +68,7 @@ const tokenSignature = (item: any, tokenType: string): string =>
 
 const Hero = (item: any, depth: number): string => {
     const feature = entityFeature('token', item);
+    const axes = entityAxes('token', item);
     const breadcrumbLabel = t('tokens');
     const lib = deriveLibFromBucket(item.file) ?? '';
     const meta = pagefindMetaBlock({
@@ -78,7 +80,8 @@ const Hero = (item: any, depth: number): string => {
         kind: 'token',
         lib,
         feature: feature?.feature.label,
-        entryPoint: feature?.feature.entryPoint
+        entryPoint: feature?.feature.entryPoint,
+        axes
     });
     const tokenType = (item.tokenType as string | undefined)?.trim();
     return (
@@ -111,6 +114,7 @@ const Hero = (item: any, depth: number): string => {
                 {item.beta ? <span class="cdx-badge cdx-badge--beta">Experimental</span> : ''}
                 {item.since ? <span class="cdx-badge cdx-badge--since">v{item.since}</span> : ''}
                 {WcagBadge({ wcagLevel: item.wcagLevel })}
+                {AxisBadges({ axes })}
             </div>
             {item.taggedSelector ? (
                 <p class="cdx-entity-hero-selector">

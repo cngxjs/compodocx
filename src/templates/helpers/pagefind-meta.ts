@@ -185,6 +185,8 @@ export interface PagefindFilterInput {
     /** Import path of the symbol's entry point. */
     readonly entryPoint?: string;
     readonly wcag?: 'A' | 'AA' | 'AAA';
+    /** Values on the declared classification axes, one `axis-<name>` filter each. */
+    readonly axes?: readonly { readonly name: string; readonly value: string }[];
 }
 
 /** Map an TableKind to its facet-UI label. Non-entity rows (Module,
@@ -228,6 +230,9 @@ export function pagefindFilterBlock(input: PagefindFilterInput): string {
     }
     if (input.wcag) {
         spans.push(filterSpan('wcag', input.wcag));
+    }
+    for (const axis of input.axes ?? []) {
+        spans.push(filterSpan(`axis-${axis.name}`, axis.value));
     }
     return spans.join('');
 }

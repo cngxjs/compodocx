@@ -197,6 +197,11 @@
     --cdx-badge-base: var(--color-cdx-badge-wcag-aaa, hsl(212 65% 45%));
 }
 
+/* Classification axis chip (`<label>: <value>`), one per declared axis */
+.cdx-badge--axis {
+    --cdx-badge-base: var(--color-cdx-badge-axis, hsl(220 6% 50%));
+}
+
 /* Entity type badges (solid fill, use entity tokens) ── */
 
 .cdx-badge--entity-component {
