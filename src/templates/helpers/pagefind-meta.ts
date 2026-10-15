@@ -155,10 +155,12 @@ export function pagefindMetaBlock(input: PagefindMetaInput): string {
     return parts.join('');
 }
 
+// Attribute values: escapes both quote kinds, `<` and `>` need no escape there.
 function escapeAttr(value: string): string {
     return value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll("'", '&#39;');
 }
 
+// Element text only: quotes need no escape there (unlike escapeHtmlText).
 function escapeText(value: string): string {
     return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }

@@ -1,4 +1,5 @@
 import { kindToType } from '../../utils/kind-to-type';
+import { escapeHtmlText } from './escape';
 import { parseDescription } from './parse-description';
 
 export type JsdocTag = {
@@ -44,14 +45,6 @@ export const extractJsdocParams = (jsdocTags: any[]): JsdocTag[] => {
     }
     return tags;
 };
-
-function htmlEntities(str: string): string {
-    return str
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;');
-}
 
 type CodeBlock = { language: string; code: string };
 
@@ -103,7 +96,7 @@ export const extractJsdocCodeExamples = (jsdocTags: any[]): JsdocTag[] => {
 
         for (const block of parseCodeFences(comment)) {
             tags.push({
-                comment: `<pre class="cdx-code-example"><code class="language-${block.language}">${htmlEntities(block.code)}</code></pre>`
+                comment: `<pre class="cdx-code-example"><code class="language-${block.language}">${escapeHtmlText(block.code)}</code></pre>`
             });
         }
     }

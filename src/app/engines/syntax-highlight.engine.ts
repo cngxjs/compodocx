@@ -1,3 +1,5 @@
+import { escapeHtmlText } from '../../templates/helpers/escape';
+
 type ShikiTransformer = {
     line?: (this: unknown, hast: HastElement, line: number) => HastElement | undefined;
     postprocess?: (this: unknown, html: string, options: unknown) => string | undefined;
@@ -106,7 +108,7 @@ export function highlightCode(code: string, optionsOrLang?: HighlightOptions | s
     const mode = opts.mode ?? 'snippet';
 
     if (!highlighter) {
-        return escapeHtml(code);
+        return escapeHtmlText(code);
     }
 
     const resolvedLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : 'typescript';
@@ -440,7 +442,7 @@ function foldRegionPostprocessor(regions: FoldRegion[]): ShikiTransformer {
                     }
                 }
 
-                const detailsOpen = `<details class="cdx-fold-region" data-cdx-fold="${region.kind}"><summary class="cdx-fold-summary">${escapeHtml(region.label)}</summary>`;
+                const detailsOpen = `<details class="cdx-fold-region" data-cdx-fold="${region.kind}"><summary class="cdx-fold-summary">${escapeHtmlText(region.label)}</summary>`;
                 const detailsClose = '</details>';
 
                 result =
@@ -454,12 +456,4 @@ function foldRegionPostprocessor(regions: FoldRegion[]): ShikiTransformer {
             return result;
         }
     };
-}
-
-function escapeHtml(str: string): string {
-    return str
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;');
 }

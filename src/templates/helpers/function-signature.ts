@@ -1,16 +1,9 @@
 import Configuration from '../../app/configuration';
 import DependenciesEngine from '../../app/engines/dependencies.engine';
-
-const escapeHtml = (str: string): string =>
-    String(str)
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;');
-
 import { hrefFor, hrefText } from '../../app/links/layout';
 import { placeTarget, targetOfData } from '../../app/links/resolve';
 import BasicTypeUtil from '../../utils/basic-type.util';
+import { escapeHtmlText } from './escape';
 
 // TODO: Refactor this helper to be more modular and testable, and to handle more complex type scenarios (e.g., generics, unions, intersections).
 /** Link from a page at `depth` to the page of an engine object, or null without one. */
@@ -28,14 +21,14 @@ function resolveTypeLink(typeName: string, depth: number): string | null {
             if (href === null) {
                 return null;
             }
-            return `<a href="${href}" target="_self">${escapeHtml(typeName)}</a>`;
+            return `<a href="${href}" target="_self">${escapeHtmlText(typeName)}</a>`;
         }
-        return `<a href="https://angular.dev/${result.data.path}" target="_blank">${escapeHtml(typeName)}</a>`;
+        return `<a href="https://angular.dev/${result.data.path}" target="_blank">${escapeHtmlText(typeName)}</a>`;
     }
     //TODO: go awai from mdn
     if (BasicTypeUtil.isKnownType(typeName)) {
         const url = BasicTypeUtil.getTypeUrl(typeName);
-        return `<a href="${url}" target="_blank">${escapeHtml(typeName)}</a>`;
+        return `<a href="${url}" target="_blank">${escapeHtmlText(typeName)}</a>`;
     }
     return null;
 }

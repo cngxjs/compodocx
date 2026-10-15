@@ -1,3 +1,4 @@
+import { escapeHtmlText } from '../../../templates/helpers/escape';
 import type { JsdocTagInterface } from '../../interfaces/jsdoc-tag.interface';
 import type { IHandlebarsOptions, IHtmlEngineHelper } from './html-engine-helper.interface';
 
@@ -7,14 +8,6 @@ interface CodeBlock {
 }
 
 export class JsdocCodeExampleHelper implements IHtmlEngineHelper {
-    private getHtmlEntities(str): string {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
-    }
-
     private parseCodeFences(comment: string): CodeBlock[] {
         const codeFenceRegex = /```(\w+)?\s*\n([\s\S]*?)```/g;
         const blocks: CodeBlock[] = [];
@@ -90,7 +83,7 @@ export class JsdocCodeExampleHelper implements IHtmlEngineHelper {
                             const tag = {} as JsdocTagInterface;
                             tag.comment =
                                 `<pre class="cdx-code-example"><code class="language-${block.language}">` +
-                                this.getHtmlEntities(block.code) +
+                                escapeHtmlText(block.code) +
                                 `</code></pre>`;
                             tags.push(tag);
                         }
