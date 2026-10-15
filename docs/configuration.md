@@ -132,7 +132,7 @@ These flags control which class members and entity details appear in the documen
 | disableDependencies | `--disableDependencies` | boolean | `false` | Hide the dependencies section on the Info tab. This section shows `inject()` calls and constructor-injected services |
 | disableFilePath | `--disableFilePath` | boolean | `false` | Hide the source file path shown in the entity hero area |
 | showEffects | `--showEffects` | boolean | `false` | Show Angular `effect()` entries in a dedicated "Effects" block on the API tab. When disabled (default), effects appear as regular properties. Opt-in because effects are implementation details in most projects |
-| publicApiOnly | `--publicApiOnly` | string | -- | Restrict documentation to symbols exported from `index.d.ts` files in the given dist folder. Only these symbols (and their dependencies) are documented. Useful for library authors who want to document only the public API |
+| publicApiOnly | `--publicApiOnly` | string | -- | Restrict documentation to the public API. The public names come from `*.api.md` reports (API Extractor) below the tsconfig folder, or, without one, from the `index.d.ts` files in the given dist folder. Each name is followed through re-exports, `export *`, aliases and nested barrels to the symbol it declares; an alias in a `*.api.md` report is not followed. Useful for library authors who want to document only the public API |
 
 ## Feature Toggles
 
