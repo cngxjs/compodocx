@@ -118,6 +118,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **Constructor `@param` with a link.** A `{@link}` in the `@param` of a constructor parameter property crashed the HTML build (`result.replace is not a function`) and wrote syntax-tree objects into the JSON `description`.
 - **Decorator values imported through a re-export.** A value found through `export * from` in the imported file was dropped.
 - **`--publicApiOnly` keeps symbols re-exported through a barrel.** A symbol re-exported from an `index.ts` or `public-api.ts` barrel was dropped when its name was found in the barrel instead of the declaring file: a name in a `*.api.md` report whose first text match was the barrel, `import { x }` followed by `export { x }`, a named re-export through a nested barrel, `export { a as b }` and `export * from './x.js'` in `index.d.ts` files. compodocx now follows each public name through the barrels to its declaration. `export * from './folder'` in an `index.d.ts` file no longer stops the build with `EISDIR`. An alias listed in a `*.api.md` report is still not followed.
+- **`--publicApiOnly` on Windows and in folders with glob characters.** The search for `index.d.ts` files, `*.api.md` reports and the declaring source files found nothing on Windows or below a folder whose name contains characters such as `(`, so every symbol was documented. These files are found now.
 
 ## [0.8.0] - 2026-08-03
 
