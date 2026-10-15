@@ -12,6 +12,9 @@ const stripAnsi = (text: string): string => text.replaceAll(/\x1b\[[0-9;]*m/g, '
 describe('CLI classification axes', () => {
     const jsonFolder = `${tmp.name}-axes-json`;
     const htmlFolder = `${tmp.name}-axes-html`;
+    const llmFolder = `${tmp.name}-axes-llm`;
+    let data: any;
+    let markdown: string;
     const pages = pagesIn(htmlFolder);
     const page = (kind: Parameters<typeof pages.of>[0], name: string) =>
         fs.readFileSync(path.join(htmlFolder, pages.of(kind, name)), 'utf8');
@@ -33,6 +36,20 @@ describe('CLI classification axes', () => {
         ]);
         status = run.status;
         stdout = stripAnsi(run.stdout.toString() + run.stderr.toString());
+        data = JSON.parse(fs.readFileSync(path.join(jsonFolder, 'documentation.json'), 'utf8'));
+        tmp.create(llmFolder);
+        shell('node', [
+            './bin/index-cli.js',
+            '-c',
+            `${FIXTURE}/.compodocxrc.json`,
+            '-p',
+            `${FIXTURE}/tsconfig.json`,
+            '-e',
+            'llm-md',
+            '-d',
+            llmFolder
+        ]);
+        markdown = fs.readFileSync(path.join(llmFolder, 'llm-context.md'), 'utf8');
         tmp.create(htmlFolder);
         shell('node', [
             './bin/index-cli.js',
@@ -49,6 +66,7 @@ describe('CLI classification axes', () => {
     afterAll(() => {
         tmp.clean(jsonFolder);
         tmp.clean(htmlFolder);
+        tmp.clean(llmFolder);
     });
 
     it('exits 0 and logs one summary line for the declared axes', () => {
@@ -85,5 +103,42 @@ describe('CLI classification axes', () => {
         const format = page('function', 'formatSize');
         expect(format).to.contain('data-cdx-axis="stability"');
         expect(format).not.to.contain('data-cdx-axis="level"');
+    });
+
+    it('exports the axis values per symbol and the axes with their counts', () => {
+        const button = data.components.find((c: any) => c.name === 'AxkButton');
+        expect(button.axes).to.deep.equal({ stability: 'stable', level: 'molecule' });
+        const sparkline = data.components.find((c: any) => c.name === 'AxkSparkline');
+        expect(sparkline.axes).to.deep.equal({ stability: 'experimental' });
+        expect(data.semantic.axes).to.deep.equal([
+            {
+                name: 'stability',
+                label: 'Stability',
+                values: [
+                    { value: 'stable', count: 4 },
+                    { value: 'experimental', count: 1 }
+                ],
+                classified: 5,
+                unclassified: 0
+            },
+            {
+                name: 'level',
+                label: 'Level',
+                values: [
+                    { value: 'atom', count: 1 },
+                    { value: 'molecule', count: 1 },
+                    { value: 'organism', count: 0 }
+                ],
+                classified: 2,
+                unclassified: 2
+            }
+        ]);
+    });
+
+    it('prints one Axes line per classified symbol in llm-md', () => {
+        expect(markdown).to.contain('### AxkButton');
+        expect(markdown).to.contain('Axes: stability=stable, level=molecule');
+        expect(markdown).to.contain('format-size.ts`\n  Axes: stability=stable');
+        expect(markdown.match(/^ *Axes: /gm)).to.have.length(5);
     });
 });
