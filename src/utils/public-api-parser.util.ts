@@ -4,6 +4,8 @@ import * as fs from 'fs-extra';
 import { ts } from 'ts-morph';
 import { logger } from './logger';
 
+const isFile = (file: string): boolean => fs.existsSync(file) && fs.statSync(file).isFile();
+
 /**
  * Result of parsing public API exports
  */
@@ -143,10 +145,13 @@ export class PublicApiParser {
             for (const element of elements) {
                 const exportedName = element.name.text;
 
-                // If there's a module specifier, resolve the re-export
+                // If there's a module specifier, resolve the re-export. The barrel is
+                // recorded as well: the semantic resolver follows it through aliases
+                // and specifiers this file-based lookup cannot resolve.
                 if (statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)) {
                     const modulePath = statement.moduleSpecifier.text;
                     await this.resolveReExport(exportedName, modulePath, sourceFilePath);
+                    this.addSymbol(exportedName, sourceFilePath);
                 } else {
                     // Direct export from this file
                     this.addSymbol(exportedName, sourceFilePath);
@@ -248,26 +253,20 @@ export class PublicApiParser {
     }
 
     /**
-     * Resolve a module path to an absolute .d.ts file path
+     * Resolve a module path to an absolute .d.ts file path. A `.js`/`.mjs`
+     * specifier names its declaration file; a folder resolves to its
+     * `index.d.ts`, never to the folder itself.
      */
     private resolveModulePath(modulePath: string, fromFile: string): string | null {
-        const baseDir = path.dirname(fromFile);
-
-        // Try with .d.ts extension
-        let resolvedPath = path.resolve(baseDir, `${modulePath}.d.ts`);
-        if (fs.existsSync(resolvedPath)) {
-            return resolvedPath;
-        }
-
-        // Try the path as-is (might already have extension)
-        resolvedPath = path.resolve(baseDir, modulePath);
-        if (fs.existsSync(resolvedPath)) {
-            return resolvedPath;
-        }
-
-        // Try with /index.d.ts
-        resolvedPath = path.resolve(baseDir, modulePath, 'index.d.ts');
-        if (fs.existsSync(resolvedPath)) {
+        const base = path.resolve(path.dirname(fromFile), modulePath);
+        const candidates = [
+            `${base}.d.ts`,
+            base.replace(/\.js$/, '.d.ts').replace(/\.mjs$/, '.d.mts'),
+            base,
+            path.join(base, 'index.d.ts')
+        ];
+        const resolvedPath = candidates.find(candidate => isFile(candidate));
+        if (resolvedPath) {
             return resolvedPath;
         }
 

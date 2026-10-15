@@ -47,6 +47,14 @@ describe('CLI public-api-only option with barrel re-exports', () => {
             expect(data.miscellaneous?.typealiases?.map(item => item.name)).toEqual(['DeepType']);
         });
 
+        it('keeps `export *` of a folder and of a `.js` specifier', () => {
+            expect(functionNames(data)).toEqual(expect.arrayContaining(['esmFn', 'nestedFn']));
+        });
+
+        it('keeps an aliased re-export under its declared name', () => {
+            expect(functionNames(data)).toContain('orig');
+        });
+
         it('drops a symbol that no barrel re-exports', () => {
             expect(functionNames(data)).not.toContain('hiddenFn');
         });
