@@ -81,7 +81,8 @@ const STYLE_URLS_PRESENT = /\bstyleUrls\s*:/;
 // Matches both `from '...'` (named/namespace imports + re-exports) and
 // side-effect `import '...'`. The `from` form covers `import { X } from '..'`,
 // `import X from '..'`, `import * as N from '..'`, and `export ... from '..'`;
-// the bare `import` form covers `import './polyfill';`.
+// the bare `import` form covers `import './polyfill';`. Only `./` and `../`
+// (user sources, not bundles), and quote kinds may differ: it only reads paths.
 const RELATIVE_IMPORT_FROM_RE = /(?:\bfrom\b|\bimport\b)\s+['"](\.\.?\/[^'"]+)['"]/g;
 
 const toPosix = (p: string): string => p.replaceAll('\\', '/');

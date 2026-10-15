@@ -1,4 +1,5 @@
 import { posix } from 'node:path';
+import { BARE_SPEC_RE } from './import-specifiers';
 
 /**
  * Vendoring the locally built library into the StackBlitz file map.
@@ -292,10 +293,12 @@ export function vendorClosure(
 // package: a wrong prune breaks the build, a fat one only costs bytes.
 // ---------------------------------------------------------------------------
 
-/** Bare (non-relative) `import`/`export … from`/side-effect specifier scanner. */
-const RAW_BARE_SPEC_RE = /(?:from|import|export\s+[^'"]*from)\s*['"]([^'".][^'"]*)['"]/g;
-
-/** Relative (`.`-prefixed) import/export specifier scanner — for intra-dir FESM. */
+/**
+ * Relative (`.`-prefixed) import/export specifier scanner for intra-dir FESM.
+ * Looser than the user-source scanners (no whitespace needed after the
+ * keyword, any `.` prefix): it runs on built bundles, where a missed sibling
+ * breaks the pruned package and an extra one only costs bytes.
+ */
 const RELATIVE_SPEC_RE = /(?:from|import|export\s+[^'"]*from)\s*['"](\.[^'"]*)['"]/g;
 
 /**
@@ -309,9 +312,9 @@ export const extractRawBareSpecifiers = (source: string): string[] => {
         return [];
     }
     const out: string[] = [];
-    RAW_BARE_SPEC_RE.lastIndex = 0;
+    BARE_SPEC_RE.lastIndex = 0;
     let m: RegExpExecArray | null;
-    while ((m = RAW_BARE_SPEC_RE.exec(source)) !== null) {
+    while ((m = BARE_SPEC_RE.exec(source)) !== null) {
         out.push(m[1]);
     }
     return out;
