@@ -127,6 +127,7 @@ export class Configuration implements ConfigurationInterface {
         maxSearchResults: 15,
         publicApiOnly: '',
         publicApiExports: new Map<string, Set<string>>(),
+        publicApiDeclarations: new Map<string, Set<string>>(),
         infoTabSections: [],
         apiTabSections: [],
         themingTabSections: [],

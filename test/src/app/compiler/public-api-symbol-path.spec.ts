@@ -15,7 +15,8 @@ describe('AngularDependencies - public API filter on declarations', () => {
     let result: any;
     const saved = {
         publicApiOnly: Configuration.mainData.publicApiOnly,
-        publicApiExports: Configuration.mainData.publicApiExports
+        publicApiExports: Configuration.mainData.publicApiExports,
+        publicApiDeclarations: Configuration.mainData.publicApiDeclarations
     };
 
     beforeAll(() => {
@@ -35,12 +36,14 @@ export type HiddenAlias = number;
         Configuration.mainData.publicApiExports = new Map(
             ['shownFn', 'ShownEnum', 'ShownAlias'].map(name => [name, new Set([file])])
         );
+        Configuration.mainData.publicApiDeclarations = Configuration.mainData.publicApiExports;
         result = new AngularDependencies([file], { tsconfigDirectory: tmpDir }).getDependencies();
     });
 
     afterAll(() => {
         Configuration.mainData.publicApiOnly = saved.publicApiOnly;
         Configuration.mainData.publicApiExports = saved.publicApiExports;
+        Configuration.mainData.publicApiDeclarations = saved.publicApiDeclarations;
         fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
@@ -56,5 +59,56 @@ export type HiddenAlias = number;
 
     it('keeps public type aliases and drops the others', () => {
         expect(names(result.miscellaneous.typealiases)).toEqual(['ShownAlias']);
+    });
+});
+
+/**
+ * The filter reads the map followed to the declarations: a name recorded
+ * only against a barrel is kept once the declaring file is in that map.
+ */
+describe('AngularDependencies - public API filter on the resolved map', () => {
+    let tmpDir: string;
+    let file: string;
+    let barrel: string;
+    const saved = {
+        publicApiOnly: Configuration.mainData.publicApiOnly,
+        publicApiExports: Configuration.mainData.publicApiExports,
+        publicApiDeclarations: Configuration.mainData.publicApiDeclarations
+    };
+
+    const functionsWith = (declarations: Map<string, Set<string>>): string[] => {
+        Configuration.mainData.publicApiDeclarations = declarations;
+        const result: any = new AngularDependencies([file], {
+            tsconfigDirectory: tmpDir
+        }).getDependencies();
+        return result.miscellaneous.functions.map((item: any) => item.name);
+    };
+
+    beforeAll(() => {
+        tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'cdx-public-api-')));
+        file = path.join(tmpDir, 'a.ts');
+        barrel = path.join(tmpDir, 'index.ts');
+        fs.writeFileSync(
+            file,
+            'export function pub(): void {}\nexport function other(): void {}\n'
+        );
+        fs.writeFileSync(barrel, "export { pub } from './a';\n");
+        Configuration.mainData.publicApiOnly = true;
+        Configuration.mainData.publicApiExports = new Map([['pub', new Set([barrel])]]);
+    });
+
+    afterAll(() => {
+        Configuration.mainData.publicApiOnly = saved.publicApiOnly;
+        Configuration.mainData.publicApiExports = saved.publicApiExports;
+        Configuration.mainData.publicApiDeclarations = saved.publicApiDeclarations;
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    it('keeps a re-exported symbol whose declaring file is in the resolved map', () => {
+        expect(functionsWith(new Map([['pub', new Set([barrel, file])]]))).toEqual(['pub']);
+    });
+
+    it('drops it while only the barrel is known', () => {
+        expect(functionsWith(new Map([['pub', new Set([barrel])]]))).toEqual([]);
     });
 });

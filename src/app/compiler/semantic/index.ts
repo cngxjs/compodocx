@@ -8,5 +8,6 @@ export * from './imports';
 export * from './inject-calls';
 export * from './model';
 export * from './program';
+export * from './public-api';
 export * from './signal-calls';
 export * from './used-by';
