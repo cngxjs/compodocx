@@ -1,0 +1,17 @@
+{
+    "$schema": "../../../src/config/schema.json",
+    "menuLayout": "feature",
+    "classificationAxes": {
+        "stability": {
+            "label": "Stability",
+            "values": ["stable", "experimental"],
+            "paths": { "**/src/labs/**": "experimental" },
+            "default": "stable"
+        },
+        "level": {
+            "label": "Level",
+            "values": ["atom", "molecule", "organism"],
+            "kinds": ["component", "directive"]
+        }
+    }
+}
