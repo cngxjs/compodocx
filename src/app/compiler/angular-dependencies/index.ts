@@ -750,9 +750,9 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
                     }
                 } else {
-                    if (ts.isClassDeclaration(node)) {
-                        this.processClass(node, file, srcFile, outputSymbols, fileBody, astFile);
-                    }
+                    // Every class, function, enum and type alias declaration is bound,
+                    // so it carries node.symbol and is handled above; only variable
+                    // statements (no symbol of their own) reach this branch.
                     if (ts.isVariableStatement(node)) {
                         const isRoutesVariable = hasBareRoutesType(node);
                         // Process all variables, including exported routes variables for miscellaneous
@@ -1051,106 +1051,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                 visitVariableNode(node);
                             }
                         } // End of new if condition for isRoutesVariable || isExportedVariable
-                    }
-                    if (ts.isTypeAliasDeclaration(node)) {
-                        const infos = this.entityVisitor.visitTypeDeclaration(node);
-                        const name = infos.name;
-                        const deprecated = infos.deprecated;
-                        const deprecationMessage = infos.deprecationMessage;
-                        const deps: ITypeAliasDecDep = {
-                            name,
-                            ctype: 'miscellaneous',
-                            subtype: 'typealias',
-                            rawtype: this.classHelper.visitType(node),
-                            file: file,
-                            deprecated,
-                            deprecationMessage,
-                            description:
-                                this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
-                                    node
-                                ),
-                            ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
-                            ...(infos.a11yNote && { a11yNote: infos.a11yNote })
-                        };
-                        if (node.type) {
-                            deps.kind = node.type.kind;
-                        }
-                        if (
-                            deps.kind &&
-                            deps.kind === SyntaxKind.TemplateLiteralType &&
-                            node.type
-                        ) {
-                            deps.rawtype = srcFile.text.substring(node.type.pos, node.type.end);
-                        }
-                        if (!isIgnore(node)) {
-                            this.debug(deps);
-                            outputSymbols.miscellaneous.typealiases.push(deps);
-                        }
-                    }
-                    if (ts.isFunctionDeclaration(node)) {
-                        const infos = this.entityVisitor.visitFunctionDeclaration(node);
-                        const name = infos.name;
-                        const deprecated = infos.deprecated;
-                        const deprecationMessage = infos.deprecationMessage;
-                        const functionDep: IFunctionDecDep = {
-                            name,
-                            ctype: 'miscellaneous',
-                            subtype: 'function',
-                            file: file,
-                            deprecated,
-                            deprecationMessage,
-                            description:
-                                this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
-                                    node
-                                ),
-                            ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
-                            ...(infos.a11yNote && { a11yNote: infos.a11yNote })
-                        };
-                        if (infos.args) {
-                            functionDep.args = infos.args;
-                        }
-                        if (infos.returnType) {
-                            functionDep.returnType = infos.returnType;
-                        }
-                        if (infos.jsdoctags && infos.jsdoctags.length > 0) {
-                            functionDep.jsdoctags = infos.jsdoctags;
-                        }
-                        if (typeof infos.ignore === 'undefined') {
-                            if (
-                                !(
-                                    this.entityVisitor.hasPrivateJSDocTag(functionDep.jsdoctags) &&
-                                    Configuration.mainData.disablePrivate
-                                )
-                            ) {
-                                this.debug(functionDep);
-                                outputSymbols.miscellaneous.functions.push(functionDep);
-                            }
-                        }
-                    }
-                    if (ts.isEnumDeclaration(node)) {
-                        const infos = this.entityVisitor.visitEnumDeclaration(node);
-                        const name = infos.name;
-                        const deprecated = infos.deprecated;
-                        const deprecationMessage = infos.deprecationMessage;
-                        const enumDeps: IEnumDecDep = {
-                            name,
-                            childs: infos.members,
-                            ctype: 'miscellaneous',
-                            subtype: 'enum',
-                            deprecated,
-                            deprecationMessage,
-                            description:
-                                this.entityVisitor.visitEnumTypeAliasFunctionDeclarationDescription(
-                                    node
-                                ),
-                            file: file,
-                            ...(infos.wcagLevel && { wcagLevel: infos.wcagLevel }),
-                            ...(infos.a11yNote && { a11yNote: infos.a11yNote })
-                        };
-                        if (!isIgnore(node)) {
-                            this.debug(enumDeps);
-                            outputSymbols.miscellaneous.enumerations.push(enumDeps);
-                        }
                     }
                 }
             };
