@@ -19,5 +19,5 @@
         "types": ["vitest/globals"],
         "plugins": [{ "name": "@kitajs/ts-html-plugin" }]
     },
-    "exclude": ["src/client", "src/playground-demo"]
+    "exclude": ["src/client"]
 }
