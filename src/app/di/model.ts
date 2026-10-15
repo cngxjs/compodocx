@@ -144,18 +144,6 @@ export const isMovedPage = (
         : false;
 };
 
-/** Grouped engine objects (each with its own `kind`) without the hidden ones. */
-export const withoutHiddenItems = <T extends { readonly kind?: unknown }>(
-    groups: Record<string, readonly T[]>,
-    view: DiView | undefined
-): Record<string, T[]> =>
-    Object.fromEntries(
-        Object.entries(groups).map(([key, items]) => [
-            key,
-            items.filter(item => !isHiddenItem(view, item.kind as EntityKind, item as never))
-        ])
-    );
-
 /** The feature type whose page documents a symbol with this placement. */
 const clusterOf = (
     placement: Placement,

@@ -141,20 +141,6 @@ export function hasBom(source: string): boolean {
     return source.charCodeAt(0) === 0xfeff;
 }
 
-export function handlePath(files: Array<string>, cwd: string): Array<string> {
-    const _files = files;
-    let i = 0;
-    const len = files.length;
-
-    for (i; i < len; i++) {
-        if (files[i].indexOf(cwd) === -1) {
-            files[i] = path.resolve(cwd + path.sep + files[i]);
-        }
-    }
-
-    return _files;
-}
-
 export function cleanLifecycleHooksFromMethods(methods: Array<any>): Array<any> {
     const result = [];
     if (typeof methods !== 'undefined') {
@@ -425,37 +411,6 @@ export function detectIndent(str, count): string {
     };
 
     return indentString(stripIndent(str), count || 0);
-}
-
-export function getSubstringFromMultilineString(
-    multilineString: string,
-    startLine: number,
-    startColumn: number,
-    endLine: number,
-    endColumn: number
-) {
-    // Split the string into lines
-    const lines = multilineString.split('\n');
-
-    // Slice the lines from startLine to endLine
-    const selectedLines = lines.slice(startLine - 1, endLine);
-
-    // If startLine and endLine are the same, slice the line from startColumn to endColumn
-    if (startLine === endLine) {
-        selectedLines[0] = selectedLines[0].slice(startColumn + 1, endColumn - 1);
-    } else {
-        // Otherwise, slice the start line from startColumn to the end
-        selectedLines[0] = selectedLines[0].slice(startColumn + 1);
-
-        // And slice the end line from the start to endColumn
-        selectedLines[selectedLines.length - 1] = selectedLines[selectedLines.length - 1].slice(
-            0,
-            endColumn - 1
-        );
-    }
-
-    // Join the lines back together into a single string
-    return selectedLines.join('\n');
 }
 
 export const INCLUDE_PATTERNS = ['**/*.ts', '**/*.tsx'];

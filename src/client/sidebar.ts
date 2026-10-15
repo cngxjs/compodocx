@@ -384,9 +384,3 @@ export const initSidebar = () => {
     expandToActive();
     bindMobileMenu();
 };
-
-/** Re-bind togglers without restoring state (used after SPA navigation) */
-export const rebindSidebar = () => {
-    bindTogglers();
-    syncChevrons();
-};

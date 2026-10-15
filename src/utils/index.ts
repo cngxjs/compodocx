@@ -2,7 +2,6 @@ export * from './angular-api.util';
 export * from './angular-version.util';
 export * from './basic-type.util';
 export * from './deep-clone.util';
-export * from './has-spread-element-in-array';
 export * from './imports.util';
 export * from './jsdoc-parser.util';
 export * from './public-api-parser.util';

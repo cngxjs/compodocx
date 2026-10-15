@@ -25,8 +25,6 @@ export type AstSubExpression = hbs.AST.SubExpression;
 export type AstStringLiteral = hbs.AST.StringLiteral;
 export type AstNumberLiteral = hbs.AST.NumberLiteral;
 export type AstBooleanLiteral = hbs.AST.BooleanLiteral;
-export type AstNullLiteral = hbs.AST.NullLiteral;
-export type AstUndefinedLiteral = hbs.AST.UndefinedLiteral;
 export type AstHash = hbs.AST.Hash;
 
 export const parse = (source: string): AstProgram => Handlebars.parse(source);

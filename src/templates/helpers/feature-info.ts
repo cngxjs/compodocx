@@ -46,12 +46,6 @@ const derive = (model: FeatureModel): Derived => {
     return result;
 };
 
-/** Every feature with its page segments, in model order. */
-export const placedFeatures = (semantic: SemanticModel | undefined): readonly PlacedFeature[] => {
-    const model = semantic?.features;
-    return model ? model.features.map(f => derive(model).byId.get(f.id) as PlacedFeature) : [];
-};
-
 /** The feature of a table entry, its page and its entry point's root feature. */
 export const featureInfoOf = (
     semantic: SemanticModel | undefined,

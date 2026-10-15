@@ -65,15 +65,6 @@ export const PRIMARY_KINDS: ReadonlySet<TableKind> = new Set<TableKind>([
     'entity'
 ]);
 
-/** Kinds that default into the References chapter under `menuLayout: 'feature'`. */
-export const REFERENCE_KINDS: ReadonlySet<TableKind> = new Set<TableKind>([
-    'interface',
-    'function',
-    'variable',
-    'typealias',
-    'enumeration'
-]);
-
 /** Entity decorated with its kind for cross-kind sidebar rendering. */
 export interface EntityWithKind {
     kind: TableKind;

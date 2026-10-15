@@ -65,10 +65,6 @@ export const IconPalette = (cls?: string) =>
         '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2Z"/>',
         cls
     );
-export const IconMenu = () =>
-    svg(
-        '<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>'
-    );
 export const IconX = () => svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>');
 
 // --- Entity type icons (sidebar) ---
@@ -168,21 +164,9 @@ export const IconGrid = () =>
     );
 
 // --- Actions ---
-export const IconZoomIn = () =>
-    svg(
-        '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/>'
-    );
-export const IconZoomOut = () =>
-    svg(
-        '<circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/>'
-    );
 export const IconMaximize = () =>
     svg(
         '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>'
-    );
-export const IconMinimize = () =>
-    svg(
-        '<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>'
     );
 export const IconArrowLeft = () => svg('<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>');
 export const IconArrowRight = () => svg('<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>');

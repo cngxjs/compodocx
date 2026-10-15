@@ -391,11 +391,3 @@ export const emitVariable = (entity: ExportVariable): string => {
     const fileTail = entity.file ? `\n  Defined in ${inlineCode(entity.file)}` : '';
     return `- ${inlineCode(sig)}${dep}${tail}${fileTail}`;
 };
-
-/** Re-exported for tests. */
-export const _internals = {
-    formatArg,
-    renderProperty,
-    renderMethod,
-    regularProperties
-};

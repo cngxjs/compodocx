@@ -96,5 +96,3 @@ export const REMOVED_OVERRIDES: readonly string[] = ['bucket-landing', 'module',
 
 /** The current name of an override, following a rename. */
 export const currentOverrideName = (name: string): string => RENAMED_OVERRIDES[name] ?? name;
-
-export const allWiredOverrides = (): readonly string[] => Array.from(ALL).sort();

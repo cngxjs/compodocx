@@ -73,14 +73,6 @@ export function loadCustomTemplates(templatePath: string): void {
 }
 
 /**
- * Get a custom template override by name (e.g. 'component', 'block-constructor').
- * Returns null if no custom template is loaded for that name.
- */
-export function getCustomTemplate(name: string): CustomTemplateFn | null {
-    return customTemplates[name] ?? null;
-}
-
-/**
  * Render a custom template if one exists for the given name.
  * Returns the rendered string, or null if no custom template.
  */
@@ -90,11 +82,6 @@ export function renderCustomTemplate(name: string, data: any): string | null {
         return null;
     }
     return fn(data, templateHelpers);
-}
-
-/** Check if any custom templates are loaded. */
-export function hasCustomTemplates(): boolean {
-    return Object.keys(customTemplates).length > 0;
 }
 
 /** Register an in-memory template (used in tests and programmatic setups). */

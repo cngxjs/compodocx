@@ -4,8 +4,6 @@
     "exclude": [
         "src/client",
         "test/src/client",
-        "src/playground-demo",
-        "test/src/bar.component.ts",
-        "test/src/bar.component-watch.ts"
+        "src/playground-demo"
     ]
 }

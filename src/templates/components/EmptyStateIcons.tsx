@@ -22,51 +22,6 @@ const esSvg = (paths: string): string =>
         </svg>
     ) as string;
 
-/** Open inbox/tray — default empty state, empty index listings */
-export const EmptyIconInbox = () =>
-    esSvg(
-        '<rect x="3" y="8" width="18" height="12" rx="2" stroke-dasharray="4 2"/>' +
-            '<path d="M3 14h4l2 2h6l2-2h4"/>'
-    );
-
-/** Arrow into a box — no inputs */
-export const EmptyIconInput = () =>
-    esSvg(
-        '<rect x="5" y="5" width="14" height="14" rx="2" stroke-dasharray="4 2"/>' +
-            '<path d="M12 2v8"/><path d="m9 7 3 3 3-3"/>'
-    );
-
-/** Arrow out of a box — no outputs */
-export const EmptyIconOutput = () =>
-    esSvg(
-        '<rect x="5" y="5" width="14" height="14" rx="2" stroke-dasharray="4 2"/>' +
-            '<path d="M12 22v-8"/><path d="m9 17 3-3 3 3"/>'
-    );
-
-/** Three dashed lines — no properties, accessors, index signatures */
-export const EmptyIconList = () =>
-    esSvg(
-        '<line x1="6" y1="7" x2="18" y2="7" stroke-dasharray="4 2"/>' +
-            '<line x1="6" y1="12" x2="18" y2="12" stroke-dasharray="4 2"/>' +
-            '<line x1="6" y1="17" x2="14" y2="17" stroke-dasharray="4 2"/>'
-    );
-
-/** Curly braces with dashed interior — no methods, no constructor */
-export const EmptyIconBraces = () =>
-    esSvg(
-        '<path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5a2 2 0 0 0 2 2h1"/>' +
-            '<path d="M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1"/>' +
-            '<line x1="9" y1="12" x2="15" y2="12" stroke-dasharray="3 2"/>'
-    );
-
-/** Bracket with antenna — no host bindings/listeners */
-export const EmptyIconHost = () =>
-    esSvg(
-        '<rect x="4" y="8" width="16" height="12" rx="2" stroke-dasharray="4 2"/>' +
-            '<path d="M9 4h6"/><path d="M12 4v4"/>' +
-            '<circle cx="8" cy="3" r="1"/><circle cx="16" cy="3" r="1"/>'
-    );
-
 /** Paint palette without dots — no styles */
 export const EmptyIconPalette = () =>
     esSvg(
@@ -108,14 +63,6 @@ export const EmptyIconDocument = () =>
             '<path d="m13.5 17.5 2 2"/>'
     );
 
-/** Magnifying glass with minus — no search results */
-export const EmptyIconSearch = () =>
-    esSvg(
-        '<circle cx="11" cy="11" r="8"/>' +
-            '<path d="m21 21-4.3-4.3"/>' +
-            '<line x1="8" y1="11" x2="14" y2="11"/>'
-    );
-
 /** Empty pie chart — coverage 0% */
 export const EmptyIconChart = () =>
     esSvg('<circle cx="12" cy="12" r="10" stroke-dasharray="4 2"/>' + '<path d="M12 2v10l8.5 5"/>');
@@ -138,12 +85,4 @@ export const EmptyIconBook = () =>
     esSvg(
         '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" stroke-dasharray="4 2"/>' +
             '<path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" stroke-dasharray="4 2"/>'
-    );
-
-/** Numbered list dashed — no enum values */
-export const EmptyIconEnum = () =>
-    esSvg(
-        '<path d="M4 7h1"/><line x1="9" y1="7" x2="20" y2="7" stroke-dasharray="4 2"/>' +
-            '<path d="M4 12h1"/><line x1="9" y1="12" x2="20" y2="12" stroke-dasharray="4 2"/>' +
-            '<path d="M4 17h1"/><line x1="9" y1="17" x2="16" y2="17" stroke-dasharray="4 2"/>'
     );
