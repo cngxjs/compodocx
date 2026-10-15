@@ -1,7 +1,7 @@
 import { escapeHtmlText } from '../../templates/helpers/escape';
 
 type ShikiTransformer = {
-    line?: (this: unknown, hast: HastElement, line: number) => HastElement | undefined;
+    line?: (this: unknown, hast: HastElement, line: number) => void;
     postprocess?: (this: unknown, html: string, options: unknown) => string | undefined;
 };
 

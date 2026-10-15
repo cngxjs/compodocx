@@ -12,6 +12,7 @@
 
 import type {
     AstBlockStatement,
+    AstBooleanLiteral,
     AstContentStatement,
     AstExpression,
     AstHash,
@@ -72,7 +73,7 @@ const emitLiteralExpression = (node: AstExpression): string => {
         case 'NumberLiteral':
             return String((node as AstNumberLiteral).value);
         case 'BooleanLiteral':
-            return String((node as { value: boolean }).value);
+            return String((node as AstBooleanLiteral).value);
         case 'NullLiteral':
             return 'null';
         case 'UndefinedLiteral':

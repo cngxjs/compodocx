@@ -426,8 +426,9 @@ const initDependencyGraph = async () => {
             const offset = targetR + 6; // node radius + arrow marker size
             this.setAttribute('x1', d.source.x);
             this.setAttribute('y1', d.source.y);
-            this.setAttribute('x2', d.target.x - (dx / dist) * offset);
-            this.setAttribute('y2', d.target.y - (dy / dist) * offset);
+            // setAttribute stringifies numbers; the casts keep the bundle unchanged.
+            this.setAttribute('x2', (d.target.x - (dx / dist) * offset) as unknown as string);
+            this.setAttribute('y2', (d.target.y - (dy / dist) * offset) as unknown as string);
         });
     };
 

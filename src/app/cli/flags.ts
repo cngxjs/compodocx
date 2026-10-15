@@ -117,7 +117,6 @@ export function defineFlags(program: Command): Command {
 Double-quotes must be escaped with '\\'. \
 Available tab IDs are "info", "readme", "source", "templateData", "styleData", "tree", and "example". \
 Note: Certain tabs will only be shown if applicable to a given dependency`,
-            splitCommaList,
             JSON.stringify(COMPODOC_DEFAULTS.navTabConfig)
         )
         .option(
