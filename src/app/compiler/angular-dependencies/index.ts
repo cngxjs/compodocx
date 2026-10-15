@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { Project, SyntaxKind, ts } from 'ts-morph';
 import { isIgnore, JsdocParserUtil } from '../../../utils';
 import ExtendsMerger from '../../../utils/extends-merger.util';
+import ImportsUtil from '../../../utils/imports.util';
 import { logger } from '../../../utils/logger';
 import { markedAcl } from '../../../utils/marked.acl';
 import { getNodeDecorators, nodeHasDecorator } from '../../../utils/node.util';
@@ -33,8 +34,6 @@ import { MetadataPredicates } from './metadata-predicates';
 import { ProviderDetector } from './provider-detector';
 import { PublicApiFilter } from './public-api-filter';
 
-const project = new Project();
-
 // TypeScript reference : https://github.com/Microsoft/TypeScript/blob/master/lib/typescript.d.ts
 
 /**
@@ -59,6 +58,8 @@ export class AngularDependencies extends FrameworkDependencies {
     private metadataPredicates = new MetadataPredicates();
     private jsdocTags = new JsdocTags(this.jsdocParserUtil);
     private publicApiFilter = new PublicApiFilter();
+    /** Files read for import aliases; a new project per crawl, so a rebuild sees edited files. */
+    private project = new Project();
     private expressionFinder = new ExpressionFinder();
     private providerDetector = new ProviderDetector();
     private ioExtractor: IoExtractor;
@@ -76,6 +77,8 @@ export class AngularDependencies extends FrameworkDependencies {
     }
 
     public getDependencies() {
+        this.project = new Project();
+        ImportsUtil.resetProject();
         let deps = {
             aliases: {},
             components: [],
@@ -222,9 +225,9 @@ export class AngularDependencies extends FrameworkDependencies {
 
     private getTypescriptImportsAliases(initialSrcFile: ts.SourceFile, outputSymbols: any): void {
         const astFile =
-            typeof project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
-                ? project.getSourceFile(initialSrcFile.fileName)
-                : project.addSourceFileAtPath(initialSrcFile.fileName);
+            typeof this.project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
+                ? this.project.getSourceFile(initialSrcFile.fileName)
+                : this.project.addSourceFileAtPath(initialSrcFile.fileName);
 
         if (astFile) {
             const importDeclarations = astFile.getImportDeclarations();
@@ -253,9 +256,9 @@ export class AngularDependencies extends FrameworkDependencies {
 
     private getTypescriptExportsAliases(initialSrcFile: ts.SourceFile, outputSymbols: any): void {
         const astFile =
-            typeof project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
-                ? project.getSourceFile(initialSrcFile.fileName)
-                : project.addSourceFileAtPath(initialSrcFile.fileName);
+            typeof this.project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
+                ? this.project.getSourceFile(initialSrcFile.fileName)
+                : this.project.addSourceFileAtPath(initialSrcFile.fileName);
 
         if (astFile) {
             const exportDeclarations = astFile.getExportDeclarations();
@@ -293,9 +296,9 @@ export class AngularDependencies extends FrameworkDependencies {
         const scannedFile = initialSrcFile;
 
         const astFile =
-            typeof project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
-                ? project.getSourceFile(initialSrcFile.fileName)
-                : project.addSourceFileAtPath(initialSrcFile.fileName);
+            typeof this.project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
+                ? this.project.getSourceFile(initialSrcFile.fileName)
+                : this.project.addSourceFileAtPath(initialSrcFile.fileName);
 
         ts.forEachChild(scannedFile, (initialNode: ts.Node) => {
             if (

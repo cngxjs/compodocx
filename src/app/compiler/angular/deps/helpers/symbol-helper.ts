@@ -58,7 +58,7 @@ export type ProviderEntry = {
 export class SymbolHelper {
     private readonly unknown = '???';
 
-    public parseDeepIndentifier(name: string, srcFile?: ts.SourceFile): IParseDeepIdentifierResult {
+    public parseDeepIndentifier(name: string): IParseDeepIdentifierResult {
         const result = {
             name: '',
             type: ''
@@ -75,9 +75,6 @@ export class SymbolHelper {
             result.name = name;
             result.type = type;
             return result;
-        }
-        if (typeof srcFile !== 'undefined') {
-            result.file = ImportsUtil.getFileNameOfImport(name, srcFile);
         }
         result.name = name;
         result.type = type;
