@@ -319,9 +319,9 @@ async function redirectCandidates(
 /**
  * Compute the URL that mirrors the current page in the target version.
  *
- * Example: location = `https://docs.example.com/v0.3.0/components/Foo.html`,
+ * Example: location = `https://docs.example.com/v0.3.0/forms/Foo.html`,
  * currentLabel = `v0.3.0`, targetPath = `v0.2.0/` →
- * `https://docs.example.com/v0.2.0/components/Foo.html`.
+ * `https://docs.example.com/v0.2.0/forms/Foo.html`.
  *
  * If the current label is not in the URL (sub-directory misconfiguration,
  * stale switcher script, etc.), returns null and the caller falls back to

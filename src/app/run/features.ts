@@ -143,7 +143,7 @@ const withStyleMembers = (
         }
         featureOf.set(style.key, id);
         if (!known.has(id)) {
-            added.set(id, { ...feature, styleOnly: true });
+            added.set(id, feature);
         }
     }
     const features = [...detection.model.features, ...added.values()].sort(

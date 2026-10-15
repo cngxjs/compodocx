@@ -24,7 +24,6 @@ export interface MainDataInterface {
     hideGenerator: boolean;
     hideDarkModeToggle: boolean;
     hasFilesToCoverage: boolean;
-    modules: any;
     readme: boolean;
     readmeAiGenerated?: string | true;
     changelog: string;

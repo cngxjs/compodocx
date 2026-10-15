@@ -1078,16 +1078,15 @@ export class AngularDependencies extends FrameworkDependencies {
         } else {
             return;
         }
-        ['imports', 'exports', 'declarations', 'providers', 'bootstrap'].forEach(symbols => {
-            if (deps[symbols] && deps[symbols].length > 0) {
-                logger.debug('', `- ${symbols}:`);
-                deps[symbols]
-                    .map(i => i.name)
-                    .forEach(d => {
-                        logger.debug('', `\t- ${d}`);
-                    });
-            }
-        });
+        const providers = deps['providers'];
+        if (providers && providers.length > 0) {
+            logger.debug('', '- providers:');
+            providers
+                .map(i => i.name)
+                .forEach(d => {
+                    logger.debug('', `\t- ${d}`);
+                });
+        }
     }
 
     private ignore(deps: IDep) {

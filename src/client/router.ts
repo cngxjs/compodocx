@@ -127,7 +127,7 @@ const updateActiveLink = (url: string, clickedAnchor: HTMLAnchorElement | null =
     }
 
     const pathname = new URL(url, window.location.origin).pathname;
-    // Normalize: "/" -> "index.html", "/components/Foo.html" -> "components/Foo.html"
+    // Normalize: "/" -> "index.html", "/forms/Foo.html" -> "forms/Foo.html"
     let normalizedPath = pathname.replace(/^\//, '').toLowerCase();
     if (normalizedPath === '' || normalizedPath.endsWith('/')) {
         normalizedPath += 'index.html';

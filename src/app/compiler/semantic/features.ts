@@ -22,8 +22,6 @@ export interface Feature {
     readonly detector: FeatureDetector;
     /** `README.md` of the feature, relative to the cwd. */
     readonly readme?: string;
-    /** Only style files (no symbol) fall into this feature. */
-    readonly styleOnly?: true;
 }
 
 export interface FamilyLink {
