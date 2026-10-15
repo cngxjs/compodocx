@@ -60,11 +60,11 @@ describe('walkDepGraph', () => {
         const result = walkDepGraph('Root', resolverFor(nodes), { maxFiles: 5 });
         expect(result.ok).to.be.false;
         if (!result.ok) {
-            expect(result.error).to.contain('"Root"');
-            expect(result.error).to.contain('5-file cap');
-            expect(result.error).to.contain('playgroundFileCountCap');
+            expect(result.message).to.contain('"Root"');
+            expect(result.message).to.contain('5-file cap');
+            expect(result.message).to.contain('playgroundFileCountCap');
             // Lists the files walked before the cap was hit.
-            expect(result.error).to.contain('Walked:');
+            expect(result.message).to.contain('Walked:');
         }
     });
 

@@ -651,9 +651,9 @@ describe('buildPlaygroundManifest', () => {
         if (result.ok) {
             return;
         }
-        expect(result.error).to.contain('"MyButton"');
-        expect(result.error).to.contain('playgroundFileCountCap');
-        expect(result.error).to.contain('Walked:');
+        expect(result.message).to.contain('"MyButton"');
+        expect(result.message).to.contain('playgroundFileCountCap');
+        expect(result.message).to.contain('Walked:');
     });
 
     it('produces byte-equal manifests for the same input (idempotency)', () => {
@@ -979,8 +979,8 @@ describe('buildPlaygroundManifest', () => {
             if (result.ok) {
                 return;
             }
-            expect(result.error).to.contain('@cngx/ui');
-            expect(result.error).to.contain('over the 50');
+            expect(result.message).to.contain('@cngx/ui');
+            expect(result.message).to.contain('over the 50');
         });
 
         it('seeds the vendor closure from an SCSS @use specifier', () => {
@@ -1041,8 +1041,8 @@ describe('buildPlaygroundManifest', () => {
             if (result.ok) {
                 return;
             }
-            expect(result.error).to.contain('after slimming + pruning');
-            expect(result.error).to.contain('413');
+            expect(result.message).to.contain('after slimming + pruning');
+            expect(result.message).to.contain('413');
         });
     });
 

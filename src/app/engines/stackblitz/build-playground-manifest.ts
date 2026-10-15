@@ -1,4 +1,5 @@
 import { posix } from 'node:path';
+import type { Result } from '../../../lib';
 import type { ComponentPlaygroundBlock } from '../../../templates/helpers/jsdoc';
 import {
     STACKBLITZ_POST_LIMIT,
@@ -121,7 +122,7 @@ export interface BuildOptions extends WalkOptions {
     };
 }
 
-export type BuildResult = { ok: true; value: PlaygroundManifest } | { ok: false; error: string };
+export type BuildResult = Result<PlaygroundManifest>;
 
 const DEFAULT_SOURCE_ROOT = 'src/app/';
 
@@ -804,7 +805,7 @@ export function buildPlaygroundManifest(
                         : '';
                 return {
                     ok: false,
-                    error: `Playground vendor closure for "${componentName}" is ${totalBytes} B after slimming + pruning, over the ${cap} B cap: ${breakdown}.${overPost}`
+                    message: `Playground vendor closure for "${componentName}" is ${totalBytes} B after slimming + pruning, over the ${cap} B cap: ${breakdown}.${overPost}`
                 };
             }
             vendorFiles = staged;

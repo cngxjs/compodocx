@@ -1,4 +1,5 @@
 import { posix } from 'node:path';
+import type { Result } from '../../../lib';
 import { extractBareSpecifiers } from './build-playground-manifest';
 import { STACKBLITZ_FILE_COUNT_CAP } from './constants';
 import { rewriteDecoratorUrls, rewriteRelativeImports } from './rewrite-imports';
@@ -43,7 +44,7 @@ export interface FileRefBundle {
     htmlSnippet?: string;
 }
 
-export type FileRefResult = { ok: true; value: FileRefBundle } | { ok: false; error: string };
+export type FileRefResult = Result<FileRefBundle>;
 
 const APP_COMPONENT_PATH = 'src/app/app.component.ts';
 const APP_CONFIG_PATH = 'src/app/app.config.ts';
@@ -67,9 +68,7 @@ export interface PlaygroundConfigBundle {
     bareSpecifiers: Set<string>;
 }
 
-export type PlaygroundConfigResult =
-    | { ok: true; value: PlaygroundConfigBundle }
-    | { ok: false; error: string };
+export type PlaygroundConfigResult = Result<PlaygroundConfigBundle>;
 const STYLE_URLS_RE = /styleUrls\s*:\s*\[([^\]]+)\]/;
 const STYLE_URLS_ITEM_RE = /['"`]([^'"`]+)['"`]/g;
 // "Key is present" detectors — used to turn a key whose value our extractor
@@ -115,13 +114,13 @@ export function readFileRef(
     if (ext !== '.html' && ext !== '.ts') {
         return {
             ok: false,
-            error: `Playground fileRef must end in .html or .ts: ${fileRef}`
+            message: `Playground fileRef must end in .html or .ts: ${fileRef}`
         };
     }
 
     const entryContent = fs.readFile(entryPath);
     if (entryContent === null) {
-        return { ok: false, error: `Cannot find playground file: ${fileRef}` };
+        return { ok: false, message: `Cannot find playground file: ${fileRef}` };
     }
 
     if (ext === '.html') {
@@ -162,7 +161,7 @@ const readTsFileRef = (
         }
         files[flatPath(sibling.value.path)] = sibling.value.content;
     } else if (TEMPLATE_URL_PRESENT.test(entryContent)) {
-        return { ok: false, error: unparseableUrlError('templateUrl') };
+        return { ok: false, message: unparseableUrlError('templateUrl') };
     }
 
     const styleUrlMatch = entryContent.match(STYLE_URL_RE);
@@ -173,7 +172,7 @@ const readTsFileRef = (
         }
         files[flatPath(sibling.value.path)] = sibling.value.content;
     } else if (STYLE_URL_PRESENT.test(entryContent)) {
-        return { ok: false, error: unparseableUrlError('styleUrl') };
+        return { ok: false, message: unparseableUrlError('styleUrl') };
     }
 
     const styleUrlsMatch = entryContent.match(STYLE_URLS_RE);
@@ -191,10 +190,10 @@ const readTsFileRef = (
         }
         // `styleUrls: [foo]` (non-literal items) — array found, nothing parsed.
         if (!matchedAny) {
-            return { ok: false, error: unparseableUrlError('styleUrls') };
+            return { ok: false, message: unparseableUrlError('styleUrls') };
         }
     } else if (STYLE_URLS_PRESENT.test(entryContent)) {
-        return { ok: false, error: unparseableUrlError('styleUrls') };
+        return { ok: false, message: unparseableUrlError('styleUrls') };
     }
 
     // Pack the entry as app.component.ts. Both transforms run — relative
@@ -221,7 +220,7 @@ const readTsFileRef = (
         }
         const content = fs.readFile(next);
         if (content === null) {
-            return { ok: false, error: `Cannot find imported file: ${next}` };
+            return { ok: false, message: `Cannot find imported file: ${next}` };
         }
         collectedCount++;
         if (collectedCount > maxFiles) {
@@ -230,7 +229,7 @@ const readTsFileRef = (
                 .join(', ');
             return {
                 ok: false,
-                error:
+                message:
                     `Playground file walk from ${posix.basename(entryPath)} exceeded the ` +
                     `${maxFiles}-file cap (playgroundFileCountCap). Walked: ${walked}. ` +
                     `Trim the example's imports or raise playgroundFileCountCap.`
@@ -276,11 +275,11 @@ export function readPlaygroundConfig(
     const entryPath = posix.normalize(posix.join(hostDir, configRef));
 
     if (posix.extname(entryPath) !== '.ts') {
-        return { ok: false, error: `Playground config must be a .ts file: ${configRef}` };
+        return { ok: false, message: `Playground config must be a .ts file: ${configRef}` };
     }
     const entryContent = fs.readFile(entryPath);
     if (entryContent === null) {
-        return { ok: false, error: `Cannot find playground config file: ${configRef}` };
+        return { ok: false, message: `Cannot find playground config file: ${configRef}` };
     }
 
     const files: Record<string, string> = {};
@@ -304,11 +303,11 @@ export function readPlaygroundConfig(
         }
         const content = fs.readFile(next);
         if (content === null) {
-            return { ok: false, error: `Cannot find imported file: ${next}` };
+            return { ok: false, message: `Cannot find imported file: ${next}` };
         }
         collectedCount++;
         if (collectedCount > maxFiles) {
-            return { ok: false, error: `Playground config walk exceeded ${maxFiles} files` };
+            return { ok: false, message: `Playground config walk exceeded ${maxFiles} files` };
         }
         files[flatPath(next)] = rewriteRelativeImports(content);
         for (const spec of extractBareSpecifiers(content)) {
@@ -320,9 +319,7 @@ export function readPlaygroundConfig(
     return { ok: true, value: { files, bareSpecifiers } };
 }
 
-type SiblingResult =
-    | { ok: true; value: { path: string; content: string } }
-    | { ok: false; error: string };
+type SiblingResult = Result<{ path: string; content: string }>;
 
 /**
  * Clear message for a decorator url whose value is present but not a plain
@@ -341,14 +338,14 @@ const readSibling = (
     fs: FsReader
 ): SiblingResult => {
     if (rawPath.includes('${')) {
-        return { ok: false, error: unparseableUrlError(label) };
+        return { ok: false, message: unparseableUrlError(label) };
     }
     const resolved = posix.normalize(posix.join(entryDir, rawPath));
     const content = fs.readFile(resolved);
     if (content === null) {
         return {
             ok: false,
-            error: `Cannot find ${label} sibling: ${rawPath} (resolved ${resolved})`
+            message: `Cannot find ${label} sibling: ${rawPath} (resolved ${resolved})`
         };
     }
     return { ok: true, value: { path: resolved, content } };

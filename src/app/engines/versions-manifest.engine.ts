@@ -30,7 +30,7 @@ export function updateVersionsManifest(input: VersionsManifestUpdateInput): void
     mkdirSync(input.versionsRoot, { recursive: true });
     const read = readManifest(input.versionsRoot);
     const builtAt = input.builtAt ?? new Date().toISOString();
-    const baseManifest = read.ok ? read.manifest : emptyManifest(builtAt);
+    const baseManifest = read.ok ? read.value : emptyManifest(builtAt);
     if (!read.ok) {
         logger.error(read.message);
         throw new Error(read.message);

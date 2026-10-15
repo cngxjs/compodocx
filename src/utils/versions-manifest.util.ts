@@ -15,6 +15,7 @@ import {
     type VersionsManifest,
     type VersionsManifestEntry
 } from '../app/interfaces/versions-manifest.interface';
+import type { Result } from '../lib';
 
 /**
  * Read/merge/write helpers for `versions.json`.
@@ -32,9 +33,7 @@ import {
 
 const MANIFEST_FILE_NAME = 'versions.json';
 
-export type ReadManifestResult =
-    | { ok: true; manifest: VersionsManifest }
-    | { ok: false; message: string };
+export type ReadManifestResult = Result<VersionsManifest>;
 
 export function getManifestPath(versionsRoot: string): string {
     return join(versionsRoot, MANIFEST_FILE_NAME);
@@ -51,7 +50,7 @@ export function emptyManifest(now: string = new Date().toISOString()): VersionsM
 export function readManifest(versionsRoot: string): ReadManifestResult {
     const path = getManifestPath(versionsRoot);
     if (!existsSync(path)) {
-        return { ok: true, manifest: emptyManifest() };
+        return { ok: true, value: emptyManifest() };
     }
     let raw: string;
     try {
@@ -110,7 +109,7 @@ function validateManifest(value: unknown, path: string): ReadManifestResult {
     const updatedAt = (value as { updatedAt?: unknown }).updatedAt;
     return {
         ok: true,
-        manifest: {
+        value: {
             schemaVersion: VERSIONS_JSON_SCHEMA_VERSION,
             updatedAt: typeof updatedAt === 'string' ? updatedAt : new Date().toISOString(),
             versions: versions as VersionsManifestEntry[]

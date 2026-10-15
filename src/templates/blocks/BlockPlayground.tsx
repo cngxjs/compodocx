@@ -131,7 +131,7 @@ export function BlockPlayground(props: BlockPlaygroundProps): string {
 
     if (!built.ok) {
         logger.warn(
-            `Playground "${props.block.title}" on ${props.componentName} could not be assembled: ${built.error}`
+            `Playground "${props.block.title}" on ${props.componentName} could not be assembled: ${built.message}`
         );
         return (
             <section
