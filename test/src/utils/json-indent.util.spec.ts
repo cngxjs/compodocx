@@ -33,7 +33,7 @@ describe('parseJsonIndent — boundary behavior', () => {
     it('rejects 9 (just above upper boundary)', () => {
         const result = parseJsonIndent(9);
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/--jsonIndent.*0 and 8/);
             expect(result.message).toMatch(/got 9/);
         }
@@ -47,7 +47,7 @@ describe('parseJsonIndent — boundary behavior', () => {
     it('rejects "tab" (non-numeric string)', () => {
         const result = parseJsonIndent('tab');
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/got "tab"/);
         }
     });
@@ -60,7 +60,7 @@ describe('parseJsonIndent — boundary behavior', () => {
     it('rejects empty string', () => {
         const result = parseJsonIndent('');
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/requires a value/);
         }
     });
@@ -73,7 +73,7 @@ describe('parseJsonIndent — boundary behavior', () => {
     it('error message uses "config" label when source is config', () => {
         const result = parseJsonIndent(99, 'config');
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/jsonIndent in config file/);
         }
     });

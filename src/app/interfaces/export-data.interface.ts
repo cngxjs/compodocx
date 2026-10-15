@@ -303,6 +303,8 @@ export interface ExportEntityCommon extends ExportSemanticFacts {
     stackblitzUrl?: string;
     githubUrl?: string;
     docsUrl?: string;
+    /** Symbols named by `@relatedTo`. */
+    relatedTo?: string[];
 }
 
 export interface ExportComponent extends ExportEntityCommon {

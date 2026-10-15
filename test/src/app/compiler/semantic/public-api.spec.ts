@@ -18,7 +18,7 @@ const resolve = (entries: [string, string][]): Map<string, Set<string>> =>
 beforeAll(() => {
     const files = fg.sync('src/**/*.ts', { cwd: FIXTURE, absolute: true }).sort();
     const created = createSemanticProgram(TSCONFIG, files);
-    if (!created.ok) {
+    if (created.ok === false) {
         throw new Error(created.message);
     }
     program = created.value;

@@ -45,7 +45,7 @@ const semantic: SemanticModel = {
             facts('Store'),
             {
                 ...facts('Shape', { usedBy: [key('format')] }),
-                key: { ...key('Shape'), space: 'type' }
+                key: { ...key('Shape'), space: 'type' as const }
             }
         ].map(f => [factKey(f.key), f])
     )

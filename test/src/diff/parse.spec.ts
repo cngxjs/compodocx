@@ -46,7 +46,7 @@ describe('diff/parse — schemaVersion gate', () => {
         fs.writeFileSync(file, JSON.stringify({ components: [] }));
         const result = parseExportFile(file);
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/no schemaVersion/);
             expect(result.message).toContain(
                 `re-export it with this compodocx version (schema ${EXPORT_SCHEMA_VERSION})`
@@ -62,7 +62,7 @@ describe('diff/parse — schemaVersion gate', () => {
         );
         const result = parseExportFile(file);
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/produced by a newer compodocx/);
             expect(result.message).toMatch(/upgrade compodocx to read it/);
         }
@@ -76,7 +76,7 @@ describe('diff/parse — schemaVersion gate', () => {
         );
         const result = parseExportFile(file);
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toContain(
                 `schemaVersion ${EXPORT_SCHEMA_VERSION - 1} does not match supported ${EXPORT_SCHEMA_VERSION} - re-export it with this compodocx version`
             );
@@ -86,7 +86,7 @@ describe('diff/parse — schemaVersion gate', () => {
     it('rejects malformed JSON with a clear message', () => {
         const result = parseExportSource('{not-json', '<inline>');
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/not valid JSON/);
         }
     });
@@ -94,7 +94,7 @@ describe('diff/parse — schemaVersion gate', () => {
     it('rejects a JSON array (must be an object)', () => {
         const result = parseExportSource('[]', '<inline>');
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/not a JSON object/);
         }
     });
@@ -102,7 +102,7 @@ describe('diff/parse — schemaVersion gate', () => {
     it('rejects a missing file path', () => {
         const result = parseExportFile(path.join(tmp, 'does-not-exist.json'));
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/file not found/);
         }
     });
@@ -119,7 +119,7 @@ describe('diff/parse — schemaVersion gate', () => {
         );
         const result = parseDiffInputs(ok, path.join(tmp, 'missing.json'));
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/file not found/);
         }
     });

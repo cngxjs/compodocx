@@ -18,7 +18,7 @@ describe('parseMaxVersionsShown — boundary behavior', () => {
     it('rejects 1001 (just above upper boundary)', () => {
         const result = parseMaxVersionsShown(1001);
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/--maxVersionsShown.*0 and 1000/);
             expect(result.message).toMatch(/got 1001/);
         }
@@ -32,7 +32,7 @@ describe('parseMaxVersionsShown — boundary behavior', () => {
     it('rejects "ten" (non-numeric string)', () => {
         const result = parseMaxVersionsShown('ten');
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/got "ten"/);
         }
     });
@@ -45,7 +45,7 @@ describe('parseMaxVersionsShown — boundary behavior', () => {
     it('uses "config" label when source is config', () => {
         const result = parseMaxVersionsShown(99999, 'config');
         expect(result.ok).toBe(false);
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).toMatch(/maxVersionsShown in config file/);
         }
     });

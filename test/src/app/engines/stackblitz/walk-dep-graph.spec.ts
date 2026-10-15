@@ -59,7 +59,7 @@ describe('walkDepGraph', () => {
         const nodes = [node('Root', ten), ...ten.map(n => node(n))];
         const result = walkDepGraph('Root', resolverFor(nodes), { maxFiles: 5 });
         expect(result.ok).to.be.false;
-        if (!result.ok) {
+        if (result.ok === false) {
             expect(result.message).to.contain('"Root"');
             expect(result.message).to.contain('5-file cap');
             expect(result.message).to.contain('playgroundFileCountCap');

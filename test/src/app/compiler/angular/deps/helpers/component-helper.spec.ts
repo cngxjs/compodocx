@@ -35,7 +35,10 @@ describe('ComponentHelper', () => {
 
     describe('constructor', () => {
         it('should create ComponentHelper with provided dependencies', () => {
-            const helper = new ComponentHelper(classHelperStub, symbolHelperStub);
+            const helper = new ComponentHelper(
+                classHelperStub,
+                symbolHelperStub as unknown as ConstructorParameters<typeof ComponentHelper>[1]
+            );
             expect(helper).to.be.instanceOf(ComponentHelper);
         });
 

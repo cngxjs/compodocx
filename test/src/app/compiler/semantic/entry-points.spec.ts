@@ -23,7 +23,7 @@ const facts = (file: string, name: string, space = ''): SymbolFacts | undefined 
 beforeAll(() => {
     const files = fg.sync('projects/**/*.ts', { cwd: FIXTURE, absolute: true }).sort();
     const created = createSemanticProgram(TSCONFIG, files);
-    if (!created.ok) {
+    if (created.ok === false) {
         throw new Error(created.message);
     }
     model = buildSemanticModel(created.value, TSCONFIG, CWD);

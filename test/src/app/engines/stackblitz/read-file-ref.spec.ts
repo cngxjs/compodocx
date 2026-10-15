@@ -18,7 +18,7 @@ describe('readFileRef — HTML mode', () => {
         });
         const result = readFileRef('./examples/inline.html', HOST, fs);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.htmlSnippet).to.equal('<my-button>X</my-button>');
@@ -32,7 +32,7 @@ describe('readFileRef — HTML mode', () => {
         const fs = fsFor({});
         const result = readFileRef('./missing.html', HOST, fs);
         expect(result.ok).to.be.false;
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).to.contain('./missing.html');
@@ -65,7 +65,7 @@ export class FullExample {}
         });
         const result = readFileRef('./examples/full/full.component.ts', HOST, fs);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.replacesAppComponent).to.be.true;
@@ -103,7 +103,7 @@ export class Deep {}
         });
         const result = readFileRef('./x/y/deep.component.ts', '/repo/src/app/host.ts', fs);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         const app = result.value.files['src/app/app.component.ts'];
@@ -128,7 +128,7 @@ export class X {}
         });
         const result = readFileRef('./examples/x.component.ts', '/repo/src/app/host.ts', fs);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         const app = result.value.files['src/app/app.component.ts'];
@@ -145,7 +145,7 @@ export class X {}
         });
         const result = readFileRef('./a.component.ts', '/repo/src/app/host.ts', fs);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.files).to.have.property('src/app/b.ts');
@@ -162,7 +162,7 @@ export class X {}
         });
         const result = readFileRef('./x.component.ts', '/repo/src/app/host.ts', fs);
         expect(result.ok).to.be.false;
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).to.contain('templateUrl');
@@ -173,7 +173,7 @@ export class X {}
         const fs = fsFor({});
         const result = readFileRef('./not-here.ts', HOST, fs);
         expect(result.ok).to.be.false;
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).to.contain('./not-here.ts');
@@ -188,7 +188,7 @@ export class X {}
         });
         const result = readFileRef('./a.ts', '/repo/src/app/host.ts', fs, { maxFiles: 2 });
         expect(result.ok).to.be.false;
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).to.contain('2-file cap');
@@ -200,7 +200,7 @@ export class X {}
         const fs = fsFor({ '/repo/src/app/x.css': 'body {}' });
         const result = readFileRef('./x.css', HOST, fs);
         expect(result.ok).to.be.false;
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).to.contain('.html or .ts');
@@ -222,7 +222,7 @@ export class X {}
         });
         const result = readFileRef('./x.component.ts', '/repo/src/app/host.ts', fs);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.files['src/app/x.component.html']).to.equal('<p>hi</p>');
@@ -243,7 +243,7 @@ export class X {}
         });
         const result = readFileRef('./x.component.ts', '/repo/src/app/host.ts', fs);
         expect(result.ok).to.be.false;
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).to.contain('templateUrl');
@@ -264,7 +264,7 @@ export class X {}
         });
         const result = readFileRef('./x.component.ts', '/repo/src/app/host.ts', fs);
         expect(result.ok).to.be.false;
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).to.contain('styleUrls');
@@ -281,7 +281,7 @@ export class FullComponentExample {}
         const fs = fsFor({ [ENTRY]: SRC });
         const result = readFileRef('./x/sample.component.ts', '/repo/src/app/host.ts', fs);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         const app = result.value.files['src/app/app.component.ts'];
@@ -298,7 +298,7 @@ export class AppComponent {}
         const fs = fsFor({ [ENTRY]: SRC });
         const result = readFileRef('./x/sample.component.ts', '/repo/src/app/host.ts', fs);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         const app = result.value.files['src/app/app.component.ts'];
@@ -319,7 +319,7 @@ export class X {}
         });
         const result = readFileRef('./x.component.ts', '/repo/src/app/host.ts', fs);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.files['src/app/a.css']).to.equal('a {}');
@@ -338,7 +338,7 @@ describe('readPlaygroundConfig', () => {
         });
         const result = readPlaygroundConfig('./playground/app.config.ts', HOST, fs);
         expect(result.ok).to.be.true;
-        if (!result.ok) {
+        if (result.ok === false) {
             return;
         }
         expect(result.value.files['src/app/app.config.ts']).to.contain('appConfig');
@@ -354,7 +354,7 @@ describe('readPlaygroundConfig', () => {
         const fs = fsFor({});
         const result = readPlaygroundConfig('./app.config.json', HOST, fs);
         expect(result.ok).to.be.false;
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).to.contain('.ts');
@@ -364,7 +364,7 @@ describe('readPlaygroundConfig', () => {
         const fs = fsFor({});
         const result = readPlaygroundConfig('./playground/app.config.ts', HOST, fs);
         expect(result.ok).to.be.false;
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).to.contain('Cannot find playground config');
@@ -376,7 +376,7 @@ describe('readPlaygroundConfig', () => {
         });
         const result = readPlaygroundConfig('./app.config.ts', HOST, fs);
         expect(result.ok).to.be.false;
-        if (result.ok) {
+        if (result.ok === true) {
             return;
         }
         expect(result.message).to.contain('Cannot find imported file');

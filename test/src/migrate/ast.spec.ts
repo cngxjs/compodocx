@@ -1,5 +1,5 @@
-import Handlebars from 'handlebars';
 import {
+    type AstMustacheStatement,
     type AstPathExpression,
     isValidIdentifier,
     normalizePath,
@@ -10,7 +10,7 @@ import {
 
 const firstMustache = (source: string): AstPathExpression => {
     const program = parse(source);
-    const stmt = program.body[0] as Handlebars.AST.MustacheStatement;
+    const stmt = program.body[0] as AstMustacheStatement;
     return stmt.path as AstPathExpression;
 };
 
