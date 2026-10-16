@@ -9,6 +9,7 @@ import {
     buildStyleModel,
     discoverStyleFiles,
     formatListedNote,
+    formatListedThemes,
     formatStyleSummary,
     formatThemeProblem,
     resolveThemes,
@@ -137,6 +138,9 @@ export const logStyles = (run: StylesRun): void => {
     }
     for (const problem of run.problems) {
         logger.warn(formatThemeProblem(problem));
+    }
+    for (const listed of run.model.listedThemes) {
+        logger.warn(formatListedThemes(listed));
     }
     logger.info(formatStyleSummary(run.model));
     const note = formatListedNote(run.model);

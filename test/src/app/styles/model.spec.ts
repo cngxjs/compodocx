@@ -4,6 +4,7 @@ import { themeResolver } from '../../../../src/app/run/styles';
 import {
     buildStyleModel,
     formatListedNote,
+    formatListedThemes,
     formatStyleSummary,
     formatThemeProblem,
     hasStylePage,
@@ -40,6 +41,23 @@ describe('buildStyleModel', () => {
         ]);
         expect(model.files).toEqual([]);
         expect(model.listed).toEqual(['plain.css', 'x.css']);
+        expect(model.listedThemes).toEqual([]);
+    });
+
+    it('keeps the @themes names of a listed file and never resolves them', () => {
+        const model = buildStyleModel([
+            {
+                file: 'b.css',
+                content: '/**\n * @themes StyCard, StyCard StyTooltip\n */\nbody {}\n'
+            },
+            { file: 'a.css', content: '/**\n * Tokens.\n * @overview\n * @themes Foo\n */\n' }
+        ]);
+        expect(model.listed).toEqual(['b.css']);
+        expect(model.listedThemes).toEqual([{ file: 'b.css', names: ['StyCard', 'StyTooltip'] }]);
+        expect(formatListedThemes(model.listedThemes[0])).toBe(
+            'Style file b.css: @themes StyCard, StyTooltip ignored, ' +
+                'the file has no overview, documented token or mixin'
+        );
     });
 
     it('collects unknown tags of every file, listed ones included', () => {

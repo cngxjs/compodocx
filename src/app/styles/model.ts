@@ -33,9 +33,17 @@ export interface StyleModel {
     readonly files: readonly StyleFile[];
     /** Matched files without content, sorted. */
     readonly listed: readonly string[];
+    /** The `@themes` names of listed files; never resolved, since a listed file links nothing. */
+    readonly listedThemes: readonly ListedThemes[];
     /** Symbol -> ids of the style files that theme it. */
     readonly byTarget: ReadonlyMap<SymbolId, readonly string[]>;
     readonly unknownTags: readonly UnknownStyleTag[];
+}
+
+/** A file listed without content that names `@themes` targets. */
+export interface ListedThemes {
+    readonly file: string;
+    readonly names: readonly string[];
 }
 
 export interface StyleSourceFile {
@@ -85,16 +93,20 @@ export const readStyleFile = (
 
 /**
  * The style model of the matched files: files with content (sorted), the
- * files listed without content, and every unknown tag. `@themes` names stay
- * unresolved here.
+ * files listed without content (with their `@themes` names, if any), and
+ * every unknown tag. `@themes` names stay unresolved here.
  */
 export const buildStyleModel = (sources: readonly StyleSourceFile[]): StyleModel => {
     const read = [...sources]
         .sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : 0))
         .map(readStyleFile);
+    const listed = read.filter(file => !file.hasContent);
     return {
         files: read.filter(file => file.hasContent).map(({ unknownTags: _, ...file }) => file),
-        listed: read.filter(file => !file.hasContent).map(file => file.file),
+        listed: listed.map(file => file.file),
+        listedThemes: listed
+            .filter(file => file.themeNames.length > 0)
+            .map(file => ({ file: file.file, names: file.themeNames })),
         byTarget: new Map(),
         unknownTags: read.flatMap(file => file.unknownTags)
     };
@@ -171,6 +183,11 @@ export const formatThemeProblem = (problem: ThemeProblem): string => {
     ];
     return `Style file ${problem.file}: ${parts.join('; ')}`;
 };
+
+/** The warning for a listed file whose `@themes` names are dropped. */
+export const formatListedThemes = (listed: ListedThemes): string =>
+    `Style file ${listed.file}: @themes ${listed.names.join(', ')} ignored, ` +
+    'the file has no overview, documented token or mixin';
 
 /**
  * A style file gets a page of its own when it has content and themes no
