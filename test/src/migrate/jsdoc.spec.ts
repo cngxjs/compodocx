@@ -21,10 +21,58 @@ describe('migrate jsdoc', () => {
         });
     });
 
-    it('removes a tag with its continuation lines up to the next tag', () => {
+    it('removes only the tag line and keeps the lines below it', () => {
         const source =
             '/**\n * A toast.\n *\n * @category ui/feedback\n *   and more text\n * @since 1.0.0\n */\n';
-        expect(strip(source).output).toBe('/**\n * A toast.\n *\n * @since 1.0.0\n */\n');
+        expect(strip(source).output).toBe(
+            '/**\n * A toast.\n *\n *   and more text\n * @since 1.0.0\n */\n'
+        );
+    });
+
+    it('keeps the prose after a tag that stood first in the block', () => {
+        const source =
+            '/**\n * @category common/interactive\n *\n * Swipe gestures for a host.\n *\n * More text.\n */\n';
+        expect(strip(source).output).toBe(
+            '/**\n * Swipe gestures for a host.\n *\n * More text.\n */\n'
+        );
+    });
+
+    it('keeps a code fence with Angular control flow after the tag', () => {
+        const source =
+            '/**\n * Disclosure.\n *\n * @category common/interactive\n *\n * ```html\n * @if (open()) {\n *   <p>Body</p>\n * }\n * ```\n */\n';
+        expect(strip(source)).toEqual({
+            file: 'x.ts',
+            output: '/**\n * Disclosure.\n *\n * ```html\n * @if (open()) {\n *   <p>Body</p>\n * }\n * ```\n */\n',
+            removed: 1
+        });
+    });
+
+    it('keeps an @example that follows the tag', () => {
+        const source =
+            '/**\n * Ripple.\n * @category common/interactive\n * @example\n * ```html\n * <button cngxRipple></button>\n * ```\n */\n';
+        expect(strip(source).output).toBe(
+            '/**\n * Ripple.\n * @example\n * ```html\n * <button cngxRipple></button>\n * ```\n */\n'
+        );
+    });
+
+    it('removes two adjacent tags and one blank line after them', () => {
+        const source =
+            '/**\n * Card.\n *\n * @category ui/card\n * @docsKind primary\n *\n * Details.\n */\n';
+        expect(strip(source)).toEqual({
+            file: 'x.ts',
+            output: '/**\n * Card.\n *\n * Details.\n */\n',
+            removed: 2
+        });
+    });
+
+    it('keeps the blank line after a tag that follows content directly', () => {
+        const source = '/**\n * Card.\n * @category ui/card\n *\n * Details.\n */\n';
+        expect(strip(source).output).toBe('/**\n * Card.\n *\n * Details.\n */\n');
+    });
+
+    it('collapses trailing blank lines when the tag is the last line', () => {
+        const source = '/**\n * Card.\n *\n * @category ui/card\n *\n */\n';
+        expect(strip(source).output).toBe('/**\n * Card.\n */\n');
     });
 
     it('drops a block that becomes empty, with its line', () => {
