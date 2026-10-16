@@ -28,6 +28,7 @@ Example `.compodocxrc.json`:
 
 ```json
 {
+    "$schema": "./node_modules/@cngxjs/compodocx/src/config/schema.json",
     "tsconfig": "src/tsconfig.json",
     "output": "./documentation",
     "name": "My Angular Project",
@@ -36,6 +37,8 @@ Example `.compodocxrc.json`:
     "language": "de-DE"
 }
 ```
+
+The package ships the JSON schema of the config file at `./node_modules/@cngxjs/compodocx/src/config/schema.json`; point `$schema` at it for completion and validation in the editor.
 
 ---
 
