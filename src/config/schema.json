@@ -530,6 +530,25 @@
             "default": ["config", "di", "providers", "services", "components", "directives", "pipes", "models", "types", "interfaces", "tokens", "routes", "guards", "interceptors", "resolvers", "state", "store"],
             "examples": [["di", "routes"]]
         },
+        "classificationAxes": {
+            "$id": "/properties/classificationAxes",
+            "type": "object",
+            "propertyNames": { "pattern": "^[a-z0-9][a-z0-9-]*$" },
+            "additionalProperties": {
+                "type": "object",
+                "required": ["values"],
+                "properties": {
+                    "label": { "type": "string" },
+                    "values": { "type": "array", "items": { "type": "string", "pattern": "^\\S+$" }, "minItems": 1 },
+                    "paths": { "type": "object", "additionalProperties": { "type": "string" } },
+                    "default": { "type": "string" },
+                    "kinds": { "type": "array", "items": { "type": "string" } }
+                }
+            },
+            "title": "Classification axes by name (config-only). Each axis declares one-word values; a symbol gets a value from an @axis <name> <value> tag, else the first matching glob of paths (file paths relative to the working directory), else default. kinds limits the axis to symbol kinds. Shown as a badge and a search filter, exported as data; never changes URLs, features or the sidebar. Names are one segment, lower case, digits and dashes.",
+            "default": {},
+            "examples": [{ "stability": { "values": ["stable", "experimental"], "paths": { "src/labs/**": "experimental" }, "default": "stable" } }]
+        },
         "styleFiles": {
             "$id": "/properties/styleFiles",
             "type": "array",

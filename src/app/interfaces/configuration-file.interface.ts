@@ -80,6 +80,7 @@ export interface ConfigurationFileInterface {
     featureContainers: string[];
     featureUtilityFolders: string[];
     featureRoleFolders: string[];
+    classificationAxes: Record<string, unknown>;
     styleFiles: string[];
     collapsedAll: boolean;
     featuresName: string;

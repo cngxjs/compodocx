@@ -14,6 +14,7 @@ import { formatLegacyNotice } from '../compiler/legacy-scan';
 import { findRemovedTags, formatRemovedTagNotice } from '../compiler/removed-tags';
 import {
     analyzeProject,
+    formatAxesSummary,
     formatFeatureSummary,
     formatSemanticSummary,
     resolvePublicApi
@@ -29,6 +30,7 @@ import { buildSymbolTable, withStyleEntries } from '../links';
 import { copyAssetsFolder, copyResources, finalizeOutput } from '../page-generator';
 import { crawlDependencies, crawlMicroDependencies } from '../services/dependencies';
 import { hasStylePage } from '../styles';
+import { deriveAxes } from './axes';
 import type { RunContext, RunMode, Stage } from './context';
 import { deriveFeatures, placeInFeatures } from './features';
 import { type Halt, halt } from './halt';
@@ -272,9 +274,14 @@ const withSymbols = (ctx: RunContext): RunContext => {
         return { ...ctx, symbols: table, di, styles, routing };
     }
     const detection = deriveFeatures(ctx.semantic.model, table, mainData, ctx.files, cwd);
+    const axes = deriveAxes(ctx.semantic.model, table, mainData.classificationAxes);
     const semantic = {
         ...ctx.semantic,
-        model: { ...ctx.semantic.model, features: detection.model }
+        model: {
+            ...ctx.semantic.model,
+            features: detection.model,
+            ...(axes.model ? { axes: axes.model } : {})
+        }
     };
     mainData.semantic = semantic.model;
     const placed = placeInFeatures(table, detection.model);
@@ -284,6 +291,12 @@ const withSymbols = (ctx: RunContext): RunContext => {
             logger.warn(warning);
         }
         logger.info(formatFeatureSummary(detection.model));
+        for (const warning of axes.warnings) {
+            logger.warn(warning);
+        }
+        if (axes.model) {
+            logger.info(formatAxesSummary(axes.model));
+        }
     }
     return { ...ctx, symbols: placed, di, semantic, styles, routing };
 };

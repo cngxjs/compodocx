@@ -31,6 +31,7 @@ import { ReferencedBySection } from '../blocks/ReferencedBySection';
 import { RelatedSection } from '../blocks/RelatedSection';
 import { RouteChip } from '../blocks/RouteChip';
 import { AiGeneratedBadge } from '../components/AiGeneratedBadge';
+import { AxisBadges, entityAxes } from '../components/AxisBadges';
 import { EmptyState } from '../components/EmptyState';
 import { EmptyIconDocument } from '../components/EmptyStateIcons';
 import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
@@ -576,6 +577,7 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
     const e = props.entity;
 
     const feature = entityFeature(props.entityKey as EntityKind, e);
+    const axes = entityAxes(props.entityKey as EntityKind, e);
     const searchMeta = pagefindMetaBlock({
         kind: props.entityKey as any,
         feature: feature?.feature.label,
@@ -586,7 +588,8 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
         lib: deriveLibFromBucket(e.file),
         feature: feature?.feature.label,
         entryPoint: feature?.feature.entryPoint,
-        wcag: e.wcagLevel
+        wcag: e.wcagLevel,
+        axes
     });
 
     return (
@@ -638,6 +641,7 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
                     )}
                     {props.showJsdocBadges ? AiGeneratedBadge({ aiGenerated: e.aiGenerated }) : ''}
                     {WcagBadge({ wcagLevel: e.wcagLevel })}
+                    {AxisBadges({ axes })}
                 </div>
                 {props.contextLine ? (
                     <p class="cdx-entity-hero-context">{props.contextLine}</p>

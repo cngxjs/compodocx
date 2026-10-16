@@ -86,6 +86,7 @@ With `-e json`, every symbol entry (components, directives, classes, injectables
 | `token.providedBy` / `token.injectedBy` | `{ name, file }[]` | Providers that provide the token / symbols that read it |
 | `routedAt` | string[] | Components: full paths of the routes rendering the component |
 | `mountedAt` | string[] | Route array variables: full paths of the places a router mounts the array at |
+| `axes` | `Record<string, string>` | Values on the declared classification axes, by axis name. `semantic.axes` lists each axis with `label`, `values` (`{ value, count }`), `classified` and `unclassified` |
 
 Entry points are the `ng-package.json` entry files below the workspace, plus tsconfig `paths` targets without a wildcard that re-export from other files (`export ... from`). The top-level `semantic` object lists them (`importPath`, `file`, `source`) with the counts of the analysis, which the build log also prints as one `Semantic analysis:` line. Every `file` is relative to the working directory. `schemaVersion` is `5`.
 
@@ -199,6 +200,7 @@ Controls how symbols are organized in the sidebar. Both layouts group symbols by
 | featureContainers | _config-only_ | string[] | `['features', 'pages', 'domains']` | App folders whose sub-folders are the features: `src/app/features/admin` gives the feature `admin` |
 | featureUtilityFolders | _config-only_ | string[] | `['internal', 'i18n', 'utils', 'testing', '__test-helpers', 'examples']` | Folders below an entry point that belong to its root feature instead of forming a feature of their own |
 | featureRoleFolders | _config-only_ | string[] | `['config', 'di', 'providers', 'services', 'components', 'directives', 'pipes', 'models', 'types', 'interfaces', 'tokens', 'routes', 'guards', 'interceptors', 'resolvers', 'state', 'store']` | Folders named after a role. A file in one joins the feature its file name starts with (`di/toast.providers.ts` joins `toast` of the same entry point or app), otherwise the root feature; such a folder never becomes a feature of its own. `[]` turns the rule off |
+| classificationAxes | _config-only_ | `Record<string, { values, label?, paths?, default?, kinds? }>` | `{}` | Classification axes, each a badge and a search filter on symbol pages. See [Classification axes](#classification-axes) |
 | styleFiles | _config-only_ | string[] | `[]` | Globs of free-standing `.css` / `.scss` files to document, relative to the config file's folder (the `-p` tsconfig folder without a config file). Braces work (`*.{css,scss}`). `node_modules`, `dist`, `.git` and the output folder are never matched; matches of another file type warn once and are ignored; a file a component already reads through `styleUrl` / `styleUrls` stays on that component's Theming tab. A value that is not a list of non-empty strings warns and is ignored. Style files join features like symbols. See [Style files](#style-files) |
 
 ## Features
@@ -216,6 +218,41 @@ The build log prints one line, `Features: <n> in <e> entry points (config <a>, t
 Every feature gets a page, `index.html` in the feature's folder `<entry point>/<feature>/` (the entry point's import path without a scope shared by all entry points; an app feature at `<feature>/`), and the pages of its symbols live in the same folder: the import path, the `README.md` of the feature folder (for a root feature, the entry file's folder, then the `ng-package.json` folder) with relative links to other features' READMEs or folders pointing at their pages, the features of an entry point, the members by role (components and directives, pipes, services, configuration, utilities, constants, types, classes), links to the members' Theming tabs, and the features it builds on or that extend it. Symbol pages show entry point and feature in their breadcrumb.
 
 `@category` and `@docsKind` are no longer read. A build that still finds them logs one warning with every location; `compodocx migrate jsdoc <dir>` removes them (`--dry-run` to preview, `--json` for a report).
+
+## Classification axes
+
+An axis classifies symbols by a property of your own choosing, such as stability, atomic-design level or platform. Axes are off until the config file declares one:
+
+```json
+{
+    "classificationAxes": {
+        "stability": {
+            "label": "Stability",
+            "values": ["stable", "experimental"],
+            "paths": { "projects/*/src/labs/**": "experimental" },
+            "default": "stable"
+        },
+        "level": {
+            "label": "Level",
+            "values": ["atom", "molecule", "organism"],
+            "kinds": ["component", "directive"]
+        }
+    }
+}
+```
+
+| Key | Meaning |
+|-|-|
+| axis name | One segment of lower-case letters, digits and dashes |
+| `values` | Required. The allowed values, each one word |
+| `label` | Heading of the badge and the search facet; default the axis name |
+| `paths` | File globs relative to the working directory (same syntax as `features`) mapped to a value; the first match in object order wins |
+| `default` | Value for symbols without a tag or a matching path |
+| `kinds` | Symbol kinds the axis applies to: `component`, `directive`, `pipe`, `injectable`, `class`, `interface`, `token`, `guard`, `interceptor`, `resolver`, `entity`, `function`, `variable`, `typealias`, `enumeration`. Default: all |
+
+A symbol gets its value per axis from an `@axis <name> <value>` tag on its declaration, else from the first matching `paths` glob, else from `default`. A symbol of a kind the axis does not apply to has no value. Invalid config parts warn once each and are dropped. Tag problems (an undeclared axis or value, a kind the axis does not apply to, a missing value, a second tag for the same axis) are logged once per problem with up to three locations; the symbol then falls back to its path rule or default. When axes are declared, the build log prints one line such as `Axes: stability 40/40 classified, level 12/18 classified (6 unclassified)`; `@axis` tags without declared axes log one notice and are ignored.
+
+Each value shows as a `<label>: <value>` chip in the symbol page hero and as an `axis-<name>` search filter, so the search palette offers one facet per axis. Axes never change URLs, features, the sidebar or the menu. The JSON export carries the values per symbol (`axes`) and the declared axes with their counts (`semantic.axes`); llm-md prints an `Axes:` line per classified symbol.
 
 ## Routes
 
@@ -561,6 +598,7 @@ Compodocx recognizes these custom JSDoc tags on any entity or member:
 | `@breaking <version>` | Adds a "Breaking" badge with version |
 | `@internal` | Hides the member when `--disableInternal` is set |
 | `@feature <key>` | Puts the symbol into the feature `<key>` of its entry point (or app), above the detected feature; the `features` config wins over the tag. One segment of lower-case letters, digits and dashes |
+| `@axis <name> <value>` | Sets the symbol's value on the classification axis `<name>`, above its path rule and default. Only read for axes declared in `classificationAxes`; see [Classification axes](#classification-axes) |
 | `@wcag <level>` | Renders a colored WCAG-conformance chip in the entity hero. Accepts `A`, `AA`, or `AAA` (case-insensitive); other values log a build-time warning and fall back to no chip. Also surfaces as a `data-pagefind-filter="wcag:<level>"` span so the search-palette WCAG facet can narrow to a specific level |
 | `@a11y <markdown>` | Free-form accessibility note. Parsed and stored on `IDep.a11yNote` so it lives in the JSON / LLM-md exports and stays queryable, but intentionally not rendered on entity pages - the `@wcag` hero chip is the user-visible accessibility-conformance signal |
 | `@storybook <url>` | Adds a Storybook link in the entity hero |

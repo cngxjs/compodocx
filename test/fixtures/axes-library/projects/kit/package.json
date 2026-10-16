@@ -1,0 +1,7 @@
+{
+    "name": "@axk/kit",
+    "version": "0.0.0",
+    "exports": {
+        ".": { "default": "./src/public-api.ts" }
+    }
+}

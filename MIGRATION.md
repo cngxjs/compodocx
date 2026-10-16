@@ -85,7 +85,7 @@ Tags:
 
 - Run `compodocx migrate jsdoc <dir>` to remove `@category` and `@docsKind` from your sources (`--dry-run` lists them first). Until then every build logs one warning with their locations.
 - To put a symbol into a different feature, use `@feature <key>` on the symbol or a `features` entry in the config file (`{ "features": { "projects/forms/select/src/**": "select" } }`). The key is relative to the symbol's entry point; it cannot move a symbol into another entry point.
-- Topic groupings that `@category` expressed inside one feature have no replacement yet.
+- Topic groupings that `@category` expressed inside one feature have no grouping replacement. To keep such a classification visible, declare a classification axis (`classificationAxes`) and tag the symbols with `@axis <name> <value>`: it shows as a badge and a search filter, never as a sidebar group or a separate page. `compodocx migrate jsdoc` does not convert `@category` tags.
 
 Configuration:
 

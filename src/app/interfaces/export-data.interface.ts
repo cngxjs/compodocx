@@ -241,6 +241,8 @@ export interface ExportSemanticFacts {
     token?: ExportTokenFacts;
     /** The feature the symbol belongs to; `key` `''` is the entry point's root feature. */
     feature?: ExportFeatureRef;
+    /** Values on the declared classification axes, by axis name. */
+    axes?: Record<string, string>;
     /** Components: full paths of the routes rendering it. */
     routedAt?: string[];
     /** Route array variables: full paths of the places a router mounts it at. */
@@ -284,6 +286,18 @@ export interface ExportSemantic {
     }[];
     summary: ExportSemanticSummary;
     features?: ExportFeature[];
+    /** The declared classification axes with their counts; only when axes are declared. */
+    axes?: ExportAxis[];
+}
+
+/** A declared classification axis: every declared value with its symbol count. */
+export interface ExportAxis {
+    name: string;
+    label: string;
+    values: { value: string; count: number }[];
+    classified: number;
+    /** Symbols of the axis' kinds without a value. */
+    unclassified: number;
 }
 
 export interface ExportEntityCommon extends ExportSemanticFacts {

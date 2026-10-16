@@ -25,6 +25,8 @@ export type PageData = {
     readonly multiVersion?: boolean;
     readonly versionLabel?: string;
     readonly maxVersionsShown?: number;
+    /** Declared classification axes; each becomes a palette facet. */
+    readonly classificationAxes?: Readonly<Record<string, { readonly label: string }>>;
 };
 
 type LayoutProps = {
@@ -79,9 +81,22 @@ const GoogleAnalytics = (props: { gaID: string }) => (
     </>
 );
 
-const CommandPalette = () =>
+/** `[{ name, label }]` of the declared axes for the palette; undefined without axes. */
+const axesAttribute = (axes: PageData['classificationAxes']): string | undefined => {
+    const entries = Object.entries(axes ?? {});
+    return entries.length === 0
+        ? undefined
+        : JSON.stringify(entries.map(([name, axis]) => ({ name, label: axis.label })));
+};
+
+const CommandPalette = (props: { readonly axes?: string }) =>
     (
-        <dialog id="cdx-command-palette" class="cdx-cp" aria-label="Search documentation">
+        <dialog
+            id="cdx-command-palette"
+            class="cdx-cp"
+            aria-label="Search documentation"
+            data-cdx-axes={props.axes}
+        >
             <div class="cdx-cp-panel">
                 <div class="cdx-cp-header">
                     <svg
@@ -474,7 +489,9 @@ export const Layout = (props: LayoutProps): string => {
                     <div class="content-data">{content}</div>
                 </main>
 
-                {!data.disableSearch && <CommandPalette />}
+                {!data.disableSearch && (
+                    <CommandPalette axes={axesAttribute(data.classificationAxes)} />
+                )}
 
                 <PageGlobals data={data} />
 

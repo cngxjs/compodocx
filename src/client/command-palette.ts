@@ -4,6 +4,7 @@
  */
 
 import { hrefFor, hrefText } from '../app/links/layout';
+import { axisFacets, BASE_FACETS, type FacetDimension } from './axis-facets';
 
 const DIALOG_ID = 'cdx-command-palette';
 const INPUT_SELECTOR = '.cdx-cp-input';
@@ -281,32 +282,32 @@ interface SearchResult {
     readonly excerpt?: string;
 }
 
-/** Facet dimensions surfaced in the dropdown; `feature` narrows to the
- *  symbols of one feature. Order matches the visual layout. */
-const FACET_DIMS = ['kind', 'lib', 'feature', 'wcag'] as const;
-type FacetDim = (typeof FACET_DIMS)[number];
-
-const FACET_LABELS: Record<FacetDim, string> = {
-    kind: 'Kind',
-    lib: 'Library',
-    feature: 'Feature',
-    wcag: 'WCAG'
+/** Facet dimensions surfaced in the dropdown: the fixed ones (`feature`
+ *  narrows to the symbols of one feature), then one per declared
+ *  classification axis. Order matches the visual layout. Read once. */
+let facetList: readonly FacetDimension[] | undefined;
+const facets = (): readonly FacetDimension[] => {
+    facetList ??= [...BASE_FACETS, ...axisFacets(getDialog()?.dataset.cdxAxes)];
+    return facetList;
 };
-
-const FACET_VALUE_LABELS: Record<FacetDim, Record<string, string>> = {
-    kind: {},
-    lib: {},
-    feature: {},
-    wcag: {}
-};
+const facetDims = (): readonly string[] => facets().map(facet => facet.dim);
 
 /** Active filter state - per dimension, multi-select within (OR), AND
  *  across dimensions. Mirrors Pagefind's filter API. */
-const activeFilters: Record<FacetDim, Set<string>> = {
-    kind: new Set(),
-    lib: new Set(),
-    feature: new Set(),
-    wcag: new Set()
+const activeFilters = new Map<string, Set<string>>();
+const activeIn = (dim: string): Set<string> => {
+    let values = activeFilters.get(dim);
+    if (!values) {
+        values = new Set();
+        activeFilters.set(dim, values);
+    }
+    return values;
+};
+const anyFilterActive = (): boolean => facetDims().some(dim => activeIn(dim).size > 0);
+const clearFilters = () => {
+    for (const values of activeFilters.values()) {
+        values.clear();
+    }
 };
 
 let pagefind: any = null;
@@ -340,8 +341,8 @@ const getFacets = (): HTMLElement | null => getDialog()?.querySelector('.cdx-cp-
 const buildFiltersObj = (): Record<string, string | string[]> | undefined => {
     const out: Record<string, string | string[]> = {};
     let any = false;
-    for (const dim of FACET_DIMS) {
-        const values = Array.from(activeFilters[dim]);
+    for (const dim of facetDims()) {
+        const values = Array.from(activeIn(dim));
         if (values.length === 1) {
             out[dim] = values[0];
             any = true;
@@ -361,8 +362,8 @@ const updateUrlFromState = () => {
     if (lastQuery) {
         params.set('q', lastQuery);
     }
-    for (const dim of FACET_DIMS) {
-        const values = Array.from(activeFilters[dim]);
+    for (const dim of facetDims()) {
+        const values = Array.from(activeIn(dim));
         if (values.length > 0) {
             params.set(dim, values.join(','));
         }
@@ -377,15 +378,15 @@ const updateUrlFromState = () => {
  *  search URL sees the same state. */
 const hydrateStateFromUrl = (): string => {
     const params = new URLSearchParams(globalThis.location.search);
-    for (const dim of FACET_DIMS) {
-        activeFilters[dim].clear();
+    clearFilters();
+    for (const dim of facetDims()) {
         const raw = params.get(dim);
         if (raw) {
             for (const value of raw
                 .split(',')
                 .map(v => v.trim())
                 .filter(Boolean)) {
-                activeFilters[dim].add(value);
+                activeIn(dim).add(value);
             }
         }
     }
@@ -405,9 +406,9 @@ const renderFacets = (counts: Record<string, Record<string, number>>) => {
         return;
     }
     const groups: string[] = [];
-    for (const dim of FACET_DIMS) {
+    for (const { dim, label: dimLabel } of facets()) {
         const dimCounts = counts[dim] ?? {};
-        const active = activeFilters[dim];
+        const active = activeIn(dim);
         const values = new Set<string>([...Object.keys(dimCounts), ...active]);
         if (values.size <= 1 && active.size === 0) {
             continue;
@@ -422,16 +423,15 @@ const renderFacets = (counts: Record<string, Record<string, number>>) => {
         for (const value of visible) {
             const count = dimCounts[value] ?? 0;
             const isActive = active.has(value);
-            const label = FACET_VALUE_LABELS[dim][value] ?? value;
             chips.push(
-                `<button type="button" class="cdx-cp-facet-chip" data-dim="${escapeAttr(dim)}" data-value="${escapeAttr(value)}" data-active="${isActive}" aria-pressed="${isActive}">${escapeHtml(label)} <span class="cdx-cp-facet-count">${count}</span></button>`
+                `<button type="button" class="cdx-cp-facet-chip" data-dim="${escapeAttr(dim)}" data-value="${escapeAttr(value)}" data-active="${isActive}" aria-pressed="${isActive}">${escapeHtml(value)} <span class="cdx-cp-facet-count">${count}</span></button>`
             );
         }
         groups.push(
-            `<div class="cdx-cp-facet-group"><span class="cdx-cp-facet-label">${escapeHtml(FACET_LABELS[dim])}</span>${chips.join('')}</div>`
+            `<div class="cdx-cp-facet-group"><span class="cdx-cp-facet-label">${escapeHtml(dimLabel)}</span>${chips.join('')}</div>`
         );
     }
-    const anyActive = FACET_DIMS.some(d => activeFilters[d].size > 0);
+    const anyActive = anyFilterActive();
     if (groups.length === 0) {
         root.hidden = true;
         root.innerHTML = '';
@@ -548,7 +548,7 @@ const search = async (query: string) => {
         return;
     }
 
-    const hasFilters = FACET_DIMS.some(d => activeFilters[d].size > 0);
+    const hasFilters = anyFilterActive();
 
     if (!query.trim() && !hasFilters) {
         list.innerHTML = '';
@@ -721,7 +721,7 @@ export const openCommandPalette = () => {
     // surface the empty-palette state with the cached global counts
     // so the user sees facet chips immediately.
     loadPagefind().then(() => {
-        const hasFilters = FACET_DIMS.some(d => activeFilters[d].size > 0);
+        const hasFilters = anyFilterActive();
         if (initialQuery || hasFilters) {
             search(initialQuery);
         } else {
@@ -741,9 +741,7 @@ export const openCommandPalette = () => {
  *  just the paths that route through `closePalette()`.
  */
 const resetState = () => {
-    for (const dim of FACET_DIMS) {
-        activeFilters[dim].clear();
-    }
+    clearFilters();
     lastQuery = '';
     activeIndex = -1;
     const input = getInput();
@@ -854,9 +852,7 @@ export const initCommandPalette = () => {
             );
             if (reset) {
                 e.preventDefault();
-                for (const dim of FACET_DIMS) {
-                    activeFilters[dim].clear();
-                }
+                clearFilters();
                 updateUrlFromState();
                 search(lastQuery);
                 return;
@@ -866,15 +862,16 @@ export const initCommandPalette = () => {
                 return;
             }
             e.preventDefault();
-            const dim = chip.dataset.dim as FacetDim | undefined;
+            const dim = chip.dataset.dim;
             const value = chip.dataset.value;
-            if (!dim || !value || !(dim in activeFilters)) {
+            if (!dim || !value || !facetDims().includes(dim)) {
                 return;
             }
-            if (activeFilters[dim].has(value)) {
-                activeFilters[dim].delete(value);
+            const active = activeIn(dim);
+            if (active.has(value)) {
+                active.delete(value);
             } else {
-                activeFilters[dim].add(value);
+                active.add(value);
             }
             updateUrlFromState();
             search(lastQuery);

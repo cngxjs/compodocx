@@ -81,6 +81,7 @@ const makeMainData = (): MainDataInterface => {
         stackblitzTemplate: '',
         menuLayout: 'type',
         features: {},
+        classificationAxes: {},
         featureContainers: ['features', 'pages', 'domains'],
         featureUtilityFolders: [
             'internal',
@@ -426,6 +427,39 @@ describe('applyConfigToMainData', () => {
         ]);
         expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
             'featureUtilityFolders: expected a list of folder names; ignored'
+        );
+    });
+
+    it('reads classificationAxes, dropping invalid parts with a warning each', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(
+            mainData,
+            {
+                classificationAxes: {
+                    stability: {
+                        values: ['stable', 'experimental'],
+                        paths: { 'src/labs/**': 'experimental', 'src/old/**': 'legacy' },
+                        default: 'stable',
+                        kinds: ['component', 'style']
+                    },
+                    'Bad Name': { values: ['x'] }
+                }
+            },
+            makeProgram(),
+            { cwd: '/tmp/test' }
+        );
+        expect(mainData.classificationAxes).toEqual({
+            stability: {
+                label: 'stability',
+                values: ['stable', 'experimental'],
+                paths: { 'src/labs/**': 'experimental' },
+                default: 'stable',
+                kinds: ['component']
+            }
+        });
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledTimes(3);
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'classificationAxes: "stability.kinds" ignores "style" (not a symbol kind)'
         );
     });
 

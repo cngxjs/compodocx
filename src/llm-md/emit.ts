@@ -93,13 +93,30 @@ const renderProperties = (heading: string, props: ReadonlyArray<ExportProperty>)
 const renderMethods = (heading: string, methods: ReadonlyArray<ExportMethod>): string =>
     renderList(heading, methods.map(renderMethod));
 
+/** `Axes: stability=stable, level=atom`; empty without axis values. */
+const axesLine = (axes: Readonly<Record<string, string>> | undefined): string => {
+    const pairs = Object.entries(axes ?? {}).map(([name, value]) => `${name}=${value}`);
+    return pairs.length === 0 ? '' : `Axes: ${escapeMarkdown(pairs.join(', '))}`;
+};
+
+/** The axes line indented under a list item; empty without axis values. */
+const axesSubLine = (axes: Readonly<Record<string, string>> | undefined): string => {
+    const line = axesLine(axes);
+    return line ? `\n  ${line}` : '';
+};
+
 const heroLines = (
-    name: string,
-    file: string | undefined,
+    entity: {
+        readonly name: string;
+        readonly file?: string;
+        readonly axes?: Readonly<Record<string, string>>;
+    },
     extras: ReadonlyArray<string>
 ): string => {
-    const heading = `### ${escapeMarkdown(name)}`;
-    const meta = [fileLine(file), ...extras].filter(s => s.length > 0);
+    const heading = `### ${escapeMarkdown(entity.name)}`;
+    const meta = [fileLine(entity.file), ...extras, axesLine(entity.axes)].filter(
+        s => s.length > 0
+    );
     return meta.length === 0 ? heading : `${heading}\n\n${meta.join('\n')}`;
 };
 
@@ -123,7 +140,7 @@ export const emitComponent = (entity: ExportComponent): string => {
         extras.push(`Deprecated:${dep}`);
     }
     return joinSections([
-        heroLines(entity.name, entity.file, extras),
+        heroLines(entity, extras),
         description,
         renderProperties('Inputs', entity.inputsClass ?? []),
         renderProperties('Outputs', entity.outputsClass ?? []),
@@ -200,7 +217,7 @@ export const emitDirective = (entity: ExportDirective): string => {
         extras.push(`Deprecated:${dep}`);
     }
     return joinSections([
-        heroLines(entity.name, entity.file, extras),
+        heroLines(entity, extras),
         descriptionLine(entity.description),
         renderProperties('Inputs', entity.inputsClass ?? []),
         renderProperties('Outputs', entity.outputsClass ?? []),
@@ -276,7 +293,7 @@ export const emitPipe = (entity: ExportPipe): string => {
         extras.push(`Deprecated:${dep}`);
     }
     return joinSections([
-        heroLines(entity.name, entity.file, extras),
+        heroLines(entity, extras),
         descriptionLine(entity.description),
         renderProperties('Properties', entity.properties ?? []),
         renderMethods('Methods', entity.methods ?? [])
@@ -293,7 +310,7 @@ const emitClassLike = (
         allExtras.push(`Deprecated:${dep}`);
     }
     return joinSections([
-        heroLines(entity.name, entity.file, allExtras),
+        heroLines(entity, allExtras),
         descriptionLine(entity.description),
         renderProperties('Properties', entity.properties ?? []),
         renderMethods('Methods', entity.methods ?? [])
@@ -358,7 +375,7 @@ export const emitFunction = (entity: ExportFunction): string => {
     if (entity.file) {
         lines.push(`  Defined in ${inlineCode(entity.file)}`);
     }
-    return lines.join('\n');
+    return lines.join('\n') + axesSubLine(entity.axes);
 };
 
 export const emitTypeAlias = (entity: ExportTypeAlias): string => {
@@ -367,14 +384,16 @@ export const emitTypeAlias = (entity: ExportTypeAlias): string => {
     const sig = `type ${entity.name}${rhs}`;
     const desc = collapseDescription(entity.description);
     const tail = desc ? ` — ${escapeMarkdown(desc)}` : '';
-    return `- ${inlineCode(sig)}${dep}${tail}`;
+    return `- ${inlineCode(sig)}${dep}${tail}${axesSubLine(entity.axes)}`;
 };
 
 export const emitEnumeration = (entity: ExportEnumeration): string => {
     const dep = deprecatedTail(entity.deprecated, entity.deprecationMessage);
     const headerLine = `- ${inlineCode(`enum ${entity.name}`)}${dep}`;
     const descCollapsed = collapseDescription(entity.description);
-    const desc = descCollapsed ? `${headerLine} — ${escapeMarkdown(descCollapsed)}` : headerLine;
+    const desc =
+        (descCollapsed ? `${headerLine} — ${escapeMarkdown(descCollapsed)}` : headerLine) +
+        axesSubLine(entity.axes);
     const memberLines = (entity.childs ?? []).map(m => {
         const valuePart = m.value ? ` = ${collapseSignatureWhitespace(m.value)}` : '';
         const memberDep = deprecatedTail(m.deprecated, m.deprecationMessage);
@@ -389,5 +408,5 @@ export const emitVariable = (entity: ExportVariable): string => {
     const desc = collapseDescription(entity.description);
     const tail = desc ? ` — ${escapeMarkdown(desc)}` : '';
     const fileTail = entity.file ? `\n  Defined in ${inlineCode(entity.file)}` : '';
-    return `- ${inlineCode(sig)}${dep}${tail}${fileTail}`;
+    return `- ${inlineCode(sig)}${dep}${tail}${fileTail}${axesSubLine(entity.axes)}`;
 };

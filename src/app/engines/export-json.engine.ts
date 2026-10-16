@@ -5,6 +5,7 @@ import pkg from '../../../package.json';
 import { linkedStyleFiles, themingFor } from '../../templates/helpers/theming';
 import { logger } from '../../utils/logger';
 import type { StyleSource } from '../../utils/theme-doc-parser';
+import type { AxisModel } from '../compiler/semantic/axes';
 import type { FamilyLink, Feature, FeatureModel } from '../compiler/semantic/features';
 import {
     compareText,
@@ -19,6 +20,7 @@ import {
 import Configuration from '../configuration';
 import {
     EXPORT_SCHEMA_VERSION,
+    type ExportAxis,
     type ExportComponent,
     type ExportData,
     type ExportDiFacts,
@@ -205,6 +207,12 @@ const featureOfKey = (model: SemanticModel, key: string): Feature | undefined =>
 
 type SymbolEntry = { name?: string; file?: string };
 
+/** A symbol's axis values, by axis name; nothing without values. */
+const exportAxisValues = (model: SemanticModel, key: string): { axes?: Record<string, string> } => {
+    const values = model.axes?.valuesOf.get(key);
+    return values && values.size > 0 ? { axes: Object.fromEntries(values) } : {};
+};
+
 /**
  * A copy of `entry` with its semantic facts appended, joined by file and
  * name; the entry itself when it has none, so it serialises as before.
@@ -220,7 +228,10 @@ export const withSemanticFacts = <T extends SymbolEntry>(
             : undefined;
     const facts = key === undefined ? undefined : model.facts.get(key);
     const feature = key === undefined ? undefined : featureOfKey(model, key);
-    const fields = facts ? exportSemanticFacts(facts, feature) : exportFeatureRef(feature);
+    const fields = {
+        ...(facts ? exportSemanticFacts(facts, feature) : exportFeatureRef(feature)),
+        ...(key === undefined ? {} : exportAxisValues(model, key))
+    };
     return Object.keys(fields).length > 0 ? { ...entry, ...fields } : entry;
 };
 
@@ -351,8 +362,18 @@ export const exportSemantic = (model: SemanticModel): ExportSemantic => ({
         injectionContext: { ...model.summary.injectionContext },
         notExported: model.summary.notExported
     },
-    ...(model.features ? { features: exportFeatures(model.features) } : {})
+    ...(model.features ? { features: exportFeatures(model.features) } : {}),
+    ...(model.axes ? { axes: exportAxes(model.axes) } : {})
 });
+
+const exportAxes = (model: AxisModel): ExportAxis[] =>
+    model.axes.map(axis => ({
+        name: axis.name,
+        label: axis.label,
+        values: axis.values.map(({ value, count }) => ({ value, count })),
+        classified: axis.classified,
+        unclassified: axis.unclassified
+    }));
 
 export class ExportJsonEngine {
     private static instance: ExportJsonEngine;

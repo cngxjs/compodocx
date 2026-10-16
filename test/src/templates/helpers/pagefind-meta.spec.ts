@@ -255,6 +255,24 @@ describe('pagefindFilterBlock', () => {
     });
 });
 
+describe('axis filters', () => {
+    it('emits one axis-<name> span per axis value, escaped', () => {
+        const html = pagefindFilterBlock({
+            kind: 'component',
+            axes: [
+                { name: 'stability', value: 'experimental' },
+                { name: 'level', value: 'a"b' }
+            ]
+        });
+        expect(html).toContain('data-pagefind-filter="axis-stability:experimental"');
+        expect(html).toContain('data-pagefind-filter="axis-level:a&quot;b"');
+    });
+
+    it('emits no axis span without axes', () => {
+        expect(pagefindFilterBlock({ kind: 'component', axes: [] })).not.toContain('axis-');
+    });
+});
+
 describe('feature type pages in search', () => {
     it('marks a feature type page with the cluster kind and the Provider filter', () => {
         expect(pagefindMetaBlock({ kind: 'cluster' })).toBe(

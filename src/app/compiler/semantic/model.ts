@@ -4,6 +4,7 @@
  * provides or reads, and who uses it. Data only; nothing here is rendered.
  */
 
+import type { AxisModel } from './axes';
 import type { FeatureModel } from './features';
 import type { ImportGraph } from './imports';
 
@@ -64,6 +65,14 @@ export interface SymbolFacts {
     readonly usedBy: readonly SymbolKey[];
     /** Key of an `@feature` tag on the declaration. */
     readonly featureTag?: string;
+    /** `@axis` tags on the declaration, as written. */
+    readonly axisTags?: readonly AxisTag[];
+}
+
+/** One `@axis <name> <value>` tag as written; `value` is absent when the tag has one word. */
+export interface AxisTag {
+    readonly name: string;
+    readonly value?: string;
 }
 
 export interface SemanticSummary {
@@ -87,6 +96,8 @@ export interface SemanticModel {
     readonly imports?: ImportGraph;
     /** Features of the documented symbols, derived once the symbols are known. */
     readonly features?: FeatureModel;
+    /** Values of the declared classification axes, derived with the features. */
+    readonly axes?: AxisModel;
 }
 
 /** The one-line build log summary of the semantic stage. */

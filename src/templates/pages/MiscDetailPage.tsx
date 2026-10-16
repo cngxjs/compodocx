@@ -4,6 +4,7 @@ import { hrefFor, hrefText } from '../../app/links/layout';
 import { BlockRoutedAt } from '../blocks/BlockRoutedAt';
 import { ParamsTable } from '../blocks/ParamsTable';
 import { ReferencedBySection } from '../blocks/ReferencedBySection';
+import { AxisBadges, entityAxes } from '../components/AxisBadges';
 import { DiBadges } from '../components/DiBadges';
 import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
 import { IconEnum, IconFile, IconFunction, IconTypealias, IconVariable } from '../components/Icons';
@@ -383,6 +384,7 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
     const item = props.item;
     const tabs = buildTabs(props);
     const feature = entityFeature(props.kind, item);
+    const axes = entityAxes(props.kind, item);
     const searchMeta = pagefindMetaBlock({
         kind: props.kind,
         feature: feature?.feature.label,
@@ -393,7 +395,8 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
         lib: deriveLibFromBucket(item.file),
         feature: feature?.feature.label,
         entryPoint: feature?.feature.entryPoint,
-        wcag: item.wcagLevel
+        wcag: item.wcagLevel,
+        axes
     });
     return (
         <>
@@ -458,6 +461,7 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                     {item.signal && <span class="cdx-badge cdx-badge--signal">Signal</span>}
                     {DiBadges({ facts: symbolFacts(Configuration.mainData, props.kind, item) })}
                     {WcagBadge({ wcagLevel: item.wcagLevel })}
+                    {AxisBadges({ axes })}
                 </div>
                 {props.contextLine && <p class="cdx-entity-hero-context">{props.contextLine}</p>}
                 {item.deprecated && item.deprecationMessage && (
