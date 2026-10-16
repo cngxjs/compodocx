@@ -5,7 +5,9 @@ import { ts } from 'ts-morph';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import {
+    analyzeDi,
     buildSemanticModel,
+    collectDeclarations,
     createSemanticProgram,
     formatSemanticSummary,
     isProviderType,
@@ -13,6 +15,7 @@ import {
     type SemanticModel,
     type SymbolFacts
 } from '../../../../../src/app/compiler/semantic';
+import { memoryProgram } from '../../routing/program';
 
 const CWD = process.cwd();
 const FIXTURE = path.join(CWD, 'test/fixtures/semantic-library');
@@ -186,6 +189,56 @@ describe('dependency injection facts', () => {
             key(INJECT, 'injectFoo'),
             key(INJECT, 'injectViaMethod')
         ]);
+    });
+});
+
+describe('tokens a provider provides through called functions', () => {
+    const FILE = '/p/providers.ts';
+    const SOURCE = `
+export const A = new InjectionToken('a');
+export const B = new InjectionToken('b');
+export const C = new InjectionToken('c');
+const innerHelper = () => [{ provide: C, useValue: 3 }];
+function helper() {
+    return [{ provide: B, useValue: 2 }, innerHelper()];
+}
+const helperOfHelper = () => helper();
+export function provideLimit(): Provider {
+    return { provide: C, useValue: 3 };
+}
+export function provideWithHelper(): Provider[] {
+    return [{ provide: A, useValue: 1 }, helper()];
+}
+export function provideWithHelperOfHelper(): Provider[] {
+    return [helperOfHelper()];
+}
+export function provideWithProvider(): Provider[] {
+    return [{ provide: A, useValue: 1 }, provideLimit()];
+}
+`;
+    let di: ReturnType<typeof analyzeDi>['di'];
+    const provides = (name: string) =>
+        di.get(`p/providers.ts#${name}`)?.providesTokens.map(k => k.name);
+
+    beforeAll(() => {
+        const program = memoryProgram({ [FILE]: SOURCE });
+        const checker = program.getTypeChecker();
+        const sourceFiles = [program.getSourceFile(FILE)].filter(
+            (sf): sf is ts.SourceFile => sf !== undefined
+        );
+        di = analyzeDi(collectDeclarations(sourceFiles, checker, '/'), checker, () => true).di;
+    });
+
+    it('adds the tokens of a helper function the provider calls', () => {
+        expect(provides('provideWithHelper')).toEqual(['A', 'B']);
+    });
+
+    it('does not follow a helper of a helper', () => {
+        expect(provides('provideWithHelperOfHelper')).toEqual([]);
+    });
+
+    it('keeps the tokens of a called provider', () => {
+        expect(provides('provideWithProvider')).toEqual(['A', 'C']);
     });
 });
 

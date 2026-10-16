@@ -163,6 +163,10 @@ const functionInitializer = (initializer: ts.Expression | undefined): FunctionNo
         : undefined;
 };
 
+const isFunctionNode = (node: ScopeOwner | undefined): node is FunctionNode =>
+    node !== undefined &&
+    (ts.isFunctionDeclaration(node) || ts.isArrowFunction(node) || ts.isFunctionExpression(node));
+
 /** The declaration a callee resolves to, when it has a body this run analyses. */
 const calleeOwner = (
     declaration: ts.Declaration,
@@ -294,8 +298,8 @@ export const analyzeDi = (
         exportedFunctions.filter(d => !providerSet.has(d) && featureTypeOf.has(d))
     );
 
-    // Tokens a provider provides: `provide: X` in its body, plus those of providers it calls.
-    const ownProvided = (provider: FunctionDeclarationEntry): readonly SymbolKey[] => {
+    // Tokens a provider provides: `provide: X` in its body, plus those of the functions it calls.
+    const ownProvided = (fn: FunctionNode): readonly SymbolKey[] => {
         const keys: SymbolKey[] = [];
         const walk = (node: ts.Node): void => {
             if (ts.isPropertyAssignment(node) && node.name.getText() === 'provide') {
@@ -306,8 +310,8 @@ export const analyzeDi = (
             }
             ts.forEachChild(node, walk);
         };
-        if (provider.fn.body) {
-            walk(provider.fn.body);
+        if (fn.body) {
+            walk(fn.body);
         }
         return keys;
     };
@@ -320,8 +324,7 @@ export const analyzeDi = (
             if (ts.isCallExpression(node)) {
                 const callee = (symbolOf(node.expression)?.declarations ?? [])
                     .map(d => calleeOwner(d, isRootFile))
-                    .map(o => (o ? providerByNode.get(o) : undefined))
-                    .find(p => p !== undefined && p !== provider);
+                    .find((o): o is FunctionNode => isFunctionNode(o) && o !== provider.fn);
                 if (callee) {
                     called.push(...ownProvided(callee));
                 }
@@ -331,7 +334,7 @@ export const analyzeDi = (
         if (provider.fn.body) {
             walk(provider.fn.body);
         }
-        return sortedKeys([...ownProvided(provider), ...called]);
+        return sortedKeys([...ownProvided(provider.fn), ...called]);
     };
 
     // Per-declaration facts.
