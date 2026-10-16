@@ -223,6 +223,7 @@ export const TRANSLATION_ZH_CN = {
     configuration: '配置',
     constants: '常量',
     more: '更多',
+    'on-this-page': '本页内容',
     'feature-detector-config': '在配置中设置',
     'feature-detector-tag': '由 @feature 设置',
     'feature-detector-cohesion': '从导入检测',

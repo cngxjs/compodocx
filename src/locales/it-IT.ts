@@ -225,6 +225,7 @@ export const TRANSLATION_IT_IT = {
     configuration: 'Configurazione',
     constants: 'Costanti',
     more: 'Altro',
+    'on-this-page': 'In questa pagina',
     'feature-detector-config': 'Impostato nella configurazione',
     'feature-detector-tag': 'Impostato da @feature',
     'feature-detector-cohesion': 'Rilevato dagli import',

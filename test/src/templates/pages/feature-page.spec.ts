@@ -196,6 +196,42 @@ describe('feature page', () => {
     });
 });
 
+const jumpLinks = (html: string): [string, string][] =>
+    [
+        ...html.matchAll(
+            /<a class="cdx-feature-jump-link" href="#([^"]+)">[^<]*<span class="cdx-badge cdx-badge--count">(\d+)<\/span>/g
+        )
+    ].map(m => [m[1], m[2]]);
+
+describe('feature page jump bar', () => {
+    it('links every non-empty section in page order with its count', () => {
+        const html = render(ROOT);
+        expect(html).toContain('<nav class="cdx-feature-jump" aria-label="On this page">');
+        expect(jumpLinks(html)).toEqual([
+            ['features', '1'],
+            ['components-and-directives', '2'],
+            ['services', '1'],
+            ['utilities', '1'],
+            ['types', '1']
+        ]);
+        expect(html.indexOf('class="cdx-feature-jump"')).toBeLessThan(
+            html.indexOf('id="overview"')
+        );
+    });
+
+    it('skips absent sections and points every link at a section on the page', () => {
+        const html = render(MENU);
+        expect(jumpLinks(html)).toEqual([['constants', '1']]);
+        for (const [id] of jumpLinks(render(ROOT))) {
+            expect(sectionIds(render(ROOT))).toContain(id);
+        }
+    });
+
+    it('renders no jump bar without member sections', () => {
+        expect(render(FIELD)).not.toContain('cdx-feature-jump');
+    });
+});
+
 describe('FeaturePage - Theming section with style files', () => {
     const KIT = '@x/kit#';
     const kitEngine = {
@@ -271,6 +307,11 @@ describe('FeaturePage - Theming section with style files', () => {
         expect(html).toMatch(
             /class="cdx-feature-design-tokens"><a href="[^"]*design-tokens\.html"/
         );
+    });
+
+    it('links the Theming section from the jump bar only when it is rendered', () => {
+        expect(renderKit(true)).toContain('class="cdx-feature-jump-link" href="#theming"');
+        expect(renderKit(false)).not.toContain('href="#theming"');
     });
 
     it('renders no Theming section without style files and no themed member', () => {

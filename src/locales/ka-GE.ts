@@ -224,6 +224,7 @@ export const TRANSLATION_KA_GE = {
     configuration: 'კონფიგურაცია',
     constants: 'მუდმივები',
     more: 'სხვა',
+    'on-this-page': 'ამ გვერდზე',
     'feature-detector-config': 'მითითებულია კონფიგურაციაში',
     'feature-detector-tag': 'მითითებულია @feature-ით',
     'feature-detector-cohesion': 'ამოცნობილია import-ებიდან',

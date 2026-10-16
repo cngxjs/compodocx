@@ -224,6 +224,7 @@ export const TRANSLATION_SK_SK = {
     configuration: 'Konfigurácia',
     constants: 'Konštanty',
     more: 'Ďalšie',
+    'on-this-page': 'Na tejto stránke',
     'feature-detector-config': 'Nastavené v konfigurácii',
     'feature-detector-tag': 'Nastavené cez @feature',
     'feature-detector-cohesion': 'Zistené z importov',

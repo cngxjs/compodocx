@@ -225,6 +225,7 @@ export const TRANSLATION_HU_HU = {
     configuration: 'Konfiguráció',
     constants: 'Konstansok',
     more: 'Továbbiak',
+    'on-this-page': 'Ezen az oldalon',
     'feature-detector-config': 'A konfigurációban megadva',
     'feature-detector-tag': '@feature által megadva',
     'feature-detector-cohesion': 'Importokból felismerve',

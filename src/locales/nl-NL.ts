@@ -225,6 +225,7 @@ export const TRANSLATION_NL_NL = {
     configuration: 'Configuratie',
     constants: 'Constanten',
     more: 'Meer',
+    'on-this-page': 'Op deze pagina',
     'feature-detector-config': 'Ingesteld in de configuratie',
     'feature-detector-tag': 'Ingesteld via @feature',
     'feature-detector-cohesion': 'Afgeleid uit imports',

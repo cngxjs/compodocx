@@ -223,6 +223,7 @@ export const TRANSLATION_ZH_TW = {
     configuration: '組態',
     constants: '常數',
     more: '更多',
+    'on-this-page': '本頁內容',
     'feature-detector-config': '在組態中設定',
     'feature-detector-tag': '由 @feature 設定',
     'feature-detector-cohesion': '從匯入偵測',

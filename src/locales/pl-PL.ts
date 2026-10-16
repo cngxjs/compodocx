@@ -224,6 +224,7 @@ export const TRANSLATION_PL_PL = {
     configuration: 'Konfiguracja',
     constants: 'Stałe',
     more: 'Więcej',
+    'on-this-page': 'Na tej stronie',
     'feature-detector-config': 'Ustawione w konfiguracji',
     'feature-detector-tag': 'Ustawione przez @feature',
     'feature-detector-cohesion': 'Wykryte z importów',
