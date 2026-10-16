@@ -1,4 +1,5 @@
 import { COMPODOC_DEFAULTS } from '../utils/defaults';
+import { DEFAULT_MENU_FEATURE_SECTIONS } from '../utils/menu-feature-sections';
 import {
     DEFAULT_FEATURE_CONTAINERS,
     DEFAULT_FEATURE_ROLE_FOLDERS,
@@ -158,6 +159,7 @@ export class Configuration implements ConfigurationInterface {
         featuresName: 'Features',
         referencesName: 'References',
         collapsedAll: false,
+        menuFeatureSections: DEFAULT_MENU_FEATURE_SECTIONS,
         generatedAt: ''
     };
 

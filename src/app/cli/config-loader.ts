@@ -9,6 +9,7 @@ import { parseJsonIndent } from '../../utils/json-indent.util';
 import { logger } from '../../utils/logger';
 import { parseMaxSearchResults } from '../../utils/max-search-results.util';
 import { parseMaxVersionsShown } from '../../utils/max-versions-shown.util';
+import { parseMenuFeatureSections } from '../../utils/menu-feature-sections';
 import { parseAxesConfig } from '../compiler/semantic/axes';
 import { isFeatureKey } from '../compiler/semantic/features';
 import I18nEngine from '../engines/i18n.engine';
@@ -187,6 +188,24 @@ function applyAxesConfig(
         logger.warn(warning);
     }
     mainData.classificationAxes = parsed.axes;
+}
+
+/**
+ * `menuFeatureSections` from the config file over the defaults. An unknown
+ * role or value warns once and is dropped; the run goes on.
+ */
+function applyMenuFeatureSections(
+    configFile: Partial<ConfigurationFileInterface>,
+    mainData: MainDataInterface
+): void {
+    if (configFile.menuFeatureSections === undefined) {
+        return;
+    }
+    const parsed = parseMenuFeatureSections(configFile.menuFeatureSections);
+    for (const warning of parsed.warnings) {
+        logger.warn(warning);
+    }
+    mainData.menuFeatureSections = parsed.sections;
 }
 
 /**
@@ -887,6 +906,7 @@ export function applyConfigToMainData(
 
     applyFeatureConfig(configFile, mainData);
     applyAxesConfig(configFile, mainData);
+    applyMenuFeatureSections(configFile, mainData);
     applyStyleFilesConfig(configFile, mainData, sources);
 
     if (configFile.featuresName !== undefined) {

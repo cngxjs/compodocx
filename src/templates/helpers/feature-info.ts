@@ -5,6 +5,11 @@ import { type EntityWithKind, PRIMARY_KINDS } from '../../app/engines/dependenci
 import { featureSegments } from '../../app/links/feature-paths';
 import { presentationKind, type TableKind, toSymbolKey } from '../../app/links/symbol-id';
 import { entryInFile, type SymbolEntry, type SymbolTable } from '../../app/links/symbol-table';
+import {
+    DEFAULT_MENU_FEATURE_SECTIONS,
+    type MenuFeatureSections,
+    type MenuPlacement
+} from '../../utils/menu-feature-sections';
 import { sectionOf } from './feature-sections';
 
 /** A feature with the segments of its page. */
@@ -149,21 +154,6 @@ export const featureGroups = (
     }
     groupCache.set(table, groups);
     return groups;
-};
-
-/** Member roles whose place in the feature sidebar is configurable. */
-export type MenuRole = 'configuration' | 'utilities' | 'constants' | 'types';
-
-/** Own node, inside "More", flat at the feature's top level, or not in the sidebar. */
-export type MenuPlacement = 'own' | 'more' | 'top' | 'hidden';
-
-export type MenuFeatureSections = Readonly<Record<MenuRole, MenuPlacement>>;
-
-export const DEFAULT_MENU_FEATURE_SECTIONS: MenuFeatureSections = {
-    configuration: 'own',
-    utilities: 'more',
-    constants: 'more',
-    types: 'more'
 };
 
 /** Role nodes in sidebar order; non-primary classes always go into "More". */

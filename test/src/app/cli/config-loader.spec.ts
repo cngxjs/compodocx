@@ -25,6 +25,7 @@ vi.mock('../../../../src/app/engines/i18n.engine', () => ({
 import { applyConfigToMainData, loadConfigFile } from '../../../../src/app/cli/config-loader';
 import type { MainDataInterface } from '../../../../src/app/interfaces/main-data.interface';
 import { logger } from '../../../../src/utils/logger';
+import { DEFAULT_MENU_FEATURE_SECTIONS } from '../../../../src/utils/menu-feature-sections';
 
 const makeMainData = (): MainDataInterface => {
     return {
@@ -461,6 +462,61 @@ describe('applyConfigToMainData', () => {
         expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
             'classificationAxes: "stability.kinds" ignores "style" (not a symbol kind)'
         );
+    });
+
+    describe('menuFeatureSections', () => {
+        const apply = (menuFeatureSections: unknown) => {
+            const mainData = makeMainData();
+            mainData.menuFeatureSections = DEFAULT_MENU_FEATURE_SECTIONS;
+            applyConfigToMainData(mainData, { menuFeatureSections } as never, makeProgram(), {
+                cwd: '/tmp/test'
+            });
+            return mainData.menuFeatureSections;
+        };
+
+        it('keeps the defaults without the key', () => {
+            const mainData = makeMainData();
+            mainData.menuFeatureSections = DEFAULT_MENU_FEATURE_SECTIONS;
+            applyConfigToMainData(mainData, {}, makeProgram(), { cwd: '/tmp/test' });
+            expect(mainData.menuFeatureSections).toEqual({
+                configuration: 'own',
+                utilities: 'more',
+                constants: 'more',
+                types: 'more'
+            });
+            expect(vi.mocked(logger.warn)).not.toHaveBeenCalled();
+        });
+
+        it('reads valid placements and keeps the default for missing roles', () => {
+            expect(apply({ types: 'hidden', configuration: 'top' })).toEqual({
+                configuration: 'top',
+                utilities: 'more',
+                constants: 'more',
+                types: 'hidden'
+            });
+            expect(vi.mocked(logger.warn)).not.toHaveBeenCalled();
+        });
+
+        it('drops an unknown role and an unknown value with one warning each', () => {
+            expect(apply({ types: 'nope', foo: 'more', constants: 'own' })).toEqual({
+                configuration: 'own',
+                utilities: 'more',
+                constants: 'own',
+                types: 'more'
+            });
+            expect(vi.mocked(logger.warn)).toHaveBeenCalledTimes(2);
+            expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+                'menuFeatureSections.types: unknown value "nope" ignored (expected own, more, top, hidden)'
+            );
+            expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+                'menuFeatureSections: unknown role "foo" ignored (expected configuration, utilities, constants, types)'
+            );
+        });
+
+        it('ignores a value that is not an object', () => {
+            expect(apply('hidden')).toEqual(DEFAULT_MENU_FEATURE_SECTIONS);
+            expect(vi.mocked(logger.warn)).toHaveBeenCalledTimes(1);
+        });
     });
 
     it('collapsedAll: true propagates from config', () => {

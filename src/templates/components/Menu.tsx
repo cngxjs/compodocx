@@ -1200,7 +1200,7 @@ export const Menu = (props: MenuProps): string => {
                     <>
                         {CachedFeatureSection(
                             {
-                                ...featureMenu(d.semantic, d.symbols, d.di),
+                                ...featureMenu(d.semantic, d.symbols, d.di, d.menuFeatureSections),
                                 pages: featurePagePaths(d.semantic),
                                 first: appRootPath(d.semantic),
                                 groupDepth: GROUP_EXPAND_DEPTH,

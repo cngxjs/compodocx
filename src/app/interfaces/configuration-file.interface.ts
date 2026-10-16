@@ -83,6 +83,8 @@ export interface ConfigurationFileInterface {
     classificationAxes: Record<string, unknown>;
     styleFiles: string[];
     collapsedAll: boolean;
+    /** Role -> placement; validated (warn and drop) by the config loader. */
+    menuFeatureSections: Record<string, unknown>;
     featuresName: string;
     referencesName: string;
     playgroundDependencies: Record<string, string>;

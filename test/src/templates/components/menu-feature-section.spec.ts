@@ -320,6 +320,30 @@ describe('Menu — feature layout', () => {
             expect(html).to.not.include(`id="${id}-more-classes"`);
         });
 
+        it('follows menuFeatureSections: top, hidden and own per role', () => {
+            const html = Menu({
+                data: featureData(engine, [FORMS], {
+                    di,
+                    menuFeatureSections: {
+                        configuration: 'top',
+                        utilities: 'own',
+                        constants: 'more',
+                        types: 'hidden'
+                    }
+                })
+            });
+            const top = topOf(html);
+            expect(top).to.include(`href="${pageOf('token', 'FORMS_CONFIG')}"`);
+            expect(top.split(`href="${clusterPage('FormsFeature')}"`)).toHaveLength(2);
+            expect(html).to.not.include(`id="${id}-configuration"`);
+            expect(nodeOf(html, 'utilities')).to.include(
+                `href="${pageOf('function', 'formatValue')}"`
+            );
+            expect(html).to.include(`id="${id}-more-constants"`);
+            expect(html).to.not.include(`id="${id}-more-types"`);
+            expect(html).to.not.include(`href="${pageOf('interface', 'FieldOptions')}"`);
+        });
+
         it('renders no empty node', () => {
             const html = Menu({ data: featureData(BUTTON, [BUTTON_FEATURE]) });
             expect(html).to.not.include('id="features-group-ui/button-configuration"');
