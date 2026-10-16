@@ -219,7 +219,10 @@ describe('FeaturePage - Theming section with style files', () => {
         ]),
         themeResolver(base)
     ).model;
-    const symbols = withStyleEntries(base, styles.files.filter(hasStylePage));
+    const symbols = withStyleEntries(
+        base,
+        styles.files.filter(file => hasStylePage(file, []))
+    );
     const kitSemantic: SemanticModel = {
         ...emptyModel(),
         features: {

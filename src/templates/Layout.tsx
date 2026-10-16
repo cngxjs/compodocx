@@ -314,6 +314,8 @@ const pageTitle = (data: PageData): string => {
 export const Layout = (props: LayoutProps): string => {
     const { data, content, menuHtml } = props;
     const r = (path: string) => relativeUrl(data.depth, path);
+    // A custom or named theme is locked: no picker, and no stored choice may swap it.
+    const themePicker = !data.theme || ['default', 'gitbook'].includes(data.theme);
 
     return ('<!doctype html>\n' +
     (
@@ -341,7 +343,9 @@ export const Layout = (props: LayoutProps): string => {
                     }
                     data-base={r('')}
                 />
-                <script>{`(function(){try{var t=localStorage.getItem('compodocx-theme')||localStorage.getItem('compodoc-theme');if(t&&t!=='default'){var l=document.getElementById('cdx-theme-link');if(l)l.href=l.getAttribute('data-base')+'styles/'+t+'.css'}}catch(e){}}())`}</script>
+                {themePicker && (
+                    <script>{`(function(){try{var t=localStorage.getItem('compodocx-theme')||localStorage.getItem('compodoc-theme');if(t&&t!=='default'){var l=document.getElementById('cdx-theme-link');if(l)l.href=l.getAttribute('data-base')+'styles/'+t+'.css'}}catch(e){}}())`}</script>
+                )}
             </head>
             <body>
                 <script type="module" src={r('js/compodocx.js')}></script>
@@ -373,7 +377,7 @@ export const Layout = (props: LayoutProps): string => {
                                 {IconSearch()}
                             </button>
                         )}
-                        {!data.theme || ['default', 'gitbook'].includes(data.theme) ? (
+                        {themePicker ? (
                             <div class="cdx-theme-picker" data-cdx-theme-picker>
                                 <button
                                     type="button"

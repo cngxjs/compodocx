@@ -345,4 +345,55 @@ describe('CLI Theming tab generation', () => {
             expect(stdout).to.match(/projects\/kit\/theming\/tokens\.css:\d+ @todo/);
         });
     });
+
+    describe('when themingTabSections hides the mixins', () => {
+        const hiddenDist = `${tmp.name}-style-files-no-mixins`;
+        const hiddenFixture = `${tmp.name}-style-files-no-mixins-fixture`;
+        let stdout: string;
+
+        beforeAll(() => {
+            tmp.create(hiddenDist);
+            fs.cpSync(path.resolve('test/fixtures/style-library'), hiddenFixture, {
+                recursive: true
+            });
+            const config = path.join(hiddenFixture, '.compodocxrc.json');
+            fs.writeFileSync(
+                config,
+                JSON.stringify({
+                    ...JSON.parse(fs.readFileSync(config, 'utf8')),
+                    themingTabSections: ['overview', 'index', 'tokens']
+                })
+            );
+            const ls = shell('node', [
+                './bin/index-cli.js',
+                '-c',
+                config,
+                '-p',
+                path.join(hiddenFixture, 'tsconfig.json'),
+                '--disableSearch',
+                '--no-multiVersion',
+                '-d',
+                hiddenDist
+            ]);
+            if (hasStderrError(ls.stderr.toString())) {
+                console.error(`shell error: ${ls.stderr.toString()}`);
+                throw new Error('error');
+            }
+            stdout = ls.stdout.toString();
+        });
+
+        afterAll(() => {
+            tmp.clean(hiddenDist);
+            tmp.clean(hiddenFixture);
+        });
+
+        it('drops the page of the file that documents only mixins', () => {
+            expect(stdout).to.match(/Style files: 5 \(2 pages, /);
+            const pages = pagesIn(hiddenDist);
+            for (const name of ['tokens', 'card-theme']) {
+                expect(exists(`${hiddenDist}/${pages.of('style', name)}`)).to.be.true;
+            }
+            expect(() => pages.of('style', '_bridge')).to.throw();
+        });
+    });
 });

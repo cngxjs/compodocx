@@ -95,6 +95,7 @@
         "src/resources/",
         "src/data/",
         "src/banner",
+        "src/config/schema.json",
         "README.md",
         "LICENSE",
         "CHANGELOG.md",

@@ -28,7 +28,12 @@ interface BlockResult {
     readonly removed: number;
 }
 
-/** One JSDoc block without the removed tags; `''` when nothing is left. */
+/**
+ * One JSDoc block without the removed tags; `''` when nothing is left. A
+ * removed tag takes only its own line: the lines below it belong to whatever
+ * precedes the tag. A blank line right after a removed tag goes too when the
+ * tag stood after a blank line or first in the block.
+ */
 const stripBlock = (block: string): BlockResult => {
     if (!block.includes('\n')) {
         const inner = block.slice(3, -2).trim();
@@ -38,22 +43,29 @@ const stripBlock = (block: string): BlockResult => {
     const last = lines.length - 1;
     const kept: string[] = [];
     let removed = 0;
-    let dropping = false;
+    let afterTag = false;
+    let dropBlank = false;
     let droppedBeforeEnd = false;
     for (let i = 0; i < lines.length; i++) {
-        const text = i === 0 || i === last ? '' : lineText(lines[i]);
-        if (i > 0 && i < last && REMOVED.test(text)) {
-            dropping = true;
+        const inner = i > 0 && i < last;
+        const text = inner ? lineText(lines[i]) : '';
+        if (inner && REMOVED.test(text)) {
+            if (!afterTag) {
+                dropBlank = lineText(kept[kept.length - 1]) === '';
+            }
+            afterTag = true;
             removed++;
             continue;
         }
-        if (dropping && i < last && !text.startsWith('@')) {
+        if (afterTag && inner && dropBlank && isBlankStarLine(lines[i])) {
+            afterTag = false;
+            droppedBeforeEnd = i === last - 1;
             continue;
         }
-        if (i === last && dropping) {
+        if (i === last && afterTag) {
             droppedBeforeEnd = true;
         }
-        dropping = false;
+        afterTag = false;
         kept.push(lines[i]);
     }
     if (removed === 0) {
@@ -69,8 +81,7 @@ const stripBlock = (block: string): BlockResult => {
 };
 
 /**
- * `source` without `@category` / `@docsKind` tags (each with its continuation
- * lines up to the next tag or the end of the comment). A JSDoc block left
+ * `source` without `@category` / `@docsKind` tag lines. A JSDoc block left
  * empty is dropped with its line; everything else stays byte-identical.
  */
 export const stripRemovedJsdocTags = (file: string, source: string): JsdocStripResult => {

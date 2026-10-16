@@ -9,6 +9,7 @@ import {
     buildStyleModel,
     discoverStyleFiles,
     formatListedNote,
+    formatListedThemes,
     formatStyleSummary,
     formatThemeProblem,
     resolveThemes,
@@ -123,8 +124,8 @@ export const deriveStyles = (
     };
 };
 
-/** The build log of a styles run. */
-export const logStyles = (run: StylesRun): void => {
+/** The build log of a styles run; `sections` = `themingTabSections`. */
+export const logStyles = (run: StylesRun, sections: readonly string[] | undefined): void => {
     if (run.ignored.length > 0) {
         logger.warn(
             `styleFiles: ${run.ignored.length} matched files are not .css or .scss; ignored: ` +
@@ -138,7 +139,10 @@ export const logStyles = (run: StylesRun): void => {
     for (const problem of run.problems) {
         logger.warn(formatThemeProblem(problem));
     }
-    logger.info(formatStyleSummary(run.model));
+    for (const listed of run.model.listedThemes) {
+        logger.warn(formatListedThemes(listed));
+    }
+    logger.info(formatStyleSummary(run.model, sections));
     const note = formatListedNote(run.model);
     if (note) {
         logger.info(note);

@@ -148,7 +148,10 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
     { key: 'feature', when: always, run: step(ctx => ctx.generators.feature.prepare()) },
     {
         key: 'style',
-        when: ctx => (ctx.config.mainData.styles?.files ?? []).some(hasStylePage),
+        when: ({ config: { mainData } }) =>
+            (mainData.styles?.files ?? []).some(file =>
+                hasStylePage(file, mainData.themingTabSections)
+            ),
         run: step(ctx => ctx.generators.style.prepare())
     },
     {
