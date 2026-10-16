@@ -73,7 +73,7 @@ These file names correspond to page contexts. Place them in `partials/` inside y
 | `design-tokens.js` | Design tokens page, `design-tokens.html` (root). Receives the main data plus `data.groups = { name, id, tokens: { id, name, type, defaultValue, description, deprecated, file, href? }[] }[]` (default group first, then by name; `id` is the anchor, `group-<slug>` / `token-<name>`, `href` links the defining file's style page) and `data.depth` (always `0`). Only generated when a style file that themes no symbol has documented tokens |
 | `api-reference.js` | Single-page exhaustive symbol portal at `references.html`. Only emitted under `menuLayout: 'feature'`. Sections come from the feature model on `data.semantic.features`, one per feature, keyed by the feature's page path (`forms/select`, `forms/select/menu`) |
 | `app-config.js` | Application configuration page, `app-config.html` (root). Receives the main data plus `data.appConfig = { name, file, description?, providers: { name, features }[], since?, zoneless? }[]` (one entry per `ApplicationConfig`) |
-| `menu.js` | Sidebar navigation menu. Receives the main data, including `data.menuLayout`, the symbol table (`data.symbols`) and the feature model (`data.semantic.features`) |
+| `menu.js` | Sidebar navigation menu. Rendered once per run and shared by every page (see below). Receives the main data, including `data.menuLayout`, the symbol table (`data.symbols`) and the feature model (`data.semantic.features`), with `data.depth` `0` and `data.context` `'menu'` |
 | `version-switcher.js` | Topbar version-switcher dropdown (multi-version mode only). Receives the manifest URL and current label |
 
 Block-level overrides replace a region inside a page rather than the whole page:
@@ -173,6 +173,8 @@ data.component.sourceCode // source code string
 ```
 
 For the menu override, `data` contains the full main data with all components, directives, etc. `data.menuLayout` reflects the configured sidebar layout (`'feature'` or `'type'`); the feature model (`data.semantic.features`: features, `featureOf` by symbol, family links) drives both.
+
+The menu is rendered once per run, not once per page: the result is written to `js/menu.js` (one per version folder in multi-version output), and every page loads that script right after its sidebar element, with a content hash in the `?v=` query so a redeploy never serves a stale menu. The override therefore always sees the root data (`data.depth` is `0`, `data.context` is `'menu'`) and never the data of a single page. Write links as paths from the documentation root without a `./` or `../` prefix (for example `components/MyComponent.html`) and give the anchor a `data-type` attribute (any value, the built-in menu uses `entity-link` and `chapter-link`); the client then adds the prefix for the current page. Links that start with `/` or `http` are left as they are. Pages have no sidebar menu when JavaScript is off.
 
 ## Migrating from Handlebars templates
 

@@ -11,8 +11,7 @@ const render = (extra: Record<string, unknown>) =>
             name: 'index',
             ...extra
         },
-        content: '',
-        menuHtml: ''
+        content: ''
     });
 
 describe('command palette axes attribute', () => {

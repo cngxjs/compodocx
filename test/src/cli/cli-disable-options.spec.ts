@@ -1,4 +1,5 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 import { pagesIn } from '../helpers/pages';
 import { readKindPages } from './paths';
 
@@ -383,7 +384,7 @@ describe('CLI disable flags', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not generate the dependencies list', () => {
-            const file = read(`${distFolder}/index.html`);
+            const file = menuOf(distFolder);
             expect(file).not.to.contain('href="dependencies.html"');
         });
     });
@@ -409,7 +410,7 @@ describe('CLI disable flags', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not generate the properties list', () => {
-            const file = read(`${distFolder}/index.html`);
+            const file = menuOf(distFolder);
             expect(file).not.to.contain('href="properties.html"');
         });
     });
@@ -579,7 +580,7 @@ describe('CLI disable flags', () => {
         });
 
         it('should not display overview link in menu', () => {
-            menuFile = read(`${distFolder}/index.html`);
+            menuFile = menuOf(distFolder);
             expect(menuFile).not.to.contain('href="overview.html"');
             expect(menuFile).not.to.contain('ion-ios-keypad');
         });
@@ -592,7 +593,7 @@ describe('CLI disable flags', () => {
         });
 
         it('should still display other menu items', () => {
-            menuFile = read(`${distFolder}/index.html`);
+            menuFile = menuOf(distFolder);
             expect(menuFile).to.contain('href="app-config.html"');
             // Ionicons (`ion-ios-archive`) replaced by Lucide SVGs — assert
             // on the cdx-icon class on the inline `<svg>` next to the link.
@@ -600,7 +601,7 @@ describe('CLI disable flags', () => {
         });
 
         it('should properly handle menu structure without overview', () => {
-            menuFile = read(`${distFolder}/index.html`);
+            menuFile = menuOf(distFolder);
             // Should not contain the overview section in the getting-started chapter
             expect(menuFile).not.to.contain(
                 '<span class="icon ion-ios-keypad"></span>{{t "overview"}}'
@@ -640,7 +641,7 @@ describe('CLI disable flags', () => {
         });
 
         it('should not display overview link in menu without README', () => {
-            menuFile = read(`${distFolder}/index.html`);
+            menuFile = menuOf(distFolder);
             expect(menuFile).not.to.contain(
                 '<span class="icon ion-ios-keypad"></span>{{t "overview"}}'
             );
@@ -697,7 +698,7 @@ describe('CLI disable flags', () => {
         });
 
         it('should not display overview link in menu but show additional documentation', () => {
-            menuFile = read(`${additionalTestFolder}/index.html`);
+            menuFile = menuOf(additionalTestFolder);
             expect(menuFile).to.not.contain('href="overview.html"');
             expect(menuFile).to.contain('Additional Documentation');
             expect(menuFile).to.contain('href="additional-documentation/big-introduction.html"');
@@ -712,7 +713,7 @@ describe('CLI disable flags', () => {
         });
 
         it('should maintain nested additional documentation structure', () => {
-            menuFile = read(`${additionalTestFolder}/index.html`);
+            menuFile = menuOf(additionalTestFolder);
             expect(menuFile).to.contain(
                 'href="additional-documentation/edition/edition-of-a-todo.html"'
             );
@@ -725,7 +726,7 @@ describe('CLI disable flags', () => {
         });
 
         it('should handle deep nesting levels correctly without overview', () => {
-            menuFile = read(`${additionalTestFolder}/index.html`);
+            menuFile = menuOf(additionalTestFolder);
             // Should contain up to level 5 but not level 6
             expect(menuFile).to.contain('for-chapter2');
             expect(menuFile).to.contain('for-chapter3');
@@ -735,7 +736,7 @@ describe('CLI disable flags', () => {
         });
 
         it('should generate correct additional documentation links without overview interference', () => {
-            menuFile = read(`${additionalTestFolder}/index.html`);
+            menuFile = menuOf(additionalTestFolder);
             [
                 'href="additional-documentation/edition/edition-of-a-todo/edit-level3.html',
                 'href="additional-documentation/edition/edition-of-a-todo/edit-level3/edit-level4.html',
@@ -752,8 +753,8 @@ describe('CLI disable flags', () => {
             const indexExists = exists(`${additionalTestFolder}/index.html`);
             expect(indexExists).to.be.true;
 
-            // Verify the standard pages don't contain overview links
-            const indexFile = read(`${additionalTestFolder}/index.html`);
+            // Verify the shared menu does not contain overview links
+            const indexFile = menuOf(additionalTestFolder);
             expect(indexFile).to.not.contain('href="overview.html"');
         });
     });
@@ -806,8 +807,8 @@ describe('CLI disable flags', () => {
                 throw new Error('error');
             }
 
-            withOverviewMenuFile = read(`${withOverviewFolder}/index.html`);
-            withoutOverviewMenuFile = read(`${withoutOverviewFolder}/index.html`);
+            withOverviewMenuFile = menuOf(withOverviewFolder);
+            withoutOverviewMenuFile = menuOf(withoutOverviewFolder);
         });
 
         afterAll(() => {

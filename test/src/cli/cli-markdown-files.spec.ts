@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 
 const tmp = temporaryDir();
 
@@ -60,7 +61,7 @@ describe('CLI Markdown files generation', () => {
                 throw new Error('error');
             }
             stdoutString = ls.stdout.toString();
-            menuFile = read(`${distFolder}/index.html`);
+            menuFile = menuOf(distFolder);
         });
 
         afterAll(() => {
@@ -142,7 +143,7 @@ describe('CLI Markdown files generation', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            menuFile = read(`${distFolder}-regression/index.html`);
+            menuFile = menuOf(`${distFolder}-regression`);
         });
 
         afterAll(() => tmp.clean(`${distFolder}-regression`));

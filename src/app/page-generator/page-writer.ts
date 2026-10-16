@@ -10,6 +10,13 @@ import { buildRedirects, type Redirects, rewriteLegacyLinks } from '../links/red
 import { placedLink } from '../links/resolve';
 import type { TableKind } from '../links/symbol-id';
 import { entryInFile } from '../links/symbol-table';
+import { contentVersion, MENU_SCRIPT, menuScript } from './shared-scripts';
+
+/** Path of a file in the output folder, from its path below the site root. */
+const outputPath = (file: string): string => {
+    const { output } = Configuration.mainData;
+    return `${output}${output.lastIndexOf('/') === -1 ? '/' : ''}${file}`;
+};
 
 export class PageWriter {
     private legacy?: { readonly redirects: Redirects; readonly pages: ReadonlySet<string> };
@@ -55,15 +62,15 @@ export class PageWriter {
             redirects,
             pages
         );
-        let finalPath = Configuration.mainData.output;
-
-        if (Configuration.mainData.output.lastIndexOf('/') === -1) {
-            finalPath += '/';
-        }
-        finalPath += pageOutputPath(page);
-
-        FileEngine.writeSync(finalPath, htmlData);
+        FileEngine.writeSync(outputPath(pageOutputPath(page)), htmlData);
         return Promise.resolve();
+    }
+
+    /** Render the sidebar once and write it as the shared script every page loads. */
+    private writeMenu(): void {
+        const script = menuScript(HtmlEngine.renderMenu(Configuration.mainData));
+        FileEngine.writeSync(outputPath(MENU_SCRIPT), script);
+        HtmlEngine.menuVersion = contentVersion(script);
     }
 
     public async processPages(): Promise<void> {
@@ -71,6 +78,7 @@ export class PageWriter {
         this.buildDependencyGraph();
         this.buildEntityIndex();
         Configuration.mainData.generatedAt = new Date().toISOString();
+        this.writeMenu();
         const pages = [...Configuration.pages].sort((a, b) => a.name.localeCompare(b.name));
 
         logger.info('Process pages');

@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 import { pagesIn } from '../helpers/pages';
 import { hasKindPages, readKindPages } from './paths';
 
@@ -668,9 +669,9 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support alone elements in their own entry menu', () => {
-        // Inline menu lives in every page now; assert the entity-link
-        // landmarks instead of reading the obsolete `js/menu-wc.js`.
-        const file = read(`${distFolder}/index.html`);
+        // The menu is shared by every page in `js/menu.js`; assert the
+        // entity-link landmarks there.
+        const file = menuOf(distFolder);
         expect(file).to.contain(`href="${pages.of('component', 'JigsawTab')}"`);
         expect(file).to.contain('>JigsawTab');
         expect(file).to.contain(`href="${pages.of('directive', 'DoNothingDirective2')}"`);
@@ -935,7 +936,7 @@ describe('CLI simple generation - big app', () => {
         // Without an NgModule the bootstrapped AppComponent is a plain
         // standalone component and is listed in the top-level Components
         // sidebar group; the app config gets its own chapter link.
-        const file = read(`${distFolder}/index.html`);
+        const file = menuOf(distFolder);
         expect(file).to.contain(
             `href="${pages.of('component', 'AppComponent')}" data-type="entity-link" class="" data-cdx-entity-type="component"`
         );
