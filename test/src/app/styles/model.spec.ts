@@ -78,8 +78,8 @@ describe('buildStyleModel', () => {
         ]);
         expect(model.files[0].themeNames).toEqual(['Foo', 'Bar']);
         expect(model.files[0].themes).toEqual([]);
-        expect(hasStylePage(model.files[0])).toBe(true);
-        expect(formatStyleSummary(model)).toBe(
+        expect(hasStylePage(model.files[0], [])).toBe(true);
+        expect(formatStyleSummary(model, [])).toBe(
             'Style files: 2 (1 pages, 0 linked to 0 symbols, 1 without documented content)'
         );
         expect(formatListedNote(model)).toBe(
@@ -126,7 +126,7 @@ describe('@themes resolution', () => {
             ['component:kit/card.ts#StyCard', ['style:kit/theming/x.css']],
             ['directive:kit/highlight.ts#StyHighlight', ['style:kit/theming/x.css']]
         ]);
-        expect(hasStylePage(model.files[0])).toBe(true);
+        expect(hasStylePage(model.files[0], [])).toBe(true);
     });
 
     it('reports another kind and an unknown name, one warning for the file', () => {
@@ -148,7 +148,7 @@ describe('@themes resolution', () => {
 
     it('renders a file that themes one symbol on its tab only, a mixin file always gets a page', () => {
         const single = resolveThemes(themed('StyHighlight'), themeResolver(table)).model.files[0];
-        expect(hasStylePage(single)).toBe(false);
+        expect(hasStylePage(single, [])).toBe(false);
         const withMixin = resolveThemes(
             buildStyleModel([
                 {
@@ -159,6 +159,30 @@ describe('@themes resolution', () => {
             themeResolver(table)
         ).model.files[0];
         expect(withMixin.themes).toHaveLength(1);
-        expect(hasStylePage(withMixin)).toBe(true);
+        expect(hasStylePage(withMixin, [])).toBe(true);
+    });
+});
+
+describe('style pages and the visible Theming sections', () => {
+    const [mixinFile, overviewFile] = buildStyleModel([
+        { file: 'a/mixin.scss', content: mixinOnly },
+        { file: 'b/overview.css', content: overviewOnly }
+    ]).files;
+    const withoutMixins = ['overview', 'index', 'tokens'];
+
+    it('gives a mixin-only file a page only while mixins are shown', () => {
+        expect(hasStylePage(mixinFile, [])).toBe(true);
+        expect(hasStylePage(mixinFile, [...withoutMixins, 'mixins'])).toBe(true);
+        expect(hasStylePage(mixinFile, withoutMixins)).toBe(false);
+    });
+
+    it('keeps the overview and token rule and counts pages the same way in the log', () => {
+        expect(hasStylePage(overviewFile, withoutMixins)).toBe(true);
+        const model = buildStyleModel([
+            { file: 'a/mixin.scss', content: mixinOnly },
+            { file: 'b/overview.css', content: overviewOnly }
+        ]);
+        expect(formatStyleSummary(model, [])).toContain('(2 pages,');
+        expect(formatStyleSummary(model, withoutMixins)).toContain('(1 pages,');
     });
 });

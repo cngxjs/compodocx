@@ -261,9 +261,14 @@ const withSymbols = (ctx: RunContext): RunContext => {
     const styles = stylesRun?.model;
     mainData.styles = styles;
     if (stylesRun && ctx.mode !== 'diff') {
-        logStyles(stylesRun);
+        logStyles(stylesRun, mainData.themingTabSections);
     }
-    const table = styles ? withStyleEntries(symbols, styles.files.filter(hasStylePage)) : symbols;
+    const table = styles
+        ? withStyleEntries(
+              symbols,
+              styles.files.filter(file => hasStylePage(file, mainData.themingTabSections))
+          )
+        : symbols;
     mainData.symbols = table;
     const routing = nameRoutes(ctx.routing, table);
     mainData.routing = routing;

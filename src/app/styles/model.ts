@@ -190,16 +190,25 @@ export const formatListedThemes = (listed: ListedThemes): string =>
     'the file has no overview, documented token or mixin';
 
 /**
- * A style file gets a page of its own when it has content and themes no
- * symbol, themes several, or documents mixins. A file that themes exactly
- * one symbol renders on that symbol's Theming tab only.
+ * A style file gets a page of its own when it has visible content and themes
+ * no symbol, themes several, or documents mixins. Mixins count only while the
+ * `mixins` Theming section is shown (`sections` = `themingTabSections`, empty or
+ * unset = all). A file that themes exactly one symbol renders on that symbol's
+ * Theming tab only.
  */
-export const hasStylePage = (file: StyleFile): boolean =>
-    file.hasContent && (file.themes.length !== 1 || file.mixins.length > 0);
+export const hasStylePage = (file: StyleFile, sections: readonly string[] | undefined): boolean => {
+    const showsMixins = !sections?.length || sections.includes('mixins');
+    const mixins = showsMixins && file.mixins.length > 0;
+    const visible = file.overview !== '' || file.tokens.some(isDocumentedToken) || mixins;
+    return visible && (file.themes.length !== 1 || mixins);
+};
 
 /** The build log line of the model. */
-export const formatStyleSummary = (model: StyleModel): string => {
-    const pages = model.files.filter(hasStylePage).length;
+export const formatStyleSummary = (
+    model: StyleModel,
+    sections: readonly string[] | undefined
+): string => {
+    const pages = model.files.filter(file => hasStylePage(file, sections)).length;
     const linked = model.files.filter(file => file.themes.length > 0).length;
     const symbols = model.byTarget.size;
     const total = model.files.length + model.listed.length;

@@ -14,7 +14,7 @@ describe('logStyles', () => {
         vi.spyOn(logger, 'info').mockImplementation(() => undefined);
         vi.spyOn(logger, 'debug').mockImplementation(() => undefined);
         const model = buildStyleModel([{ file: 'kit/theming/plain.css', content }]);
-        logStyles({ model, problems: [], ignored: [], skipped: [] });
+        logStyles({ model, problems: [], ignored: [], skipped: [] }, []);
         return warn.mock.calls.map(call => String(call[0]));
     };
 
