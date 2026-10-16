@@ -260,7 +260,7 @@ export const ApiReferencePage = (data: any): string => {
         return custom;
     }
 
-    const buckets = featureGroups(data.semantic, data.symbols, data.di, 'all') as Record<
+    const buckets = featureGroups(data.semantic, data.symbols, data.di) as Record<
         string,
         BucketItem[]
     >;

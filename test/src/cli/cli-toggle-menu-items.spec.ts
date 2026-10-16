@@ -1,5 +1,6 @@
 import * as path from 'node:path';
-import { hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { hasStderrError, shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 
 /** The type layout this suite asserts (the default is the feature layout). */
 const TYPE_LAYOUT = path.resolve('test/fixtures/type-layout.compodocxrc.json');
@@ -29,9 +30,8 @@ describe('CLI toggle menu items', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            // Inline TSX menu — read any generated page (the menu is
-            // identical on every page).
-            indexFile = read(`${distFolder}/index.html`);
+            // The menu is shared by every page in `js/menu.js`.
+            indexFile = menuOf(distFolder);
         });
         afterAll(() => tmp.clean(distFolder));
 

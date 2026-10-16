@@ -1,28 +1,19 @@
+import {
+    type FeatureMembers,
+    type FeatureSection,
+    sectionOf
+} from '../../templates/helpers/feature-sections';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import type { Feature, FeatureDetector, FeatureId } from '../compiler/semantic/features';
 import { factKey, type SemanticModel } from '../compiler/semantic/model';
 import Configuration from '../configuration';
-import { type DiView, placementOf } from '../di/model';
+import type { DiView } from '../di/model';
 import MarkdownEngine from '../engines/markdown.engine';
 import { featureSegments } from '../links/feature-paths';
 import { hrefFor, hrefText, pageLocation } from '../links/layout';
 import { toSymbolKey } from '../links/symbol-id';
 import type { SymbolEntry, SymbolTable } from '../links/symbol-table';
-
-/** Members of a feature by the section that lists them. */
-export interface FeatureMembers {
-    readonly components: readonly SymbolEntry[];
-    readonly directives: readonly SymbolEntry[];
-    readonly pipes: readonly SymbolEntry[];
-    readonly services: readonly SymbolEntry[];
-    /** Tokens, providers, feature functions and feature types. */
-    readonly configuration: readonly SymbolEntry[];
-    readonly utilities: readonly SymbolEntry[];
-    readonly constants: readonly SymbolEntry[];
-    readonly types: readonly SymbolEntry[];
-    readonly classes: readonly SymbolEntry[];
-}
 
 export interface FeatureCard {
     readonly id: FeatureId;
@@ -56,39 +47,7 @@ export interface FeaturePageData {
     readonly styles: readonly SymbolEntry[];
 }
 
-type Section = keyof FeatureMembers;
-
-/** The section of a member, from its kind and its place in the DI view. */
-const sectionOf = (entry: SymbolEntry, view: DiView | undefined): Section | undefined => {
-    const placement = placementOf(view, entry.id).type;
-    if (placement === 'hidden' || entry.ref.kind === 'style') {
-        return undefined;
-    }
-    if (placement !== 'own' || entry.ref.kind === 'token') {
-        return 'configuration';
-    }
-    switch (entry.ref.kind) {
-        case 'component':
-            return 'components';
-        case 'directive':
-            return 'directives';
-        case 'pipe':
-            return 'pipes';
-        case 'injectable':
-            return 'services';
-        case 'variable':
-            return 'constants';
-        case 'interface':
-        case 'typealias':
-        case 'enumeration':
-            return 'types';
-        case 'class':
-        case 'entity':
-            return 'classes';
-        default:
-            return 'utilities';
-    }
-};
+type Section = FeatureSection;
 
 const emptyMembers = (): Record<Section, SymbolEntry[]> => ({
     components: [],

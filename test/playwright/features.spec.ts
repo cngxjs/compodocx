@@ -33,6 +33,19 @@ test.describe('Feature pages', () => {
         await expect(page.locator('h1.cdx-entity-hero-name')).toContainText('SemSelectListbox');
     });
 
+    test('the jump bar scrolls to a member section of the feature page', async ({ page }) => {
+        await page.goto(featureUrl(['core', 'select']));
+        const jump = page.locator('nav.cdx-feature-jump');
+        await expect(jump.locator('a[href="#components-and-directives"] .cdx-badge')).toHaveText(
+            '4'
+        );
+        const types = jump.locator('a[href="#types"]');
+        await expect(types).toHaveCount(1);
+        await types.click();
+        await expect(page.locator('h2#types')).toBeInViewport();
+        await expect(page).toHaveURL(/#types$/);
+    });
+
     test('builds on and extended by link the related features of other entry points', async ({
         page
     }) => {

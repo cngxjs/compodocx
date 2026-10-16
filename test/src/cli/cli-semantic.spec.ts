@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { relativePrefix } from '../../../src/app/links/layout';
 import { shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 import { featurePage, pagesIn, rootPage } from '../helpers/pages';
 import { readKindPages } from './paths';
 
@@ -173,8 +174,9 @@ describe('CLI semantic analysis', () => {
         expect(landing).to.contain(`href="./${pages.cluster('FooFeature')}"`);
         expect(landing).to.contain(`href="${pages.href('provider', 'provideFooLimit', 0)}"`);
         expect(landing).to.contain(`href="${pages.href('token', 'FOO_CONFIG', 0)}"`);
-        expect(landing).to.contain('id="dependency-injection-links"');
-        expect(landing).not.to.contain('id="tokens-links"');
+        const menu = menuOf(htmlFolder);
+        expect(menu).to.contain('id="dependency-injection-links"');
+        expect(menu).not.to.contain('id="tokens-links"');
 
         const providerFile = pages.of('provider', 'provideFooLimit');
         const provider = fs.readFileSync(path.join(htmlFolder, providerFile), 'utf8');
@@ -217,5 +219,6 @@ describe('CLI semantic analysis', () => {
         expect(stdout).to.match(new RegExp(`${FILE}/core/src/foo/foo-helpers\\.ts:\\d+ orphanFoo`));
         const index = fs.readFileSync(path.join(htmlFolder, 'index.html'), 'utf8');
         expect(index).not.to.contain('orphanFoo');
+        expect(menuOf(htmlFolder)).not.to.contain('orphanFoo');
     });
 });

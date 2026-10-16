@@ -5,11 +5,7 @@ import type { MainDataInterface } from '../../app/interfaces/main-data.interface
 import { hrefFor, hrefText, routeAnchor } from '../../app/links/layout';
 import { placedLink, symbolTarget } from '../../app/links/resolve';
 import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
-import type {
-    FeatureCard,
-    FeatureMembers,
-    FeaturePageData
-} from '../../app/page-generator/feature-page-generator';
+import type { FeatureCard, FeaturePageData } from '../../app/page-generator/feature-page-generator';
 import type { RouteNode, RouteTarget, RoutingModel } from '../../app/routing/model';
 import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
 import { isDocumentedToken, type StyleFile } from '../../app/styles/model';
@@ -17,6 +13,7 @@ import { markedAcl } from '../../utils/marked.acl';
 import { DiBadges } from '../components/DiBadges';
 import { IconFolder } from '../components/Icons';
 import { firstSentence, t } from '../helpers';
+import type { FeatureMembers } from '../helpers/feature-sections';
 import { entryFacts } from '../helpers/symbol-facts';
 import { hasTheming, themingFor } from '../helpers/theming';
 
@@ -289,13 +286,18 @@ const fileName = (file: string): string => file.slice(file.lastIndexOf('/') + 1)
  * tab (linked to it), and the design tokens page when one of the feature's
  * style files feeds it.
  */
-const Theming = (members: FeatureMembers, styles: readonly SymbolEntry[], ctx: Context): string => {
+/** The feature's components and directives that have a Theming tab. */
+const themedMembers = (members: FeatureMembers, ctx: Context): readonly SymbolEntry[] => {
     const themedOf = (entries: readonly SymbolEntry[], kind: 'component' | 'directive') =>
         entries.filter(entry => hasTheming(themingFor(entry.data as never, kind, ctx.mainData)));
-    const themed = [
+    return [
         ...themedOf(members.components, 'component'),
         ...themedOf(members.directives, 'directive')
     ];
+};
+
+const Theming = (members: FeatureMembers, styles: readonly SymbolEntry[], ctx: Context): string => {
+    const themed = themedMembers(members, ctx);
     const tokenPage = styles.some(
         entry => unlinkedTokenFiles([entry.data as StyleFile]).length > 0
     );
@@ -340,6 +342,47 @@ const Theming = (members: FeatureMembers, styles: readonly SymbolEntry[], ctx: C
                 ''
             )}
         </section>
+    ) as string;
+};
+
+/**
+ * Links to the page's sub-features, member sections and theming section, in
+ * page order, each with its count; sections without entries are left out.
+ */
+const JumpBar = (feature: FeaturePageData, ctx: Context): string => {
+    const styles = feature.styles ?? [];
+    const links = [
+        { id: 'features', label: t('features'), count: feature.subFeatures.length },
+        ...SECTIONS.map(section => ({
+            id: section.id,
+            label: t(section.titleKey),
+            count: section.lists.reduce((sum, list) => sum + feature.members[list].length, 0)
+        })),
+        {
+            id: 'theming',
+            label: t('theming'),
+            count: themedMembers(feature.members, ctx).length + styles.length
+        }
+    ].filter(link => link.count > 0);
+    if (links.length === 0) {
+        return '';
+    }
+    return (
+        <nav class="cdx-feature-jump" aria-label={t('on-this-page')}>
+            <ul class="cdx-feature-jump-list">
+                {links.map(
+                    link =>
+                        (
+                            <li>
+                                <a class="cdx-feature-jump-link" href={`#${link.id}`}>
+                                    {link.label}
+                                    <span class="cdx-badge cdx-badge--count">{link.count}</span>
+                                </a>
+                            </li>
+                        ) as string
+                )}
+            </ul>
+        </nav>
     ) as string;
 };
 
@@ -396,6 +439,7 @@ export const FeaturePage = (data: any): string => {
                     </span>
                 </div>
             </div>
+            {JumpBar(feature, ctx)}
             {feature.readme ? (
                 <section class="cdx-content-section">
                     {Heading('overview', t('overview'))}

@@ -1,3 +1,4 @@
+import type { MenuFeatureSections } from '../../utils/menu-feature-sections';
 import type { AxisConfig } from '../compiler/semantic/axes';
 import type { SemanticModel } from '../compiler/semantic/model';
 import type { DiView } from '../di/model';
@@ -270,6 +271,8 @@ export interface MainDataInterface {
     featuresName: string;
     referencesName: string;
     collapsedAll: boolean;
+    /** Where each member role shows in the feature sidebar (config-only `menuFeatureSections`). */
+    menuFeatureSections: MenuFeatureSections;
     generatedAt: string;
     /** Facts of the semantic stage; absent when the stage did not run or failed. */
     semantic?: SemanticModel;

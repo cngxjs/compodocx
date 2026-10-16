@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 import { pagesIn } from '../helpers/pages';
 import { readKindPages } from './paths';
 
@@ -39,9 +40,8 @@ describe('CLI Deprecated', () => {
                 throw new Error('error');
             }
 
-            // Inline TSX menu lives in every page; the legacy
-            // `js/menu-wc.js` is gone.
-            menuFile = read(`${distFolder}/index.html`);
+            // The menu is shared by every page in `js/menu.js`.
+            menuFile = menuOf(distFolder);
         });
         afterAll(() => tmp.clean(tmpFolder));
 

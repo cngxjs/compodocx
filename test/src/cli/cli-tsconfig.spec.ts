@@ -1,4 +1,5 @@
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 import { pagesIn } from '../helpers/pages';
 
 const tmp = temporaryDir();
@@ -31,7 +32,9 @@ describe('CLI tsconfig', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            fooComponentFile = read(`${distFolder}/${pages.of('component', 'FooComponent')}`);
+            // The page plus the shared menu it loads (`js/menu.js`).
+            fooComponentFile =
+                read(`${distFolder}/${pages.of('component', 'FooComponent')}`) + menuOf(distFolder);
         });
         afterAll(() => tmp.clean(tmpFolder));
 
@@ -71,7 +74,9 @@ describe('CLI tsconfig', () => {
                 console.error(`shell error: ${ls.stderr.toString()}`);
                 throw new Error('error');
             }
-            fooComponentFile = read(`${distFolder}/${pages.of('component', 'FooComponent')}`);
+            // The page plus the shared menu it loads (`js/menu.js`).
+            fooComponentFile =
+                read(`${distFolder}/${pages.of('component', 'FooComponent')}`) + menuOf(distFolder);
         });
         afterAll(() => tmp.clean(tmpFolder));
 

@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { relativePrefix } from '../../../src/app/links/layout';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 import { featurePage, pagesIn, rootPage } from '../helpers/pages';
 
 /** The type layout this suite asserts (the default is the feature layout). */
@@ -179,7 +180,7 @@ describe('CLI utilities', () => {
     });
 
     it('the Utilities chapter links the landing page and every symbol page', () => {
-        const index = read(`${distFolder}/index.html`);
+        const index = menuOf(distFolder);
         const chapter =
             index.match(/id="utilities-links"[\s\S]*?<\/ul>\s*<\/li>\s*<\/ul>/)?.[0] ?? '';
         expect(chapter).to.contain(`href="${rootPage('utilities')}"`);

@@ -5,6 +5,12 @@ import { type EntityWithKind, PRIMARY_KINDS } from '../../app/engines/dependenci
 import { featureSegments } from '../../app/links/feature-paths';
 import { presentationKind, type TableKind, toSymbolKey } from '../../app/links/symbol-id';
 import { entryInFile, type SymbolEntry, type SymbolTable } from '../../app/links/symbol-table';
+import {
+    DEFAULT_MENU_FEATURE_SECTIONS,
+    type MenuFeatureSections,
+    type MenuPlacement
+} from '../../utils/menu-feature-sections';
+import { sectionOf } from './feature-sections';
 
 /** A feature with the segments of its page. */
 export interface PlacedFeature {
@@ -97,60 +103,189 @@ const asItem = (entry: SymbolEntry): EntityWithKind => ({
     name: entry.ref.name
 });
 
-export type FeatureGroupScope = 'primary' | 'all';
+const groupCache = new WeakMap<SymbolTable, Record<string, EntityWithKind[]>>();
 
-const groupCache = new WeakMap<
-    SymbolTable,
-    Map<FeatureGroupScope, Record<string, EntityWithKind[]>>
->();
-
-/**
- * The documented members of every feature, keyed by the feature's page path
- * (`forms/select`, `forms/select/menu`), copies of the engine objects with
- * their kind. Hidden symbols are left out and the members of a provider
- * cluster fold into one entry. `primary` keeps the primary kinds of a
- * feature, or its whole surface when it has none. Computed once per run.
- */
-export const featureGroups = (
-    semantic: SemanticModel | undefined,
-    table: SymbolTable | undefined,
-    view: DiView | undefined,
-    scope: FeatureGroupScope
-): Record<string, EntityWithKind[]> => {
-    const model = semantic?.features;
-    if (model === undefined || table === undefined) {
-        return {};
-    }
-    const byScope = groupCache.get(table) ?? new Map();
-    groupCache.set(table, byScope);
-    const known = byScope.get(scope);
-    if (known) {
-        return known;
-    }
-    const { byId } = derive(model);
-    const all = new Map<FeatureId, EntityWithKind[]>();
+/** The documented members of every feature with their table entry, hidden symbols left out. */
+const membersByFeature = (
+    model: FeatureModel,
+    table: SymbolTable,
+    view: DiView | undefined
+): ReadonlyMap<FeatureId, readonly SymbolEntry[]> => {
+    const all = new Map<FeatureId, SymbolEntry[]>();
     for (const entry of table.byId.values()) {
         const id = model.featureOf.get(factKey(toSymbolKey(entry.ref)));
         if (id === undefined || placementOf(view, entry.id).type === 'hidden') {
             continue;
         }
-        const items = all.get(id) ?? [];
-        items.push(asItem(entry));
-        all.set(id, items);
+        const entries = all.get(id) ?? [];
+        entries.push(entry);
+        all.set(id, entries);
     }
+    return all;
+};
+
+/**
+ * The documented members of every feature, keyed by the feature's page path
+ * (`forms/select`, `forms/select/menu`), copies of the engine objects with
+ * their kind. Hidden symbols are left out and the members of a provider
+ * cluster fold into one entry. Computed once per run.
+ */
+export const featureGroups = (
+    semantic: SemanticModel | undefined,
+    table: SymbolTable | undefined,
+    view: DiView | undefined
+): Record<string, EntityWithKind[]> => {
+    const model = semantic?.features;
+    if (model === undefined || table === undefined) {
+        return {};
+    }
+    const known = groupCache.get(table);
+    if (known) {
+        return known;
+    }
+    const { byId } = derive(model);
+    const all = membersByFeature(model, table, view);
     const groups: Record<string, EntityWithKind[]> = {};
     for (const feature of model.features) {
-        const items = all.get(feature.id) ?? [];
-        const primary = items.filter(item => PRIMARY_KINDS.has(item.kind));
-        const styles = items.filter(item => item.kind === 'style');
-        const listed = scope === 'primary' && primary.length > 0 ? [...primary, ...styles] : items;
-        const folded = foldClusterMembers(listed, view, table);
+        const folded = foldClusterMembers((all.get(feature.id) ?? []).map(asItem), view, table);
         if (folded.length > 0) {
             groups[featurePathKey(byId.get(feature.id)?.segments ?? [])] = folded;
         }
     }
-    byScope.set(scope, groups);
+    groupCache.set(table, groups);
     return groups;
+};
+
+/** Role nodes in sidebar order; non-primary classes always go into "More". */
+const NODE_ROLES = ['configuration', 'utilities', 'constants', 'types', 'classes'] as const;
+
+export type MenuNodeRole = (typeof NODE_ROLES)[number];
+
+/** A role node of a feature, or a labelled group inside its "More" node. */
+export interface FeatureMenuNode {
+    readonly role: MenuNodeRole;
+    readonly items: readonly EntityWithKind[];
+}
+
+export interface FeatureMenuTiers {
+    /** Roles with a node of their own, in `NODE_ROLES` order. */
+    readonly own: readonly FeatureMenuNode[];
+    /** Labelled groups of the "More" node, in `NODE_ROLES` order. */
+    readonly more: readonly FeatureMenuNode[];
+}
+
+export interface FeatureMenu {
+    /** Top-level members per feature page path (the tree's groups); may be empty when tiers exist. */
+    readonly groups: Record<string, EntityWithKind[]>;
+    /** Role nodes per feature page path, only for features with a primary member. */
+    readonly tiers: Readonly<Record<string, FeatureMenuTiers>>;
+}
+
+/** Where a member of a feature with primary members shows in the sidebar. */
+const menuPlaceOf = (
+    entry: SymbolEntry,
+    view: DiView | undefined,
+    sections: MenuFeatureSections
+): { readonly role: MenuNodeRole; readonly placement: MenuPlacement } | 'top' | undefined => {
+    if (entry.ref.kind === 'style') {
+        return 'top';
+    }
+    const role = sectionOf(entry, view);
+    if (role === undefined) {
+        return undefined;
+    }
+    if (role === 'configuration') {
+        return { role, placement: sections.configuration };
+    }
+    if (PRIMARY_KINDS.has(entry.ref.kind)) {
+        return 'top';
+    }
+    if (role === 'utilities' || role === 'constants' || role === 'types') {
+        return { role, placement: sections[role] };
+    }
+    return role === 'classes' ? { role, placement: 'more' } : 'top';
+};
+
+const menuCache = new WeakMap<SymbolTable, Map<string, FeatureMenu>>();
+
+/**
+ * The sidebar members of every feature, keyed by page path. A feature with
+ * a primary member lists its primary members and style files at the top
+ * level and the other roles in role nodes as `sections` places them
+ * (`own`: a node per role, `more`: one "More" node, `top`: flat, `hidden`:
+ * left out); a feature without one lists its whole surface flat. Cluster
+ * members fold into one entry per list. Computed once per run and sections.
+ */
+export const featureMenu = (
+    semantic: SemanticModel | undefined,
+    table: SymbolTable | undefined,
+    view: DiView | undefined,
+    sections: MenuFeatureSections = DEFAULT_MENU_FEATURE_SECTIONS
+): FeatureMenu => {
+    const model = semantic?.features;
+    if (model === undefined || table === undefined) {
+        return { groups: {}, tiers: {} };
+    }
+    const bySections = menuCache.get(table) ?? new Map<string, FeatureMenu>();
+    menuCache.set(table, bySections);
+    const key = JSON.stringify(sections);
+    const known = bySections.get(key);
+    if (known) {
+        return known;
+    }
+    const { byId } = derive(model);
+    const all = membersByFeature(model, table, view);
+    const groups: Record<string, EntityWithKind[]> = {};
+    const tiers: Record<string, FeatureMenuTiers> = {};
+    const fold = (entries: readonly SymbolEntry[]) =>
+        foldClusterMembers(entries.map(asItem), view, table);
+    for (const feature of model.features) {
+        const path = featurePathKey(byId.get(feature.id)?.segments ?? []);
+        const entries = all.get(feature.id) ?? [];
+        if (!entries.some(entry => PRIMARY_KINDS.has(entry.ref.kind))) {
+            const flat = fold(entries);
+            if (flat.length > 0) {
+                groups[path] = flat;
+            }
+            continue;
+        }
+        const top: SymbolEntry[] = [];
+        const styles: SymbolEntry[] = [];
+        const byRole = new Map<
+            MenuNodeRole,
+            { placement: MenuPlacement; entries: SymbolEntry[] }
+        >();
+        for (const entry of entries) {
+            const place = menuPlaceOf(entry, view, sections);
+            if (place === undefined || (place !== 'top' && place.placement === 'hidden')) {
+                continue;
+            }
+            if (place === 'top' || place.placement === 'top') {
+                (entry.ref.kind === 'style' ? styles : top).push(entry);
+                continue;
+            }
+            const node = byRole.get(place.role) ?? { placement: place.placement, entries: [] };
+            node.entries.push(entry);
+            byRole.set(place.role, node);
+        }
+        const nodes = (placement: MenuPlacement): FeatureMenuNode[] =>
+            NODE_ROLES.flatMap(role => {
+                const node = byRole.get(role);
+                return node?.placement === placement ? [{ role, items: fold(node.entries) }] : [];
+            });
+        const own = nodes('own');
+        const more = nodes('more');
+        const listed = fold([...top, ...styles]);
+        if (listed.length > 0 || own.length > 0 || more.length > 0) {
+            groups[path] = listed;
+        }
+        if (own.length > 0 || more.length > 0) {
+            tiers[path] = { own, more };
+        }
+    }
+    const menu = { groups, tiers };
+    bySections.set(key, menu);
+    return menu;
 };
 
 /** An engine object as far as the grouping reads it. */

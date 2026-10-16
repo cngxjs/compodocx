@@ -578,6 +578,20 @@
             "default": false,
             "examples": [false]
         },
+        "menuFeatureSections": {
+            "$id": "/properties/menuFeatureSections",
+            "type": "object",
+            "title": "Where each member role of a feature shows in the sidebar under menuLayout: 'feature' (config-only): 'own' (a node of its own), 'more' (inside the More node), 'top' (flat at the feature's top level) or 'hidden' (not in the sidebar; still on the feature page, in the API reference and in search). Applies to features with a primary member; missing roles keep their default.",
+            "properties": {
+                "configuration": { "type": "string", "enum": ["own", "more", "top", "hidden"], "default": "own" },
+                "utilities": { "type": "string", "enum": ["own", "more", "top", "hidden"], "default": "more" },
+                "constants": { "type": "string", "enum": ["own", "more", "top", "hidden"], "default": "more" },
+                "types": { "type": "string", "enum": ["own", "more", "top", "hidden"], "default": "more" }
+            },
+            "additionalProperties": false,
+            "default": { "configuration": "own", "utilities": "more", "constants": "more", "types": "more" },
+            "examples": [{ "types": "hidden", "configuration": "top" }]
+        },
         "publicApiOnly": {
             "$id": "/properties/publicApiOnly",
             "type": "string",

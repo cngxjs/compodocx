@@ -1,4 +1,5 @@
-import { hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { hasStderrError, shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 
 const tmp = temporaryDir();
 
@@ -26,11 +27,9 @@ describe('CLI i18n', () => {
         });
         afterAll(() => tmp.clean(distFolder));
 
-        // The legacy js/menu-wc.js Web Component artefact is gone — the menu is
-        // now inline in every page (`Menu.tsx`), so translation strings live in
-        // the rendered HTML directly. We read index.html as the canonical page.
+        // The sentence is in the menu footer, shared by every page in `js/menu.js`.
         it('it should contain a sentence in the correct language', () => {
-            const file = read(`${distFolder}/index.html`);
+            const file = menuOf(distFolder);
             expect(file).to.contain(message);
         });
     };
@@ -109,7 +108,7 @@ describe('CLI i18n', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('it should fall back to English', () => {
-            const file = read(`${distFolder}/index.html`);
+            const file = menuOf(distFolder);
             expect(file).to.contain('Documentation generated using');
         });
     });

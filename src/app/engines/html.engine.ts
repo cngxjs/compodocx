@@ -187,18 +187,30 @@ export class HtmlEngine {
         }
     }
 
+    /**
+     * `?v=` cache key of the shared sidebar script the pages load; set once
+     * per run before the pages render. Undefined: pages have no menu script.
+     */
+    public menuVersion: string | undefined;
+
+    /** `?v=` cache key of the shared entity index script; undefined: no entity script. */
+    public entitiesVersion: string | undefined;
+
+    /** The sidebar menu, rendered once per run with the root data (or the `menu` override). */
+    public renderMenu(mainData: any): string {
+        const data = { ...mainData, depth: 0, context: 'menu' };
+        return renderCustomTemplate('menu', data) ?? Menu({ data });
+    }
+
     public render(mainData: any, page: any): string {
         const data = { ...mainData, ...page };
         const content = this.renderTsxContent(data);
 
-        // Check for custom menu override
-        const customMenu = renderCustomTemplate('menu', data);
-        const menuHtml = customMenu ?? Menu({ data });
-
         return Layout({
             data,
             content,
-            menuHtml
+            menuVersion: this.menuVersion,
+            entitiesVersion: this.entitiesVersion
         });
     }
 

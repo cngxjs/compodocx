@@ -223,6 +223,8 @@ export const TRANSLATION_JA_JP = {
     services: 'サービス',
     configuration: '構成',
     constants: '定数',
+    more: 'その他',
+    'on-this-page': 'このページの内容',
     'feature-detector-config': '構成で指定',
     'feature-detector-tag': '@feature で指定',
     'feature-detector-cohesion': 'インポートから検出',

@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 import { pagesIn } from '../helpers/pages';
 
 /** The type layout this suite asserts (the default is the feature layout). */
@@ -129,14 +130,14 @@ describe('CLI duplicates support', () => {
     });
 
     it('should list a standalone component in the components chapter', () => {
-        const indexFile = read(`${distFolder}/index.html`);
+        const indexFile = menuOf(distFolder);
         expect(indexFile).to.contain(
             `<a href="${pages.of('component', 'ValidationDemo')}" data-type="entity-link" class="" data-cdx-entity-type="component"><span class="cdx-menu-item-name">ValidationDemo`
         );
     });
 
     it('should list both duplicated standalone components in the components chapter', () => {
-        const indexFile = read(`${distFolder}/index.html`);
+        const indexFile = menuOf(distFolder);
         expect(indexFile).to.contain(`<a href="${pages.of('component', 'FooterComponent')}"`);
         expect(indexFile).to.contain(
             `<a href="${pages.of('component', 'FooterComponent', { file: 'FooterComponent-2' })}"`

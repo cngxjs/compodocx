@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { hrefFor, hrefText, pageFile, ROOT_DEPTH } from '../app/links/layout';
+import { ENTITIES_SCRIPT, MENU_SCRIPT } from '../app/page-generator/shared-scripts';
 import { VersionSwitcher } from './blocks/VersionSwitcher';
 import { IconMoon, IconPalette, IconSearch, IconSun } from './components/Icons';
 import { relativeUrl } from './helpers';
@@ -32,7 +33,10 @@ export type PageData = {
 type LayoutProps = {
     readonly data: PageData;
     readonly content: string;
-    readonly menuHtml: string;
+    /** `?v=` key of the shared sidebar script `js/menu.js`; undefined renders no menu script. */
+    readonly menuVersion?: string;
+    /** `?v=` key of the shared entity index script `js/entities.js`; undefined renders none. */
+    readonly entitiesVersion?: string;
 };
 
 const IframeTrackingScript = `
@@ -312,7 +316,7 @@ const pageTitle = (data: PageData): string => {
 };
 
 export const Layout = (props: LayoutProps): string => {
-    const { data, content, menuHtml } = props;
+    const { data, content, menuVersion, entitiesVersion } = props;
     const r = (path: string) => relativeUrl(data.depth, path);
     // A custom or named theme is locked: no picker, and no stored choice may swap it.
     const themePicker = !data.theme || ['default', 'gitbook'].includes(data.theme);
@@ -350,8 +354,8 @@ export const Layout = (props: LayoutProps): string => {
             <body>
                 <script type="module" src={r('js/compodocx.js')}></script>
                 <script>{IframeTrackingScript}</script>
-                {data.entityIndex && (
-                    <script>{`window.__CDX_ENTITIES__=${JSON.stringify(data.entityIndex)};`}</script>
+                {data.entityIndex && entitiesVersion !== undefined && (
+                    <script src={`${r(ENTITIES_SCRIPT)}?v=${entitiesVersion}`}></script>
                 )}
 
                 <a href="#main-content" class="cdx-skip-link">
@@ -477,8 +481,10 @@ export const Layout = (props: LayoutProps): string => {
                         disableSearch: data.disableSearch,
                         r
                     })}
-                    {menuHtml}
                 </nav>
+                {menuVersion !== undefined && (
+                    <script src={`${r(MENU_SCRIPT)}?v=${menuVersion}`}></script>
+                )}
 
                 {/* Main content */}
                 <main id="main-content" class={`content ${data.context}`} tabindex="-1">

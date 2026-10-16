@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import path from 'node:path';
 
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 import { pagesIn } from '../helpers/pages';
 
 const BIN = path.resolve('./bin/index-cli.js');
@@ -226,14 +227,15 @@ describe('CLI simple generation', () => {
         });
 
         /**
-         * Inline menu (legacy `js/menu-wc.js` web component is gone — every
-         * page now renders the menu inline via `Menu.tsx`).
+         * Shared menu: every page keeps the sidebar element and loads the
+         * menu from `js/menu.js`, versioned by a content hash.
          */
-        it('should have inline sidebar menu in generated pages', () => {
+        it('should load the shared sidebar menu in generated pages', () => {
             const indexHtml = read(`${distFolder}/index.html`);
             expect(indexHtml).to.contain('cdx-sidebar menu');
+            expect(indexHtml).to.match(/<script src="\.\/js\/menu\.js\?v=[0-9a-f]{8}"><\/script>/);
             // Sanity check: at least one chapter button is present.
-            expect(indexHtml).to.contain('class="chapter"');
+            expect(menuOf(distFolder)).to.contain('class="chapter"');
         });
     });
 
@@ -673,7 +675,7 @@ describe('CLI simple generation', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should not contain generator footer', () => {
-            index = read(`${distFolder}/index.html`);
+            index = menuOf(distFolder);
             expect(index).to.not.contain('class="copyright"');
         });
     });

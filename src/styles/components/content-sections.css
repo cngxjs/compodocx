@@ -176,7 +176,8 @@
     padding-top: 0;
     border-top: none;
 }
-.cdx-entity-hero + .cdx-content-section > .cdx-section-heading {
+.cdx-entity-hero + .cdx-content-section > .cdx-section-heading,
+.cdx-feature-jump + .cdx-content-section > .cdx-section-heading {
     margin-top: var(--spacing-cdx-lg);
     padding-top: 0;
     border-top: none;
@@ -804,3 +805,29 @@ a.cdx-chip:hover {
 }
 
 /* Relationships: see src/styles/components/relationships.css */
+
+/* Feature page: section jump bar below the hero */
+.cdx-feature-jump {
+    margin-top: var(--spacing-cdx-lg);
+}
+.cdx-feature-jump-list {
+    @apply flex flex-wrap list-none m-0 p-0;
+    gap: var(--spacing-cdx-sm);
+}
+.cdx-feature-jump-link {
+    @apply inline-flex items-center no-underline;
+    gap: var(--spacing-cdx-xs);
+    padding: var(--spacing-cdx-xs) var(--spacing-cdx-md);
+    border: 1px solid var(--color-cdx-border);
+    border-radius: 16px;
+    font-size: 13px;
+    color: var(--color-cdx-text);
+    transition: background var(--cdx-transition-fast);
+}
+.cdx-feature-jump-link:hover {
+    background: var(--color-cdx-bg-alt);
+}
+.cdx-feature-jump-link:focus-visible {
+    outline: 2px solid var(--color-cdx-focus-ring, var(--color-cdx-primary));
+    outline-offset: 2px;
+}

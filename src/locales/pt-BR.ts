@@ -224,6 +224,8 @@ export const TRANSLATION_PT_BR = {
     services: 'Serviços',
     configuration: 'Configuração',
     constants: 'Constantes',
+    more: 'Mais',
+    'on-this-page': 'Nesta página',
     'feature-detector-config': 'Definido na configuração',
     'feature-detector-tag': 'Definido por @feature',
     'feature-detector-cohesion': 'Detectado pelos imports',
