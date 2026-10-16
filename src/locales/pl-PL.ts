@@ -223,6 +223,7 @@ export const TRANSLATION_PL_PL = {
     services: 'Serwisy',
     configuration: 'Konfiguracja',
     constants: 'Stałe',
+    more: 'Więcej',
     'feature-detector-config': 'Ustawione w konfiguracji',
     'feature-detector-tag': 'Ustawione przez @feature',
     'feature-detector-cohesion': 'Wykryte z importów',

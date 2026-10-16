@@ -157,7 +157,10 @@ describe('Menu — feature layout', () => {
         expect(html).to.include(`href="${pageOf('component', 'ButtonComponent')}"`);
         expect(html).to.include(`href="${pageOf('directive', 'RippleDirective')}"`);
         expect(html).to.include(`href="${pageOf('injectable', 'ButtonService')}"`);
-        expect(html).to.not.include(`href="${pageOf('interface', 'ButtonConfig')}"`);
+        // The interface is not a primary member: it sits in the collapsed "More" node.
+        expect(html.indexOf(`href="${pageOf('interface', 'ButtonConfig')}"`)).to.be.greaterThan(
+            html.indexOf('id="features-group-ui/button-more"')
+        );
         // `ui` has no feature page of its own: a plain label.
         expect(html).to.match(
             /<span class="cdx-bucket-link"[^>]*><span class="link-name"[^>]*>Ui</
@@ -215,6 +218,115 @@ describe('Menu — feature layout', () => {
         });
         expect(html).to.include('data-cdx-kind="function"');
         expect(html).to.include(`href="${pageOf('function', 'formatDate')}"`);
+        expect(html).to.not.include('cdx-feature-role');
+    });
+
+    describe('role nodes', () => {
+        const file = 'lib/forms/forms.ts';
+        const engine = {
+            components: [{ name: 'FieldComponent', file }],
+            tokens: [{ name: 'FORMS_CONFIG', file }],
+            interfaces: [
+                { name: 'FieldOptions', file },
+                { name: 'FormsFeature', file }
+            ],
+            miscellaneous: {
+                functions: [
+                    { name: 'provideForms', file },
+                    { name: 'withValidation', file },
+                    { name: 'formatValue', file },
+                    { name: 'fieldGuard', file, functionalKind: 'guard' }
+                ],
+                variables: [{ name: 'MAX_FIELDS', file }]
+            }
+        };
+        const owner = symbolId({ kind: 'interface', file, name: 'FormsFeature' });
+        const provider = symbolId({ kind: 'function', file, name: 'provideForms' });
+        const feature = symbolId({ kind: 'function', file, name: 'withValidation' });
+        const di: DiView = {
+            ...emptyDiView(),
+            clusters: [{ owner, providers: [provider], features: [feature], tokens: [] }],
+            placement: new Map([
+                [owner, { type: 'cluster-owner' }],
+                [provider, { type: 'cluster', owner }],
+                [feature, { type: 'cluster', owner }]
+            ])
+        };
+        const FORMS: FeatureFixture = {
+            id: '@x/forms#',
+            entryPoint: '@x/forms',
+            key: '',
+            label: 'forms',
+            members: [
+                `${file}#FieldComponent`,
+                `${file}#FORMS_CONFIG`,
+                `type:${file}#FieldOptions`,
+                `type:${file}#FormsFeature`,
+                `${file}#provideForms`,
+                `${file}#withValidation`,
+                `${file}#formatValue`,
+                `${file}#fieldGuard`,
+                `${file}#MAX_FIELDS`
+            ]
+        };
+        const render = () => Menu({ data: featureData(engine, [FORMS], { di }) });
+        const id = 'features-group-forms';
+        const nodeOf = (html: string, role: string) => {
+            const start = html.indexOf(`id="${id}-${role}"`);
+            return start < 0 ? '' : html.slice(start, html.indexOf('</ul>', start));
+        };
+        const topOf = (html: string) =>
+            html.slice(html.indexOf(`id="${id}"`), html.indexOf('cdx-feature-role'));
+
+        it('keeps primary members at the top, guards included, and tokens out', () => {
+            const top = topOf(render());
+            expect(top).to.include(`href="${pageOf('component', 'FieldComponent')}"`);
+            expect(top).to.include('data-cdx-kind="guard"');
+            expect(top).to.not.include('FORMS_CONFIG');
+            expect(top).to.not.include('formatValue');
+        });
+
+        it('puts tokens and the folded cluster into a collapsed Configuration node', () => {
+            const html = render();
+            expect(html).to.match(
+                new RegExp(`data-cdx-target="#${id}-configuration" aria-expanded="false"`)
+            );
+            expect(html).to.include(`class="links collapse" id="${id}-configuration"`);
+            const configuration = nodeOf(html, 'configuration');
+            expect(configuration).to.include(`href="${pageOf('token', 'FORMS_CONFIG')}"`);
+            expect(configuration.split(`href="${clusterPage('FormsFeature')}"`)).toHaveLength(2);
+            expect(configuration).to.not.include('provideForms');
+            expect(configuration).to.not.include('withValidation');
+        });
+
+        it('lists the other roles in a collapsed More node, one labelled group per role', () => {
+            const html = render();
+            expect(html).to.include(`class="links collapse" id="${id}-more"`);
+            const more = html.slice(html.indexOf(`id="${id}-more"`));
+            const utilities = more.indexOf(`id="${id}-more-utilities"`);
+            const constants = more.indexOf(`id="${id}-more-constants"`);
+            const types = more.indexOf(`id="${id}-more-types"`);
+            expect(utilities).to.be.greaterThan(-1);
+            expect(constants).to.be.greaterThan(utilities);
+            expect(types).to.be.greaterThan(constants);
+            expect(more.slice(utilities, constants)).to.include('>Utilities<');
+            expect(more.slice(utilities, constants)).to.include(
+                `href="${pageOf('function', 'formatValue')}"`
+            );
+            expect(more.slice(constants, types)).to.include(
+                `href="${pageOf('variable', 'MAX_FIELDS')}"`
+            );
+            expect(more.slice(types)).to.include(`href="${pageOf('interface', 'FieldOptions')}"`);
+            expect(html).to.not.include(`id="${id}-more-classes"`);
+        });
+
+        it('renders no empty node', () => {
+            const html = Menu({ data: featureData(BUTTON, [BUTTON_FEATURE]) });
+            expect(html).to.not.include('id="features-group-ui/button-configuration"');
+            expect(html).to.include('id="features-group-ui/button-more-types"');
+            expect(html).to.not.include('id="features-group-ui/button-more-utilities"');
+            expect(html).to.not.include('id="features-group-ui/button-more-constants"');
+        });
     });
 
     it('lists an app root feature first', () => {

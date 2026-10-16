@@ -25,7 +25,9 @@ import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
 import { t } from '../helpers';
 import {
     appRootPath,
+    type FeatureMenuTiers,
     featureGroups,
+    featureMenu,
     featurePagePaths,
     groupItemsByFeature
 } from '../helpers/feature-info';
@@ -518,6 +520,93 @@ const FeatureEntityLink = (item: EntityWithKind, defaultTab?: 'api'): string =>
         </li>
     ) as string;
 
+/** A collapsible node of a feature's members; starts collapsed, `expandToActive` opens it. */
+const RoleNode = (props: {
+    id: string;
+    labelKey: string;
+    count: number;
+    depth: number;
+    role: string;
+    body: string;
+}): string =>
+    (
+        <li
+            class="chapter inner cdx-feature-role"
+            style={`--depth: ${props.depth}`}
+            data-cdx-role={props.role}
+        >
+            <button
+                class="simple menu-toggler"
+                type="button"
+                data-cdx-toggle="collapse"
+                data-cdx-target={`#${props.id}`}
+                aria-expanded="false"
+                aria-controls={props.id}
+            >
+                <span class="link-name">{t(props.labelKey)}</span>
+                <span class="cdx-badge cdx-badge--count">{props.count}</span>
+                {IconChevronRight('cdx-chevron')}
+            </button>
+            <ul class="links collapse" id={props.id}>
+                {props.body}
+            </ul>
+        </li>
+    ) as string;
+
+/** The role nodes of one feature: a node per `own` role, then "More" with a labelled group per role. */
+const FeatureRoleNodes = (
+    tiers: FeatureMenuTiers | undefined,
+    featureId: string,
+    depth: number,
+    defaultTab?: 'api'
+): string => {
+    if (tiers === undefined) {
+        return '';
+    }
+    const links = (items: readonly EntityWithKind[]) =>
+        items.map(item => FeatureEntityLink(item, defaultTab)).join('');
+    const own = tiers.own.map(node =>
+        RoleNode({
+            id: `${featureId}-${node.role}`,
+            labelKey: node.role,
+            count: node.items.length,
+            depth,
+            role: node.role,
+            body: links(node.items)
+        })
+    );
+    const moreId = `${featureId}-more`;
+    const more =
+        tiers.more.length === 0
+            ? ''
+            : RoleNode({
+                  id: moreId,
+                  labelKey: 'more',
+                  count: tiers.more.reduce((sum, node) => sum + node.items.length, 0),
+                  depth,
+                  role: 'more',
+                  body: tiers.more
+                      .map(
+                          node =>
+                              (
+                                  <li class="cdx-feature-role-group" data-cdx-role={node.role}>
+                                      <span
+                                          class="cdx-feature-role-label"
+                                          id={`${moreId}-${node.role}`}
+                                      >
+                                          {t(node.role)}
+                                      </span>
+                                      <ul class="links" aria-labelledby={`${moreId}-${node.role}`}>
+                                          {links(node.items)}
+                                      </ul>
+                                  </li>
+                              ) as string
+                      )
+                      .join('')
+              });
+    return own.join('') + more;
+};
+
 /** Recursive tree node for the cross-kind feature layout.
  *
  *  Whole-row toggle: the `<div class="cdx-bucket-row">` itself carries
@@ -540,9 +629,12 @@ const FeatureGroupTree = (props: {
     groupDepth: number;
     idPrefix: string;
     pages: ReadonlySet<string>;
+    tiers: Readonly<Record<string, FeatureMenuTiers>>;
     defaultTab?: 'api';
 }): string => {
-    const hasContent = props.node.items.length > 0 || props.node.children.length > 0;
+    const tiers = props.tiers[props.node.fullPath];
+    const hasContent =
+        props.node.items.length > 0 || props.node.children.length > 0 || tiers !== undefined;
     if (!hasContent) {
         return '';
     }
@@ -605,12 +697,14 @@ const FeatureGroupTree = (props: {
                         groupDepth: props.groupDepth,
                         idPrefix: props.idPrefix,
                         pages: props.pages,
+                        tiers: props.tiers,
                         defaultTab: props.defaultTab
                     })
                 )}
                 {props.node.items.map((item: EntityWithKind) =>
                     FeatureEntityLink(item, props.defaultTab)
                 )}
+                {FeatureRoleNodes(tiers, id, props.depth + 1, props.defaultTab)}
             </ul>
         </li>
     ) as string;
@@ -625,6 +719,8 @@ const FeatureGroupTree = (props: {
  */
 type FeatureSectionProps = {
     groups?: Record<string, EntityWithKind[]>;
+    /** Role nodes per group key (features with a primary member). */
+    tiers?: Readonly<Record<string, FeatureMenuTiers>>;
     pages: ReadonlySet<string>;
     first?: string;
     groupDepth: number;
@@ -695,6 +791,7 @@ const FeatureSection = (props: FeatureSectionProps): string => {
                         groupDepth: props.groupDepth,
                         idPrefix,
                         pages: props.pages,
+                        tiers: props.tiers ?? {},
                         defaultTab: props.defaultTab
                     })
                 )}
@@ -1095,14 +1192,15 @@ export const Menu = (props: MenuProps): string => {
                 )}
 
                 {/* Feature layout: ONE Features chapter, entry points > features > the
-                    primary members of each feature (its whole surface when it has no primary
-                    member). The exhaustive reference surface lives on the `references.html`
-                    portal page, linked below as a top-level chapter, not a tree. */}
+                    primary members of each feature, the other roles in collapsed role nodes
+                    (its whole surface flat when it has no primary member). The exhaustive
+                    reference surface lives on the `references.html` portal page, linked below
+                    as a top-level chapter, not a tree. */}
                 {(d.menuLayout ?? 'feature') === 'feature' ? (
                     <>
                         {CachedFeatureSection(
                             {
-                                groups: featureGroups(d.semantic, d.symbols, d.di, 'primary'),
+                                ...featureMenu(d.semantic, d.symbols, d.di),
                                 pages: featurePagePaths(d.semantic),
                                 first: appRootPath(d.semantic),
                                 groupDepth: GROUP_EXPAND_DEPTH,
@@ -1112,8 +1210,7 @@ export const Menu = (props: MenuProps): string => {
                             },
                             d.symbols
                         )}
-                        {Object.keys(featureGroups(d.semantic, d.symbols, d.di, 'all')).length >
-                            0 && (
+                        {Object.keys(featureGroups(d.semantic, d.symbols, d.di)).length > 0 && (
                             <li class="chapter references">
                                 <a
                                     data-type="chapter-link"

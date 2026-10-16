@@ -225,6 +225,7 @@ export const TRANSLATION_RU_RU = {
     services: 'Сервисы',
     configuration: 'Конфигурация',
     constants: 'Константы',
+    more: 'Ещё',
     'feature-detector-config': 'Задано в конфигурации',
     'feature-detector-tag': 'Задано через @feature',
     'feature-detector-cohesion': 'Определено по импортам',

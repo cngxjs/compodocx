@@ -224,6 +224,7 @@ export const TRANSLATION_IT_IT = {
     services: 'Servizi',
     configuration: 'Configurazione',
     constants: 'Costanti',
+    more: 'Altro',
     'feature-detector-config': 'Impostato nella configurazione',
     'feature-detector-tag': 'Impostato da @feature',
     'feature-detector-cohesion': 'Rilevato dagli import',

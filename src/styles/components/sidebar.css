@@ -672,6 +672,18 @@ button.menu-toggler:focus-visible {
     }
 }
 
+/* Feature layout - labelled role groups inside a feature's "More" node.
+   The role nodes themselves reuse the `.chapter.inner > .menu-toggler` header. */
+.cdx-feature-role-group {
+    @apply list-none;
+}
+.cdx-feature-role-label {
+    @apply block font-semibold;
+    padding: var(--spacing-cdx-sm) var(--spacing-cdx-lg) var(--spacing-cdx-xs);
+    font-size: 11px;
+    color: var(--color-cdx-text-muted);
+}
+
 /* Feature layout — per-kind icon next to each entity name  */
 
 /* Force the anchor into a flex row so the kind icon, name, and trailing

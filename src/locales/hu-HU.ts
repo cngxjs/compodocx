@@ -224,6 +224,7 @@ export const TRANSLATION_HU_HU = {
     services: 'Szolgáltatások',
     configuration: 'Konfiguráció',
     constants: 'Konstansok',
+    more: 'Továbbiak',
     'feature-detector-config': 'A konfigurációban megadva',
     'feature-detector-tag': '@feature által megadva',
     'feature-detector-cohesion': 'Importokból felismerve',

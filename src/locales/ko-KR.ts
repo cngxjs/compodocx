@@ -222,6 +222,7 @@ export const TRANSLATION_KO_KR = {
     services: '서비스',
     configuration: '구성',
     constants: '상수',
+    more: '기타',
     'feature-detector-config': '구성에서 지정',
     'feature-detector-tag': '@feature로 지정',
     'feature-detector-cohesion': 'import에서 감지',

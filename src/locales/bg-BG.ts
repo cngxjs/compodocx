@@ -224,6 +224,7 @@ export const TRANSLATION_BG_BG = {
     services: 'Услуги',
     configuration: 'Конфигурация',
     constants: 'Константи',
+    more: 'Още',
     'feature-detector-config': 'Зададено в конфигурацията',
     'feature-detector-tag': 'Зададено чрез @feature',
     'feature-detector-cohesion': 'Открито от импортите',
