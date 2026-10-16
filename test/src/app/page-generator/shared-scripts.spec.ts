@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
     contentVersion,
+    ENTITIES_SCRIPT,
+    entitiesScript,
     MENU_SCRIPT,
     menuScript
 } from '../../../../src/app/page-generator/shared-scripts';
@@ -42,5 +44,35 @@ describe('shared sidebar script', () => {
 
     it('renders no menu script without a version', () => {
         expect(page(0)).not.toContain(MENU_SCRIPT);
+    });
+});
+
+describe('shared entity index script', () => {
+    const index = { Foo: { href: 'app/Foo.html', kind: 'component' } };
+    const withIndex = (entitiesVersion?: string) =>
+        Layout({
+            data: {
+                documentationMainName: 'Docs',
+                depth: 1,
+                context: 'readme',
+                name: 'index',
+                entityIndex: index
+            },
+            content: '',
+            entitiesVersion
+        });
+
+    it('assigns the index to the global the palette reads', () => {
+        expect(entitiesScript(index)).toBe(`window.__CDX_ENTITIES__=${JSON.stringify(index)};`);
+    });
+
+    it('loads the script instead of an inline index', () => {
+        const html = withIndex('0a1b2c3d');
+        expect(html).toContain(`<script src="../${ENTITIES_SCRIPT}?v=0a1b2c3d"`);
+        expect(html).not.toContain('window.__CDX_ENTITIES__');
+    });
+
+    it('renders no entity script without a version', () => {
+        expect(withIndex()).not.toContain(ENTITIES_SCRIPT);
     });
 });

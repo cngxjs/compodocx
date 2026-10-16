@@ -193,6 +193,9 @@ export class HtmlEngine {
      */
     public menuVersion: string | undefined;
 
+    /** `?v=` cache key of the shared entity index script; undefined: no entity script. */
+    public entitiesVersion: string | undefined;
+
     /** The sidebar menu, rendered once per run with the root data (or the `menu` override). */
     public renderMenu(mainData: any): string {
         const data = { ...mainData, depth: 0, context: 'menu' };
@@ -206,7 +209,8 @@ export class HtmlEngine {
         return Layout({
             data,
             content,
-            menuVersion: this.menuVersion
+            menuVersion: this.menuVersion,
+            entitiesVersion: this.entitiesVersion
         });
     }
 

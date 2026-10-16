@@ -10,7 +10,13 @@ import { buildRedirects, type Redirects, rewriteLegacyLinks } from '../links/red
 import { placedLink } from '../links/resolve';
 import type { TableKind } from '../links/symbol-id';
 import { entryInFile } from '../links/symbol-table';
-import { contentVersion, MENU_SCRIPT, menuScript } from './shared-scripts';
+import {
+    contentVersion,
+    ENTITIES_SCRIPT,
+    entitiesScript,
+    MENU_SCRIPT,
+    menuScript
+} from './shared-scripts';
 
 /** Path of a file in the output folder, from its path below the site root. */
 const outputPath = (file: string): string => {
@@ -145,10 +151,14 @@ export class PageWriter {
         Configuration.mainData.dependencyGraph = { nodes, edges };
     }
 
+    /** Build the entity index and write it as the shared script every page loads. */
     private buildEntityIndex() {
         const index = buildEntityIndex(
             Configuration.mainData as unknown as Record<string, unknown>
         );
         Configuration.mainData.entityIndex = index;
+        const script = entitiesScript(index);
+        FileEngine.writeSync(outputPath(ENTITIES_SCRIPT), script);
+        HtmlEngine.entitiesVersion = contentVersion(script);
     }
 }
