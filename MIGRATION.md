@@ -274,6 +274,23 @@ To adopt:
 
 See docs/theming-tokens-authoring-guide.md for the tag set and examples.
 
+## Changes in 0.9.0: shared sidebar and role groups
+
+The sidebar menu and the command palette's entity index are no longer part of every page. Each site (each version folder in multi-version output) gets `js/menu.js` and `js/entities.js`, and every page loads them with a content hash in the query (`js/menu.js?v=1a2b3c4d`). Page URLs, anchors and search results do not change.
+
+What to check:
+
+- **`menu` template override.** It is rendered once per run, not once per page, and always receives the root data: `data.depth` is `0` and `data.context` is `'menu'`. An override that used the page's depth or context to build links or mark the current page must stop doing so. Write links as paths from the documentation root without a `./` or `../` prefix and give the anchor a `data-type` attribute; the client adds the prefix for the current page and marks the active link. See docs/custom-templates.md.
+- **Scripts and styles that read the sidebar.** The menu markup is inserted into `#sidebar` by `js/menu.js`, a classic script right after the sidebar element, so it exists before `DOMContentLoaded`. A custom script that reads `#sidebar` content earlier in the page (an inline script above the sidebar), or a tool that scrapes the menu from the page HTML, finds only the sidebar header; read `js/menu.js` or wait for `DOMContentLoaded`. CSS selectors are unaffected: the DOM after load is the same as before.
+- **No sidebar menu without JavaScript.** Pages still show the header and content; the menu needs JavaScript (its links needed it before on pages below the root).
+- **Feature sidebar layout.** Under `menuLayout: 'feature'`, tokens move from a feature's top level into a collapsed Configuration node, and functions, constants, types and other classes of a feature with primary members now appear in a collapsed More node. To get close to the old list, set:
+
+    ```json
+    { "menuFeatureSections": { "configuration": "top", "utilities": "hidden", "constants": "hidden", "types": "hidden" } }
+    ```
+
+    `configuration: "top"` also lists providers and feature types at the top level, which the old list left out.
+
 ## Breaking change in 0.3.0: multi-version output is the default
 
 Starting with `@cngxjs/compodocx@0.3.0`, `compodocx -d <output>` writes the generated HTML to `<output>/<versionLabel>/` instead of `<output>/`, and maintains a small `<output>/versions.json` manifest next to it.
