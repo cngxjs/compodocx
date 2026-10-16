@@ -5,11 +5,7 @@ import type { MainDataInterface } from '../../app/interfaces/main-data.interface
 import { hrefFor, hrefText, routeAnchor } from '../../app/links/layout';
 import { placedLink, symbolTarget } from '../../app/links/resolve';
 import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
-import type {
-    FeatureCard,
-    FeatureMembers,
-    FeaturePageData
-} from '../../app/page-generator/feature-page-generator';
+import type { FeatureCard, FeaturePageData } from '../../app/page-generator/feature-page-generator';
 import type { RouteNode, RouteTarget, RoutingModel } from '../../app/routing/model';
 import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
 import { isDocumentedToken, type StyleFile } from '../../app/styles/model';
@@ -17,6 +13,7 @@ import { markedAcl } from '../../utils/marked.acl';
 import { DiBadges } from '../components/DiBadges';
 import { IconFolder } from '../components/Icons';
 import { firstSentence, t } from '../helpers';
+import type { FeatureMembers } from '../helpers/feature-sections';
 import { entryFacts } from '../helpers/symbol-facts';
 import { hasTheming, themingFor } from '../helpers/theming';
 
