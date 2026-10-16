@@ -242,6 +242,116 @@ export function provideWithProvider(): Provider[] {
     });
 });
 
+describe('accessor functions', () => {
+    const FILE = '/p/accessors.ts';
+    const SOURCE = `
+import { inject } from '@angular/core';
+export const T = new InjectionToken('t');
+export interface XFeature { readonly kind: string; }
+const bundle = { resolve: () => inject(T) };
+function readT() {
+    return inject(T);
+}
+class Store {
+    read() {
+        return inject(T);
+    }
+}
+export function returnsInject() {
+    return inject(T);
+}
+export function returnsOptionalInject() {
+    return inject(T, { optional: true });
+}
+export function returnsHelperCall() {
+    return readT();
+}
+export const arrowAccessor = () => inject(T);
+export function withKey(key: string) {
+    if (key) {
+        return inject(T);
+    }
+    return inject(T, { optional: true });
+}
+export function callsParameter(store: Store) {
+    return store.read();
+}
+export function callsModuleConstant() {
+    return bundle.resolve();
+}
+export function returnsObject() {
+    return { value: inject(T) };
+}
+export function returnsNew() {
+    inject(T);
+    return new Store();
+}
+export function closureOnly() {
+    return () => inject(T);
+}
+export function provideX(...features: XFeature[]): Provider[] {
+    inject(T);
+    return [];
+}
+export function withY(): XFeature {
+    return inject(T);
+}
+`;
+    let di: ReturnType<typeof analyzeDi>['di'];
+    const accessor = (name: string) => di.get(`p/accessors.ts#${name}`)?.accessor === true;
+
+    beforeAll(() => {
+        const program = memoryProgram({ [FILE]: SOURCE });
+        const checker = program.getTypeChecker();
+        const sourceFiles = [program.getSourceFile(FILE)].filter(
+            (sf): sf is ts.SourceFile => sf !== undefined
+        );
+        di = analyzeDi(collectDeclarations(sourceFiles, checker, '/'), checker, () => true).di;
+    });
+
+    it('marks a function returning inject()', () => {
+        expect(accessor('returnsInject')).toBe(true);
+        expect(accessor('returnsOptionalInject')).toBe(true);
+    });
+
+    it('marks a function returning a helper call that reads the token', () => {
+        expect(di.get('p/accessors.ts#returnsHelperCall')?.usesInjectionContext).toBe('call');
+        expect(accessor('returnsHelperCall')).toBe(true);
+    });
+
+    it('marks an exported arrow const with an expression body', () => {
+        expect(accessor('arrowAccessor')).toBe(true);
+    });
+
+    it('marks an accessor with a key parameter', () => {
+        expect(accessor('withKey')).toBe(true);
+    });
+
+    it('does not mark a method call on its own parameter', () => {
+        expect(accessor('callsParameter')).toBe(false);
+    });
+
+    it('marks a property call on a module constant', () => {
+        expect(accessor('callsModuleConstant')).toBe(true);
+    });
+
+    it('does not mark a function returning an object literal or a new expression', () => {
+        expect(accessor('returnsObject')).toBe(false);
+        expect(accessor('returnsNew')).toBe(false);
+    });
+
+    it('does not mark a function that injects only inside a returned closure', () => {
+        expect(accessor('closureOnly')).toBe(false);
+    });
+
+    it('does not mark providers and feature functions', () => {
+        expect(di.get('p/accessors.ts#provideX')?.role).toBe('provider');
+        expect(accessor('provideX')).toBe(false);
+        expect(di.get('p/accessors.ts#withY')?.role).toBe('feature');
+        expect(accessor('withY')).toBe(false);
+    });
+});
+
 describe('declaration spaces', () => {
     const FOO = 'core/src/foo/foo.ts';
     const typeFacts = (file: string, name: string): SymbolFacts | undefined =>

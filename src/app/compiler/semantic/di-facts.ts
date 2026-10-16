@@ -167,6 +167,71 @@ const isFunctionNode = (node: ScopeOwner | undefined): node is FunctionNode =>
     node !== undefined &&
     (ts.isFunctionDeclaration(node) || ts.isArrowFunction(node) || ts.isFunctionExpression(node));
 
+/** Return expressions of a function's own scope (nested functions skipped), unwrapped. */
+const returnedExpressions = (fn: FunctionNode): readonly ts.Expression[] => {
+    if (!fn.body) {
+        return [];
+    }
+    if (!ts.isBlock(fn.body)) {
+        return [unwrapExpression(fn.body)];
+    }
+    const returned: ts.Expression[] = [];
+    const walk = (node: ts.Node): void => {
+        if (ts.isFunctionLike(node)) {
+            return;
+        }
+        if (ts.isReturnStatement(node) && node.expression) {
+            returned.push(unwrapExpression(node.expression));
+        }
+        ts.forEachChild(node, walk);
+    };
+    ts.forEachChild(fn.body, walk);
+    return returned;
+};
+
+/** The identifier a callee chain starts at: `a` of `a.b.c()`, `a()`, `a[0]()`, `a.b().c()`. */
+const calleeRoot = (expression: ts.Expression): ts.Identifier | undefined => {
+    let current = unwrapExpression(expression);
+    while (
+        ts.isPropertyAccessExpression(current) ||
+        ts.isElementAccessExpression(current) ||
+        ts.isCallExpression(current)
+    ) {
+        current = unwrapExpression(current.expression);
+    }
+    return ts.isIdentifier(current) ? current : undefined;
+};
+
+const bindingNames = (name: ts.BindingName): readonly ts.Identifier[] =>
+    ts.isIdentifier(name)
+        ? [name]
+        : name.elements.flatMap(element =>
+              ts.isBindingElement(element) ? bindingNames(element.name) : []
+          );
+
+/**
+ * Every return expression is a call, and no returned call starts at one of
+ * the function's own parameters (such a function delegates to its argument).
+ */
+const returnsOnlyOwnCalls = (fn: FunctionNode, checker: ts.TypeChecker): boolean => {
+    const returned = returnedExpressions(fn);
+    const calls = returned.filter(ts.isCallExpression);
+    if (returned.length === 0 || calls.length !== returned.length) {
+        return false;
+    }
+    const parameters = new Set(
+        fn.parameters
+            .flatMap(parameter => bindingNames(parameter.name))
+            .map(name => checker.getSymbolAtLocation(name))
+            .filter((symbol): symbol is ts.Symbol => symbol !== undefined)
+    );
+    return calls.every(call => {
+        const root = calleeRoot(call.expression);
+        const symbol = root && checker.getSymbolAtLocation(root);
+        return !symbol || !parameters.has(symbol);
+    });
+};
+
 /** The declaration a callee resolves to, when it has a body this run analyses. */
 const calleeOwner = (
     declaration: ts.Declaration,
@@ -369,12 +434,20 @@ export const analyzeDi = (
             counts.unresolved++;
         }
         const provider = declaration.fn && providerByNode.get(declaration.fn);
+        const role = roleOf(declaration);
+        const accessor =
+            declaration.exported &&
+            declaration.fn !== undefined &&
+            role === undefined &&
+            context.via !== undefined &&
+            returnsOnlyOwnCalls(declaration.fn, checker);
         const facts: DiFacts = {
-            role: roleOf(declaration),
+            role,
             featureType: featureTypeOf.get(declaration),
             providesTokens: provider ? providedTokens(provider) : [],
             readsTokens: sortedKeys(context.reads),
-            usesInjectionContext: context.via
+            usesInjectionContext: context.via,
+            ...(accessor ? { accessor: true as const } : {})
         };
         const hasFacts =
             facts.role !== undefined ||
