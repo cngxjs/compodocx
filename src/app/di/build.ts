@@ -38,12 +38,12 @@ const indexByKey = (entries: readonly SymbolEntry[]) => {
         const key = factKey(toSymbolKey(entry.ref));
         index.set(key, [...(index.get(key) ?? []), entry]);
     }
-    return (key: SymbolKey, kinds: ReadonlySet<TableKind>): SymbolId | undefined =>
-        index.get(factKey(key))?.find(entry => kinds.has(entry.ref.kind))?.id;
+    return (key: SymbolKey, kinds?: ReadonlySet<TableKind>): SymbolId | undefined =>
+        index.get(factKey(key))?.find(entry => !kinds || kinds.has(entry.ref.kind))?.id;
 };
 
 const TOKEN_KINDS: ReadonlySet<TableKind> = new Set<TableKind>(['token']);
-
+const ACCESSOR_KINDS: ReadonlySet<TableKind> = new Set<TableKind>(['function', 'variable']);
 /**
  * Who documents what: providers and feature functions grouped by the feature
  * type they share, plain providers, tokens and the symbols that reach no
@@ -124,6 +124,37 @@ export const buildDiView = (table: SymbolTable, semantic?: SemanticModel): DiVie
         placement.set(id, { type: 'hidden' });
     }
 
+    // Config accessors: every documented read is a cluster token, at least one read.
+    const visibleByKey = indexByKey(visible);
+    const ownersByToken = new Map<SymbolId, SymbolId[]>();
+    for (const cluster of clusters) {
+        for (const token of cluster.tokens) {
+            ownersByToken.set(token, [...(ownersByToken.get(token) ?? []), cluster.owner]);
+        }
+    }
+    const accessorOwners = (entry: SymbolEntry): SymbolId[] | undefined => {
+        const reads = (factsOf(entry)?.di?.readsTokens ?? [])
+            .map(key => visibleByKey(key))
+            .filter((id): id is SymbolId => id !== undefined);
+        const configTokens = reads.filter(id => ownersByToken.has(id));
+        if (configTokens.length === 0 || configTokens.length !== reads.length) {
+            return undefined;
+        }
+        return [...new Set(configTokens.flatMap(id => ownersByToken.get(id) ?? []))].sort(
+            byName(table)
+        );
+    };
+    const accessors = new Map<SymbolId, readonly SymbolId[]>();
+    for (const entry of visible) {
+        const owners =
+            ACCESSOR_KINDS.has(entry.ref.kind) && factsOf(entry)?.di?.accessor
+                ? accessorOwners(entry)
+                : undefined;
+        if (owners) {
+            accessors.set(entry.id, owners);
+        }
+    }
+
     return {
         clusters,
         plainProviders: plainProviders.sort(byName(table)),
@@ -132,7 +163,8 @@ export const buildDiView = (table: SymbolTable, semantic?: SemanticModel): DiVie
             .map(entry => entry.id)
             .sort(byName(table)),
         hidden: hidden.sort(byFileAndName(table)),
-        placement
+        placement,
+        accessors
     };
 };
 

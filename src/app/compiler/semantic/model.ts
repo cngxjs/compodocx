@@ -43,6 +43,11 @@ export interface DiFacts {
     readonly providesTokens: readonly SymbolKey[];
     readonly readsTokens: readonly SymbolKey[];
     readonly usesInjectionContext?: InjectionContextVia;
+    /**
+     * An exported function without a DI role that needs the injection context
+     * and returns only calls, none on its own parameters. Not exported.
+     */
+    readonly accessor?: true;
 }
 
 export interface TokenFacts {

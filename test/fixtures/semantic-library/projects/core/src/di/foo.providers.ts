@@ -1,5 +1,5 @@
 import { type EnvironmentProviders, makeEnvironmentProviders, type Provider } from '@angular/core';
-import { FOO_CONFIG, FOO_EXTRAS, FOO_LIMIT, FOO_MODE } from '@sem/core/tokens';
+import { FOO_CONFIG, FOO_EXTRAS, FOO_LIMIT, FOO_MODE, FOO_THEME } from '@sem/core/tokens';
 
 /** A configuration step accepted by the foo providers. */
 export interface FooFeature {
@@ -17,6 +17,7 @@ export interface FooLikeFeature {
 export function provideFoo(...features: FooFeature[]): EnvironmentProviders {
     return makeEnvironmentProviders([
         { provide: FOO_CONFIG, useValue: { label: 'foo' } },
+        { provide: FOO_THEME, useValue: 'light' },
         provideFooLimit(),
         ...features.flatMap(f => f.providers)
     ]);

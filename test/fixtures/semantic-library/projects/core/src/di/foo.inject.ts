@@ -1,7 +1,14 @@
 import { computed, DestroyRef, effect, inject as i, inject, type Injector, type Signal } from '@angular/core';
 import * as ng from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FOO_CONFIG, FOO_FORMATTER, FOO_LABEL, FOO_LIMIT, type FooConfig } from '@sem/core/tokens';
+import {
+    FOO_CONFIG,
+    FOO_FORMATTER,
+    FOO_LABEL,
+    FOO_LIMIT,
+    FOO_THEME,
+    type FooConfig
+} from '@sem/core/tokens';
 
 /** Reads the foo configuration. */
 export function injectFoo(): FooConfig {
@@ -15,6 +22,9 @@ export function injectFooLabel(): Signal<string> {
 
 /** Reads the formatter with a type argument and an options object. */
 export const injectFooFormatter = () => inject<(value: string) => string>(FOO_FORMATTER, { optional: true });
+
+/** Reads the colour theme the foo providers set. */
+export const injectFooTheme = () => inject(FOO_THEME);
 
 /** Reads the limit through a namespace import. */
 export function injectFooLimit(): number {

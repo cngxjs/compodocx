@@ -108,7 +108,8 @@ describe('links that follow the dependency injection placement', () => {
             ],
             [id(`function:${F}#provideLimit`), { type: 'provider' }],
             [id(`function:${F}#orphan`), { type: 'hidden' }]
-        ])
+        ]),
+        accessors: new Map()
     };
     const placed = buildSymbolTable(
         {

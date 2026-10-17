@@ -70,4 +70,25 @@ describe('sectionOf', () => {
             }
         });
     }
+
+    const owner = symbolId({ kind: 'interface', file: 'src/f.ts', name: 'F' });
+    const accessorView = (e: SymbolEntry): DiView => ({
+        ...emptyDiView(),
+        accessors: new Map([[e.id, [owner]]])
+    });
+
+    it('puts a config accessor function into configuration', () => {
+        const e = entry('function', 'injectFoo');
+        expect(sectionOf(e, accessorView(e))).toBe('configuration');
+    });
+
+    it('puts a config accessor const into configuration, not constants', () => {
+        const e = entry('variable', 'injectFoo');
+        expect(sectionOf(e, accessorView(e))).toBe('configuration');
+    });
+
+    it('keeps a function that is no config accessor in utilities', () => {
+        const other = entry('function', 'injectBar');
+        expect(sectionOf(other, accessorView(entry('function', 'injectFoo')))).toBe('utilities');
+    });
 });

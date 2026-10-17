@@ -7,7 +7,7 @@ export interface FeatureMembers {
     readonly directives: readonly SymbolEntry[];
     readonly pipes: readonly SymbolEntry[];
     readonly services: readonly SymbolEntry[];
-    /** Tokens, providers, feature functions and feature types. */
+    /** Tokens, providers, feature functions, feature types and config accessors. */
     readonly configuration: readonly SymbolEntry[];
     readonly utilities: readonly SymbolEntry[];
     readonly constants: readonly SymbolEntry[];
@@ -30,7 +30,7 @@ export const sectionOf = (
     if (placement === 'hidden' || entry.ref.kind === 'style') {
         return undefined;
     }
-    if (placement !== 'own' || entry.ref.kind === 'token') {
+    if (placement !== 'own' || entry.ref.kind === 'token' || view?.accessors.has(entry.id)) {
         return 'configuration';
     }
     switch (entry.ref.kind) {

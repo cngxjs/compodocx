@@ -9,7 +9,9 @@ import {
     type SemanticModel,
     type SymbolFacts
 } from '../../../src/app/compiler/semantic/model';
+import { type DiView, emptyDiView } from '../../../src/app/di/model';
 import {
+    configAccessorKeys,
     exportSemantic,
     exportStyleFiles,
     miscellaneousWithFacts,
@@ -25,6 +27,7 @@ import {
     type ExportPipe
 } from '../../../src/app/interfaces/export-data.interface';
 import { buildSymbolTable } from '../../../src/app/links';
+import type { SymbolId } from '../../../src/app/links/symbol-id';
 import { themeResolver } from '../../../src/app/run/styles';
 import { buildStyleModel, resolveThemes } from '../../../src/app/styles';
 
@@ -363,6 +366,46 @@ describe('export-json semantic facts', () => {
         ) as { functions: object[]; groupedFunctions: Record<string, object[]> };
         expect(misc.functions[0]).toEqual({ ...entry, notExported: true });
         expect(misc.groupedFunctions['src/foo.ts'][0]).toEqual({ ...entry, notExported: true });
+    });
+
+    it('marks config accessors, functions and consts, and nothing else', () => {
+        const fileOf = 'src/access.ts';
+        const fn = { name: 'injectFoo', file: fileOf };
+        const arrow = { name: 'injectFooAt', file: fileOf };
+        const other = { name: 'createFoo', file: fileOf };
+        const reads = {
+            providesTokens: [],
+            readsTokens: [{ name: 'FOO', file: fileOf }],
+            usesInjectionContext: 'direct' as const
+        };
+        const table = buildSymbolTable(
+            { miscellaneous: { functions: [fn, other], variables: [arrow] } },
+            { cwd: '/' }
+        );
+        const id = (kind: string, name: string) => `${kind}:${fileOf}#${name}` as SymbolId;
+        const owner = `interface:${fileOf}#FooFeature` as SymbolId;
+        const view: DiView = {
+            ...emptyDiView(),
+            accessors: new Map([
+                [id('function', 'injectFoo'), [owner]],
+                [id('variable', 'injectFooAt'), [owner]]
+            ])
+        };
+        const keys = configAccessorKeys(view, table);
+        const misc = miscellaneousWithFacts(
+            { functions: [fn, other], variables: [arrow] },
+            model([fn, arrow, other].map(e => facts({ key: e, di: reads }))),
+            keys
+        ) as { functions: { di?: object }[]; variables: { di?: object }[] };
+        expect(misc.functions[0].di).toEqual({
+            readsTokens: reads.readsTokens,
+            usesInjectionContext: 'direct',
+            configAccessor: true
+        });
+        expect(misc.variables[0].di).toHaveProperty('configAccessor', true);
+        expect(misc.functions[1].di).not.toHaveProperty('configAccessor');
+        expect(configAccessorKeys(emptyDiView(), table).size).toBe(0);
+        expect(configAccessorKeys(undefined, table).size).toBe(0);
     });
 
     it('joins a const and a type of one name to their own facts by list kind', () => {

@@ -209,6 +209,8 @@ export interface ExportDiFacts {
     providesTokens?: ExportSymbolRef[];
     readsTokens?: ExportSymbolRef[];
     usesInjectionContext?: 'direct' | 'call';
+    /** Returns a value read from a token its library configures through a provider with features. */
+    configAccessor?: true;
 }
 
 export type ExportTokenShape =
