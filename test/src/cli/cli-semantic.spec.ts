@@ -58,7 +58,7 @@ describe('CLI semantic analysis', () => {
     it('exits 0 and logs the semantic summary', () => {
         expect(status).to.equal(0);
         expect(stdout).to.contain(
-            'Semantic analysis: 5 entry points, 4 providers, 2 feature functions, 8+3 use the injection context (1 unresolved), 1 exported symbols reach no entry point'
+            'Semantic analysis: 5 entry points, 4 providers, 2 feature functions, 9+3 use the injection context (1 unresolved), 1 exported symbols reach no entry point'
         );
     });
 
@@ -158,6 +158,21 @@ describe('CLI semantic analysis', () => {
         );
         expect(core).to.contain(`href="${pages.href('function', 'formatFoo', depth)}"`);
         expect(core).to.contain(`href="${pages.href('guard', 'fooReadyGuard', depth)}"`);
+        const section = (id: string) => {
+            const start = core.indexOf(`id="${id}"`);
+            const end = core.indexOf('<h2 class="cdx-section-heading"', start + 1);
+            return core.slice(start, end < 0 ? undefined : end);
+        };
+        for (const name of ['injectFoo', 'injectFooLimit', 'injectBar']) {
+            expect(section('configuration'), name).to.contain(`>${name}<`);
+            expect(section('utilities'), name).not.to.contain(`>${name}<`);
+        }
+        expect(section('configuration')).to.contain('>injectFooTheme<');
+        expect(section('constants')).not.to.contain('>injectFooTheme<');
+        for (const name of ['injectViaMethod', 'createThing']) {
+            expect(section('utilities'), name).to.contain(`>${name}<`);
+            expect(section('configuration'), name).not.to.contain(`>${name}<`);
+        }
         const panel = fs.readFileSync(
             path.join(htmlFolder, featurePage(['ui', 'foo-panel'])),
             'utf8'

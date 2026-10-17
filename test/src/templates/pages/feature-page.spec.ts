@@ -7,7 +7,7 @@ import {
     type SemanticModel,
     type SymbolFacts
 } from '../../../../src/app/compiler/semantic/model';
-import { buildDiView } from '../../../../src/app/di';
+import { buildDiView, type DiView } from '../../../../src/app/di';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import { buildSymbolTable, withStyleEntries } from '../../../../src/app/links';
 import type { SymbolId } from '../../../../src/app/links/symbol-id';
@@ -112,9 +112,13 @@ const READMES: Record<string, string> = {
     'lib/select/src/menu/README.md': '<p>Menu <em>parts</em>.</p><p>Second.</p>'
 };
 
-const render = (id: string, extra: Record<string, unknown> = {}): string => {
+const render = (
+    id: string,
+    extra: Record<string, unknown> = {},
+    withView: (view: DiView) => DiView = view => view
+): string => {
     const symbols = buildSymbolTable(engine as never, { cwd: '/' });
-    const di = buildDiView(symbols, semantic);
+    const di = withView(buildDiView(symbols, semantic));
     const pages = featurePages(semantic, symbols, di, file => READMES[file]);
     const feature = pages.find(page => page.id === id);
     const html = FeaturePage({
@@ -149,6 +153,19 @@ describe('feature page', () => {
         expect(html).toContain('<td>The panel</td>');
         expect(html).toContain('cdx-badge--injection-context');
         expect(html).not.toContain('internalHelper');
+    });
+
+    it('lists a config accessor under configuration instead of utilities', () => {
+        const accessor = `function:${SELECT}/shared/option.ts#optionLabel` as SymbolId;
+        const html = render(ROOT, {}, view => ({
+            ...view,
+            accessors: new Map([[accessor, []]])
+        }));
+        const ids = sectionIds(html);
+        expect(ids).toContain('configuration');
+        expect(ids).not.toContain('utilities');
+        const configuration = html.slice(html.indexOf('id="configuration"'));
+        expect(configuration).toContain(`href="../${pageOf('function', 'optionLabel')}"`);
     });
 
     it('renders the README as the overview', () => {

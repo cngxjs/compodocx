@@ -61,6 +61,23 @@ describe('CLI menuFeatureSections', () => {
         expect(defaultMenu).to.contain('>FooConfig<');
     });
 
+    it('lists config accessors in the configuration role node', () => {
+        const group = (id: string) => {
+            const start = defaultMenu.indexOf(`id="${id}"`);
+            return defaultMenu.slice(start, defaultMenu.indexOf('</ul>', start));
+        };
+        const configuration = group('features-group-core-configuration');
+        const utilities = group('features-group-core-more-utilities');
+        for (const name of ['injectFoo', 'injectFooLimit', 'injectBar', 'injectFooTheme']) {
+            expect(configuration, name).to.contain(`>${name}<`);
+            expect(utilities, name).not.to.contain(`>${name}<`);
+        }
+        for (const name of ['injectViaMethod', 'createThing']) {
+            expect(utilities, name).to.contain(`>${name}<`);
+            expect(configuration, name).not.to.contain(`>${name}<`);
+        }
+    });
+
     it('lists configuration flat at the top and leaves types out', () => {
         expect(customMenu).to.not.contain('-configuration"');
         expect(customMenu).to.not.contain('-more-types"');

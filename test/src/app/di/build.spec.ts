@@ -191,3 +191,107 @@ describe('dependency injection view', () => {
         expect(foldClusterMembers(unchanged, undefined, table)).toEqual(unchanged);
     });
 });
+
+describe('config accessors', () => {
+    const A = 'lib/access.ts';
+    const k = (name: string) => key(name, A);
+    const fid = (name: string) => id('function', name, A);
+    const accessor = (name: string, reads: string[], extra: Partial<SymbolFacts> = {}) =>
+        facts(k(name), {
+            di: di({ usesInjectionContext: 'direct', readsTokens: reads.map(k), accessor: true }),
+            ...extra
+        });
+    const engine: EngineData = {
+        interfaces: [
+            { name: 'FooFeature', file: A },
+            { name: 'BarFeature', file: A }
+        ],
+        tokens: ['FOO_CONFIG', 'SHARED', 'LIMIT', 'LONE'].map(name => ({ name, file: A })),
+        injectables: [{ name: 'FooService', file: A }],
+        miscellaneous: {
+            functions: [
+                'provideFoo',
+                'provideBar',
+                'provideLimit',
+                'readsConfig',
+                'readsPlain',
+                'readsLone',
+                'readsMixedClass',
+                'readsMixedUndocumented',
+                'readsShared',
+                'hiddenAccessor',
+                'notAnAccessor'
+            ].map(name => ({ name, file: A })),
+            variables: [{ name: 'arrowAccessor', file: A }]
+        }
+    };
+    const accessorFacts = [
+        facts({ ...k('FooFeature'), space: 'type' }),
+        facts({ ...k('BarFeature'), space: 'type' }),
+        ...['FOO_CONFIG', 'SHARED', 'LIMIT', 'LONE', 'FooService'].map(name => facts(k(name))),
+        facts(k('provideFoo'), {
+            di: di({
+                role: 'provider',
+                featureType: { ...k('FooFeature'), space: 'type' },
+                providesTokens: [k('FOO_CONFIG'), k('SHARED')]
+            })
+        }),
+        facts(k('provideBar'), {
+            di: di({
+                role: 'provider',
+                featureType: { ...k('BarFeature'), space: 'type' },
+                providesTokens: [k('SHARED')]
+            })
+        }),
+        facts(k('provideLimit'), { di: di({ role: 'provider', providesTokens: [k('LIMIT')] }) }),
+        accessor('readsConfig', ['FOO_CONFIG']),
+        accessor('readsPlain', ['LIMIT']),
+        accessor('readsLone', ['LONE']),
+        accessor('readsMixedClass', ['FOO_CONFIG', 'FooService']),
+        accessor('readsMixedUndocumented', ['FOO_CONFIG', 'UNDOCUMENTED']),
+        accessor('readsShared', ['SHARED']),
+        accessor('hiddenAccessor', ['FOO_CONFIG'], { notExported: true, exportedBy: [] }),
+        accessor('arrowAccessor', ['FOO_CONFIG']),
+        facts(k('notAnAccessor'), {
+            di: di({ usesInjectionContext: 'direct', readsTokens: [k('FOO_CONFIG')] })
+        })
+    ];
+    const accessorTable = buildSymbolTable(engine, { cwd: '/' });
+    const accessors = buildDiView(accessorTable, model(accessorFacts)).accessors;
+    const foo = id('interface', 'FooFeature', A);
+    const bar = id('interface', 'BarFeature', A);
+
+    it('lists a function reading a cluster token with the cluster owner', () => {
+        expect(accessors.get(fid('readsConfig'))).toEqual([foo]);
+    });
+
+    it('skips a token of a plain provider and a token without a provider', () => {
+        expect(accessors.has(fid('readsPlain'))).toBe(false);
+        expect(accessors.has(fid('readsLone'))).toBe(false);
+    });
+
+    it('skips a function that also reads a documented class', () => {
+        expect(accessors.has(fid('readsMixedClass'))).toBe(false);
+    });
+
+    it('ignores reads of undocumented tokens', () => {
+        expect(accessors.get(fid('readsMixedUndocumented'))).toEqual([foo]);
+    });
+
+    it('leaves hidden functions and functions without the accessor shape out', () => {
+        expect(accessors.has(fid('hiddenAccessor'))).toBe(false);
+        expect(accessors.has(fid('notAnAccessor'))).toBe(false);
+    });
+
+    it('lists every cluster that provides the token, sorted by name', () => {
+        expect(accessors.get(fid('readsShared'))).toEqual([bar, foo]);
+    });
+
+    it('lists an arrow const accessor', () => {
+        expect(accessors.get(id('variable', 'arrowAccessor', A))).toEqual([foo]);
+    });
+
+    it('is empty without the semantic stage', () => {
+        expect(buildDiView(accessorTable).accessors.size).toBe(0);
+    });
+});

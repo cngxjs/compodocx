@@ -15,6 +15,9 @@ export const FOO_FORMATTER = new InjectionToken<LabelFn>('FOO_FORMATTER');
 /** Maximum number of items. */
 export const FOO_LIMIT = new InjectionToken<number>('FOO_LIMIT');
 
+/** Colour theme of the foo feature. */
+export const FOO_THEME = new InjectionToken<'light' | 'dark'>('FOO_THEME');
+
 /** Display mode. */
 export const FOO_MODE = new InjectionToken<'compact' | 'wide'>('FOO_MODE');
 

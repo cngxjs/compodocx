@@ -45,6 +45,11 @@ export interface DiView {
     readonly hidden: readonly SymbolId[];
     /** Only the symbols that are not `own`. */
     readonly placement: ReadonlyMap<SymbolId, Placement>;
+    /**
+     * Config accessors: functions that return a value read from a token a
+     * cluster's providers provide, mapped to those cluster owners (sorted by name).
+     */
+    readonly accessors: ReadonlyMap<SymbolId, readonly SymbolId[]>;
 }
 
 const OWN: Placement = { type: 'own' };
@@ -54,7 +59,8 @@ export const emptyDiView = (): DiView => ({
     plainProviders: [],
     tokens: [],
     hidden: [],
-    placement: new Map()
+    placement: new Map(),
+    accessors: new Map()
 });
 
 export const placementOf = (view: DiView | undefined, id: SymbolId): Placement =>

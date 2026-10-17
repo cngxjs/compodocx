@@ -91,7 +91,8 @@ describe('dependency injection facts', () => {
     it('collects provided tokens directly and one provider call deep', () => {
         expect(facts(PROVIDERS, 'provideFoo')?.di?.providesTokens).toEqual([
             key(TOKENS, 'FOO_CONFIG'),
-            key(TOKENS, 'FOO_LIMIT')
+            key(TOKENS, 'FOO_LIMIT'),
+            key(TOKENS, 'FOO_THEME')
         ]);
         expect(facts(PROVIDERS, 'provideFooAt')?.di?.providesTokens).toEqual([
             key(TOKENS, 'FOO_CONFIG')
