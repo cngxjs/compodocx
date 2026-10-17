@@ -18,6 +18,7 @@ import {
     type TokenFacts
 } from '../compiler/semantic/model';
 import Configuration from '../configuration';
+import type { DiView } from '../di/model';
 import {
     EXPORT_SCHEMA_VERSION,
     type ExportAxis,
@@ -35,6 +36,7 @@ import {
     type ExportTokenFacts
 } from '../interfaces/export-data.interface';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
+import { type SymbolRef, toSymbolKey } from '../links/symbol-id';
 import { type SymbolTable, styleFileName } from '../links/symbol-table';
 import { exportRoutes, type RoutingModel, withRouteFacts } from '../routing';
 import type { StyleModel } from '../styles/model';
@@ -144,7 +146,7 @@ const nonEmpty = <K extends string>(
 ): Partial<Record<K, ExportSymbolRef[]>> =>
     keys.length > 0 ? ({ [key]: refs(keys) } as Record<K, ExportSymbolRef[]>) : {};
 
-const exportDi = (di: DiFacts | undefined): ExportDiFacts | undefined => {
+const exportDi = (di: DiFacts | undefined, configAccessor: boolean): ExportDiFacts | undefined => {
     if (!di) {
         return undefined;
     }
@@ -153,7 +155,8 @@ const exportDi = (di: DiFacts | undefined): ExportDiFacts | undefined => {
         ...(di.featureType ? { featureType: refs([di.featureType])[0] } : {}),
         ...nonEmpty('providesTokens', di.providesTokens),
         ...nonEmpty('readsTokens', di.readsTokens),
-        ...(di.usesInjectionContext ? { usesInjectionContext: di.usesInjectionContext } : {})
+        ...(di.usesInjectionContext ? { usesInjectionContext: di.usesInjectionContext } : {}),
+        ...(configAccessor ? { configAccessor: true as const } : {})
     };
     return Object.keys(facts).length > 0 ? facts : undefined;
 };
@@ -175,8 +178,12 @@ const exportFeatureRef = (feature: Feature | undefined): { feature?: ExportFeatu
         : {};
 
 /** The export fields of one symbol's facts; empty lists and `false` are left out. */
-const exportSemanticFacts = (facts: SymbolFacts, feature?: Feature): ExportSemanticFacts => {
-    const di = exportDi(facts.di);
+const exportSemanticFacts = (
+    facts: SymbolFacts,
+    feature: Feature | undefined,
+    configAccessor: boolean
+): ExportSemanticFacts => {
+    const di = exportDi(facts.di, configAccessor);
     return {
         ...(facts.entryPoint ? { entryPoint: facts.entryPoint } : {}),
         ...(facts.exportedBy.length > 0 ? { exportedBy: [...facts.exportedBy] } : {}),
@@ -207,6 +214,26 @@ const featureOfKey = (model: SemanticModel, key: string): Feature | undefined =>
 
 type SymbolEntry = { name?: string; file?: string };
 
+/** Fact keys of the config accessors (`DiView.accessors`). */
+type AccessorKeys = ReadonlySet<string>;
+const NO_ACCESSORS: AccessorKeys = new Set();
+
+/** The fact keys of the config accessors of the DI view, through the symbol table. */
+export const configAccessorKeys = (
+    view: DiView | undefined,
+    symbols: SymbolTable | undefined
+): AccessorKeys => {
+    if (!view || !symbols || view.accessors.size === 0) {
+        return NO_ACCESSORS;
+    }
+    return new Set(
+        [...view.accessors.keys()]
+            .map(id => symbols.byId.get(id)?.ref)
+            .filter((ref): ref is SymbolRef => ref !== undefined)
+            .map(ref => factKey(toSymbolKey(ref)))
+    );
+};
+
 /** A symbol's axis values, by axis name; nothing without values. */
 const exportAxisValues = (model: SemanticModel, key: string): { axes?: Record<string, string> } => {
     const values = model.axes?.valuesOf.get(key);
@@ -220,7 +247,8 @@ const exportAxisValues = (model: SemanticModel, key: string): { axes?: Record<st
 export const withSemanticFacts = <T extends SymbolEntry>(
     entry: T,
     model: SemanticModel,
-    space: DeclarationSpace = 'value'
+    space: DeclarationSpace = 'value',
+    configAccessors: AccessorKeys = NO_ACCESSORS
 ): T => {
     const key =
         entry.file && entry.name
@@ -229,7 +257,9 @@ export const withSemanticFacts = <T extends SymbolEntry>(
     const facts = key === undefined ? undefined : model.facts.get(key);
     const feature = key === undefined ? undefined : featureOfKey(model, key);
     const fields = {
-        ...(facts ? exportSemanticFacts(facts, feature) : exportFeatureRef(feature)),
+        ...(facts
+            ? exportSemanticFacts(facts, feature, key !== undefined && configAccessors.has(key))
+            : exportFeatureRef(feature)),
         ...(key === undefined ? {} : exportAxisValues(model, key))
     };
     return Object.keys(fields).length > 0 ? { ...entry, ...fields } : entry;
@@ -238,19 +268,22 @@ export const withSemanticFacts = <T extends SymbolEntry>(
 const mapEntries = <T extends SymbolEntry>(
     entries: T[] | undefined,
     model: SemanticModel,
-    space: DeclarationSpace = 'value'
-): T[] | undefined => entries?.map(entry => withSemanticFacts(entry, model, space));
+    space: DeclarationSpace = 'value',
+    configAccessors: AccessorKeys = NO_ACCESSORS
+): T[] | undefined =>
+    entries?.map(entry => withSemanticFacts(entry, model, space, configAccessors));
 
 const mapGroups = <T extends SymbolEntry>(
     groups: Record<string, T[]> | undefined,
     model: SemanticModel,
-    space: DeclarationSpace = 'value'
+    space: DeclarationSpace = 'value',
+    configAccessors: AccessorKeys = NO_ACCESSORS
 ): Record<string, T[]> | undefined =>
     groups &&
     Object.fromEntries(
         Object.entries(groups).map(([key, entries]) => [
             key,
-            entries.map(e => withSemanticFacts(e, model, space))
+            entries.map(e => withSemanticFacts(e, model, space, configAccessors))
         ])
     );
 
@@ -268,7 +301,8 @@ const spaceOfList = (key: string): DeclarationSpace =>
 /** Copy of the miscellaneous block with facts joined into its flat and grouped lists. */
 export const miscellaneousWithFacts = (
     miscellaneous: Record<string, unknown> | undefined,
-    model: SemanticModel
+    model: SemanticModel,
+    configAccessors: AccessorKeys = NO_ACCESSORS
 ): Record<string, unknown> | undefined => {
     if (!miscellaneous) {
         return miscellaneous;
@@ -276,7 +310,12 @@ export const miscellaneousWithFacts = (
     const copy: Record<string, unknown> = { ...miscellaneous };
     for (const key of MISC_LISTS) {
         if (Array.isArray(copy[key])) {
-            copy[key] = mapEntries(copy[key] as SymbolEntry[], model, spaceOfList(key));
+            copy[key] = mapEntries(
+                copy[key] as SymbolEntry[],
+                model,
+                spaceOfList(key),
+                configAccessors
+            );
         }
     }
     for (const key of MISC_GROUPS) {
@@ -284,7 +323,8 @@ export const miscellaneousWithFacts = (
             copy[key] = mapGroups(
                 copy[key] as Record<string, SymbolEntry[]>,
                 model,
-                spaceOfList(key)
+                spaceOfList(key),
+                configAccessors
             );
         }
     }
@@ -314,12 +354,12 @@ const withRouteVariables = (
 
 /** Joins the semantic facts into a symbol list; the list itself without a model. */
 export const factsJoiner =
-    (model: SemanticModel | undefined) =>
+    (model: SemanticModel | undefined, configAccessors: AccessorKeys = NO_ACCESSORS) =>
     <T extends SymbolEntry>(
         entries: T[] | undefined,
         space: DeclarationSpace = 'value'
     ): T[] | undefined =>
-        model ? mapEntries(entries, model, space) : entries;
+        model ? mapEntries(entries, model, space, configAccessors) : entries;
 
 /** Every feature with its family links in both directions. */
 const exportFeatures = (model: FeatureModel): ExportFeature[] => {
@@ -410,7 +450,8 @@ export class ExportJsonEngine {
         });
 
         const model: SemanticModel | undefined = data.semantic;
-        const facts = factsJoiner(model);
+        const configAccessors = configAccessorKeys(data.di, data.symbols);
+        const facts = factsJoiner(model, configAccessors);
 
         exportData.pipes = facts(data.pipes);
         exportData.interfaces = facts(data.interfaces, 'type');
@@ -444,7 +485,9 @@ export class ExportJsonEngine {
             exportData.styleFiles = styleFiles.files;
         }
         exportData.miscellaneous = withRouteVariables(
-            model ? miscellaneousWithFacts(data.miscellaneous, model) : data.miscellaneous,
+            model
+                ? miscellaneousWithFacts(data.miscellaneous, model, configAccessors)
+                : data.miscellaneous,
             routeFacts
         );
         exportData.tokens = facts(data.tokens);
