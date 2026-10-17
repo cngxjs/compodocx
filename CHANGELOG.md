@@ -47,6 +47,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **Role groups in the feature sidebar.** Under `menuLayout: 'feature'`, a feature with primary members (components, directives, pipes, injectables, classes, guards, interceptors, resolvers, entities) lists them and its style pages at the top and puts the other members into collapsed nodes: **Configuration** (tokens, providers, feature functions and feature types, each provider cluster folded into one entry) and **More**, with one labelled group each for utilities, constants, types and other classes. Empty nodes are left out. A feature without primary members keeps its flat list. Tokens therefore move from the top level into Configuration.
 - **`menuFeatureSections`.** A config-only key chooses per role where it shows in the sidebar: `own` (a node of its own), `more` (inside More), `top` (flat at the top) or `hidden` (not in the sidebar, still on the feature page, in the API reference and in search). The default is `{ "configuration": "own", "utilities": "more", "constants": "more", "types": "more" }`; an unknown role or value is ignored with a warning. See "Sidebar Grouping" in docs/configuration.md.
 - **Section jump bar on feature pages.** Below the header, a feature page links each of its non-empty sections (features, member roles, theming) with the number of entries.
+- **`di.configAccessor` in the JSON export.** A function that returns a value read from a token its library configures through a provider with features is marked with `di.configAccessor: true`. The field is optional; the schema version stays 6.
 
 ### Changed
 
@@ -75,6 +76,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **`themingTabSections` default gains `mixins`.** The default list is `overview`, `index`, `tokens`, `mixins`, `source`. A project that sets the list explicitly must add `mixins` to see documented mixins.
 - **`ExportComponent.themeOverview` is typed as a string.** The field holds the overview markdown as one string; the type declared `string[]`.
 - **Signal member fields in the JSON export.** The `defaultValue` of a signal input or model is the initial value argument only; the options object (`{ alias, transform }`) is no longer part of it, and `output({ ... })` has no `defaultValue`. A string `alias` is written as the new optional `alias` field and renders as the `alias:` modifier on the page. `type` is the first type argument (`input<boolean | undefined, unknown>()` gives `boolean | undefined`). The schema version stays 5.
+- **Accessor functions of a configured token are listed under Configuration.** A function that needs an injection context, returns only calls and reads a token set by a provider that accepts features (for example one that returns `inject(FOO_CONFIG)`) now shows in the Configuration section of its feature page and in the Configuration node of the feature sidebar instead of under utilities. Its page, URL and anchors are unchanged.
 
 ### Removed
 
@@ -132,6 +134,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **Style pages with hidden mixins.** A style file whose only documented content is mixins got its own page even when `themingTabSections` hides the `mixins` section, so the page showed almost nothing. Mixins count towards a page only while that section is shown. With the default sections nothing changes.
 - **A custom or named theme stays in place.** The script that restores a theme chosen in the theme picker ran on every site, also when a custom or named theme hides the picker. A choice stored by another compodocx site on the same origin replaced the configured stylesheet. The script now ships only with the picker.
 - **`--publicApiOnly` on Windows and in folders with glob characters.** The search for `index.d.ts` files, `*.api.md` reports and the declaring source files found nothing on Windows or below a folder whose name contains characters such as `(`, so every symbol was documented. These files are found now.
+- **Tokens a provider sets through a helper function are listed as provided.** A `provide:` entry inside a function the provider calls counted only when that function was a provider itself. Every function the provider calls directly now contributes its `provide:` entries (one level), to the provider's `di.providesTokens`, the token's `providedBy` and the token list of its feature type page.
 
 ## [0.8.0] - 2026-08-03
 
