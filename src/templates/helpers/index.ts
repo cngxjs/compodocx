@@ -36,17 +36,12 @@ export { relativeUrl } from './relative-url';
 export { shortPath, shortUrl } from './short-url';
 export { signalKindLabel } from './signal-kind';
 export {
-    hasAnyApiSections,
     isApiSection,
     isInfoSection,
     isInitialTab,
     isTabEnabled,
     isThemingSection
 } from './tab-helpers';
-
-/** Check if a member has private or protected modifiers (SyntaxKind 123 = Private, 124 = Protected). */
-export const isInternalMember = (modifierKind?: number[]): boolean =>
-    (modifierKind ?? []).some(k => k === 123 || k === 124);
 
 const codeTag = (text: string): 'pre' | 'code' =>
     text.includes('\n') || text.length > 80 ? 'pre' : 'code';

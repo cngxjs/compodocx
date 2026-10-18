@@ -415,7 +415,7 @@ describe('CLI simple generation', () => {
                 '-d',
                 distFolder,
                 '-a',
-                './screenshots/'
+                './test/fixtures/kitchen-sink-standalone/assets/'
             ]);
 
             if (hasStderrError(ls.stderr.toString())) {
@@ -426,8 +426,8 @@ describe('CLI simple generation', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should have copying assets folder', () => {
-            const isFolderExists = exists(`${distFolder}/screenshots`);
-            expect(isFolderExists).to.be.true;
+            const isFileExists = exists(`${distFolder}/assets/signal-card-short.html`);
+            expect(isFileExists).to.be.true;
         });
     });
 
@@ -613,9 +613,11 @@ describe('CLI simple generation', () => {
         });
         afterAll(() => tmp.clean(distFolder));
 
-        it('should add theme css', () => {
+        it('should map the upstream theme to its built-in replacement', () => {
             index = read(`${distFolder}/index.html`);
-            expect(index).to.contain(`href="./styles/${baseTheme}.css"`);
+            expect(index).to.contain('href="./styles/ember.css"');
+            expect(index).not.to.contain(`href="./styles/${baseTheme}.css"`);
+            expect(stdoutString).to.contain(`'${baseTheme}' theme has been removed; using 'ember'`);
         });
     });
 

@@ -138,15 +138,15 @@ describe('ng-add schematic', () => {
         expect(result.exists('projects/b/tsconfig.doc.json')).toBe(true);
     });
 
-    it('--scriptPrefix compodoc reproduces the legacy script names without rewriting', async () => {
+    it('--scriptPrefix only names the script keys, the command stays compodocx', async () => {
         const tree = makeTree({ 'package.json': JSON.stringify({ name: 'legacy-prefix-app' }) });
         const result = await runner.runSchematic('ng-add', { scriptPrefix: 'compodoc' }, tree);
 
         const pkg = readJson<ScriptedPackageJson>(result, 'package.json');
         expect(pkg.scripts).toEqual({
-            'compodoc:build': 'compodoc -p tsconfig.doc.json',
-            'compodoc:build-and-serve': 'compodoc -p tsconfig.doc.json -s',
-            'compodoc:serve': 'compodoc -s'
+            'compodoc:build': 'compodocx -p tsconfig.doc.json',
+            'compodoc:build-and-serve': 'compodocx -p tsconfig.doc.json -s',
+            'compodoc:serve': 'compodocx -s'
         });
     });
 

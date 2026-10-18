@@ -20,7 +20,9 @@
 
 ## Why compodocx
 
-A fork of [compodoc](https://github.com/compodoc/compodoc) focused on modern Angular only. Replaces the rendering layer (JSX templates, Tailwind v4, Pagefind, D3) and adds first-class support for signals, `inject()`, structured `host` metadata, and a Theming tab driven by JSDoc/SassDoc-style comments above your CSS / SCSS tokens. CLI flags and config-file shape stay backwards-compatible with compodoc, so most projects switch with a one-line `package.json` edit.
+The successor to [compodoc](https://github.com/compodoc/compodoc) for modern Angular, not a drop-in replacement. It documents Angular 21+ standalone code (signal inputs, outputs and models, `inject()`, the structured `host` metadata, functional guards, interceptors and resolvers) and adds a Theming tab driven by JSDoc/SassDoc-style comments above your CSS / SCSS tokens. The rendering layer is new (JSX templates, Tailwind v4, Pagefind, D3).
+
+NgModules, decorator members (`@Input`, `@Output`, `@HostBinding`, `@HostListener`), constructor injection in Angular classes and class-based guards, interceptors and resolvers are not documented; a run reports them in one legacy notice. Page URLs and the JSON export schema differ from compodoc. Switching from compodoc means changing the package and the script, running it, and acting on the warnings it prints; [`MIGRATION.md`](MIGRATION.md) explains each one.
 
 ## Requirements
 
@@ -33,7 +35,7 @@ A fork of [compodoc](https://github.com/compodoc/compodoc) focused on modern Ang
 npm install --save-dev @cngxjs/compodocx
 ```
 
-Inside an Angular workspace, the schematic seeds `tsconfig.doc.json`, registers npm scripts, and (if you are coming from `@compodoc/compodoc`) migrates existing artefacts in one pass:
+Inside an Angular workspace, the schematic seeds `tsconfig.doc.json`, registers npm scripts, and (if you are coming from `@compodoc/compodoc`) replaces the package and rewrites `compodoc` scripts in one pass:
 
 ```bash
 ng add @cngxjs/compodocx
@@ -55,7 +57,7 @@ npx compodocx -p tsconfig.app.json -d docs -s -w
 npx compodocx -p tsconfig.app.json -d docs --coverageTest 70 --coverageTestThresholdFail
 ```
 
-The CLI is also exposed as `compodoc` for drop-in compatibility with existing npm scripts.
+The CLI is also exposed as `compodoc`, so existing npm scripts keep running.
 
 ## Configuration
 
@@ -112,7 +114,7 @@ Issues and pull requests welcome at [github.com/cngxjs/compodocx](https://github
 
 ## Acknowledgments
 
-compodocx is a fork of [compodoc](https://github.com/compodoc/compodoc) by Vincent Ogloblinsky and contributors. The compiler, JSDoc tag handling, and route-graph layout are the foundation everything here builds on.
+compodocx is a fork of [compodoc](https://github.com/compodoc/compodoc) by Vincent Ogloblinsky and contributors. Its compiler and JSDoc tag handling are the foundation everything here builds on.
 
 ## License
 

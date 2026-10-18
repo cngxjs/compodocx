@@ -7,7 +7,6 @@
 @import "./components/version-switcher.css";
 @import "./components/sidebar.css";
 @import "./components/content-actions.css";
-@import "./components/toc.css";
 @import "./components/command-palette.css";
 @import "./components/badges.css";
 @import "./components/app-config.css";
@@ -29,12 +28,10 @@
 @import "./components/external-links.css";
 @import "./components/relationships.css";
 @import "./components/readme.css";
-@import "./components/bucket-landing.css";
 @import "./components/api-reference.css";
 @import "./components/routes.css";
 @import "./components/legacy.css";
 
-@source "../templates/**/*.hbs";
 @source "../templates/**/*.tsx";
 
 @theme {

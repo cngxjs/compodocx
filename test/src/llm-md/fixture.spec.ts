@@ -70,7 +70,7 @@ describe.skipIf(skipIfBuildMissing)('llm-md/fixture — todomvc real-fixture', (
         expect(result.stderr.length).toBeGreaterThan(0);
         expect(result.stderr).toMatch(/Using tsconfig file/);
         // Banner suppressed
-        expect(result.stdout).not.toMatch(/TypeScript version used by Compodoc/);
+        expect(result.stdout).not.toMatch(/TypeScript version used by compodocx/);
         expect(result.stdout).not.toMatch(/Operating system/);
     });
 

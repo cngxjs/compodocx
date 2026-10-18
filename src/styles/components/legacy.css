@@ -36,18 +36,6 @@ a[href] {
 .content table {
     margin-top: var(--spacing-cdx-xl);
 }
-.content-data .exampleContainer {
-    height: 100%;
-    width: 100%;
-}
-
-.tab-content.overview {
-    margin-top: 50px;
-    margin-left: 15px;
-}
-.overview .col-sm-3 {
-    width: 200px;
-}
 
 .comment {
     margin: 15px 0;
@@ -56,33 +44,6 @@ a[href] {
     margin: 10px 0;
 }
 
-.search-results {
-    display: none;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: var(--spacing-cdx-xl) var(--spacing-cdx-lg) 40px;
-}
-.search-results .no-results {
-    display: none;
-}
-.with-search .search-results {
-    display: block;
-}
-.with-search .content-data {
-    display: none;
-}
-
-.jsdoc-params {
-    list-style: square;
-    margin-top: var(--spacing-cdx-md);
-    margin-bottom: 0 !important;
-}
-.jsdoc-params li {
-    padding-bottom: var(--spacing-cdx-md);
-}
-.cdx-jsdoc-example ul {
-    padding-left: var(--spacing-cdx-xl);
-}
 example-url {
     display: none;
 }
@@ -109,9 +70,6 @@ i {
 .content ul ul {
     list-style-type: circle;
 }
-.content ul.cdx-type-params {
-    margin-bottom: var(--spacing-cdx-sm);
-}
 
 /* Modifier base styling moved to member-card.css — see cdx-member-modifier--* variants */
 .cdx-member-modifier:empty {
@@ -127,24 +85,7 @@ path.link {
     stroke-width: 1.5px;
 }
 
-.content.miscellaneous h2 {
-    margin-bottom: var(--spacing-cdx-xl);
-}
-.content.miscellaneous h4 {
-    padding-top: var(--spacing-cdx-xl);
-}
-
-ul.index-list {
-    list-style: none;
-    padding: 0;
-    column-gap: var(--spacing-cdx-xl);
-    column-count: 3;
-    line-height: 25px;
-    margin-bottom: 0;
-}
-
-.img-responsive,
-.cdx-logo-img {
+.img-responsive {
     display: inline-block;
     max-width: 100%;
     height: auto;
@@ -163,12 +104,4 @@ ul.index-list {
 }
 .deprecated p {
     margin-bottom: 0;
-}
-.deprecated-name,
-.deprecated-name:hover {
-    text-decoration: line-through !important;
-}
-.deprecated-name::before {
-    text-decoration: none;
-    display: inline-block;
 }

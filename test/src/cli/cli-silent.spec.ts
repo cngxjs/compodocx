@@ -27,8 +27,8 @@ describe('CLI silent flag', () => {
     afterAll(() => tmp.clean(distFolder));
 
     it('should display simple message', () => {
-        expect(stdoutString).to.contain('Compodoc v');
-        expect(stdoutString).not.to.contain('TypeScript version used by Compodoc');
+        expect(stdoutString).to.contain('compodocx v');
+        expect(stdoutString).not.to.contain('TypeScript version used by compodocx');
     });
 });
 

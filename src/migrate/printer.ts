@@ -14,7 +14,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import c from 'picocolors';
-import type { FidelityScore } from './types';
 
 const KEY_PAD = 15;
 
@@ -22,28 +21,6 @@ const timestamp = (): string => c.gray(`[${new Date().toLocaleTimeString()}]`);
 
 const padRight = (s: string, len: number = KEY_PAD): string =>
     s + ' '.repeat(Math.max(0, len - s.length));
-
-export const tagFor = (score: FidelityScore): string => {
-    switch (score) {
-        case 'green':
-            return c.green('[OK]  ');
-        case 'yellow':
-            return c.yellow('[WARN]');
-        case 'red':
-            return c.red('[ERR] ');
-    }
-};
-
-export const tagForSeverity = (severity: 'info' | 'warning' | 'error'): string => {
-    switch (severity) {
-        case 'info':
-            return c.green('[OK]  ');
-        case 'warning':
-            return c.yellow('[WARN]');
-        case 'error':
-            return c.red('[ERR] ');
-    }
-};
 
 /** Top-level result line: `[14:23:01] [OK]   <message>`. */
 export const printLine = (parts: string): void => {
@@ -58,11 +35,6 @@ export const printDetail = (key: string, value: string): void => {
 /** Plain summary line, no tag, just the message. */
 export const printSummary = (msg: string): void => {
     process.stdout.write(`${timestamp()} ${c.bold(msg)}\n`);
-};
-
-/** Section heading, used by inspect to title the report. */
-export const printHeading = (msg: string): void => {
-    process.stdout.write(`${timestamp()} ${c.cyan(msg)}\n`);
 };
 
 /** Error message routed to stderr to match Node convention. */

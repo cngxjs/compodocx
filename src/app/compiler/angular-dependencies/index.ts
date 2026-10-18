@@ -23,7 +23,6 @@ import type {
 import { ComponentDepFactory } from '../angular/deps/component-dep.factory';
 import { DirectiveDepFactory } from '../angular/deps/directive-dep.factory';
 import { EntityDepFactory } from '../angular/deps/entity-dep.factory';
-import { ComponentCache } from '../angular/deps/helpers/component-helper';
 import { JsDocHelper } from '../angular/deps/helpers/js-doc-helper';
 import { FrameworkDependencies } from '../framework-dependencies';
 import { type LegacyFinding, scanLegacy, sortLegacyFindings } from '../legacy-scan';
@@ -54,7 +53,6 @@ const hasBareRoutesType = (node: ts.VariableStatement): boolean =>
     );
 
 export class AngularDependencies extends FrameworkDependencies {
-    private cache: ComponentCache = new ComponentCache();
     private jsDocHelper = new JsDocHelper();
     private jsdocParserUtil = new JsdocParserUtil();
     private metadataPredicates = new MetadataPredicates();
@@ -471,8 +469,6 @@ export class AngularDependencies extends FrameworkDependencies {
                                 );
                             }
                         }
-                        this.cache.set(name, deps);
-
                         if (typeof IO.ignore === 'undefined') {
                             this.debug(deps);
                         } else {

@@ -129,7 +129,22 @@ describe('migrateLegacyArtefacts', () => {
 
         expect(result.renamedScripts).toEqual([{ from: 'compodoc:build', to: 'docs:build' }]);
         expect(result.packageJson.scripts).toEqual({
-            'docs:build': 'docs -p tsconfig.doc.json'
+            'docs:build': 'compodocx -p tsconfig.doc.json'
+        });
+    });
+
+    it('rewrites the binary only in command position, never inside a path', () => {
+        const pkg: PackageJsonLike = {
+            scripts: {
+                'compodoc:build': 'compodoc -p tsconfig.doc.json -d docs/compodoc',
+                docs: 'npm run lint && npx compodoc -d ./compodoc-out; compodoc -s'
+            }
+        };
+        const result = migrate(pkg);
+
+        expect(result.packageJson.scripts).toEqual({
+            'compodocx:build': 'compodocx -p tsconfig.doc.json -d docs/compodoc',
+            docs: 'npm run lint && npx compodocx -d ./compodoc-out; compodocx -s'
         });
     });
 });

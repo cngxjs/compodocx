@@ -21,36 +21,11 @@
     border-radius: var(--color-cdx-graph-radius, var(--radius-cdx-md));
 }
 
-.cdx-graph-container--compact .cdx-graph-viewport {
-    max-height: 400px;
-}
-
 .cdx-graph-container svg {
     cursor: grab;
 }
 .cdx-graph-container svg:active {
     cursor: grabbing;
-}
-
-.cdx-graph-fullscreen-btn {
-    @apply absolute cursor-pointer inline-flex items-center justify-center;
-    top: var(--spacing-cdx-sm);
-    right: var(--spacing-cdx-sm);
-    background: var(--color-cdx-bg-elevated);
-    border: 1px solid var(--color-cdx-border);
-    border-radius: var(--radius-cdx-sm);
-    padding: var(--spacing-cdx-xs);
-    color: var(--color-cdx-text-muted);
-}
-.cdx-graph-fullscreen-btn .cdx-icon {
-    /* Override the global .cdx-icon margin-right: 0.5rem — this button
-       has only the icon and no adjacent text, so the margin shifts the
-       SVG off-center inside its padding box. */
-    margin-right: 0;
-}
-.cdx-graph-fullscreen-btn:hover {
-    color: var(--color-cdx-text);
-    background: var(--color-cdx-bg-alt);
 }
 
 .cdx-graph-zoom-controls {
@@ -94,40 +69,4 @@
     border-style: solid;
     border-color: var(--color-cdx-graph-border, transparent);
     border-radius: var(--color-cdx-graph-radius, var(--radius-cdx-md));
-}
-
-.tree-legend {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    background: var(--color-cdx-bg-elevated);
-    border: 1px solid var(--color-cdx-border);
-    border-radius: var(--radius-cdx-md);
-    padding: 0.5rem 0.75rem;
-    font-size: 0.8125rem;
-}
-
-.tree-legend .title {
-    margin-bottom: 0.5rem;
-}
-
-.tree-legend .color {
-    width: 14px;
-    height: 10px;
-    display: inline-block;
-    margin-right: 0.375rem;
-    border-radius: var(--radius-cdx-sm);
-}
-
-.tree-legend .htmlelement {
-    background: var(--color-cdx-bg-elevated);
-    border: 1px solid var(--color-cdx-border);
-}
-
-.tree-legend .component {
-    background: var(--color-cdx-entity-component);
-}
-
-.tree-legend .directive {
-    background: var(--color-cdx-entity-directive);
 }

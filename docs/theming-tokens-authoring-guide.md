@@ -195,7 +195,7 @@ A doc block carrying `@overview` becomes the first paragraph on the Theming tab,
  */
 ```
 
-The body uses Markdown: `**bold**`, `_italic_`, ` ``code`` `, `[links](url)`, `> blockquote`, lists. `{@link --acme-alert-bg}` cross-links to the token's row.
+The body uses Markdown: `**bold**`, `_italic_`, ` ``code`` `, `[links](url)`, `> blockquote`, lists. `{@link}` is not resolved here and shows as written; link to a token's row with `@see --acme-alert-bg` on the token instead.
 
 ## Tag reference
 
@@ -644,7 +644,7 @@ Migrating to `@property` is a separate, optional step. Do it once the inline-doc
 ```css
 /**
  * Severity-specific danger background. Inherits the base
- * {@link --acme-alert-bg} when not set.
+ * `--acme-alert-bg` when not set.
  * @type <color>
  * @default #fee2e2
  * @group severity
@@ -658,7 +658,7 @@ Migrating to `@property` is a separate, optional step. Do it once the inline-doc
 }
 ```
 
-`{@link --acme-alert-bg}` inside the description renders as inline code linked to the other token's row. `@see` entries appear as a comma-separated footer; URLs open in a new tab, token names link to in-page anchors.
+Token descriptions are plain Markdown: `{@link}` is not resolved there and shows as written, so name the other token in backticks and link it with `@see`. `@see` entries appear as a comma-separated footer; URLs open in a new tab, token names (`--name`, `$name`) link to their rows.
 
 ## What this guide does NOT cover
 

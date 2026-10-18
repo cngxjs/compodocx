@@ -24,9 +24,9 @@ export interface ConfigurationFileInterface {
     maxVersionsShown: number;
     hideGenerator: boolean;
     hideDarkModeToggle: boolean;
-    coverageTest: number;
-    coverageMinimumPerFile: number;
-    coverageTestThresholdFail: string;
+    coverageTest: number | string | boolean;
+    coverageMinimumPerFile: number | string | boolean;
+    coverageTestThresholdFail: boolean | string;
     coverageTestShowOnlyFailed: boolean;
     unitTestCoverage: string;
     disableSourceCode: boolean;
@@ -63,8 +63,6 @@ export interface ConfigurationFileInterface {
     infoTabSections: string[];
     apiTabSections: string[];
     themingTabSections: string[];
-    stackblitz: boolean;
-    stackblitzTemplate: string;
     playgroundMaterialShell: boolean;
     playgroundDepDepth: number;
     playgroundFileCountCap: number;

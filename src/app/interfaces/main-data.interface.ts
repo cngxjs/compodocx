@@ -22,7 +22,6 @@ export interface MainDataInterface {
     assetsFolder: string;
     documentationMainName: string;
     documentationMainDescription: string;
-    base: string;
     hideGenerator: boolean;
     hideDarkModeToggle: boolean;
     hasFilesToCoverage: boolean;
@@ -150,8 +149,6 @@ export interface MainDataInterface {
     infoTabSections: string[];
     apiTabSections: string[];
     themingTabSections: string[];
-    stackblitz: boolean;
-    stackblitzTemplate: string;
     /**
      * Subset of the consumer's `package.json` (`dependencies` and
      * `peerDependencies`) used to pin third-party deps in `@playground`

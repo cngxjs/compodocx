@@ -1,8 +1,8 @@
 import * as path from 'node:path';
-import { REMOVED_OVERRIDES, RENAMED_OVERRIDES } from '../../migrate/override-names';
 import * as helpers from '../../templates/helpers';
 import { logger } from '../../utils/logger';
 import FileEngine from './file.engine';
+import { REMOVED_OVERRIDES, RENAMED_OVERRIDES } from './override-names';
 
 export type CustomTemplateFn = (data: any, helpers: typeof templateHelpers) => string;
 
@@ -42,6 +42,13 @@ export function loadCustomTemplates(templatePath: string): void {
     const fs = require('node:fs');
     const files: string[] = fs.readdirSync(partialsDir);
 
+    const handlebarsCount = files.filter(file => file.endsWith('.hbs')).length;
+    if (handlebarsCount > 0) {
+        logger.warn(
+            `Found ${handlebarsCount} .hbs file(s) in ${partialsDir}: Handlebars templates are no longer supported and must be rewritten as .js overrides; see docs/custom-templates.md and the cookbook in MIGRATION.md`
+        );
+    }
+
     for (const file of files) {
         if (!file.endsWith('.js')) {
             continue;
@@ -52,8 +59,8 @@ export function loadCustomTemplates(templatePath: string): void {
         if (REMOVED_OVERRIDES.includes(name) || replacement !== undefined) {
             const hint = replacement
                 ? `renamed to "${replacement}", rename the file`
-                : 'its page no longer exists';
-            logger.warn(`Custom template ${file} is ignored (${hint}); see \`compodocx migrate\``);
+                : 'its page or block no longer exists';
+            logger.warn(`Custom template ${file} is ignored (${hint}); see MIGRATION.md`);
             continue;
         }
 

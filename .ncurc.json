@@ -3,10 +3,6 @@
     "reject": [
         "os-name",
         "marked",
-        "eslint",
-        "@typescript-eslint/eslint-plugin",
-        "@typescript-eslint/parser",
-        "cheerio",
         "uuid"
     ]
 }

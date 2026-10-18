@@ -11,7 +11,7 @@ import {
     ElementRef,
     QueryList,
     TemplateRef,
-    afterRender,
+    afterEveryRender,
     afterNextRender,
     DestroyRef,
 } from '@angular/core';
@@ -100,7 +100,7 @@ export class AppComponent {
             console.log('Sidebar state:', this.sidebarOpen());
         });
 
-        afterRender(() => {
+        afterEveryRender(() => {
             // post-render DOM measurement
         });
 

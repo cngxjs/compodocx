@@ -45,7 +45,7 @@ const readBannerText = (): string => {
  * Dispatch matches the legacy `if (!logger.silent)` branch verbatim:
  *  - `isWatching` or `isLlmMdStdoutMode` → suppress entirely (downstream
  *    tools / SPA rebuilds never want it).
- *  - `loggerSilent === false` → one-liner `Compodoc v<version>`.
+ *  - `loggerSilent === false` → one-liner `compodocx v<version>`.
  *  - `loggerSilent === true` (the default state) → full banner with TS, Node,
  *    and OS versions.
  *
@@ -61,13 +61,13 @@ export function printBanner(
         return;
     }
     if (!opts.loggerSilent) {
-        log(`Compodoc v${ctx.pkgVersion}`);
+        log(`compodocx v${ctx.pkgVersion}`);
         return;
     }
     log(readBannerText());
     log(ctx.pkgVersion);
     log('');
-    log(`TypeScript version used by Compodoc : ${ts.version}`);
+    log(`TypeScript version used by compodocx : ${ts.version}`);
     log('');
 
     const pkgJsonPath = `${ctx.cwd + path.sep}package.json`;

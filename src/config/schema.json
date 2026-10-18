@@ -22,7 +22,7 @@
             "$id": "/properties/output",
             "type": "string",
             "title": "Where to store the generated documentation",
-            "default": "documentation",
+            "default": "./documentation/",
             "examples": [""]
         },
         "extTheme": {
@@ -42,7 +42,7 @@
         "language": {
             "$id": "/properties/language",
             "type": "string",
-            "title": "Language used for the generated documentation (en-US, fr-FR, zh-CN)",
+            "title": "Language used for the generated documentation (bg-BG, de-DE, en-US, es-ES, fr-FR, hu-HU, it-IT, ja-JP, ka-GE, ko-KR, nl-NL, pl-PL, pt-BR, ru-RU, sk-SK, zh-CN, zh-TW)",
             "default": "en-US",
             "examples": [""]
         },
@@ -78,7 +78,7 @@
             "$id": "/properties/port",
             "type": "integer",
             "title": "Change default serving port",
-            "default": 0,
+            "default": 8080,
             "examples": [8080]
         },
         "watch": {
@@ -91,8 +91,8 @@
         "exportFormat": {
             "$id": "/properties/exportFormat",
             "type": "string",
-            "title": "Export in specified format (json, html)",
-            "default": "",
+            "title": "Export in specified format (html, json, llm-md)",
+            "default": "html",
             "examples": ["html"]
         },
         "files": {
@@ -106,7 +106,7 @@
             "$id": "/properties/theme",
             "type": "string",
             "title": "Choose a built-in theme ('default', 'ocean', 'midnight', 'nord', 'rose-pine', 'ember', 'neon', 'brutalist', 'gitbook') or a path to a custom CSS file",
-            "default": "light",
+            "default": "default",
             "examples": [""]
         },
         "hideGenerator": {
@@ -176,28 +176,26 @@
             "$id": "/properties/includesName",
             "type": "string",
             "title": "Name of item menu of externals markdown files",
-            "default": "",
+            "default": "Additional documentation",
             "examples": [""]
         },
         "coverageTest": {
             "$id": "/properties/coverageTest",
             "type": "integer",
-            "title": "Test command of documentation coverage with a threshold (default 70)",
-            "default": 70,
+            "title": "Documentation coverage threshold in percent; setting it turns the coverage test on (true uses 70)",
             "examples": [70]
         },
         "coverageMinimumPerFile": {
             "$id": "/properties/coverageMinimumPerFile",
             "type": "integer",
-            "title": "Test command of documentation coverage per file with a minimum (default 0)",
-            "default": 0,
+            "title": "Per-file documentation coverage minimum in percent; setting it turns the per-file test on (true uses 0)",
             "examples": [0]
         },
         "coverageTestThresholdFail": {
             "$id": "/properties/coverageTestThresholdFail",
             "type": "boolean",
             "title": "Test command of documentation coverage (global or per file) will fail with error or just warn user (true: error, false: warn)",
-            "default": false,
+            "default": true,
             "examples": [true]
         },
         "disableSourceCode": {
@@ -430,7 +428,7 @@
         "minimal": {
             "$id": "/properties/minimal",
             "type": "boolean",
-            "title": "Minimal mode with only documentation. No search, no graph, no coverage.",
+            "title": "Minimal mode with only documentation. No search, no graph, no coverage, no routes.",
             "default": false,
             "examples": [false]
         },
@@ -475,20 +473,6 @@
             "title": "Change default host address for serving",
             "default": "127.0.0.1",
             "examples": ["0.0.0.0"]
-        },
-        "stackblitz": {
-            "$id": "/properties/stackblitz",
-            "type": "boolean",
-            "title": "Enable StackBlitz integration for examples",
-            "default": false,
-            "examples": [false]
-        },
-        "stackblitzTemplate": {
-            "$id": "/properties/stackblitzTemplate",
-            "type": "string",
-            "title": "StackBlitz project template ID for examples",
-            "default": "",
-            "examples": [""]
         },
         "menuLayout": {
             "$id": "/properties/menuLayout",
@@ -674,7 +658,7 @@
             "type": "array",
             "items": { "type": "string" },
             "title": "Globs of source files to skip, relative to the tsconfig folder; replaces the default excludes (.git, node_modules, *.d.ts, *.spec.ts) and is added to the tsconfig exclude list",
-            "default": [],
+            "default": ["**/.git", "**/node_modules", "**/*.d.ts", "**/*.spec.ts"],
             "examples": [["**/*.spec.ts", "**/testing/**"]]
         },
         "infoTabSections": {

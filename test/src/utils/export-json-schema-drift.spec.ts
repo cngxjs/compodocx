@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { EXPORT_SCHEMA_VERSION } from '../../../src/app/interfaces/export-data.interface';
 
 /**
- * F4 drift-detection (lifted from `test/src/migrate/override-names.spec.ts`).
+ * Schema-version drift detection.
  *
  * `EXPORT_SCHEMA_VERSION` is the single source of truth for the
  * `documentation.json` schema version. Every code path that writes

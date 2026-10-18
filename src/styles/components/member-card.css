@@ -20,14 +20,6 @@
     }
 }
 
-.cdx-member-card--deprecated {
-    opacity: 0.85;
-}
-
-.cdx-member-card--deprecated .cdx-member-name .cdx-member-name-text {
-    text-decoration: line-through;
-}
-
 [data-compodoc^='block-'] > h3 {
     font-family: var(--font-sans);
     font-size: 13px;
@@ -45,18 +37,6 @@
     margin-top: 0;
     padding-top: 0;
     border-top: none;
-}
-
-.cdx-member-header {
-    @apply flex items-baseline justify-between gap-2;
-    padding: var(--spacing-cdx-lg) var(--spacing-cdx-xl) var(--spacing-cdx-md);
-    background: var(--color-cdx-bg-alt);
-    border-bottom: 1px solid var(--color-cdx-border);
-    /* Match the parent .cdx-member-card border-radius so the bg-alt
-       header fill does not bleed past the rounded top corners of the
-       card. */
-    border-top-left-radius: var(--radius-cdx-lg, 12px);
-    border-top-right-radius: var(--radius-cdx-lg, 12px);
 }
 
 .cdx-member-name {
@@ -85,13 +65,6 @@ h3:hover > a.cdx-member-permalink,
 a.cdx-member-permalink:hover {
     color: var(--color-cdx-primary);
     text-decoration: underline;
-}
-
-.cdx-member-type {
-    font-family: var(--font-code);
-    font-size: 0.85rem;
-    color: var(--color-cdx-primary);
-    flex-shrink: 0;
 }
 
 /* Modifier base: ONE --cdx-mod-base token, color-mix() derives the rest */
@@ -266,12 +239,6 @@ a.cdx-member-permalink:hover {
     opacity: 0.7;
 }
 
-.cdx-member-deprecated--inline {
-    display: inline;
-    margin-left: var(--spacing-cdx-sm);
-    font-size: 0.75rem;
-}
-
 .cdx-member-body--flush {
     border-top: none;
     padding-top: var(--spacing-cdx-md);
@@ -297,63 +264,6 @@ a.cdx-member-permalink:hover {
     text-decoration: underline;
 }
 
-.cdx-member-signature .cdx-sig-name {
-    font-weight: 600;
-    color: var(--color-cdx-text);
-}
-
-.cdx-member-signature .cdx-sig-type {
-    color: var(--color-cdx-primary);
-}
-
-.cdx-member-signature .cdx-sig-punct {
-    color: var(--color-cdx-text-muted);
-}
-.cdx-member-params {
-    display: grid;
-    grid-template-columns: auto auto 1fr;
-    gap: var(--spacing-cdx-xs) var(--spacing-cdx-lg);
-    margin: 0 0 var(--spacing-cdx-md);
-    font-size: 0.85rem;
-    align-items: baseline;
-}
-
-.cdx-member-params .cdx-param-name {
-    font-family: var(--font-code);
-    font-weight: 600;
-    color: var(--color-cdx-text);
-    white-space: nowrap;
-}
-
-.cdx-member-params .cdx-param-type {
-    font-family: var(--font-code);
-    font-size: 0.8rem;
-    color: var(--color-cdx-primary);
-    white-space: nowrap;
-}
-
-.cdx-member-params .cdx-param-desc {
-    color: var(--color-cdx-text-secondary);
-}
-
-.cdx-member-params .cdx-param-desc code {
-    font-family: var(--font-code);
-    font-size: 0.8rem;
-}
-
-.cdx-member-returns {
-    font-family: var(--font-code);
-    font-size: 0.85rem;
-    color: var(--color-cdx-text-muted);
-    border-top: 1px solid var(--color-cdx-border);
-    padding-top: 0.75rem;
-    margin-top: 0.75rem;
-}
-
-.cdx-member-returns b {
-    font-weight: 500;
-}
-
 .cdx-member-body a[target='_self'] {
     font-family: var(--font-code);
     font-size: 0.8rem;
@@ -367,8 +277,7 @@ a.cdx-member-permalink:hover {
 .cdx-member-body a[target='_self']:hover {
     background: color-mix(in srgb, var(--color-cdx-primary) 15%, transparent);
 }
-.cdx-member-body a[target='_blank'],
-.cdx-member-returns code a {
+.cdx-member-body a[target='_blank'] {
     font-family: var(--font-code);
     font-size: 0.8rem;
     color: var(--color-cdx-code-inline);
@@ -378,46 +287,29 @@ a.cdx-member-permalink:hover {
     text-decoration: none;
 }
 
-.cdx-member-body a[target='_blank']:hover,
-.cdx-member-returns code a:hover {
+.cdx-member-body a[target='_blank']:hover {
     background: color-mix(in srgb, var(--color-cdx-code-inline) 12%, transparent);
 }
 
-.dark .cdx-member-body a[target='_blank'],
-.dark .cdx-member-returns code a {
-    color: var(--color-cdx-code-inline);
-    background: color-mix(in srgb, var(--color-cdx-code-inline) 10%, transparent);
-}
-.cdx-member-returns > code {
-    font-family: var(--font-code);
-    font-size: 0.8rem;
-    color: var(--color-cdx-code-inline);
-    background: color-mix(in srgb, var(--color-cdx-code-inline) 6%, transparent);
-    padding: 1px 5px;
-    border-radius: var(--radius-cdx-sm);
-}
-
-.dark .cdx-member-returns > code {
+.dark .cdx-member-body a[target='_blank'] {
     color: var(--color-cdx-code-inline);
     background: color-mix(in srgb, var(--color-cdx-code-inline) 10%, transparent);
 }
 
-/* Nested anchors inside param-type / member-returns code wrappers must NOT
+/* Nested anchors inside param-type code wrappers must NOT
    get their own background — the outer code wrapper already carries a
    tinted background and stacking a second bg on the inner <a> produces
    the double-tint pill. Selector specificity (0,2,1) is chosen to match
    the competing .cdx-member-body a[target='_self'] / [target='_blank']
    rules; this block comes after them in the file so it wins the tie. */
-.cdx-member-body .cdx-param-type a,
-.cdx-member-body .cdx-member-returns a {
+.cdx-member-body .cdx-param-type a {
     color: inherit;
     background: transparent;
     padding: 0;
     text-decoration: none;
 }
 
-.cdx-member-body .cdx-param-type a:hover,
-.cdx-member-body .cdx-member-returns a:hover {
+.cdx-member-body .cdx-param-type a:hover {
     text-decoration: underline;
     background: transparent;
 }
@@ -439,11 +331,6 @@ a.cdx-member-permalink:hover {
     color: var(--color-cdx-primary);
 }
 
-.cdx-member-card .index-list {
-    list-style: none;
-    padding: 0;
-}
-
 .dark .cdx-io-member--input-signal {
     --cdx-io-color: hsl(145 45% 65%);
 }
@@ -461,9 +348,6 @@ a.cdx-member-permalink:hover {
 }
 .dark .cdx-io-member--effect {
     --cdx-io-color: hsl(45 65% 65%);
-}
-.dark .cdx-io-member--after-render {
-    --cdx-io-color: hsl(25 60% 65%);
 }
 .dark .cdx-io-member--after-next-render {
     --cdx-io-color: hsl(15 60% 68%);
@@ -502,18 +386,6 @@ a.cdx-member-permalink:hover {
 
 /* Responsive: stack layout on narrow containers */
 @container (max-width: 500px) {
-    .cdx-member-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--spacing-cdx-xs);
-        flex-wrap: wrap;
-    }
-
-    .cdx-member-params {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-cdx-sm);
-    }
-
     .cdx-param-desc {
         padding-left: 0;
     }
@@ -569,9 +441,6 @@ a.cdx-member-permalink:hover {
 .cdx-io-member--inject-async {
     --cdx-io-color: hsl(320 45% 40%);
 }
-.cdx-io-member--after-render {
-    --cdx-io-color: hsl(25 65% 35%);
-}
 .cdx-io-member--after-next-render {
     --cdx-io-color: hsl(15 65% 38%);
 }
@@ -580,38 +449,6 @@ a.cdx-member-permalink:hover {
 }
 .cdx-io-member--after-render-effect {
     --cdx-io-color: hsl(340 55% 38%);
-}
-.cdx-io-member--typealias {
-    --cdx-io-color: var(--color-cdx-entity-typealias);
-}
-.cdx-io-member--enumeration {
-    --cdx-io-color: var(--color-cdx-entity-enum);
-}
-
-.cdx-enum-members {
-    margin: var(--spacing-cdx-sm) 0 0 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.cdx-enum-members li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    color: var(--color-cdx-text-secondary);
-}
-
-.cdx-enum-members code {
-    font-family: var(--font-code);
-    font-size: 0.8rem;
-    color: var(--color-cdx-code-inline);
-    background: color-mix(in srgb, var(--color-cdx-code-inline) 6%, transparent);
-    padding: 1px 5px;
-    border-radius: var(--radius-cdx-sm);
 }
 
 .cdx-io-member--deprecated {

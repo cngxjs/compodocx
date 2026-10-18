@@ -169,11 +169,6 @@
     background: color-mix(in srgb, var(--color-cdx-border) 8%, var(--color-cdx-bg-alt));
 }
 
-.cdx-coverage-group-name {
-    font-weight: 600;
-    font-size: 0.9375rem;
-}
-
 .cdx-coverage-group-fraction {
     font-size: 0.8125rem;
     color: var(--color-cdx-text-muted);
@@ -332,11 +327,6 @@
     .cdx-coverage-file-col {
         display: none;
     }
-}
-
-.cdx-coverage-row--internal td a {
-    color: var(--color-cdx-text-muted);
-    font-style: italic;
 }
 
 .cdx-coverage-cell {

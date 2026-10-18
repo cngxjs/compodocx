@@ -92,9 +92,7 @@ describe('defineFlags', () => {
             '--customLogo',
             '--gaID',
             '--publicApiOnly',
-            '--maxSearchResults',
-            '--stackblitz',
-            '--stackblitzTemplate'
+            '--maxSearchResults'
         ];
 
         for (const flag of expected) {
@@ -198,6 +196,49 @@ describe('defineFlags', () => {
         ).toEqual({
             argv: ['node', 'compodocx', 'src/tsconfig.json'],
             removed: ['--disableMainGraph']
+        });
+    });
+
+    it('drops the upstream gaSite flag with its value', () => {
+        expect(
+            stripRemovedFlags([
+                'node',
+                'compodocx',
+                '--gaSite',
+                'example.com',
+                '-p',
+                'tsconfig.json'
+            ])
+        ).toEqual({
+            argv: ['node', 'compodocx', '-p', 'tsconfig.json'],
+            removed: ['--gaSite']
+        });
+        expect(stripRemovedFlags(['node', 'compodocx', '--gaSite=example.com', '-s']).argv).toEqual(
+            ['node', 'compodocx', '-s']
+        );
+    });
+
+    it('drops the upstream templatePlayground flag without taking the next argument', () => {
+        expect(
+            stripRemovedFlags(['node', 'compodocx', '--templatePlayground', 'src/tsconfig.json'])
+        ).toEqual({
+            argv: ['node', 'compodocx', 'src/tsconfig.json'],
+            removed: ['--templatePlayground']
+        });
+    });
+
+    it('drops the stackblitz flags, with the template value', () => {
+        expect(
+            stripRemovedFlags(['node', 'compodocx', '--stackblitz', 'src/tsconfig.json'])
+        ).toEqual({
+            argv: ['node', 'compodocx', 'src/tsconfig.json'],
+            removed: ['--stackblitz']
+        });
+        expect(
+            stripRemovedFlags(['node', 'compodocx', '--stackblitzTemplate', 'abc', '-s'])
+        ).toEqual({
+            argv: ['node', 'compodocx', '-s'],
+            removed: ['--stackblitzTemplate']
         });
     });
 

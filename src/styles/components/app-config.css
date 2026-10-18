@@ -1,17 +1,3 @@
-.cdx-app-config {
-    @apply mt-6 mb-8;
-}
-.cdx-app-config-desc {
-    @apply text-base mb-4;
-    color: var(--color-cdx-text-secondary);
-}
-.cdx-app-config-meta {
-    @apply flex items-center gap-2 mb-4;
-}
-.cdx-app-config-file {
-    @apply text-xs;
-    color: var(--color-cdx-text-muted);
-}
 .cdx-providers-grid {
     @apply grid gap-3;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));

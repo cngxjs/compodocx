@@ -2,14 +2,14 @@ import { defineConfig } from 'tsdown';
 
 // Browser bundle for the client-side runtime: search, command palette, code
 // blocks, graphs, hash router, sidebar, theme switcher, etc. ESM-only,
-// minified, targets ES2020. Output goes to src/resources/js/, which also
-// holds the legacy `libs/` directory; the Tailwind CSS output sits one level
-// up. `clean: false` is required, otherwise tsdown wipes both on rebuild.
+// minified, targets ES2020. Output goes to src/resources/js/; the Tailwind
+// CSS output sits one level up. `clean: false` keeps tsdown from emptying
+// the output folder before a rebuild.
 //
-// D3 is dynamic-imported from `src/client/graphs.ts:27` and ends up as a
+// D3 is dynamic-imported from `src/client/graphs.ts` and ends up as a
 // separate chunk under chunks/, lazy-loaded only on pages that render a
-// module graph. Pagefind uses a runtime-URL form, `await import(new URL(...))`
-// at command-palette.ts:210. Bundlers can't follow runtime-string imports,
+// DOM tree or dependency graph. Pagefind is loaded from a runtime URL in
+// `src/client/command-palette.ts`. Bundlers can't follow runtime-string imports,
 // so Pagefind isn't bundled here at all; it's fetched from the user's
 // deployed site at runtime (Pagefind generates its own bundle during indexing).
 export default defineConfig({

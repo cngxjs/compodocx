@@ -39,7 +39,6 @@ export class Configuration implements ConfigurationInterface {
         assetsFolder: '',
         documentationMainName: COMPODOC_DEFAULTS.title,
         documentationMainDescription: '',
-        base: COMPODOC_DEFAULTS.base,
         hideGenerator: false,
         hideDarkModeToggle: false,
         hasFilesToCoverage: false,
@@ -132,8 +131,6 @@ export class Configuration implements ConfigurationInterface {
         infoTabSections: [],
         apiTabSections: [],
         themingTabSections: [],
-        stackblitz: false,
-        stackblitzTemplate: '',
         workspacePackage: {},
         playgroundDependencies: {},
         playgroundMaterialShell: false,
@@ -195,10 +192,6 @@ export class Configuration implements ConfigurationInterface {
         this._mainData.additionalPages.push(page);
     }
 
-    public getAdditionalPageById(id): PageInterface {
-        return this._mainData.additionalPages.find(page => page.id === id);
-    }
-
     public resetPages() {
         this._pages = [];
     }
@@ -226,10 +219,6 @@ export class Configuration implements ConfigurationInterface {
     }
     set pages(_pages: PageInterface[]) {
         this._pages = [];
-    }
-
-    get markDownPages() {
-        return this._pages.filter(page => page.markdown);
     }
 
     get mainData(): MainDataInterface {

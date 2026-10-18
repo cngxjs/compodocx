@@ -182,19 +182,6 @@ const updateGlobals = (doc: Document) => {
     });
 };
 
-/** Send navigation event to parent frame (Template Playground) */
-const notifyParentFrame = () => {
-    if (window.parent && window.parent !== window) {
-        window.parent.postMessage(
-            {
-                type: 'compodoc-iframe-navigate',
-                url: window.location.pathname + window.location.hash
-            },
-            '*'
-        );
-    }
-};
-
 /** Check if a URL is internal (same origin, not a hash-only link) */
 const isInternalLink = (anchor: HTMLAnchorElement): boolean => {
     if (anchor.target === '_blank') {
@@ -336,9 +323,6 @@ const navigate = async (
         } else {
             document.querySelector('.content')?.scrollTo(0, 0);
         }
-
-        // Notify parent frame
-        notifyParentFrame();
     } catch {
         // Fallback to full page load on error
         window.location.href = url;

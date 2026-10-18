@@ -5,7 +5,7 @@
  */
 
 import * as path from 'node:path';
-import type { FsAdapter } from './templates';
+import type { FsAdapter } from './fs-adapter';
 
 export interface JsdocStripResult {
     readonly file: string;

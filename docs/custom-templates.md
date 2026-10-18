@@ -36,6 +36,12 @@ module.exports = function(data, helpers) {
 
 The function must return an HTML string. This string is placed inside the page layout (header, sidebar, footer are not affected unless you override `menu.js`).
 
+Return `null` to fall back to the built-in rendering for that call.
+
+### Loading
+
+Only `.js` files in `partials/` are read (`.cjs` and `.mjs` files are skipped), and each one is loaded with `require()`. In a project whose `package.json` has `"type": "module"`, Node.js treats these `.js` files as ES modules, so `module.exports = ...` does not load. Either put a `package.json` containing `{ "type": "commonjs" }` into your templates directory, or write the override as `export default function (data, helpers) { ... }` (Node.js 22.12 and later load it through `require()`).
+
 ## Available template names
 
 These file names correspond to page contexts. Place them in `partials/` inside your templates directory.
@@ -90,17 +96,16 @@ Block-level overrides replace a region inside a page rather than the whole page:
 | `block-input.js` | Inputs section on the API tab |
 | `block-output.js` | Outputs section on the API tab |
 | `block-accessors.js` | Accessors section on the API tab |
-| `block-host-listener.js` / `block-host-listeners.js` | Single host listener / host listeners section |
+| `block-host-listeners.js` | Host listeners section |
 | `block-host-bindings.js` | Host bindings section |
 | `block-derived-state.js` | Derived state (`computed` / `linkedSignal`) section |
 | `block-constructor.js` | Constructor section |
-| `block-enum.js` | Enum members block on enumeration detail pages |
-| `block-typealias.js` | Type alias definition block on typealias detail pages |
 | `block-index.js` | Index grid on the API tab |
 | `block-index-signatures.js` | Index signatures section |
 | `block-playground.js` | Whole Playground tab panel |
 | `playground-content.js` | Single playground block (one `@playground` block) inside the Playground tab |
-| `referenced-by.js` | "Used by" chip list on symbol pages: the declarations that use the symbol, from the project analysis. Receives `{ entries: { name, kind, hrefPrefix }[], depth }` (v0.6.0+) |
+| `referenced-by.js` | "Used by" chip list on symbol pages: the declarations that use the symbol, from the project analysis. Receives `{ entries: { name, kind, hrefPrefix, pageName?, anchor? }[], depth }` (`pageName` is the page's file name when it differs from `name`, `anchor` the section on that page) |
+| `related.js` | Related section of a symbol's `@relatedTo` tag. Receives `{ entityName, relatedTo, depth }`, `relatedTo` being the names as written (absent when the symbol has none) |
 
 ## Available helpers
 
@@ -113,7 +118,7 @@ module.exports = function(data, helpers) {
 
     // Type resolution and links
     helpers.linkTypeHtml('MyService', { depth: data.depth })  // <code><a href="...">MyService</a></code>
-    helpers.resolveType('MyService', undefined, data.depth)   // { href, raw, target, kind } or null
+    helpers.resolveType('MyService', undefined, data.depth)   // { raw, href, target, indexKey, kind? } or null
 
     // Descriptions with @link resolution
     helpers.parseDescription(text, depth)

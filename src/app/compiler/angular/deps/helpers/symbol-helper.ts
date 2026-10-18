@@ -25,7 +25,7 @@ enum AngularProviderConfigProperties {
  * Interceptor in the dep-engine registry.
  *
  * The remaining fields are additive and consumed by the render layer
- * (`MetadataProvidersRow`) to emit a source-like code-object literal.
+ * (`ProvidersSection`) to show the provider strategy.
  */
 export type ProviderEntry = {
     /** `provide:` target for object providers, else the class / token name. */

@@ -671,15 +671,3 @@ export class ComponentHelper {
         return urls.map(url => url.replace('./', ''));
     }
 }
-
-export class ComponentCache {
-    private cache: Map<string, any> = new Map();
-
-    public get(key: string): any {
-        return this.cache.get(key);
-    }
-
-    public set(key: string, value: any): void {
-        this.cache.set(key, value);
-    }
-}

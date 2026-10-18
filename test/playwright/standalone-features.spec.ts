@@ -102,7 +102,7 @@ test.describe('Navigation Grouping', () => {
 
     test('chevron rotation: collapsed shows right, expanded shows down', async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => localStorage.removeItem('compodoc-sidebar-state'));
+        await page.evaluate(() => localStorage.removeItem('compodocx-sidebar-state'));
         await page.reload();
 
         // All chevrons use IconChevronRight — CSS rotation handles state
@@ -130,7 +130,7 @@ test.describe('Navigation Grouping', () => {
 
     test('feature groups start expanded', async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => localStorage.removeItem('compodoc-sidebar-state'));
+        await page.evaluate(() => localStorage.removeItem('compodocx-sidebar-state'));
         await page.reload();
 
         // Groups of the first two levels start expanded.

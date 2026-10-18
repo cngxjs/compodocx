@@ -1,6 +1,0 @@
-{
-    "tsconfig": "src/tsconfig.json",
-    "output": "docs",
-    "theme": "postmark",
-    "gaSite": "auto"
-}

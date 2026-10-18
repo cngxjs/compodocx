@@ -31,8 +31,40 @@ const IGNORED_CONFIG_KEYS: Readonly<Record<string, string>> = {
     featureLibraryScope:
         'each feature lists its primary members, or its whole surface when it has none',
     disableRoutesGraph: 'the routes graph is gone; use disableRoutes',
-    disableMainGraph: 'there is no module graph any more'
+    disableMainGraph: 'there is no module graph any more',
+    gaSite: 'Universal Analytics is end-of-life; use gaID with a GA4 measurement ID (G-XXXXXXXXXX)',
+    templatePlayground: 'the Template Playground was removed',
+    stackblitz: 'it never had an effect; use @playground',
+    stackblitzTemplate: 'it never had an effect; use @playground',
+    base: 'it never had an effect'
 };
+
+/** Upstream compodoc theme names, mapped to the built-in theme used in their place. */
+const UPSTREAM_THEMES: Readonly<Record<string, string>> = {
+    material: 'default',
+    original: 'default',
+    postmark: 'nord',
+    readthedocs: 'default',
+    stripe: 'ocean',
+    vagrant: 'midnight',
+    laravel: 'ember'
+};
+
+/** A coverage key turns its test on unless it is missing, `false` or `null`. */
+const isCoverageOn = (value: unknown): boolean =>
+    value !== undefined && value !== null && value !== false;
+
+/** A number or numeric string is the threshold; `true` or anything else keeps the default. */
+const coverageValue = (value: unknown, fallback: number): number => {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+    const parsed = typeof value === 'string' ? Number.parseInt(value, 10) : Number.NaN;
+    return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+/** `false` and `'false'` turn failing off; any other value keeps it on. */
+const isFailOn = (value: unknown): boolean => value !== false && value !== 'false';
 
 export interface LoadConfigOptions {
     readonly explicitConfigPath?: string;
@@ -272,12 +304,13 @@ export function applyConfigToMainData(
         mainData.theme = programOptions.theme;
     }
 
-    // Handle deprecated theme names
-    if (mainData.theme === 'material') {
+    // Upstream compodoc theme names fall back to the closest built-in theme
+    if (mainData.theme && Object.hasOwn(UPSTREAM_THEMES, mainData.theme)) {
+        const replacement = UPSTREAM_THEMES[mainData.theme];
         logger.warn(
-            "'material' theme has been removed. Use 'default', 'ocean', 'ember', 'midnight', 'neon', 'brutalist', 'nord', or 'rose-pine' instead."
+            `'${mainData.theme}' theme has been removed; using '${replacement}'. Use 'default', 'gitbook', 'ocean', 'ember', 'midnight', 'neon', 'brutalist', 'nord', or 'rose-pine' instead.`
         );
-        mainData.theme = 'default';
+        mainData.theme = replacement;
     }
 
     // --extTheme is a deprecated alias - treat as custom theme path
@@ -595,41 +628,42 @@ export function applyConfigToMainData(
         mainData.hideDarkModeToggle = programOptions.hideDarkModeToggle;
     }
 
-    if (configFile.coverageTest) {
+    if (isCoverageOn(configFile.coverageTest)) {
         mainData.coverageTest = true;
-        mainData.coverageTestThreshold =
-            typeof configFile.coverageTest === 'string'
-                ? Number.parseInt(configFile.coverageTest, 10)
-                : COMPODOC_DEFAULTS.defaultCoverageThreshold;
+        mainData.coverageTestThreshold = coverageValue(
+            configFile.coverageTest,
+            COMPODOC_DEFAULTS.defaultCoverageThreshold
+        );
     }
     if (programOptions.coverageTest) {
         mainData.coverageTest = true;
-        mainData.coverageTestThreshold =
-            typeof programOptions.coverageTest === 'string'
-                ? Number.parseInt(programOptions.coverageTest, 10)
-                : COMPODOC_DEFAULTS.defaultCoverageThreshold;
+        mainData.coverageTestThreshold = coverageValue(
+            programOptions.coverageTest,
+            COMPODOC_DEFAULTS.defaultCoverageThreshold
+        );
     }
 
-    if (configFile.coverageMinimumPerFile) {
+    if (isCoverageOn(configFile.coverageMinimumPerFile)) {
         mainData.coverageTestPerFile = true;
-        mainData.coverageMinimumPerFile =
-            typeof configFile.coverageMinimumPerFile === 'string'
-                ? Number.parseInt(configFile.coverageMinimumPerFile, 10)
-                : COMPODOC_DEFAULTS.defaultCoverageMinimumPerFile;
+        mainData.coverageMinimumPerFile = coverageValue(
+            configFile.coverageMinimumPerFile,
+            COMPODOC_DEFAULTS.defaultCoverageMinimumPerFile
+        );
     }
     if (programOptions.coverageMinimumPerFile) {
         mainData.coverageTestPerFile = true;
-        mainData.coverageMinimumPerFile =
-            typeof programOptions.coverageMinimumPerFile === 'string'
-                ? Number.parseInt(programOptions.coverageMinimumPerFile, 10)
-                : COMPODOC_DEFAULTS.defaultCoverageMinimumPerFile;
+        mainData.coverageMinimumPerFile = coverageValue(
+            programOptions.coverageMinimumPerFile,
+            COMPODOC_DEFAULTS.defaultCoverageMinimumPerFile
+        );
     }
 
-    if (configFile.coverageTestThresholdFail) {
-        mainData.coverageTestThresholdFail = configFile.coverageTestThresholdFail !== 'false';
+    // The flag has a commander default, so only an explicit CLI value beats the config file.
+    if (configFile.coverageTestThresholdFail !== undefined) {
+        mainData.coverageTestThresholdFail = isFailOn(configFile.coverageTestThresholdFail);
     }
-    if (programOptions.coverageTestThresholdFail) {
-        mainData.coverageTestThresholdFail = programOptions.coverageTestThresholdFail !== 'false';
+    if (program.getOptionValueSource('coverageTestThresholdFail') === 'cli') {
+        mainData.coverageTestThresholdFail = isFailOn(programOptions.coverageTestThresholdFail);
     }
 
     if (configFile.coverageTestShowOnlyFailed) {
@@ -873,20 +907,6 @@ export function applyConfigToMainData(
             process.exit(1);
         }
         mainData.maxSearchResults = result.value;
-    }
-
-    if (configFile.stackblitz) {
-        mainData.stackblitz = configFile.stackblitz;
-    }
-    if (programOptions.stackblitz) {
-        mainData.stackblitz = true;
-    }
-
-    if (configFile.stackblitzTemplate) {
-        mainData.stackblitzTemplate = configFile.stackblitzTemplate;
-    }
-    if (programOptions.stackblitzTemplate) {
-        mainData.stackblitzTemplate = programOptions.stackblitzTemplate;
     }
 
     for (const [key, reason] of Object.entries(IGNORED_CONFIG_KEYS)) {

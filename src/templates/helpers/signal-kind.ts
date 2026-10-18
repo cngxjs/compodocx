@@ -15,7 +15,6 @@ const SIGNAL_KIND_LABELS: Record<string, string> = {
     'content-children': 'contentChildren()',
     inject: 'inject()',
     'inject-async': 'injectAsync()',
-    'after-render': 'afterRender()',
     'after-next-render': 'afterNextRender()',
     'after-every-render': 'afterEveryRender()',
     'after-render-effect': 'afterRenderEffect()',
