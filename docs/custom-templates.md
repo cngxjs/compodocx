@@ -61,7 +61,7 @@ These file names correspond to page contexts. Place them in `partials/` inside y
 | `entity.js` | Entity detail |
 | `token.js` | `InjectionToken` / `HttpContextToken` detail page (in its feature folder) (v0.6.0+) |
 | `routes.js` | Routes page, `routes.html` (generated only when there are routes). Receives the main data plus `data.routing` (the route model: `roots`, each `{ id, kind: 'router' \| 'unmounted', bootstraps, configName, arrayName, features, routes }`, every route `{ id, path, fullPath, component, childrenFrom, redirectTo, title, guards, resolve, providers, data, children, file, line }`; `count`), `data.symbols` and `data.depth` (`0`). Row anchors are `route-<id>` |
-| `markdown.js` | Markdown pages (readme, changelog, etc.) |
+| `markdown.js` | Root markdown pages (README, CHANGELOG, CONTRIBUTING, LICENSE, TODO) |
 | `additional-page.js` | Additional documentation pages |
 | `coverage-report.js` | Documentation coverage report |
 | `unit-test-report.js` | Unit test coverage report |

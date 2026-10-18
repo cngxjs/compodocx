@@ -137,6 +137,7 @@ Upgrading from 0.8: this release documents Angular 21+ standalone code only, mov
 - **`--publicApiOnly` on Windows and in folders with glob characters.** The search for `index.d.ts` files, `*.api.md` reports and the declaring source files found nothing on Windows or below a folder whose name contains characters such as `(`, so every symbol was documented. These files are found now.
 - **Coverage thresholds from the config file.** A number in `coverageTest` or `coverageMinimumPerFile` was ignored and the default threshold applied, and `coverageTestThresholdFail: false` was overridden by the flag's default. A number is now the threshold, `true` uses the default (70 / 0), and the config value of `coverageTestThresholdFail` applies unless the flag is given on the command line.
 - **`ng add` script rewrite.** The schematic replaced every `compodoc` word in existing scripts with the script prefix: a custom `--script-prefix` produced calls such as `docs -p ...`, and arguments such as `-d docs/compodoc` were rewritten too. Only the binary in command position (start of the script, after `&&`, `;`, `|` or `npx`, also as a path) is rewritten now, always to `compodocx`. Newly written scripts call `compodocx` too; the prefix only names the script keys.
+- **`TODO.md` is rendered.** A project `TODO.md` got a page and a menu entry, but the page was empty. It now renders like the other root markdown pages, and the `markdown.js` template override applies to it.
 
 ## [0.8.0] - 2026-08-03
 
