@@ -139,6 +139,7 @@ Upgrading from 0.8: this release documents Angular 21+ standalone code only, mov
 - **`ng add` script rewrite.** The schematic replaced every `compodoc` word in existing scripts with the script prefix: a custom `--script-prefix` produced calls such as `docs -p ...`, and arguments such as `-d docs/compodoc` were rewritten too. Only the binary in command position (start of the script, after `&&`, `;`, `|` or `npx`, also as a path) is rewritten now, always to `compodocx`. Newly written scripts call `compodocx` too; the prefix only names the script keys.
 - **`TODO.md` is rendered.** A project `TODO.md` got a page and a menu entry, but the page was empty. It now renders like the other root markdown pages, and the `markdown.js` template override applies to it.
 - **Watch mode keeps the other root pages when a markdown file is missing.** Rebuilding the root markdown pages removed the last queued page for every one of README, CHANGELOG, CONTRIBUTING, LICENSE and TODO that the project does not have. Only the root markdown pages are removed now.
+- **`{@link}` in theming comments.** Token descriptions, `@deprecated` notes, mixin descriptions and `@overview` text on the Theming tab, on style file pages and on `design-tokens.html` showed `{@link ...}` as written. `{@link --token}` now links to the token's row on the same page (code when the page has no such row), and other targets resolve like `{@link}` in any description.
 
 ## [0.8.0] - 2026-08-03
 

@@ -1,7 +1,7 @@
 import Html from '@kitajs/html';
 import type { DesignTokenGroup } from '../../app/styles/design-tokens';
-import { markedAcl } from '../../utils/marked.acl';
 import { pagefindMetaBlock, t } from '../helpers';
+import { themingProse } from '../helpers/theming-prose';
 
 /** A token row: the Theming tab columns plus the file that defines it. */
 export interface DesignTokenRow {
@@ -25,7 +25,7 @@ export interface DesignTokensGroupData {
 
 const fileLabel = (file: string): string => file.slice(file.lastIndexOf('/') + 1);
 
-const TokenRow = (row: DesignTokenRow): string => {
+const TokenRow = (row: DesignTokenRow, anchors: ReadonlyMap<string, string>): string => {
     const name = Html.escapeHtml(row.name) as string;
     const deprecated = row.deprecated !== null;
     return (
@@ -40,7 +40,7 @@ const TokenRow = (row: DesignTokenRow): string => {
             ? `<div class="cdx-io-member-default"><span class="cdx-io-member-default-label">${t('default-value')}</span> <code>${Html.escapeHtml(row.defaultValue) as string}</code></div>`
             : '') +
         (row.description
-            ? `<div class="cdx-io-member-desc cdx-prose">${markedAcl(row.description) as string}</div>`
+            ? `<div class="cdx-io-member-desc cdx-prose">${themingProse(row.description, 0, anchors)}</div>`
             : '') +
         `<p class="cdx-theming-see cdx-theming-defined-in">${t('defined-in')}: ${
             row.href
@@ -51,7 +51,7 @@ const TokenRow = (row: DesignTokenRow): string => {
     );
 };
 
-const Group = (group: DesignTokensGroupData): string =>
+const Group = (group: DesignTokensGroupData, anchors: ReadonlyMap<string, string>): string =>
     (
         <section class="cdx-content-section cdx-theming-group" data-group={group.name}>
             <h2 class="cdx-section-heading" id={group.id}>
@@ -60,7 +60,7 @@ const Group = (group: DesignTokensGroupData): string =>
                     #
                 </a>
             </h2>
-            {group.tokens.map(TokenRow).join('')}
+            {group.tokens.map(row => TokenRow(row, anchors)).join('')}
         </section>
     ) as string;
 
@@ -72,6 +72,7 @@ const Group = (group: DesignTokensGroupData): string =>
 export const DesignTokensPage = (data: any): string => {
     const groups = (data.groups ?? []) as readonly DesignTokensGroupData[];
     const count = groups.reduce((sum, group) => sum + group.tokens.length, 0);
+    const anchors = new Map(groups.flatMap(group => group.tokens.map(row => [row.name, row.id])));
     return (
         <>
             <div class="cdx-entity-hero" style="--cdx-hero-color: var(--color-cdx-entity-style)">
@@ -81,7 +82,7 @@ export const DesignTokensPage = (data: any): string => {
                     <span class="cdx-badge cdx-badge--entity-style">{String(count)}</span>
                 </div>
             </div>
-            {groups.map(Group).join('')}
+            {groups.map(group => Group(group, anchors)).join('')}
         </>
     ) as string;
 };
