@@ -201,6 +201,34 @@ describe('defineFlags', () => {
         });
     });
 
+    it('drops the upstream gaSite flag with its value', () => {
+        expect(
+            stripRemovedFlags([
+                'node',
+                'compodocx',
+                '--gaSite',
+                'example.com',
+                '-p',
+                'tsconfig.json'
+            ])
+        ).toEqual({
+            argv: ['node', 'compodocx', '-p', 'tsconfig.json'],
+            removed: ['--gaSite']
+        });
+        expect(stripRemovedFlags(['node', 'compodocx', '--gaSite=example.com', '-s']).argv).toEqual(
+            ['node', 'compodocx', '-s']
+        );
+    });
+
+    it('drops the upstream templatePlayground flag without taking the next argument', () => {
+        expect(
+            stripRemovedFlags(['node', 'compodocx', '--templatePlayground', 'src/tsconfig.json'])
+        ).toEqual({
+            argv: ['node', 'compodocx', 'src/tsconfig.json'],
+            removed: ['--templatePlayground']
+        });
+    });
+
     it('source tracking marks user-provided flags as "cli"', () => {
         const program = makeProgram();
         defineFlags(program);

@@ -116,7 +116,7 @@ Compodocx ships with multiple built-in themes and supports custom CSS. All theme
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
-| theme | `--theme` | string | `'default'` | Built-in theme name or path to a custom CSS file. Built-in themes: `default`, `ocean`, `ember`, `midnight`, `neon`, `brutalist`, `nord`, `rose-pine`. A custom CSS file is loaded *instead of* the built-in theme |
+| theme | `--theme` | string | `'default'` | Built-in theme name or path to a custom CSS file. Built-in themes: `default`, `ocean`, `ember`, `midnight`, `neon`, `brutalist`, `nord`, `rose-pine`, `gitbook`. A custom CSS file is loaded *instead of* the built-in theme. Upstream compodoc theme names warn and map to a built-in theme (`material`, `original`, `readthedocs` to `default`; `postmark` to `nord`; `stripe` to `ocean`; `vagrant` to `midnight`; `laravel` to `ember`) |
 | extTheme | `-y, --extTheme` | string | -- | **Deprecated** -- use `--theme` instead. When set and no `--theme` is provided, treated as a custom theme path. Does not load an additional stylesheet |
 | shikiTheme | `--shikiTheme` | string | `'github-light:github-dark'` | Shiki syntax highlighting theme pair for code blocks. Format: `'light-theme:dark-theme'` or a single theme name used for both modes. Uses [Shiki's bundled themes](https://shiki.style/themes). Applies to both the Source Viewer and inline code snippets |
 | customFavicon | `--customFavicon` | string | -- | Path to a custom favicon file. Copied into the output and referenced in the HTML `<head>` |
@@ -190,7 +190,7 @@ Include external documentation, static assets, or supply custom templates.
 | includes | `--includes` | string | -- | Path to a folder of external markdown files. Each `.md` file becomes a page in the documentation, accessible via a dedicated sidebar section. Supports nested folders for sub-navigation |
 | includesName | `--includesName` | string | `'Additional documentation'` | Sidebar label for the external markdown pages section |
 | assetsFolder | `-a, --assetsFolder` | string | -- | Path to a folder of static assets (images, files) copied into the output directory. Referenced from markdown or custom templates via relative paths |
-| templates | `--templates` | string | -- | Path to a directory containing JS template overrides. Each file exports a function `(data, helpers) => string` that replaces the corresponding built-in template. See [Custom Templates](custom-templates.md) for the full API |
+| templates | `--templates` | string | -- | Path to a directory containing JS template overrides. Each file exports a function `(data, helpers) => string` that replaces the corresponding built-in template. See [Custom Templates](custom-templates.md) for the full API. Handlebars `.hbs` files in `partials/` are skipped with one warning. The removed `--templatePlayground` / `templatePlayground` are ignored with a warning |
 
 ## Sidebar Grouping
 
@@ -280,7 +280,7 @@ Integrate Google Analytics 4 (gtag.js) tracking into the generated documentation
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
-| gaID | `--gaID` | string | -- | Google Analytics 4 measurement ID (e.g. `G-XXXXXXXXXX`). When set, the gtag.js script is injected into every page |
+| gaID | `--gaID` | string | -- | Google Analytics 4 measurement ID (e.g. `G-XXXXXXXXXX`). When set, the gtag.js script is injected into every page. The removed `--gaSite` / `gaSite` (Universal Analytics) are ignored with a warning |
 
 ## Playground (`@playground`)
 

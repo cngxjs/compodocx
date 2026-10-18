@@ -613,9 +613,11 @@ describe('CLI simple generation', () => {
         });
         afterAll(() => tmp.clean(distFolder));
 
-        it('should add theme css', () => {
+        it('should map the upstream theme to its built-in replacement', () => {
             index = read(`${distFolder}/index.html`);
-            expect(index).to.contain(`href="./styles/${baseTheme}.css"`);
+            expect(index).to.contain('href="./styles/ember.css"');
+            expect(index).not.to.contain(`href="./styles/${baseTheme}.css"`);
+            expect(stdoutString).to.contain(`'${baseTheme}' theme has been removed; using 'ember'`);
         });
     });
 

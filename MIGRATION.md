@@ -344,12 +344,12 @@ Full pattern, deployment recipes, and version-switcher reference: [`docs/version
 | `--hideGenerator`, `--hideDarkModeToggle` | unchanged ||
 | `--toggleMenuItems`, `--navTabConfig` | unchanged | The `toggleMenuItems` value `modules` is ignored with a warning since v0.9.0. |
 | `--gaID` | replaces `--gaSite` | GA4 measurement IDs only (`G-XXXXXXXXXX`). SPA pageviews tracked automatically. |
-| `--gaSite` | removed | Universal Analytics is end-of-life. |
+| `--gaSite` | removed | Universal Analytics is end-of-life. The flag and the `gaSite` config key warn and are ignored. |
 | `--showEffects` | new (default `false`) | Renders Angular `effect()` blocks in a dedicated section on the API tab. |
 | `--publicApiOnly` | new | Restricts processing to symbols re-exported from a project's public entry. |
 | `--minimal`, `--silent`, `--language` | unchanged ||
 | `--maxSearchResults` | needs a value | Since v0.9.0 the flag takes an integer from `0` to `10000` (`0` shows all results); a bare `--maxSearchResults` or any other value stops the build. The `maxSearchResults` config key is read; the flag wins when both are set. |
-| `--templatePlayground` | removed in v0.4.0 | Deprecated in v0.3.0, removed in v0.4.0. Switch to the JS template override path (`--templates`) and convert existing Handlebars partials by hand ([cookbook](#hbs--js-cookbook)). |
+| `--templatePlayground` | removed in v0.4.0 | Deprecated in v0.3.0, removed in v0.4.0. The flag and the `templatePlayground` config key warn and are ignored. Switch to the JS template override path (`--templates`) and convert existing Handlebars partials by hand ([cookbook](#hbs--js-cookbook)); `.hbs` files in `partials/` are skipped with one warning. |
 
 Config-file (`.compodocrc.json`, `.compodocrc.yaml`, `.compodocrc.js`) keys mirror the CLI flags one-to-one. Existing config files keep working unchanged.
 
@@ -414,7 +414,7 @@ The bundled theme set is different.
 | Old compodoc theme | Closest replacement |
 |-|-|
 | `gitbook` | `gitbook` (compat theme - preserved) |
-| `material` | `default` or `ocean` |
+| `material` | `default` |
 | `original` | `default` |
 | `postmark` | `nord` |
 | `readthedocs` | `default` |
@@ -422,7 +422,7 @@ The bundled theme set is different.
 | `vagrant` | `midnight` |
 | `laravel` | `ember` |
 
-Eight bundled compodocx themes: `default`, `ocean`, `midnight`, `nord`, `rose-pine`, `ember`, `neon`, `brutalist`. Plus `gitbook` as compat.
+Eight bundled compodocx themes: `default`, `ocean`, `midnight`, `nord`, `rose-pine`, `ember`, `neon`, `brutalist`. Plus `gitbook` as compat. The other old theme names still work: they warn and fall back to the replacement in the table.
 
 Each theme is a single CSS file overriding the design tokens defined in `src/styles/compodocx.css`. Author your own by copying `src/themes/theme-template.css`, setting tokens, and passing the path via `--theme`.
 

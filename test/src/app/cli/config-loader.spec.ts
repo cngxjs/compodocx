@@ -383,6 +383,45 @@ describe('applyConfigToMainData', () => {
         );
     });
 
+    it('warns that the upstream gaSite and templatePlayground keys are ignored', () => {
+        applyConfigToMainData(
+            makeMainData(),
+            { gaSite: 'example.com', templatePlayground: true } as never,
+            makeProgram(),
+            { cwd: '/tmp/test' }
+        );
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'gaSite is ignored: Universal Analytics is end-of-life; use gaID with a GA4 measurement ID (G-XXXXXXXXXX)'
+        );
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'templatePlayground is ignored: the Template Playground was removed'
+        );
+    });
+
+    it.each([
+        ['material', 'default'],
+        ['original', 'default'],
+        ['postmark', 'nord'],
+        ['readthedocs', 'default'],
+        ['stripe', 'ocean'],
+        ['vagrant', 'midnight'],
+        ['laravel', 'ember']
+    ])('maps the upstream theme %s to %s with a warning', (upstream, builtIn) => {
+        const mainData = makeMainData();
+        applyConfigToMainData(mainData, { theme: upstream }, makeProgram(), { cwd: '/tmp/test' });
+        expect(mainData.theme).toBe(builtIn);
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            expect.stringContaining(`'${upstream}' theme has been removed; using '${builtIn}'.`)
+        );
+    });
+
+    it('keeps built-in theme names without a warning', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(mainData, { theme: 'gitbook' }, makeProgram(), { cwd: '/tmp/test' });
+        expect(mainData.theme).toBe('gitbook');
+        expect(vi.mocked(logger.warn)).not.toHaveBeenCalled();
+    });
+
     it('keeps valid feature globs and warns about invalid keys', () => {
         const mainData = makeMainData();
         applyConfigToMainData(

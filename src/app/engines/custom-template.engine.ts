@@ -42,6 +42,13 @@ export function loadCustomTemplates(templatePath: string): void {
     const fs = require('node:fs');
     const files: string[] = fs.readdirSync(partialsDir);
 
+    const handlebarsCount = files.filter(file => file.endsWith('.hbs')).length;
+    if (handlebarsCount > 0) {
+        logger.warn(
+            `Found ${handlebarsCount} .hbs file(s) in ${partialsDir}: Handlebars templates are no longer supported and must be rewritten as .js overrides; see docs/custom-templates.md and the cookbook in MIGRATION.md`
+        );
+    }
+
     for (const file of files) {
         if (!file.endsWith('.js')) {
             continue;

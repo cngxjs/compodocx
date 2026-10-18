@@ -65,4 +65,20 @@ describe('custom templates with removed or renamed override names', () => {
         expect(renderCustomTemplate('bucket-landing', {})).toBeNull();
         expect(renderCustomTemplate('overview', {})).toBe('<p>overview</p>');
     });
+
+    it('warns once about Handlebars partials and skips them', () => {
+        for (const name of ['component.hbs', 'block-method.hbs']) {
+            fs.writeFileSync(path.join(dir, 'partials', name), '<p>{{name}}</p>');
+        }
+        loadCustomTemplates(dir);
+        const warnings = vi
+            .mocked(logger.warn)
+            .mock.calls.map(call => String(call[0]))
+            .filter(w => w.includes('.hbs'));
+        expect(warnings).toHaveLength(1);
+        expect(warnings[0]).toContain('Found 2 .hbs file(s)');
+        expect(warnings[0]).toContain('Handlebars templates are no longer supported');
+        expect(warnings[0]).toContain('docs/custom-templates.md');
+        expect(renderCustomTemplate('component', {})).toBeNull();
+    });
 });

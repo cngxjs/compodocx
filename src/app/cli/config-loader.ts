@@ -31,7 +31,20 @@ const IGNORED_CONFIG_KEYS: Readonly<Record<string, string>> = {
     featureLibraryScope:
         'each feature lists its primary members, or its whole surface when it has none',
     disableRoutesGraph: 'the routes graph is gone; use disableRoutes',
-    disableMainGraph: 'there is no module graph any more'
+    disableMainGraph: 'there is no module graph any more',
+    gaSite: 'Universal Analytics is end-of-life; use gaID with a GA4 measurement ID (G-XXXXXXXXXX)',
+    templatePlayground: 'the Template Playground was removed'
+};
+
+/** Upstream compodoc theme names, mapped to the built-in theme used in their place. */
+const UPSTREAM_THEMES: Readonly<Record<string, string>> = {
+    material: 'default',
+    original: 'default',
+    postmark: 'nord',
+    readthedocs: 'default',
+    stripe: 'ocean',
+    vagrant: 'midnight',
+    laravel: 'ember'
 };
 
 export interface LoadConfigOptions {
@@ -272,12 +285,13 @@ export function applyConfigToMainData(
         mainData.theme = programOptions.theme;
     }
 
-    // Handle deprecated theme names
-    if (mainData.theme === 'material') {
+    // Upstream compodoc theme names fall back to the closest built-in theme
+    if (mainData.theme && Object.hasOwn(UPSTREAM_THEMES, mainData.theme)) {
+        const replacement = UPSTREAM_THEMES[mainData.theme];
         logger.warn(
-            "'material' theme has been removed. Use 'default', 'ocean', 'ember', 'midnight', 'neon', 'brutalist', 'nord', or 'rose-pine' instead."
+            `'${mainData.theme}' theme has been removed; using '${replacement}'. Use 'default', 'gitbook', 'ocean', 'ember', 'midnight', 'neon', 'brutalist', 'nord', or 'rose-pine' instead.`
         );
-        mainData.theme = 'default';
+        mainData.theme = replacement;
     }
 
     // --extTheme is a deprecated alias - treat as custom theme path

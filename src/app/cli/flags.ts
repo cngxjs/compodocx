@@ -259,17 +259,24 @@ export const REMOVED_FLAG_REASONS: Readonly<Record<string, string>> = {
     '--groupBy': 'the sidebar groups symbols by feature',
     '--groupDepth': 'the sidebar groups symbols by feature',
     '--disableRoutesGraph': 'the routes graph is gone; use --disableRoutes',
-    '--disableMainGraph': 'there is no module graph any more'
+    '--disableMainGraph': 'there is no module graph any more',
+    '--gaSite':
+        'Universal Analytics is end-of-life; use --gaID with a GA4 measurement ID (G-XXXXXXXXXX)',
+    '--templatePlayground': 'the Template Playground was removed'
 };
 
 /** Removed flags that may take a value: a following non-flag token is dropped with them. */
-const REMOVED_FLAGS: readonly string[] = ['--groupBy', '--groupDepth'];
+const REMOVED_FLAGS: readonly string[] = ['--groupBy', '--groupDepth', '--gaSite'];
 
 /**
  * Removed boolean flags: they never take the next token. An inline value
  * (`--disableRoutesGraph=false`) is dropped with the flag.
  */
-const REMOVED_BOOLEAN_FLAGS: readonly string[] = ['--disableRoutesGraph', '--disableMainGraph'];
+const REMOVED_BOOLEAN_FLAGS: readonly string[] = [
+    '--disableRoutesGraph',
+    '--disableMainGraph',
+    '--templatePlayground'
+];
 
 /**
  * `argv` without the removed flags (and a value following a value flag),
