@@ -66,16 +66,6 @@
 .cdx-badge--injection-context {
     --cdx-badge-base: var(--color-cdx-badge-injection-context, hsl(330 50% 44%));
 }
-.cdx-badge--primary {
-    --cdx-badge-base: var(--color-cdx-badge-primary, hsl(38 92% 38%));
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-}
-.cdx-badge--primary svg {
-    width: 10px;
-    height: 10px;
-}
 
 /* Signal primitives */
 .cdx-badge--signal,
@@ -223,11 +213,6 @@
     color: var(--color-cdx-text-inverse, white);
     border: none;
 }
-.cdx-badge--entity-module {
-    background: var(--color-cdx-entity-module);
-    color: var(--color-cdx-text-inverse, white);
-    border: none;
-}
 .cdx-badge--entity-class {
     background: var(--color-cdx-entity-class);
     color: var(--color-cdx-text-inverse, white);
@@ -294,10 +279,6 @@
 }
 .dark .cdx-badge--entity-style {
     background: var(--color-cdx-entity-style);
-    color: var(--color-cdx-text-inverse);
-}
-.dark .cdx-badge--entity-module {
-    background: var(--color-cdx-entity-module);
     color: var(--color-cdx-text-inverse);
 }
 .dark .cdx-badge--entity-class {

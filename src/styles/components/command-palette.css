@@ -38,14 +38,6 @@
     color: var(--color-cdx-text-muted);
 }
 
-.cdx-cp .cdx-cp-kbd {
-    @apply shrink-0 px-1.5 py-0.5 text-xs;
-    border: 1px solid var(--color-cdx-border);
-    border-radius: var(--radius-cdx-sm);
-    color: var(--color-cdx-text-muted);
-    font-family: var(--font-code);
-}
-
 .cdx-cp .cdx-cp-body {
     @apply overflow-y-auto px-2 py-2;
     max-height: 400px;
@@ -64,21 +56,6 @@
 
 .cdx-cp .cdx-cp-item.cdx-cp-active {
     background: var(--color-cdx-primary-subtle);
-}
-
-.cdx-cp .cdx-cp-badge {
-    @apply shrink-0 px-2 py-0.5 text-xs font-semibold uppercase;
-    border-radius: var(--radius-cdx-sm);
-    font-family: var(--font-body);
-}
-
-.cdx-cp .cdx-cp-badge--component {
-    background: var(--color-cdx-entity-component);
-    color: var(--color-cdx-text-inverse, white);
-}
-.cdx-cp .cdx-cp-badge--other {
-    background: var(--color-cdx-border);
-    color: var(--color-cdx-text-secondary);
 }
 
 .cdx-cp .cdx-cp-close {

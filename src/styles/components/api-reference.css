@@ -15,12 +15,6 @@
  * Hide strategy: rows AND sections both flip `data-cdx-ref-hidden="1"`.
  * `content-visibility: auto` on items keeps offscreen layout work
  * cheap on large outputs.
- *
- * Scroll-collapse: the page root carries `data-cdx-ref-collapsed="1"`
- * when the sentinel scrolls out (set by the client filter module).
- * Collapsed state hides the stability + kind rows; search input,
- * bucket select, reset, and a disclosure button stay visible. Clicking
- * the disclosure toggles the expanded state regardless of scroll.
  */
 
 :root {
@@ -48,17 +42,10 @@
     font-size: 0.9375rem;
 }
 
-/* --- Page root + sentinel --- */
+/* --- Page root --- */
 
 .cdx-ref-page {
     margin-top: 0;
-}
-
-.cdx-ref-sentinel {
-    width: 100%;
-    height: 1px;
-    margin-top: -1px;
-    pointer-events: none;
 }
 
 /* --- Filter bar (no card chrome, not sticky, scrolls with content) --- */

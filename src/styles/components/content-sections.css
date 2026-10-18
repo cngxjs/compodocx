@@ -9,10 +9,6 @@
     white-space: nowrap;
 }
 
-.cdx-entity-hero-file--breadcrumb {
-    margin-bottom: 0.25rem;
-}
-
 .cdx-entity-hero-file svg {
     width: 14px;
     height: 14px;
@@ -24,27 +20,6 @@
     .cdx-entity-hero-file {
         display: none;
     }
-}
-
-/* Legacy pre/code import — keep for older rendered output */
-.cdx-import-statement {
-    background: var(--color-cdx-bg-alt);
-    border: 1px solid var(--color-cdx-border);
-    border-radius: var(--radius-cdx-md);
-    padding: 0.625rem 1rem;
-    font-family: var(--font-code);
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    margin: 0;
-    overflow-x: auto;
-}
-
-.cdx-import-statement code {
-    color: var(--color-cdx-text);
-    background: transparent;
-    padding: 0;
-    border: none;
-    font-size: inherit;
 }
 
 /* Inline token-based import line */
@@ -346,17 +321,6 @@ a.cdx-chip:hover {
     outline-offset: 2px;
 }
 
-.cdx-chip-label {
-    letter-spacing: 0;
-}
-
-/* Icons are no longer used in the code-block style — hide any leftover
-   icon spans if they land in the HTML so older rendered output doesn't
-   break the layout. */
-.cdx-chip-icon {
-    display: none;
-}
-
 /* Per-entity colour tokens */
 .cdx-chip--component {
     --cdx-chip-color: var(--color-cdx-entity-component);
@@ -386,9 +350,6 @@ a.cdx-chip:hover {
 .cdx-chip--service {
     --cdx-chip-color: var(--color-cdx-entity-service);
 }
-.cdx-chip--miscellaneous {
-    --cdx-chip-color: var(--color-cdx-entity-function);
-}
 .cdx-chip--entity {
     --cdx-chip-color: var(--color-cdx-entity-component);
 }
@@ -399,38 +360,10 @@ a.cdx-chip:hover {
     }
 }
 
-/* ── Host directives (object literal style) ──────────────
- * Rendered by MetadataHostDirectivesRow — each host directive is a
- * TypeScript object literal printed in monospace that mirrors the
- * original `@Component({ hostDirectives: [...] })` source. Only the
- * directive identifier is a clickable link.
+/* ── Host directives ───────────────────────────────────
+ * Rendered by MetadataHostDirectivesRow. Only the directive identifier
+ * is a clickable link.
  */
-
-.cdx-host-dir-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    flex: 1 1 auto;
-    min-width: 0;
-    font-family: var(--font-code);
-    font-size: 0.8125rem;
-    line-height: 1.55;
-    align-items: stretch;
-}
-
-.cdx-host-dir-object {
-    white-space: pre;
-    color: var(--color-cdx-text);
-}
-
-.cdx-host-dir-punct {
-    color: var(--color-cdx-text-muted);
-}
-
-.cdx-host-dir-key {
-    color: var(--color-cdx-text-secondary);
-    font-weight: 500;
-}
 
 .cdx-host-dir-name {
     color: var(--color-cdx-entity-directive);
@@ -442,10 +375,6 @@ a.cdx-chip:hover {
 .cdx-host-dir-name:hover {
     text-decoration: underline;
     text-underline-offset: 2px;
-}
-
-.cdx-host-dir-token {
-    color: var(--color-cdx-text);
 }
 
 /* Flat host directive rows (no braces) */

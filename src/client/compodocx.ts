@@ -14,8 +14,6 @@ import { initTabs } from './tabs';
 import { initTheme } from './theme';
 import { initVersionSwitcher } from './version-switcher';
 
-// import { initToc } from './toc';
-
 // Theme must run before DOMContentLoaded to prevent flash
 initTheme();
 
@@ -34,7 +32,6 @@ const init = () => {
     initAnimations();
     initVersionSwitcher();
     initApiReference();
-    // initToc(); // TODO: enable when ToC styling is finalized
 };
 
 // ESM modules are deferred - DOMContentLoaded may have already fired

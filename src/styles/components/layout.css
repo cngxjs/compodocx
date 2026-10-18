@@ -37,7 +37,6 @@ body,
 .content,
 .cdx-topbar,
 .cdx-member-card,
-.cdx-member-header,
 .cdx-cp .cdx-cp-panel,
 .cdx-cp .cdx-cp-header {
     transition:
@@ -181,17 +180,4 @@ body {
 :focus-visible {
     outline: 2px solid var(--color-cdx-border-focus);
     outline-offset: 2px;
-}
-
-.cdx-entity-header {
-    margin-bottom: 1.5rem;
-}
-
-.cdx-entity-header h1 {
-    font-family: var(--font-heading);
-    font-weight: 700;
-    font-size: 1.75rem;
-    line-height: 1.2;
-    margin: 0 0 0.5rem;
-    color: var(--color-cdx-text);
 }
