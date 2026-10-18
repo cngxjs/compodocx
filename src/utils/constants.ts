@@ -160,6 +160,7 @@ export const MENU_TOGGLE_KEYS: ReadonlyArray<string> = [
     'entities',
     'classes',
     'injectables',
+    'services',
     'dependency-injection',
     'guards',
     'interfaces',

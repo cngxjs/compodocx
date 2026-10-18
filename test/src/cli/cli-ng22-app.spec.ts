@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
 import { featurePage, pagesIn } from '../helpers/pages';
 
 const tmp = temporaryDir();
@@ -98,5 +99,41 @@ describe('CLI Angular 22 application', () => {
 
     it('keeps the Injectable class an injectable', () => {
         expect(names(data.injectables)).to.deep.equal(['PreferencesStore']);
+    });
+});
+
+describe('CLI Angular 22 application, type layout', () => {
+    const htmlFolder = path.resolve(`${tmp.name}-ng22-type`);
+    let menu: string;
+
+    beforeAll(() => {
+        tmp.create(htmlFolder);
+        shell(
+            'node',
+            [
+                CLI,
+                '-c',
+                path.resolve('test/fixtures/type-layout.compodocxrc.json'),
+                '-p',
+                'tsconfig.json',
+                '--disableSearch',
+                '--no-multiVersion',
+                '--toggleMenuItems',
+                'services',
+                '-d',
+                htmlFolder
+            ],
+            { cwd: FIXTURE }
+        );
+        menu = menuOf(htmlFolder);
+    });
+    afterAll(() => {
+        tmp.clean(htmlFolder);
+    });
+
+    it('lists services in their own chapter that the services key opens', () => {
+        expect(menu).to.contain('data-cdx-target="#services-links" aria-expanded="true"');
+        expect(menu).to.contain('data-cdx-target="#injectables-links" aria-expanded="false"');
+        expect(menu).to.contain('SessionService');
     });
 });
