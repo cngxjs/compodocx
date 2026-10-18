@@ -112,6 +112,18 @@ describe('CLI Angular 22 application', () => {
         expect(names(data.classes)).to.deep.equal(['ConsoleLogger', 'Registry']);
     });
 
+    it('gives httpResource and injectAsync members their kind', () => {
+        const member = (service: string, name: string) =>
+            data.services
+                .find((s: any) => s.name === service)
+                .properties.find((p: any) => p.name === name);
+        expect(member('SessionService', 'profile').signalKind).to.equal('http-resource');
+        expect(member('SessionService', 'profile').type).to.equal('Profile');
+        expect(member('ReportLoader', 'engine').signalKind).to.equal('inject-async');
+        expect(page('service', 'SessionService')).to.contain('cdx-badge--http-resource');
+        expect(page('service', 'ReportLoader')).to.contain('cdx-badge--inject-async');
+    });
+
     it('keeps the Injectable class an injectable', () => {
         expect(names(data.injectables)).to.deep.equal(['PreferencesStore']);
     });

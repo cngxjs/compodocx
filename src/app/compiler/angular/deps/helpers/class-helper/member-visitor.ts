@@ -14,7 +14,11 @@ import {
     angularImports,
     rootInjectCall
 } from '../../../../semantic/inject-calls';
-import { type SignalApi, signalMemberCall } from '../../../../semantic/signal-calls';
+import {
+    importedMemberCall,
+    type SignalApi,
+    signalMemberCall
+} from '../../../../semantic/signal-calls';
 import type { DecoratorInspector } from './decorator-inspector';
 import type { JsdocExtractor } from './jsdoc-extractor';
 import type { TypeRenderer } from './type-renderer';
@@ -76,6 +80,17 @@ export class MemberVisitor {
             return undefined;
         }
         const cleaned = defaultValue.replaceAll('\n', '');
+
+        // httpResource and injectAsync are recognised by their import
+        const imported =
+            initializer && sourceFile && ts.isSourceFile(sourceFile)
+                ? importedMemberCall(initializer, importsOf(sourceFile), sourceFile)
+                : undefined;
+        if (imported) {
+            return imported.type
+                ? { kind: imported.kind, signalType: imported.type }
+                : { kind: imported.kind };
+        }
 
         // Order matters: check specific patterns before generic ones
         // input, output and model come from the syntax tree (`signalMemberCall`)
