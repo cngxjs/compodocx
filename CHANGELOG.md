@@ -90,6 +90,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 - **Module pages, chapter and graph.** `modules.html`, the per-module pages, the Modules sidebar chapter, the module dependency graphs and the `@compodoc/ngd-transformer` dependency are gone, together with the `disableMainGraph` option and the `modules.js`/`module.js` template overrides. The `toggleMenuItems` value `modules` is ignored with a warning.
 - **i18n keys** `module`, `modules`, `bootstrap`, `declarations`, `entrycomponents`, `no-svg`, `category`, `empty-category-desc`, `empty-category-title` and `no-graph`.
+- **Unused i18n keys.** Translation keys that no page looked up are gone from every locale; custom locale overrides of them had no effect.
 - **`referencedBy` in the JSON export.** The field came from a text search for the symbol name; use `usedBy`.
 - **`toggleMenuItems` values `miscellaneous` and `tokens`.** They are ignored with a warning; use `utilities` and `dependency-injection`.
 - **`@category` and `@docsKind`.** Both tags are ignored; a build that still finds them logs one warning listing every location. `@docsKind primary` promotions and the Primary badge are gone; `compodocx migrate jsdoc` strips the tags.
