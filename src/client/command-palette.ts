@@ -71,10 +71,8 @@ const entityClass = (type: EntityType | 'other'): string => {
 };
 
 /** Parse entity type from Pagefind result title.
- *  Titles follow pattern: "EntityName - context - ProjectName" (from Layout.tsx pageTitle()).
- *  Also handles legacy "type - EntityName" format. */
+ *  Titles follow pattern: "EntityName - context - ProjectName" (from Layout.tsx pageTitle()). */
 const parseEntityType = (title: string): { type: EntityType | 'other'; name: string } => {
-    // Try new format: "EntityName - context - ProjectName"
     const parts = title.split(' - ');
     if (parts.length >= 3) {
         const name = parts[0].trim();
@@ -86,14 +84,6 @@ const parseEntityType = (title: string): { type: EntityType | 'other'; name: str
         }
         // Context didn't match a known entity type (e.g. "coverage", "routes")
         return { type: 'other', name };
-    }
-    // Try legacy format: "type - EntityName"
-    const lower = title.toLowerCase();
-    for (const t of ENTITY_TYPES) {
-        if (lower.startsWith(`${t} - `) || lower.startsWith(`${t}s - `)) {
-            const name = title.substring(title.indexOf(' - ') + 3);
-            return { type: t, name };
-        }
     }
     return { type: 'other', name: title };
 };

@@ -122,8 +122,7 @@ export class MemberVisitor {
             },
             { pattern: /^afterRenderEffect\s*\(/, kind: 'after-render-effect' },
             { pattern: /^afterEveryRender\s*\(/, kind: 'after-every-render' },
-            { pattern: /^afterNextRender\s*\(/, kind: 'after-next-render' },
-            { pattern: /^afterRender\s*\(/, kind: 'after-render' }
+            { pattern: /^afterNextRender\s*\(/, kind: 'after-next-render' }
         ];
 
         for (const { pattern, kind } of patterns) {

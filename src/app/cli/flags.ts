@@ -249,8 +249,6 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
             'Max results in the search command palette (0 shows all)',
             String(COMPODOC_DEFAULTS.maxSearchResults)
         )
-        .option('--stackblitz', 'Enable StackBlitz integration for examples')
-        .option('--stackblitzTemplate [template]', 'StackBlitz project template ID for examples')
         .allowExcessArguments();
 }
 
@@ -262,11 +260,18 @@ export const REMOVED_FLAG_REASONS: Readonly<Record<string, string>> = {
     '--disableMainGraph': 'there is no module graph any more',
     '--gaSite':
         'Universal Analytics is end-of-life; use --gaID with a GA4 measurement ID (G-XXXXXXXXXX)',
-    '--templatePlayground': 'the Template Playground was removed'
+    '--templatePlayground': 'the Template Playground was removed',
+    '--stackblitz': 'it never had an effect; use @playground',
+    '--stackblitzTemplate': 'it never had an effect; use @playground'
 };
 
 /** Removed flags that may take a value: a following non-flag token is dropped with them. */
-const REMOVED_FLAGS: readonly string[] = ['--groupBy', '--groupDepth', '--gaSite'];
+const REMOVED_FLAGS: readonly string[] = [
+    '--groupBy',
+    '--groupDepth',
+    '--gaSite',
+    '--stackblitzTemplate'
+];
 
 /**
  * Removed boolean flags: they never take the next token. An inline value
@@ -275,7 +280,8 @@ const REMOVED_FLAGS: readonly string[] = ['--groupBy', '--groupDepth', '--gaSite
 const REMOVED_BOOLEAN_FLAGS: readonly string[] = [
     '--disableRoutesGraph',
     '--disableMainGraph',
-    '--templatePlayground'
+    '--templatePlayground',
+    '--stackblitz'
 ];
 
 /**

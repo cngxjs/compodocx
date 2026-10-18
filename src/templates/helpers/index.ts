@@ -36,7 +36,6 @@ export { relativeUrl } from './relative-url';
 export { shortPath, shortUrl } from './short-url';
 export { signalKindLabel } from './signal-kind';
 export {
-    hasAnyApiSections,
     isApiSection,
     isInfoSection,
     isInitialTab,

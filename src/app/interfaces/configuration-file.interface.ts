@@ -63,8 +63,6 @@ export interface ConfigurationFileInterface {
     infoTabSections: string[];
     apiTabSections: string[];
     themingTabSections: string[];
-    stackblitz: boolean;
-    stackblitzTemplate: string;
     playgroundMaterialShell: boolean;
     playgroundDepDepth: number;
     playgroundFileCountCap: number;

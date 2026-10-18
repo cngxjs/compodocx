@@ -98,9 +98,6 @@
 }
 
 /* Render lifecycle */
-.cdx-badge--after-render {
-    --cdx-badge-base: var(--color-cdx-badge-after-render, hsl(25 65% 40%));
-}
 .cdx-badge--after-next-render {
     --cdx-badge-base: var(--color-cdx-badge-after-next-render, hsl(15 65% 42%));
 }

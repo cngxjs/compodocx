@@ -64,7 +64,6 @@ Controls where and how the documentation is generated.
 | output | `-d, --output` | string | `'./documentation/'` | Directory for the generated static site. Created if it doesn't exist. Contents are overwritten on each run |
 | exportFormat | `-e, --exportFormat` | string | `'html'` | Output format. `html` generates a full static site. `json` exports the parsed data model as JSON files (useful for custom tooling) |
 | jsonIndent | `--jsonIndent` | number | `0` | Indent of `documentation.json` with `exportFormat` `json`: `0` writes one line, `1` to `8` pretty-prints with that many spaces. Any other value stops the build with an error |
-| base | -- | string | `'/'` | Base URL path prepended to all generated links. Set this when hosting docs in a subdirectory (e.g. `'/my-project/'`) |
 | multiVersion | `--multiVersion` / `--no-multiVersion` | boolean | `true` | When `true` (default), HTML output is written to `<output>/<versionLabel>/` and a `versions.json` manifest is maintained next to it; the topbar version switcher reads the manifest at runtime. Pass `--no-multiVersion` to restore the previous flat layout. Non-HTML exports (`json`, `llm-md`) ignore this flag. |
 | versionLabel | `--versionLabel <label>` | string | (auto) | Override the version-subfolder name. Defaults to the nearest `package.json` `version`, prefixed with `v` (`1.2.3` → `v1.2.3`). Use `main`, `next`, `unreleased` for non-package builds. Hard error (exit 2) if no label can be resolved while `multiVersion` is on. |
 | versionsRoot | `--versionsRoot <path>` | string | the `-d` folder | Where `versions.json` is read from / written to. Override when CI builds each version separately and stitches the deploys together later. |
@@ -448,11 +447,6 @@ For the complete authoring guide (folder layout, library-author workflow, troubl
 ## Legacy `@stackblitz <url>` integration
 
 Predates `@playground`. The `@stackblitz <url>` JSDoc tag adds a single "Open in StackBlitz" link in the entity hero, pointing at a pre-existing StackBlitz project the author maintains externally. No build-time assembly, no manifest. Use `@playground` for new projects — `@stackblitz` is kept for migration compatibility.
-
-| Option | CLI | Type | Default | Description |
-|-|-|-|-|-|
-| stackblitz | `--stackblitz` | boolean | `false` | Enable legacy StackBlitz integration. Adds "Open in StackBlitz" buttons to `@example` code blocks (when paired with `stackblitzTemplate`) |
-| stackblitzTemplate | `--stackblitzTemplate` | string | -- | StackBlitz project template ID. Example code is injected into this template when the user clicks "Open in StackBlitz" |
 
 ## Search
 

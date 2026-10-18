@@ -1,4 +1,3 @@
-import { hasAnyApiSections } from '../../templates/helpers/tab-helpers';
 import { hasTheming, themingFor } from '../../templates/helpers/theming';
 import { COMPODOC_CONSTANTS } from '../../utils/constants';
 import Configuration from '../configuration';
@@ -86,12 +85,8 @@ export class NavTabsResolver {
                 }
             }
 
-            // API tab: drop it in legacy single-tab mode, or when the
-            // dependency has no member content to populate it.
+            // API tab: drop it when the dependency has no member content to populate it.
             if (customTab.id === 'api') {
-                if (!hasAnyApiSections()) {
-                    return;
-                }
                 const hasApiMembers = !!(
                     dependency.constructorObj ||
                     dependency.inputsClass?.length ||

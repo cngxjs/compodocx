@@ -462,9 +462,6 @@ a.cdx-member-permalink:hover {
 .dark .cdx-io-member--effect {
     --cdx-io-color: hsl(45 65% 65%);
 }
-.dark .cdx-io-member--after-render {
-    --cdx-io-color: hsl(25 60% 65%);
-}
 .dark .cdx-io-member--after-next-render {
     --cdx-io-color: hsl(15 60% 68%);
 }
@@ -568,9 +565,6 @@ a.cdx-member-permalink:hover {
 .cdx-io-member--inject,
 .cdx-io-member--inject-async {
     --cdx-io-color: hsl(320 45% 40%);
-}
-.cdx-io-member--after-render {
-    --cdx-io-color: hsl(25 65% 35%);
 }
 .cdx-io-member--after-next-render {
     --cdx-io-color: hsl(15 65% 38%);

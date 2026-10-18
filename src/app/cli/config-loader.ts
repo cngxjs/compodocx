@@ -33,7 +33,10 @@ const IGNORED_CONFIG_KEYS: Readonly<Record<string, string>> = {
     disableRoutesGraph: 'the routes graph is gone; use disableRoutes',
     disableMainGraph: 'there is no module graph any more',
     gaSite: 'Universal Analytics is end-of-life; use gaID with a GA4 measurement ID (G-XXXXXXXXXX)',
-    templatePlayground: 'the Template Playground was removed'
+    templatePlayground: 'the Template Playground was removed',
+    stackblitz: 'it never had an effect; use @playground',
+    stackblitzTemplate: 'it never had an effect; use @playground',
+    base: 'it never had an effect'
 };
 
 /** Upstream compodoc theme names, mapped to the built-in theme used in their place. */
@@ -904,20 +907,6 @@ export function applyConfigToMainData(
             process.exit(1);
         }
         mainData.maxSearchResults = result.value;
-    }
-
-    if (configFile.stackblitz) {
-        mainData.stackblitz = configFile.stackblitz;
-    }
-    if (programOptions.stackblitz) {
-        mainData.stackblitz = true;
-    }
-
-    if (configFile.stackblitzTemplate) {
-        mainData.stackblitzTemplate = configFile.stackblitzTemplate;
-    }
-    if (programOptions.stackblitzTemplate) {
-        mainData.stackblitzTemplate = programOptions.stackblitzTemplate;
     }
 
     for (const [key, reason] of Object.entries(IGNORED_CONFIG_KEYS)) {

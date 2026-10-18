@@ -23,7 +23,6 @@ export const COMPODOC_DEFAULTS = {
      * means unlimited. Range 0..1000.
      */
     maxVersionsShown: 10,
-    base: '/',
     defaultCoverageThreshold: 70,
     defaultCoverageMinimumPerFile: 0,
     coverageTestThresholdFail: true,

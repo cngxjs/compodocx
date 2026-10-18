@@ -78,8 +78,6 @@ const makeMainData = (): MainDataInterface => {
         gaID: '',
         publicApiOnly: '',
         maxSearchResults: 15,
-        stackblitz: false,
-        stackblitzTemplate: '',
         menuLayout: 'type',
         features: {},
         classificationAxes: {},
@@ -397,6 +395,24 @@ describe('applyConfigToMainData', () => {
         );
         expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
             'templatePlayground is ignored: the Template Playground was removed'
+        );
+    });
+
+    it('warns that the stackblitz, stackblitzTemplate and base keys are ignored', () => {
+        applyConfigToMainData(
+            makeMainData(),
+            { stackblitz: true, stackblitzTemplate: 'abc', base: '/docs/' } as never,
+            makeProgram(),
+            { cwd: '/tmp/test' }
+        );
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'stackblitz is ignored: it never had an effect; use @playground'
+        );
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'stackblitzTemplate is ignored: it never had an effect; use @playground'
+        );
+        expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+            'base is ignored: it never had an effect'
         );
     });
 

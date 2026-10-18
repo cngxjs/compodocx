@@ -476,20 +476,6 @@
             "default": "127.0.0.1",
             "examples": ["0.0.0.0"]
         },
-        "stackblitz": {
-            "$id": "/properties/stackblitz",
-            "type": "boolean",
-            "title": "Enable StackBlitz integration for examples",
-            "default": false,
-            "examples": [false]
-        },
-        "stackblitzTemplate": {
-            "$id": "/properties/stackblitzTemplate",
-            "type": "string",
-            "title": "StackBlitz project template ID for examples",
-            "default": "",
-            "examples": [""]
-        },
         "menuLayout": {
             "$id": "/properties/menuLayout",
             "type": "string",

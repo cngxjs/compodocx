@@ -39,20 +39,6 @@ type LayoutProps = {
     readonly entitiesVersion?: string;
 };
 
-const IframeTrackingScript = `
-function sendCurrentUrlToParent() {
-    if (window.parent && window.parent !== window) {
-        window.parent.postMessage({
-            type: 'compodoc-iframe-navigate',
-            url: window.location.pathname + window.location.hash
-        }, '*');
-    }
-}
-window.addEventListener('hashchange', sendCurrentUrlToParent, false);
-window.addEventListener('popstate', sendCurrentUrlToParent, false);
-window.addEventListener('DOMContentLoaded', sendCurrentUrlToParent, false);
-`;
-
 /** Root-relative link to the index page; the client router adds the depth prefix. */
 const INDEX_HREF = hrefText(hrefFor({ type: 'root', page: 'index' }, ROOT_DEPTH), 'bare');
 
@@ -304,7 +290,7 @@ const ContentActions = (props: {
 /** Build a descriptive page title for browser tab + Pagefind indexing */
 const pageTitle = (data: PageData): string => {
     const base = data.documentationMainName;
-    if (!data.context || data.context === 'readme' || data.context === 'getting-started') {
+    if (!data.context || data.context === 'readme') {
         return base;
     }
     const name = data.displayName || data.name || data.filename || '';
@@ -331,7 +317,7 @@ export const Layout = (props: LayoutProps): string => {
                 <meta name="description" content="" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" type="image/svg+xml" href={r('images/favicon.svg')} />
-                <script>{`(function(){try{var d=localStorage.getItem('compodocx_darkmode-state')||localStorage.getItem('compodoc_darkmode-state');var dark=d!==null?d==='true':window.matchMedia('(prefers-color-scheme:dark)').matches;if(dark)document.documentElement.classList.add('dark');if(/Mac|iPhone|iPad/.test(navigator.platform||''))document.documentElement.classList.add('cdx-mac');if(location.hash&&location.hash!=='#')document.documentElement.classList.add('cdx-hash-pending')}catch(e){}}())`}</script>
+                <script>{`(function(){try{var d=localStorage.getItem('compodocx_darkmode-state');var dark=d!==null?d==='true':window.matchMedia('(prefers-color-scheme:dark)').matches;if(dark)document.documentElement.classList.add('dark');if(/Mac|iPhone|iPad/.test(navigator.platform||''))document.documentElement.classList.add('cdx-mac');if(location.hash&&location.hash!=='#')document.documentElement.classList.add('cdx-hash-pending')}catch(e){}}())`}</script>
                 <style>{`
                     .menu .collapse.in { display: block !important; visibility: visible !important; }
                     .menu .collapse:not(.in) { display: none !important; }
@@ -348,12 +334,11 @@ export const Layout = (props: LayoutProps): string => {
                     data-base={r('')}
                 />
                 {themePicker && (
-                    <script>{`(function(){try{var t=localStorage.getItem('compodocx-theme')||localStorage.getItem('compodoc-theme');if(t&&t!=='default'){var l=document.getElementById('cdx-theme-link');if(l)l.href=l.getAttribute('data-base')+'styles/'+t+'.css'}}catch(e){}}())`}</script>
+                    <script>{`(function(){try{var t=localStorage.getItem('compodocx-theme');if(t&&t!=='default'){var l=document.getElementById('cdx-theme-link');if(l)l.href=l.getAttribute('data-base')+'styles/'+t+'.css'}}catch(e){}}())`}</script>
                 )}
             </head>
             <body>
                 <script type="module" src={r('js/compodocx.js')}></script>
-                <script>{IframeTrackingScript}</script>
                 {data.entityIndex && entitiesVersion !== undefined && (
                     <script src={`${r(ENTITIES_SCRIPT)}?v=${entitiesVersion}`}></script>
                 )}

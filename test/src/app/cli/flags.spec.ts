@@ -92,9 +92,7 @@ describe('defineFlags', () => {
             '--customLogo',
             '--gaID',
             '--publicApiOnly',
-            '--maxSearchResults',
-            '--stackblitz',
-            '--stackblitzTemplate'
+            '--maxSearchResults'
         ];
 
         for (const flag of expected) {
@@ -226,6 +224,21 @@ describe('defineFlags', () => {
         ).toEqual({
             argv: ['node', 'compodocx', 'src/tsconfig.json'],
             removed: ['--templatePlayground']
+        });
+    });
+
+    it('drops the stackblitz flags, with the template value', () => {
+        expect(
+            stripRemovedFlags(['node', 'compodocx', '--stackblitz', 'src/tsconfig.json'])
+        ).toEqual({
+            argv: ['node', 'compodocx', 'src/tsconfig.json'],
+            removed: ['--stackblitz']
+        });
+        expect(
+            stripRemovedFlags(['node', 'compodocx', '--stackblitzTemplate', 'abc', '-s'])
+        ).toEqual({
+            argv: ['node', 'compodocx', '-s'],
+            removed: ['--stackblitzTemplate']
         });
     });
 

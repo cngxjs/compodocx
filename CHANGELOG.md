@@ -102,6 +102,12 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **`factoryKind` in the JSON export (schema 6, breaking for export consumers).** The field on function entries was guessed from the name prefix (`provideX`, `withX`, `injectX`, `createX`). Use the semantic fields instead (`di.role`, `di.featureType`, `di.usesInjectionContext`). `schemaVersion` is 6; `compodocx diff` exits with code 2 and the re-export message for a schema 5 export. See MIGRATION.md.
 - **`js/libs/jszip.min.js`.** The jszip library was copied into every generated site and published with the package, but nothing loaded it.
 - **`compodocx migrate template`, `migrate templates`, `migrate css` and `migrate inspect`** (the Handlebars template converter, the CSS class rewriter and the project audit). Convert custom templates by hand with the cookbook in MIGRATION.md; `compodocx migrate jsdoc` stays.
+- **`--stackblitz`, `--stackblitzTemplate` and `base`.** None of them had an effect. The flags are dropped with a warning and the config keys are ignored with a warning; use `@playground` for runnable examples.
+- **`infoTabSections`-only single-tab mode.** Setting only `infoTabSections` no longer drops the API tab; the API tab follows `apiTabSections` and its defaults.
+- **`afterRender` badge.** Angular removed `afterRender` before v21; `afterEveryRender`, `afterNextRender` and `afterRenderEffect` keep their badges.
+- **Fallback to the old `compodoc-*` localStorage keys.** The theme, dark mode and sidebar state read only the `compodocx-*` keys.
+- **Parent-frame navigation message.** Pages no longer post a `compodoc-iframe-navigate` message to a parent frame.
+
 ### Fixed
 
 - **Config files named `.compodocxrc` are found.** Without `-c`, compodocx only looked for `.compodocrc*` files and a `compodoc` key in `package.json`, although the docs and the CLI help name `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` and a `compodocx` key. Both sets of names are searched now, the `compodocx` ones first. `.compodocrc*` files keep working.

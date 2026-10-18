@@ -44,7 +44,6 @@ import FileEngine from './file.engine';
 
 /** Map page context to its custom template file name */
 const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
-    'getting-started': 'markdown',
     readme: 'markdown',
     changelog: 'markdown',
     contributing: 'markdown',
@@ -109,7 +108,6 @@ export class HtmlEngine {
         }
 
         switch (data.context) {
-            case 'getting-started':
             case 'readme':
             case 'changelog':
             case 'contributing':
