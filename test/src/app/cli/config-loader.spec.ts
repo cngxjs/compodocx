@@ -131,6 +131,8 @@ const makeProgram = (argv: readonly string[] = []): Command => {
         .option('--maxSearchResults <n>', '', '15')
         .option('--gaID [id]')
         .option('--coverageTest [threshold]')
+        .option('--coverageMinimumPerFile [minimum]')
+        .option('--coverageTestThresholdFail [true|false]', '', true)
         .option('--showEffects', '', false)
         .option('--disableSearch', '', false)
         .option('-p, --tsconfig [config]')
@@ -420,6 +422,86 @@ describe('applyConfigToMainData', () => {
         applyConfigToMainData(mainData, { theme: 'gitbook' }, makeProgram(), { cwd: '/tmp/test' });
         expect(mainData.theme).toBe('gitbook');
         expect(vi.mocked(logger.warn)).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        [80, 80],
+        ['85', 85],
+        [true, 70],
+        [0, 0]
+    ])('coverageTest %j in the config file sets the threshold %i', (value, threshold) => {
+        const mainData = makeMainData();
+        applyConfigToMainData(mainData, { coverageTest: value }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(mainData.coverageTest).toBe(true);
+        expect(mainData.coverageTestThreshold).toBe(threshold);
+    });
+
+    it('leaves the coverage test off without the key or with false', () => {
+        for (const config of [{}, { coverageTest: false }]) {
+            const mainData = makeMainData();
+            applyConfigToMainData(mainData, config, makeProgram(), { cwd: '/tmp/test' });
+            expect(mainData.coverageTest).toBe(false);
+            expect(mainData.coverageTestThreshold).toBe(70);
+        }
+    });
+
+    it('coverageMinimumPerFile accepts numbers and numeric strings', () => {
+        const numeric = makeMainData();
+        applyConfigToMainData(numeric, { coverageMinimumPerFile: 40 }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(numeric.coverageTestPerFile).toBe(true);
+        expect(numeric.coverageMinimumPerFile).toBe(40);
+        const text = makeMainData();
+        applyConfigToMainData(text, { coverageMinimumPerFile: '25' }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(text.coverageMinimumPerFile).toBe(25);
+    });
+
+    it('the CLI coverage threshold wins over the config file', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(
+            mainData,
+            { coverageTest: 80 },
+            makeProgram(['--coverageTest', '90']),
+            { cwd: '/tmp/test' }
+        );
+        expect(mainData.coverageTestThreshold).toBe(90);
+    });
+
+    it.each([
+        [false, false],
+        ['false', false],
+        [true, true],
+        ['true', true]
+    ])('coverageTestThresholdFail %j in the config file applies', (value, expected) => {
+        const mainData = makeMainData();
+        applyConfigToMainData(mainData, { coverageTestThresholdFail: value }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(mainData.coverageTestThresholdFail).toBe(expected);
+    });
+
+    it('an explicit coverageTestThresholdFail on the CLI beats the config file', () => {
+        const off = makeMainData();
+        applyConfigToMainData(
+            off,
+            { coverageTestThresholdFail: true },
+            makeProgram(['--coverageTestThresholdFail', 'false']),
+            { cwd: '/tmp/test' }
+        );
+        expect(off.coverageTestThresholdFail).toBe(false);
+        const on = makeMainData();
+        applyConfigToMainData(
+            on,
+            { coverageTestThresholdFail: false },
+            makeProgram(['--coverageTestThresholdFail']),
+            { cwd: '/tmp/test' }
+        );
+        expect(on.coverageTestThresholdFail).toBe(true);
     });
 
     it('keeps valid feature globs and warns about invalid keys', () => {

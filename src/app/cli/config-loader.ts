@@ -47,6 +47,22 @@ const UPSTREAM_THEMES: Readonly<Record<string, string>> = {
     laravel: 'ember'
 };
 
+/** A coverage key turns its test on unless it is missing, `false` or `null`. */
+const isCoverageOn = (value: unknown): boolean =>
+    value !== undefined && value !== null && value !== false;
+
+/** A number or numeric string is the threshold; `true` or anything else keeps the default. */
+const coverageValue = (value: unknown, fallback: number): number => {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+    const parsed = typeof value === 'string' ? Number.parseInt(value, 10) : Number.NaN;
+    return Number.isNaN(parsed) ? fallback : parsed;
+};
+
+/** `false` and `'false'` turn failing off; any other value keeps it on. */
+const isFailOn = (value: unknown): boolean => value !== false && value !== 'false';
+
 export interface LoadConfigOptions {
     readonly explicitConfigPath?: string;
     readonly cwd: string;
@@ -609,41 +625,42 @@ export function applyConfigToMainData(
         mainData.hideDarkModeToggle = programOptions.hideDarkModeToggle;
     }
 
-    if (configFile.coverageTest) {
+    if (isCoverageOn(configFile.coverageTest)) {
         mainData.coverageTest = true;
-        mainData.coverageTestThreshold =
-            typeof configFile.coverageTest === 'string'
-                ? Number.parseInt(configFile.coverageTest, 10)
-                : COMPODOC_DEFAULTS.defaultCoverageThreshold;
+        mainData.coverageTestThreshold = coverageValue(
+            configFile.coverageTest,
+            COMPODOC_DEFAULTS.defaultCoverageThreshold
+        );
     }
     if (programOptions.coverageTest) {
         mainData.coverageTest = true;
-        mainData.coverageTestThreshold =
-            typeof programOptions.coverageTest === 'string'
-                ? Number.parseInt(programOptions.coverageTest, 10)
-                : COMPODOC_DEFAULTS.defaultCoverageThreshold;
+        mainData.coverageTestThreshold = coverageValue(
+            programOptions.coverageTest,
+            COMPODOC_DEFAULTS.defaultCoverageThreshold
+        );
     }
 
-    if (configFile.coverageMinimumPerFile) {
+    if (isCoverageOn(configFile.coverageMinimumPerFile)) {
         mainData.coverageTestPerFile = true;
-        mainData.coverageMinimumPerFile =
-            typeof configFile.coverageMinimumPerFile === 'string'
-                ? Number.parseInt(configFile.coverageMinimumPerFile, 10)
-                : COMPODOC_DEFAULTS.defaultCoverageMinimumPerFile;
+        mainData.coverageMinimumPerFile = coverageValue(
+            configFile.coverageMinimumPerFile,
+            COMPODOC_DEFAULTS.defaultCoverageMinimumPerFile
+        );
     }
     if (programOptions.coverageMinimumPerFile) {
         mainData.coverageTestPerFile = true;
-        mainData.coverageMinimumPerFile =
-            typeof programOptions.coverageMinimumPerFile === 'string'
-                ? Number.parseInt(programOptions.coverageMinimumPerFile, 10)
-                : COMPODOC_DEFAULTS.defaultCoverageMinimumPerFile;
+        mainData.coverageMinimumPerFile = coverageValue(
+            programOptions.coverageMinimumPerFile,
+            COMPODOC_DEFAULTS.defaultCoverageMinimumPerFile
+        );
     }
 
-    if (configFile.coverageTestThresholdFail) {
-        mainData.coverageTestThresholdFail = configFile.coverageTestThresholdFail !== 'false';
+    // The flag has a commander default, so only an explicit CLI value beats the config file.
+    if (configFile.coverageTestThresholdFail !== undefined) {
+        mainData.coverageTestThresholdFail = isFailOn(configFile.coverageTestThresholdFail);
     }
-    if (programOptions.coverageTestThresholdFail) {
-        mainData.coverageTestThresholdFail = programOptions.coverageTestThresholdFail !== 'false';
+    if (program.getOptionValueSource('coverageTestThresholdFail') === 'cli') {
+        mainData.coverageTestThresholdFail = isFailOn(programOptions.coverageTestThresholdFail);
     }
 
     if (configFile.coverageTestShowOnlyFailed) {

@@ -197,7 +197,7 @@
             "$id": "/properties/coverageTestThresholdFail",
             "type": "boolean",
             "title": "Test command of documentation coverage (global or per file) will fail with error or just warn user (true: error, false: warn)",
-            "default": false,
+            "default": true,
             "examples": [true]
         },
         "disableSourceCode": {

@@ -24,9 +24,9 @@ export interface ConfigurationFileInterface {
     maxVersionsShown: number;
     hideGenerator: boolean;
     hideDarkModeToggle: boolean;
-    coverageTest: number;
-    coverageMinimumPerFile: number;
-    coverageTestThresholdFail: string;
+    coverageTest: number | string | boolean;
+    coverageMinimumPerFile: number | string | boolean;
+    coverageTestThresholdFail: boolean | string;
     coverageTestShowOnlyFailed: boolean;
     unitTestCoverage: string;
     disableSourceCode: boolean;

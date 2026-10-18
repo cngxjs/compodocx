@@ -175,9 +175,9 @@ Compodocx tracks documentation coverage -- the percentage of public members that
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
-| coverageTest | `--coverageTest` | number | `70` | Global documentation coverage threshold as a percentage. Used in CI to enforce minimum documentation |
-| coverageMinimumPerFile | `--coverageMinimumPerFile` | number | `0` | Per-file minimum coverage percentage. Each file must meet this threshold individually |
-| coverageTestThresholdFail | `--coverageTestThresholdFail` | boolean | `true` | When `true`, a coverage threshold breach exits with a non-zero code (fails CI). When `false`, only a warning is printed |
+| coverageTest | `--coverageTest` | number | off | Global documentation coverage threshold as a percentage; setting it turns the coverage test on. A number (or numeric string) is the threshold; `true` or the flag without a value uses `70`. Used in CI to enforce minimum documentation |
+| coverageMinimumPerFile | `--coverageMinimumPerFile` | number | off | Per-file minimum coverage percentage; setting it turns the per-file test on. Each file must meet this threshold individually. `true` or the flag without a value uses `0` |
+| coverageTestThresholdFail | `--coverageTestThresholdFail` | boolean | `true` | When `true`, a coverage threshold breach exits with a non-zero code (fails CI). When `false`, only a warning is printed. The config value applies when the key is set (`true`/`false` or `'true'`/`'false'`); the flag overrides it only when given on the command line |
 | coverageTestShowOnlyFailed | `--coverageTestShowOnlyFailed` | boolean | `false` | In coverage output, show only files that fall below the threshold |
 | unitTestCoverage | `--unitTestCoverage` | string | -- | Path to an Istanbul JSON coverage summary file (`coverage-summary.json`). When provided, unit test coverage data is integrated into the documentation coverage report, showing both documentation and test coverage side by side |
 
