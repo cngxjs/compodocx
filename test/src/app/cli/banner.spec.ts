@@ -56,7 +56,7 @@ describe('printBanner', () => {
     it('emits the one-liner when loggerSilent is false (verbose path)', () => {
         const { log, lines } = captureLines();
         printBanner(ctx, { loggerSilent: false, isWatching: false, isLlmMdStdoutMode: false }, log);
-        expect(lines).toEqual(['Compodoc v9.9.9']);
+        expect(lines).toEqual(['compodocx v9.9.9']);
     });
 
     it('emits the full banner block when loggerSilent is true (default state)', () => {
@@ -65,7 +65,7 @@ describe('printBanner', () => {
         // First line is the ASCII banner text (or '' if banner file missing on
         // this disk). What matters is the version + TS + Node + OS lines.
         expect(lines).toContain('9.9.9');
-        expect(lines).toContain('TypeScript version used by Compodoc : 5.9.99');
+        expect(lines).toContain('TypeScript version used by compodocx : 5.9.99');
         expect(lines).toContain(`Node.js version : ${process.version}`);
         expect(lines).toContain('Operating system : macOS Test-OS');
         // No project-typescript line because FileEngine.existsSync is mocked false.

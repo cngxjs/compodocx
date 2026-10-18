@@ -12,7 +12,7 @@ export const COMPODOC_DEFAULTS = {
     jsonIndent: 0,
     /**
      * Multi-version output is the default. Output goes to
-     * `<output>/<versionLabel>/`, `<output-parent>/versions.json` accumulates
+     * `<output>/<versionLabel>/`, `<output>/versions.json` accumulates
      * known versions, and the topbar switcher widget is rendered. Opt out
      * with `--no-multiVersion` to restore the previous flat layout.
      */

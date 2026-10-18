@@ -1,159 +1,65 @@
 # Multi-version documentation
 
-compodocx generates a fully self-contained, statically-served site on every run. Every URL in the output uses a relative path (`./images/favicon.ico`, `../../forms/select/Foo.html`, depth-aware Pagefind loader), so multiple builds can sit side-by-side in one parent folder under different version subdirectories with no rewrite step.
+compodocx writes versioned HTML output by default. Each run puts the site into a folder named after the version and records that version in a `versions.json` manifest next to it. Every page carries a version switcher that reads the manifest, so several versions deployed side by side link to each other without a rewrite step.
 
-This page documents the pattern. It is purely a usage convention — there are no special CLI flags. If you can run `compodocx` once, you can run it N times into N folders.
-
-## The pattern
-
-Build each version into its own folder under a single deploy root:
-
-```text
-public/                  ← deploy this folder
-├── index.html           ← optional landing page (your own)
-├── v0.2.0/
-│   ├── index.html
-│   ├── forms/select/    ← pages of the `forms/select` entry point
-│   ├── redirects.json
-│   └── …
-├── v0.3.0/
-│   ├── index.html
-│   ├── forms/select/
-│   ├── redirects.json
-│   └── …
-└── latest/              ← optional symlink → v0.3.0
-```
-
-You produce that layout by running compodocx once per version, each with its own `-d`:
+## The default layout
 
 ```bash
-git checkout v0.2.0
-npx compodocx -p tsconfig.json -d public/v0.2.0 -n "MyLib v0.2.0"
-
-git checkout v0.3.0
-npx compodocx -p tsconfig.json -d public/v0.3.0 -n "MyLib v0.3.0"
-
-git checkout main
-ln -sfn v0.3.0 public/latest    # optional convenience pointer
+npx compodocx -p tsconfig.json -d docs
 ```
 
-Deploy `public/` to any static host. Each version sub-site is fully self-contained: opening `https://example.com/v0.2.0/forms/select/Foo.html` works, and so does `https://example.com/v0.3.0/forms/select/Foo.html`. Nothing in `v0.2.0/` references `v0.3.0/` and vice versa.
+writes:
 
-## Why it works
-
-1. **All asset references are relative.** The generated HTML uses `./images/...`, `./styles/...`, `./js/...` from the index page and `../images/...` from one-level-deep entity pages. There is zero `href="/..."` or `src="/..."` in the output.
-2. **Pagefind is depth-aware.** The search loader computes its path from `window.COMPODOC_CURRENT_PAGE_DEPTH` and resolves `pagefind/pagefind.js` relative to the current page, so search keeps working at any subdirectory depth.
-3. **Each build owns its own assets.** `images/`, `styles/`, `js/`, `pagefind/`, `graph/` all live inside the per-version folder. Different versions can ship different bundled JS/CSS without colliding.
-
-## Deployment recipes
-
-Any static host that serves a directory tree works. The patterns below are tested on the most common ones.
-
-### GitHub Pages
-
-`actions/deploy-pages` uploads whatever is in `public/`. Loop your tags in the workflow, build each into `public/<tag>/`, then deploy:
-
-```yaml
-- name: Build versioned docs
-  run: |
-      for v in v0.2.0 v0.3.0; do
-          git checkout "$v"
-          npx compodocx -p tsconfig.json -d "public/$v" -n "MyLib $v" --silent
-      done
-      git checkout main
-      cp landing/index.html public/index.html
-
-- uses: actions/upload-pages-artifact@v4
-  with:
-      path: public
+```text
+docs/                    ← deploy this folder
+├── versions.json        ← manifest of every version built into docs/
+└── v1.2.0/              ← this run
+    ├── index.html
+    ├── forms/select/    ← pages of the `forms/select` entry point
+    ├── redirects.json
+    └── …
 ```
 
-The site is served at `https://<user>.github.io/<repo>/v0.2.0/`, `https://<user>.github.io/<repo>/v0.3.0/`, etc.
+Run it again for another version into the same `-d` folder and the new version folder lands next to the first one; `versions.json` gains an entry. Building a label that is already listed replaces its folder and its entry.
 
-### Netlify / Vercel
+compodocx writes no `index.html` into the `-d` folder itself. Add your own landing page there, or a redirect to the version readers should see first.
 
-Set the publish directory to `public/`. The same shell loop in your build command produces the same layout. Both providers serve subdirectory `index.html` files directly without rewrites.
+Only HTML output is versioned. `--exportFormat json` and `llm-md` write a single snapshot into the output folder as before.
 
-### plain nginx
+## Flags
 
-```nginx
-server {
-    listen 80;
-    server_name docs.example.com;
-    root /var/www/docs;       # this is your "public/" folder
-    index index.html;
+| Flag | Default | Description |
+|-|-|-|
+| `--multiVersion` / `--no-multiVersion` | on | `--no-multiVersion` writes the site straight into the `-d` folder, without a version folder, `versions.json` or switcher |
+| `--versionLabel <label>` | from `package.json` | Name of the version folder and of the manifest entry. Without the flag, compodocx reads the `version` of the nearest `package.json` above the tsconfig folder (then above the working directory) and prefixes `v` to a semver value (`1.2.0` becomes `v1.2.0`). Labels such as `main` or `next` work too. When no label can be found the run stops with exit code 2 |
+| `--versionsRoot <path>` | the `-d` folder | Folder `versions.json` is read from and written to. Override it when CI builds each version in a separate job and stitches the folders together later |
+| `--maxVersionsShown <n>` | `10` | Number of versions the switcher lists, `0` for all (range 0 to 1000). The manifest always keeps every version |
 
-    # serve subdirectory index files: /v0.2.0/ → /v0.2.0/index.html
-    location / {
-        try_files $uri $uri/ $uri/index.html =404;
-    }
+The same options exist as config keys (`multiVersion`, `versionLabel`, `versionsRoot`, `maxVersionsShown`).
+
+## `versions.json`
+
+```json
+{
+    "schemaVersion": 1,
+    "updatedAt": "2026-10-18T14:11:20.127Z",
+    "versions": [
+        { "label": "v1.1.0", "path": "v1.1.0/", "builtAt": "2026-10-18T14:11:19.355Z" },
+        { "label": "v1.0.0", "path": "v1.0.0/", "builtAt": "2026-10-18T14:11:18.586Z" },
+        { "label": "main", "path": "main/", "builtAt": "2026-10-18T14:11:20.127Z" }
+    ]
 }
 ```
 
-No version-specific blocks needed. Each `/v<x.y.z>/` is just a directory that nginx serves.
+Entries are sorted by semver, highest first; labels that are not semver (`main`, `next`) follow in alphabetical order. The first entry is the newest release. The file is written after the pages, and a failed write stops the run with exit code 1.
 
-## A landing page
+## The version switcher
 
-`public/index.html` is yours to write — compodocx never emits a top-level landing page when you build into a subdirectory. A minimal one that lists known versions:
+Every page has a version dropdown in the top bar. It loads `versions.json` from the folder above the version folder the first time it is opened, so the deployed tree must keep the manifest next to the version folders. With one version listed it hides itself. Opened from `file://`, where browsers block the request, it shows a short hint instead of the list.
 
-```html
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <title>MyLib documentation</title>
-        <style>
-            body {
-                font-family: system-ui, sans-serif;
-                max-width: 40rem;
-                margin: 4rem auto;
-                padding: 0 1rem;
-            }
-            ul {
-                list-style: none;
-                padding: 0;
-            }
-            li {
-                margin: 0.5rem 0;
-            }
-            a {
-                font-size: 1.1rem;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>MyLib</h1>
-        <p>Pick a version:</p>
-        <ul>
-            <li><a href="./latest/">latest</a> (currently v0.3.0)</li>
-            <li><a href="./v0.3.0/">v0.3.0</a></li>
-            <li><a href="./v0.2.0/">v0.2.0</a></li>
-        </ul>
-    </body>
-</html>
-```
+Picking a version opens the same page in that version when it exists there, otherwise the root of that version. Pages that moved between versions are followed through `redirects.json` (below).
 
-## A drop-in version switcher
-
-If you want a version dropdown rendered on every page of the docs, the simplest path is a small inline script injected via compodocx's `--extTheme` (a CSS file can `@import` nothing, but you can lean on `--customLogo` together with the trick below). The cleanest cross-version solution today is post-processing: walk the per-version folders after every build and prepend a tiny snippet into each `<body>` tag.
-
-```bash
-# scripts/inject-version-switcher.sh — run once, after building all versions
-SWITCHER='<div style="position:fixed;top:0.5rem;right:1rem;z-index:9999;font:14px system-ui">'
-SWITCHER+='Version: <select onchange="if(this.value)location.href=this.value">'
-SWITCHER+='<option value="">switch…</option>'
-SWITCHER+='<option value="/v0.3.0/">v0.3.0</option>'
-SWITCHER+='<option value="/v0.2.0/">v0.2.0</option>'
-SWITCHER+='</select></div>'
-
-find public/v* -name '*.html' | while read -r f; do
-    [ -f "$f" ] || continue
-    grep -q "switch…" "$f" && continue   # idempotent
-    sed -i.bak "s|<body[^>]*>|&${SWITCHER}|" "$f" && rm -f "$f.bak"
-done
-```
-
-A native version-switcher component (built into the template, picking up an external `versions.json`) is on the roadmap for a future release. Until then, post-processing or a separate landing page is the recommended approach.
+A `version-switcher.js` template override replaces the dropdown markup, see [custom-templates.md](custom-templates.md).
 
 ## Pages that move between versions
 
@@ -163,51 +69,44 @@ Page URLs follow the feature a symbol belongs to (`<entry point>/<feature>/<Name
 { "schemaVersion": 1, "redirects": { "components/Foo.html": "forms/select/Foo.html" } }
 ```
 
-Keys are old page paths relative to the version folder (an anchor is allowed, for the old `miscellaneous/functions.html#name` collection anchors), values are where that page or section is now. The built-in version switcher uses it: switching from a page looks the page up in the target version's map; when the target was built before maps existed, it reads the current version's map backwards to find the old path. If neither finds the page, it opens the target version's root. A web server can use the same map for HTTP redirects; compodocx writes no stub pages.
+Keys are old page paths relative to the version folder (an anchor is allowed, for the old `miscellaneous/functions.html#name` collection anchors), values are where that page or section is now. The switcher looks the page up in the target version's map; when the target was built before maps existed, it reads the current version's map backwards to find the old path. If neither finds the page, it opens the target version's root. A web server can use the same map for HTTP redirects; compodocx writes no stub pages.
 
-## Conventions worth following
+## Building several versions
 
-- **One subfolder per version, never mixed layouts.** Don't build `v0.2.0/` into a flat `public/` and then build `v0.3.0/` alongside it — the assets will collide.
-- **A `latest/` pointer.** A symlink (or a copy on platforms without symlinks) saves users from memorising the highest published number.
-- **Version names in the page title.** Pass `-n "MyLib v0.3.0"` so browser tabs and search results show which version is open.
-- **Disable search if you build many versions.** Pagefind indexes are ~hundreds of KB per version. If you publish ten releases, that adds up. Pass `--disableSearch` on older versions you don't expect anyone to search.
-
-## Limitations today
-
-- **The built-in switcher needs multi-version output.** With `--multiVersion` (the default) every page carries a switcher fed by `versions.json`; the drop-in snippet above is only for sites built with `--no-multiVersion`.
-- **No automatic cross-version linking.** A symbol that exists in v0.2.0 and v0.3.0 has no automatic "see this in vX" link. Each per-version site is independent.
-- **Template Playground and the live `--serve` mode use absolute URLs.** Both are runtime-only conveniences, not part of the static output you deploy. They are unaffected by the multi-version layout, but they cannot themselves run from a subdirectory.
-- **Per-symbol `@since` badges.** compodocx renders `@since` tags from JSDoc when authors include them in their source — it does not infer them from a multi-version diff.
-
-## Verifying it works
-
-A two-line smoke test against the included sample fixture:
+Check out each version and build it into the same `-d` folder:
 
 ```bash
-mkdir -p /tmp/multi-version-smoke
-node ./bin/index-cli.js -p test/fixtures/sample-files/tsconfig.simple.json \
-    -d /tmp/multi-version-smoke/v0.2.0 --silent --disableSearch -n "v0.2.0"
-node ./bin/index-cli.js -p test/fixtures/sample-files/tsconfig.simple.json \
-    -d /tmp/multi-version-smoke/v0.3.0 --silent --disableSearch -n "v0.3.0"
-
-npx sirv-cli /tmp/multi-version-smoke --port 4500 &
-sleep 2
-
-curl -s http://localhost:4500/v0.2.0/index.html | grep -o '<title>[^<]*</title>'
-curl -s http://localhost:4500/v0.3.0/index.html | grep -o '<title>[^<]*</title>'
-
-kill %1
+for v in v1.0.0 v1.1.0; do
+    git checkout "$v"
+    npx compodocx -p tsconfig.json -d public --versionLabel "$v" --silent
+done
+git checkout main
+npx compodocx -p tsconfig.json -d public --versionLabel main --silent
 ```
 
-You should see two distinct titles, one per version, both served as HTTP 200 from the same parent folder.
+`scripts/build-versioned-docs.sh` in the compodocx repository is a starting point for such a loop.
 
-## Future
+When versions are built in separate CI jobs, build each into its own folder and copy the version folders together before deploying. `versions.json` must then list all of them: either keep one manifest that every job updates (`--versionsRoot` pointing at a shared or restored folder), or build the versions one after another into the same folder as above.
 
-Items deferred past v0.3.0, with no commitment to ship:
+## Deployment
 
-- An in-page version switcher widget driven by a `versions.json` file at the deploy root.
-- A `compodocx multi-version` convenience command that reads a tag list and runs the loop.
-- Per-symbol "added in vX" / "removed in vX" badges synthesised from a multi-version snapshot diff.
-- Cross-version "view this symbol in vX" links inside entity pages.
+The output uses relative URLs only, so any static host that serves a folder tree works: GitHub Pages (`actions/upload-pages-artifact` with `path: public`), Netlify or Vercel (publish directory `public/`), or a plain web server:
 
-If any of these matters to your project, open an issue on the [compodocx repo](https://github.com/cngxjs/compodocx) — pattern adoption from real users is what drives prioritisation.
+```nginx
+server {
+    listen 80;
+    server_name docs.example.com;
+    root /var/www/docs;       # the -d folder
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ $uri/index.html =404;
+    }
+}
+```
+
+## Tips
+
+- **Version names in the page title.** Pass `-n "MyLib v1.1.0"` so browser tabs and search results show which version is open.
+- **Search per version.** Each version has its own Pagefind index. Pass `--disableSearch` on old versions you do not expect anyone to search to keep the deploy small.
+- **`@since` badges** come from the JSDoc of your sources; compodocx does not derive them from the versions it has built.

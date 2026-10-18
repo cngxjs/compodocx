@@ -25,7 +25,7 @@ export function defineFlags(program: Command): Command {
             'Where to store the generated documentation',
             COMPODOC_DEFAULTS.folder
         )
-        .option('-y, --extTheme [file]', 'External styling theme file')
+        .option('-y, --extTheme [file]', 'External styling theme file (deprecated, use --theme)')
         .option('-n, --name [name]', 'Title documentation', COMPODOC_DEFAULTS.title)
         .option(
             '-a, --assetsFolder [folder]',
@@ -74,7 +74,7 @@ export function defineFlags(program: Command): Command {
         )
         .option(
             '--versionsRoot [path]',
-            'Folder where versions.json is read/written. Defaults to the parent of the output folder.'
+            'Folder where versions.json is read/written. Defaults to the output folder.'
         )
         .option(
             '--maxVersionsShown <n>',
@@ -89,7 +89,7 @@ export function defineFlags(program: Command): Command {
         )
         .option(
             '--theme [theme]',
-            'Choose a built-in theme or path to a custom CSS file (built-in: default, ocean, ember, midnight, neon, brutalist, nord, rose-pine)'
+            'Choose a built-in theme or path to a custom CSS file (built-in: default, ocean, ember, midnight, neon, brutalist, nord, rose-pine, gitbook)'
         )
         .option(
             '--shikiTheme [theme]',
@@ -115,7 +115,7 @@ export function defineFlags(program: Command): Command {
             '--navTabConfig <tab configs>',
             `List navigation tab objects in the desired order with two string properties ("id" and "label"). \
 Double-quotes must be escaped with '\\'. \
-Available tab IDs are "info", "readme", "source", "templateData", "styleData", "tree", and "example". \
+Available tab IDs are "info", "readme", "api", "source", "templateData", "styleData", "theming", "tree", "example", and "playground". \
 Note: Certain tabs will only be shown if applicable to a given dependency`,
             JSON.stringify(COMPODOC_DEFAULTS.navTabConfig)
         )
@@ -234,7 +234,7 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
         )
         .option(
             '--minimal',
-            'Minimal mode with only documentation. No search, no graph, no coverage.',
+            'Minimal mode with only documentation. No search, no graph, no coverage, no routes.',
             COMPODOC_DEFAULTS.minimal
         )
         .option('--customFavicon [path]', 'Use a custom favicon')
@@ -248,6 +248,16 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
             '--maxSearchResults <n>',
             'Max results in the search command palette (0 shows all)',
             String(COMPODOC_DEFAULTS.maxSearchResults)
+        )
+        .addHelpText(
+            'after',
+            [
+                '',
+                'Sub-commands:',
+                '  compodocx diff --old <file> --new <file>  Compare two documentation.json exports',
+                '  compodocx migrate jsdoc <dir>             Remove @category and @docsKind tags',
+                '  compodocx playground:validate <docsDir>   Build every @playground of a generated site'
+            ].join('\n')
         )
         .allowExcessArguments();
 }

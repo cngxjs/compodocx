@@ -9,6 +9,7 @@
 #
 # Output layout:
 #     public/
+#         versions.json
 #         v0.1.0/
 #         v0.2.0/
 #         …
@@ -18,7 +19,11 @@
 
 set -euo pipefail
 
-VERSIONS=("${@:-v0.1.0 v0.2.0}")
+if [ "$#" -gt 0 ]; then
+    VERSIONS=("$@")
+else
+    VERSIONS=(v0.1.0 v0.2.0)
+fi
 TSCONFIG="${TSCONFIG:-tsconfig.json}"
 OUT_ROOT="${OUT_ROOT:-public}"
 RESTORE_REF="${RESTORE_REF:-main}"
@@ -28,7 +33,7 @@ mkdir -p "$OUT_ROOT"
 for v in "${VERSIONS[@]}"; do
     echo "Building $v…"
     git checkout "$v"
-    npx compodocx -p "$TSCONFIG" -d "$OUT_ROOT/$v" -n "$v" --silent
+    npx compodocx -p "$TSCONFIG" -d "$OUT_ROOT" --versionLabel "$v" -n "$v" --silent
 done
 
 git checkout "$RESTORE_REF"

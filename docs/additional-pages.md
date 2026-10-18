@@ -1,6 +1,6 @@
 # Additional pages
 
-compodocx can ship hand-written Markdown pages alongside the API reference it generates from your source. These are plain `.md` files you author yourself — guides, tutorials, architecture notes, getting-started sections, migration docs, whatever — and compodocx renders them as first-class pages in the output site with their own sidebar section.
+compodocx can ship hand-written Markdown pages alongside the API reference it generates from your source. These are plain `.md` files you author yourself - guides, tutorials, architecture notes, getting-started sections, migration docs, whatever - and compodocx renders them as first-class pages in the output site with their own sidebar section.
 
 The feature is built into compodocx itself, covered by the project's MIT license. There is no separate extension, paid tier, or service involved; if you can run the CLI you already have it.
 
@@ -12,14 +12,14 @@ Two CLI flags drive it:
 
 | Flag | Purpose | Default |
 |-|-|-|
-| `--includes <path>` | Folder containing `summary.json` and the referenced Markdown files | — (feature off) |
+| `--includes <path>` | Folder containing `summary.json` and the referenced Markdown files | - (feature off) |
 | `--includesName <name>` | Sidebar group label | `Additional documentation` |
 
 Both can also be set via the config file (`.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml`, or the `compodocx` property in `package.json`) as `includes` / `includesName`.
 
 ## File layout
 
-Everything lives under one folder — convention is `additional-doc/` next to your `tsconfig.json`, but it can be anywhere:
+Everything lives under one folder - convention is `additional-doc/` next to your `tsconfig.json`, but it can be anywhere:
 
 ```
 additional-doc/
@@ -73,21 +73,21 @@ A node's order in the array is its order in the sidebar. The first level shows u
 
 The files are plain Markdown rendered by [`marked`](https://marked.js.org/). You have the normal toolbox: headings, paragraphs, lists, tables, fenced code blocks with language hints (Shiki-highlighted), block quotes, inline code, links, and images. Relative image paths resolve against the generated page's directory, so referencing images is easiest via absolute or external URLs.
 
-JSDoc-style `{@link Target}` references also work — compodocx resolves them against the project's symbol index, so a guide page can link to `{@link UserService}` and land the reader on the generated service page.
+JSDoc-style `{@link Target}` references also work - compodocx resolves them against the project's symbol index, so a guide page can link to `{@link UserService}` and land the reader on the generated service page.
 
 Example (trimmed from `getting-started.md`):
 
 ```markdown
 # Getting Started
 
-Welcome to the **Kitchen Sink Standalone** demo — a modern Angular app with no NgModules.
+Welcome to the **Kitchen Sink Standalone** demo - a modern Angular app with no NgModules.
 
 ## Prerequisites
 
 | Requirement | Version |
 |-|-|
-| Node.js | >= 20.0.0 |
-| Angular CLI | >= 17.0.0 |
+| Node.js | >= 22 |
+| Angular | 21+ |
 
 ## Installation
 
@@ -105,7 +105,7 @@ For a node titled `Getting Started` referencing `getting-started.md`, compodocx 
 <output>/additional-documentation/getting-started.html
 ```
 
-The slug is the title lowercased with spaces collapsed. Nested pages under `guides/` land at `additional-documentation/guides/signals-reactivity.html` and so on — the folder tree in output mirrors the parent titles in `summary.json`, not the source filenames.
+The slug is the title lowercased with every space replaced by `-`; other characters are kept. Nested pages under `guides/` land at `additional-documentation/guides/signals-&-reactivity.html` (title `Signals & Reactivity`) and so on - the folder tree in output mirrors the parent titles in `summary.json`, not the source filenames.
 
 ## Running it
 
@@ -128,9 +128,9 @@ compodocx logs `Additional documentation: summary.json file found` during genera
 
 ## What you cannot do
 
-- Link to additional pages from a custom template without knowing the slug — there is no helper for resolving a title to its output URL yet.
-- Change the Markdown pipeline per page — it is the same `marked` instance used for JSDoc.
-- Interleave additional pages inside the API groups — they live in their own sidebar section. This holds under both `menuLayout: 'type'` (default) and `menuLayout: 'feature'`: the Features chapter only mixes code entities, never additional pages.
+- Link to additional pages from a custom template without knowing the slug - there is no helper for resolving a title to its output URL yet.
+- Change the Markdown pipeline per page - it is the same `marked` instance used for JSDoc.
+- Interleave additional pages inside the API groups - they live in their own sidebar section. This holds under both `menuLayout: 'feature'` (default) and `menuLayout: 'type'`: the Features chapter only mixes code entities, never additional pages.
 
 ## Licensing
 
