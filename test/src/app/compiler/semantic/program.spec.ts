@@ -85,3 +85,34 @@ describe('semantic program', () => {
         expect(program([libFile]).getRootFileNames()).toEqual([libFile]);
     });
 });
+
+// TypeScript 6 reports these as option diagnostics, not as tsconfig errors.
+const DEPRECATED_OPTIONS: Record<string, Record<string, unknown>> = {
+    'moduleResolution node': { moduleResolution: 'node' },
+    'moduleResolution node10': { moduleResolution: 'node10' },
+    'moduleResolution classic': { moduleResolution: 'classic' },
+    'target ES5': { target: 'ES5' },
+    outFile: { outFile: 'out.js', module: 'system' },
+    'module amd': { module: 'amd' },
+    'module umd': { module: 'umd' },
+    'module system': { module: 'system' },
+    'esModuleInterop false': { esModuleInterop: false },
+    'allowSyntheticDefaultImports false': { allowSyntheticDefaultImports: false },
+    'alwaysStrict false': { alwaysStrict: false },
+    downlevelIteration: { downlevelIteration: true }
+};
+
+describe('semantic program with deprecated tsconfig options', () => {
+    it.each(Object.entries(DEPRECATED_OPTIONS))('keeps the program with %s', (name, options) => {
+        const file = `tsconfig.${name.replaceAll(' ', '-')}.json`;
+        write(file, JSON.stringify({ extends: './tsconfig.base.json', compilerOptions: options }));
+        expect(fileNames(program([appFile], file))).toContain(path.join('lib', 'core.ts'));
+    });
+
+    it('keeps the program with baseUrl without paths', () => {
+        write('tsconfig.base-url.json', JSON.stringify({ compilerOptions: { baseUrl: '.' } }));
+        expect(fileNames(program([appFile], 'tsconfig.base-url.json'))).toContain(
+            path.join('src', 'app.ts')
+        );
+    });
+});
