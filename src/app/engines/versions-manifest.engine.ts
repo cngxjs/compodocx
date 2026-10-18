@@ -5,7 +5,8 @@ import {
     emptyManifest,
     mergeEntry,
     readManifest,
-    writeManifest
+    writeManifest,
+    writeVersionsRootIndex
 } from '../../utils/versions-manifest.util';
 
 /**
@@ -18,6 +19,9 @@ import {
  * Failure modes are surfaced via `logger.error` and re-thrown - a corrupt
  * manifest in a CI pipeline should fail the build, not silently skip the
  * write and leave consumers with a stale dropdown.
+ *
+ * Then writes the root `index.html` that opens the newest version, unless
+ * the user keeps a landing page of their own there.
  */
 export interface VersionsManifestUpdateInput {
     versionsRoot: string;
@@ -43,4 +47,7 @@ export function updateVersionsManifest(input: VersionsManifestUpdateInput): void
     );
     writeManifest(input.versionsRoot, merged);
     logger.info(`versions.json updated (${merged.versions.length} versions)`);
+    if (writeVersionsRootIndex(input.versionsRoot, merged) === 'kept') {
+        logger.debug('index.html in the versions root is not from compodocx; left as is');
+    }
 }

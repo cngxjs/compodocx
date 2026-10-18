@@ -141,6 +141,7 @@ Upgrading from 0.8: this release documents Angular 21+ standalone code only, mov
 - **Watch mode keeps the other root pages when a markdown file is missing.** Rebuilding the root markdown pages removed the last queued page for every one of README, CHANGELOG, CONTRIBUTING, LICENSE and TODO that the project does not have. Only the root markdown pages are removed now.
 - **`{@link}` in theming comments.** Token descriptions, `@deprecated` notes, mixin descriptions and `@overview` text on the Theming tab, on style file pages and on `design-tokens.html` showed `{@link ...}` as written. `{@link --token}` now links to the token's row on the same page (code when the page has no such row), and other targets resolve like `{@link}` in any description.
 - **Tab labels are translated.** The Info, API, Source, Template, Styles, Theming, DOM Tree and Examples tabs always showed their English label, because labels with capitals never matched the lowercase locale keys. They now use the `language` locale; the English labels are unchanged.
+- **Multi-version output has a root page.** The `-d` folder held only `versions.json` and the version folders, so `compodocx -s`, the `compodocx:serve` script from `ng add` and static hosts showed no page at the root. compodocx now writes an `index.html` there that opens the newest version. A landing page of your own in that folder is kept: only a file carrying the compodocx marker is replaced.
 
 ## [0.8.0] - 2026-08-03
 
