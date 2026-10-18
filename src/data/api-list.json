@@ -366,7 +366,7 @@
         "title": "AccordionContent",
         "path": "api/aria/accordion/AccordionContent",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -374,7 +374,7 @@
         "title": "AccordionGroup",
         "path": "api/aria/accordion/AccordionGroup",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -382,7 +382,7 @@
         "title": "AccordionPanel",
         "path": "api/aria/accordion/AccordionPanel",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -390,7 +390,15 @@
         "title": "AccordionTrigger",
         "path": "api/aria/accordion/AccordionTrigger",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "accordion_group",
+        "title": "ACCORDION_GROUP",
+        "path": "api/aria/accordion/ACCORDION_GROUP",
+        "docType": "const",
+        "stability": "stable",
         "securityRisk": false
       }
     ]
@@ -404,8 +412,8 @@
         "name": "combobox",
         "title": "Combobox",
         "path": "api/aria/combobox/Combobox",
-        "docType": "class",
-        "stability": "experimental",
+        "docType": "directive",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -428,8 +436,8 @@
         "name": "comboboxpopup",
         "title": "ComboboxPopup",
         "path": "api/aria/combobox/ComboboxPopup",
-        "docType": "directive",
-        "stability": "experimental",
+        "docType": "class",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -438,6 +446,22 @@
         "path": "api/aria/combobox/ComboboxPopupContainer",
         "docType": "class",
         "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "combobox_popup",
+        "title": "COMBOBOX_POPUP",
+        "path": "api/aria/combobox/COMBOBOX_POPUP",
+        "docType": "const",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "comboboxwidget",
+        "title": "ComboboxWidget",
+        "path": "api/aria/combobox/ComboboxWidget",
+        "docType": "directive",
+        "stability": "stable",
         "securityRisk": false
       }
     ]
@@ -452,7 +476,7 @@
         "title": "Grid",
         "path": "api/aria/grid/Grid",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -460,7 +484,7 @@
         "title": "GridCell",
         "path": "api/aria/grid/GridCell",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -468,7 +492,7 @@
         "title": "GridCellWidget",
         "path": "api/aria/grid/GridCellWidget",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -476,7 +500,31 @@
         "title": "GridRow",
         "path": "api/aria/grid/GridRow",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "grid",
+        "title": "GRID",
+        "path": "api/aria/grid/GRID",
+        "docType": "const",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "grid_cell",
+        "title": "GRID_CELL",
+        "path": "api/aria/grid/GRID_CELL",
+        "docType": "const",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "grid_row",
+        "title": "GRID_ROW",
+        "path": "api/aria/grid/GRID_ROW",
+        "docType": "const",
+        "stability": "stable",
         "securityRisk": false
       }
     ]
@@ -490,8 +538,8 @@
         "name": "listbox",
         "title": "Listbox",
         "path": "api/aria/listbox/Listbox",
-        "docType": "class",
-        "stability": "experimental",
+        "docType": "directive",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -499,7 +547,15 @@
         "title": "Option",
         "path": "api/aria/listbox/Option",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "listbox",
+        "title": "LISTBOX",
+        "path": "api/aria/listbox/LISTBOX",
+        "docType": "const",
+        "stability": "stable",
         "securityRisk": false
       }
     ]
@@ -514,7 +570,7 @@
         "title": "Menu",
         "path": "api/aria/menu/Menu",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -522,7 +578,7 @@
         "title": "MenuBar",
         "path": "api/aria/menu/MenuBar",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -530,7 +586,7 @@
         "title": "MenuContent",
         "path": "api/aria/menu/MenuContent",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -538,7 +594,7 @@
         "title": "MenuItem",
         "path": "api/aria/menu/MenuItem",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -546,7 +602,15 @@
         "title": "MenuTrigger",
         "path": "api/aria/menu/MenuTrigger",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "menu_component",
+        "title": "MENU_COMPONENT",
+        "path": "api/aria/menu/MENU_COMPONENT",
+        "docType": "const",
+        "stability": "stable",
         "securityRisk": false
       }
     ]
@@ -561,7 +625,7 @@
         "title": "Tab",
         "path": "api/aria/tabs/Tab",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -569,7 +633,7 @@
         "title": "TabContent",
         "path": "api/aria/tabs/TabContent",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -577,7 +641,7 @@
         "title": "TabList",
         "path": "api/aria/tabs/TabList",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -585,7 +649,7 @@
         "title": "TabPanel",
         "path": "api/aria/tabs/TabPanel",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -593,7 +657,23 @@
         "title": "Tabs",
         "path": "api/aria/tabs/Tabs",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "tab_list",
+        "title": "TAB_LIST",
+        "path": "api/aria/tabs/TAB_LIST",
+        "docType": "const",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "tabs",
+        "title": "TABS",
+        "path": "api/aria/tabs/TABS",
+        "docType": "const",
+        "stability": "stable",
         "securityRisk": false
       }
     ]
@@ -608,7 +688,7 @@
         "title": "Toolbar",
         "path": "api/aria/toolbar/Toolbar",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -616,7 +696,7 @@
         "title": "ToolbarWidget",
         "path": "api/aria/toolbar/ToolbarWidget",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -624,7 +704,15 @@
         "title": "ToolbarWidgetGroup",
         "path": "api/aria/toolbar/ToolbarWidgetGroup",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "toolbar_widget_group",
+        "title": "TOOLBAR_WIDGET_GROUP",
+        "path": "api/aria/toolbar/TOOLBAR_WIDGET_GROUP",
+        "docType": "const",
+        "stability": "stable",
         "securityRisk": false
       }
     ]
@@ -638,8 +726,8 @@
         "name": "tree",
         "title": "Tree",
         "path": "api/aria/tree/Tree",
-        "docType": "class",
-        "stability": "experimental",
+        "docType": "directive",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -647,7 +735,7 @@
         "title": "TreeItem",
         "path": "api/aria/tree/TreeItem",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -655,7 +743,7 @@
         "title": "TreeItemGroup",
         "path": "api/aria/tree/TreeItemGroup",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       }
     ]
@@ -1250,6 +1338,14 @@
         "title": "UnitTestElement",
         "path": "api/cdk/testing/testbed/UnitTestElement",
         "docType": "class",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "fixture",
+        "title": "Fixture",
+        "path": "api/cdk/testing/testbed/Fixture",
+        "docType": "type-alias",
         "stability": "stable",
         "securityRisk": false
       }
@@ -2296,7 +2392,7 @@
         "title": "httpResource",
         "path": "api/common/http/httpResource",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -2304,7 +2400,7 @@
         "title": "HttpResourceFn",
         "path": "api/common/http/HttpResourceFn",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -2312,7 +2408,7 @@
         "title": "HttpResourceOptions",
         "path": "api/common/http/HttpResourceOptions",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -2320,7 +2416,7 @@
         "title": "HttpResourceRef",
         "path": "api/common/http/HttpResourceRef",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -2328,7 +2424,7 @@
         "title": "HttpResourceRequest",
         "path": "api/common/http/HttpResourceRequest",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -2367,7 +2463,7 @@
         "name": "httptransfercacheoptions",
         "title": "HttpTransferCacheOptions",
         "path": "api/common/http/HttpTransferCacheOptions",
-        "docType": "type-alias",
+        "docType": "interface",
         "stability": "stable",
         "securityRisk": false
       },
@@ -2416,7 +2512,7 @@
         "title": "JsonpClientBackend",
         "path": "api/common/http/JsonpClientBackend",
         "docType": "class",
-        "stability": "stable",
+        "stability": "deprecated",
         "securityRisk": false
       },
       {
@@ -2424,7 +2520,7 @@
         "title": "JsonpInterceptor",
         "path": "api/common/http/JsonpInterceptor",
         "docType": "class",
-        "stability": "stable",
+        "stability": "deprecated",
         "securityRisk": false
       },
       {
@@ -2440,7 +2536,7 @@
         "title": "withFetch",
         "path": "api/common/http/withFetch",
         "docType": "function",
-        "stability": "stable",
+        "stability": "deprecated",
         "securityRisk": false
       },
       {
@@ -2464,7 +2560,7 @@
         "title": "withJsonpSupport",
         "path": "api/common/http/withJsonpSupport",
         "docType": "function",
-        "stability": "stable",
+        "stability": "deprecated",
         "securityRisk": false
       },
       {
@@ -2487,6 +2583,30 @@
         "name": "withxsrfconfiguration",
         "title": "withXsrfConfiguration",
         "path": "api/common/http/withXsrfConfiguration",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "httpclientcommonoptions",
+        "title": "HttpClientCommonOptions",
+        "path": "api/common/http/HttpClientCommonOptions",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "httprequestoptions",
+        "title": "HttpRequestOptions",
+        "path": "api/common/http/HttpRequestOptions",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "withxhr",
+        "title": "withXhr",
+        "path": "api/common/http/withXhr",
         "docType": "function",
         "stability": "stable",
         "securityRisk": false
@@ -2908,7 +3028,7 @@
         "title": "BaseResourceOptions",
         "path": "api/core/BaseResourceOptions",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4140,7 +4260,7 @@
         "title": "PromiseResourceOptions",
         "path": "api/core/PromiseResourceOptions",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4316,7 +4436,7 @@
         "title": "resource",
         "path": "api/core/resource",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4324,7 +4444,7 @@
         "title": "Resource",
         "path": "api/core/Resource",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4340,7 +4460,7 @@
         "title": "ResourceLoader",
         "path": "api/core/ResourceLoader",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4348,7 +4468,7 @@
         "title": "ResourceLoaderParams",
         "path": "api/core/ResourceLoaderParams",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4356,7 +4476,7 @@
         "title": "ResourceOptions",
         "path": "api/core/ResourceOptions",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4364,7 +4484,7 @@
         "title": "ResourceRef",
         "path": "api/core/ResourceRef",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4372,7 +4492,7 @@
         "title": "ResourceSnapshot",
         "path": "api/core/ResourceSnapshot",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4380,7 +4500,7 @@
         "title": "ResourceStatus",
         "path": "api/core/ResourceStatus",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4388,7 +4508,7 @@
         "title": "ResourceStreamingLoader",
         "path": "api/core/ResourceStreamingLoader",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4396,7 +4516,7 @@
         "title": "ResourceStreamItem",
         "path": "api/core/ResourceStreamItem",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4540,7 +4660,7 @@
         "title": "StreamingResourceOptions",
         "path": "api/core/StreamingResourceOptions",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4732,7 +4852,7 @@
         "title": "WritableResource",
         "path": "api/core/WritableResource",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4741,6 +4861,182 @@
         "path": "api/core/WritableSignal",
         "docType": "interface",
         "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "@boundary",
+        "title": "@boundary",
+        "path": "api/core/@boundary",
+        "docType": "block",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "afterrendereffectoptions",
+        "title": "AfterRenderEffectOptions",
+        "path": "api/core/AfterRenderEffectOptions",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "debounced",
+        "title": "debounced",
+        "path": "api/core/debounced",
+        "docType": "function",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "debouncedoptions",
+        "title": "DebouncedOptions",
+        "path": "api/core/DebouncedOptions",
+        "docType": "interface",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "debouncetimer",
+        "title": "DebounceTimer",
+        "path": "api/core/DebounceTimer",
+        "docType": "type-alias",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "declareexperimentalwebmcptool",
+        "title": "declareExperimentalWebMcpTool",
+        "path": "api/core/declareExperimentalWebMcpTool",
+        "docType": "function",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "defaultexport",
+        "title": "DefaultExport",
+        "path": "api/core/DefaultExport",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "errordetails",
+        "title": "ErrorDetails",
+        "path": "api/core/ErrorDetails",
+        "docType": "interface",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "idleservice",
+        "title": "IdleService",
+        "path": "api/core/IdleService",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "injectasync",
+        "title": "injectAsync",
+        "path": "api/core/injectAsync",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "injectasyncoptions",
+        "title": "InjectAsyncOptions",
+        "path": "api/core/InjectAsyncOptions",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "onidle",
+        "title": "onIdle",
+        "path": "api/core/onIdle",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "prefetchtrigger",
+        "title": "PrefetchTrigger",
+        "path": "api/core/PrefetchTrigger",
+        "docType": "type-alias",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "provideexperimentalwebmcptools",
+        "title": "provideExperimentalWebMcpTools",
+        "path": "api/core/provideExperimentalWebMcpTools",
+        "docType": "function",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "provideidleservicewith",
+        "title": "provideIdleServiceWith",
+        "path": "api/core/provideIdleServiceWith",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "resourcedependencyerror",
+        "title": "ResourceDependencyError",
+        "path": "api/core/ResourceDependencyError",
+        "docType": "class",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "resourceparamscontext",
+        "title": "ResourceParamsContext",
+        "path": "api/core/ResourceParamsContext",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "resourceparamsstatus",
+        "title": "ResourceParamsStatus",
+        "path": "api/core/ResourceParamsStatus",
+        "docType": "class",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "service",
+        "title": "Service",
+        "path": "api/core/Service",
+        "docType": "decorator",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "webmcpclient",
+        "title": "WebMcpClient",
+        "path": "api/core/WebMcpClient",
+        "docType": "interface",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "webmcptooldescriptor",
+        "title": "WebMcpToolDescriptor",
+        "path": "api/core/WebMcpToolDescriptor",
+        "docType": "interface",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "webmcptoolexecute",
+        "title": "WebMcpToolExecute",
+        "path": "api/core/WebMcpToolExecute",
+        "docType": "type-alias",
+        "stability": "experimental",
         "securityRisk": false
       }
     ]
@@ -4779,7 +5075,7 @@
         "title": "rxResource",
         "path": "api/core/rxjs-interop/rxResource",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -4787,7 +5083,7 @@
         "title": "RxResourceOptions",
         "path": "api/core/rxjs-interop/RxResourceOptions",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5034,6 +5330,22 @@
         "title": "withModule",
         "path": "api/core/testing/withModule",
         "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "directivefixture",
+        "title": "DirectiveFixture",
+        "path": "api/core/testing/DirectiveFixture",
+        "docType": "class",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "testdirectiveoptions",
+        "title": "TestDirectiveOptions",
+        "path": "api/core/testing/TestDirectiveOptions",
+        "docType": "interface",
         "stability": "stable",
         "securityRisk": false
       }
@@ -5735,7 +6047,7 @@
         "title": "apply",
         "path": "api/forms/signals/apply",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5743,7 +6055,7 @@
         "title": "applyEach",
         "path": "api/forms/signals/applyEach",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5751,7 +6063,7 @@
         "title": "applyWhen",
         "path": "api/forms/signals/applyWhen",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5759,7 +6071,7 @@
         "title": "applyWhenValue",
         "path": "api/forms/signals/applyWhenValue",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5767,7 +6079,7 @@
         "title": "AsyncValidationResult",
         "path": "api/forms/signals/AsyncValidationResult",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5775,7 +6087,7 @@
         "title": "AsyncValidatorOptions",
         "path": "api/forms/signals/AsyncValidatorOptions",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5783,7 +6095,7 @@
         "title": "BaseNgValidationError",
         "path": "api/forms/signals/BaseNgValidationError",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5791,7 +6103,7 @@
         "title": "ChildFieldContext",
         "path": "api/forms/signals/ChildFieldContext",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5799,7 +6111,7 @@
         "title": "CompatFieldState",
         "path": "api/forms/signals/CompatFieldState",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5807,7 +6119,7 @@
         "title": "CompatSchemaPath",
         "path": "api/forms/signals/CompatSchemaPath",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5815,7 +6127,7 @@
         "title": "createManagedMetadataKey",
         "path": "api/forms/signals/createManagedMetadataKey",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5823,7 +6135,7 @@
         "title": "createMetadataKey",
         "path": "api/forms/signals/createMetadataKey",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5831,7 +6143,7 @@
         "title": "debounce",
         "path": "api/forms/signals/debounce",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5839,7 +6151,7 @@
         "title": "Debouncer",
         "path": "api/forms/signals/Debouncer",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5847,7 +6159,7 @@
         "title": "disabled",
         "path": "api/forms/signals/disabled",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5855,7 +6167,7 @@
         "title": "DisabledReason",
         "path": "api/forms/signals/DisabledReason",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5863,7 +6175,7 @@
         "title": "email",
         "path": "api/forms/signals/email",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5871,7 +6183,7 @@
         "title": "emailError",
         "path": "api/forms/signals/emailError",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5879,7 +6191,7 @@
         "title": "EmailValidationError",
         "path": "api/forms/signals/EmailValidationError",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5887,7 +6199,7 @@
         "title": "Field",
         "path": "api/forms/signals/Field",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5895,7 +6207,7 @@
         "title": "FieldContext",
         "path": "api/forms/signals/FieldContext",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5903,7 +6215,7 @@
         "title": "FieldState",
         "path": "api/forms/signals/FieldState",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5911,7 +6223,7 @@
         "title": "FieldTree",
         "path": "api/forms/signals/FieldTree",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5919,7 +6231,7 @@
         "title": "FieldValidator",
         "path": "api/forms/signals/FieldValidator",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5927,7 +6239,7 @@
         "title": "form",
         "path": "api/forms/signals/form",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5935,7 +6247,7 @@
         "title": "FORM_FIELD",
         "path": "api/forms/signals/FORM_FIELD",
         "docType": "const",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5943,7 +6255,7 @@
         "title": "FormCheckboxControl",
         "path": "api/forms/signals/FormCheckboxControl",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5951,7 +6263,7 @@
         "title": "FormField",
         "path": "api/forms/signals/FormField",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5967,7 +6279,7 @@
         "title": "FormOptions",
         "path": "api/forms/signals/FormOptions",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5975,7 +6287,7 @@
         "title": "FormRoot",
         "path": "api/forms/signals/FormRoot",
         "docType": "directive",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5983,7 +6295,7 @@
         "title": "FormSubmitOptions",
         "path": "api/forms/signals/FormSubmitOptions",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5991,7 +6303,7 @@
         "title": "FormUiControl",
         "path": "api/forms/signals/FormUiControl",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -5999,7 +6311,7 @@
         "title": "FormValueControl",
         "path": "api/forms/signals/FormValueControl",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6007,7 +6319,7 @@
         "title": "hidden",
         "path": "api/forms/signals/hidden",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6015,7 +6327,7 @@
         "title": "HttpValidatorOptions",
         "path": "api/forms/signals/HttpValidatorOptions",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6023,7 +6335,7 @@
         "title": "IgnoreUnknownProperties",
         "path": "api/forms/signals/IgnoreUnknownProperties",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6031,7 +6343,7 @@
         "title": "ItemFieldContext",
         "path": "api/forms/signals/ItemFieldContext",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6039,7 +6351,7 @@
         "title": "ItemType",
         "path": "api/forms/signals/ItemType",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6047,7 +6359,7 @@
         "title": "LogicFn",
         "path": "api/forms/signals/LogicFn",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6055,7 +6367,7 @@
         "title": "MapToErrorsFn",
         "path": "api/forms/signals/MapToErrorsFn",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6063,7 +6375,7 @@
         "title": "max",
         "path": "api/forms/signals/max",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6071,7 +6383,7 @@
         "title": "MAX",
         "path": "api/forms/signals/MAX",
         "docType": "const",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6079,7 +6391,7 @@
         "title": "MAX_LENGTH",
         "path": "api/forms/signals/MAX_LENGTH",
         "docType": "const",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6087,7 +6399,7 @@
         "title": "maxError",
         "path": "api/forms/signals/maxError",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6095,7 +6407,7 @@
         "title": "maxLength",
         "path": "api/forms/signals/maxLength",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6103,7 +6415,7 @@
         "title": "maxLengthError",
         "path": "api/forms/signals/maxLengthError",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6111,7 +6423,7 @@
         "title": "MaxLengthValidationError",
         "path": "api/forms/signals/MaxLengthValidationError",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6119,7 +6431,7 @@
         "title": "MaxValidationError",
         "path": "api/forms/signals/MaxValidationError",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6127,7 +6439,7 @@
         "title": "MaybeFieldTree",
         "path": "api/forms/signals/MaybeFieldTree",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6135,7 +6447,7 @@
         "title": "MaybeSchemaPathTree",
         "path": "api/forms/signals/MaybeSchemaPathTree",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6143,7 +6455,7 @@
         "title": "metadata",
         "path": "api/forms/signals/metadata",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6151,7 +6463,7 @@
         "title": "MetadataKey",
         "path": "api/forms/signals/MetadataKey",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6159,7 +6471,7 @@
         "title": "MetadataReducer",
         "path": "api/forms/signals/MetadataReducer",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6167,7 +6479,7 @@
         "title": "MetadataSetterType",
         "path": "api/forms/signals/MetadataSetterType",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6175,7 +6487,7 @@
         "title": "min",
         "path": "api/forms/signals/min",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6183,7 +6495,7 @@
         "title": "MIN",
         "path": "api/forms/signals/MIN",
         "docType": "const",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6191,7 +6503,7 @@
         "title": "MIN_LENGTH",
         "path": "api/forms/signals/MIN_LENGTH",
         "docType": "const",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6199,7 +6511,7 @@
         "title": "minError",
         "path": "api/forms/signals/minError",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6207,7 +6519,7 @@
         "title": "minLength",
         "path": "api/forms/signals/minLength",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6215,7 +6527,7 @@
         "title": "minLengthError",
         "path": "api/forms/signals/minLengthError",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6223,7 +6535,7 @@
         "title": "MinLengthValidationError",
         "path": "api/forms/signals/MinLengthValidationError",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6231,7 +6543,7 @@
         "title": "MinValidationError",
         "path": "api/forms/signals/MinValidationError",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6239,7 +6551,7 @@
         "title": "NativeInputParseError",
         "path": "api/forms/signals/NativeInputParseError",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6247,7 +6559,7 @@
         "title": "NgValidationError",
         "path": "api/forms/signals/NgValidationError",
         "docType": "const",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6255,7 +6567,7 @@
         "title": "OneOrMany",
         "path": "api/forms/signals/OneOrMany",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6271,7 +6583,7 @@
         "title": "PathKind",
         "path": "api/forms/signals/PathKind",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6279,7 +6591,7 @@
         "title": "pattern",
         "path": "api/forms/signals/pattern",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6287,7 +6599,7 @@
         "title": "PATTERN",
         "path": "api/forms/signals/PATTERN",
         "docType": "const",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6295,7 +6607,7 @@
         "title": "patternError",
         "path": "api/forms/signals/patternError",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6303,7 +6615,7 @@
         "title": "PatternValidationError",
         "path": "api/forms/signals/PatternValidationError",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6311,7 +6623,7 @@
         "title": "provideSignalFormsConfig",
         "path": "api/forms/signals/provideSignalFormsConfig",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6319,15 +6631,15 @@
         "title": "readonly",
         "path": "api/forms/signals/readonly",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
         "name": "readonlyarraylike",
         "title": "ReadonlyArrayLike",
         "path": "api/forms/signals/ReadonlyArrayLike",
-        "docType": "type-alias",
-        "stability": "experimental",
+        "docType": "interface",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6335,7 +6647,7 @@
         "title": "RemoveStringIndexUnknownKey",
         "path": "api/forms/signals/RemoveStringIndexUnknownKey",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6343,7 +6655,7 @@
         "title": "required",
         "path": "api/forms/signals/required",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6351,7 +6663,7 @@
         "title": "REQUIRED",
         "path": "api/forms/signals/REQUIRED",
         "docType": "const",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6359,7 +6671,7 @@
         "title": "requiredError",
         "path": "api/forms/signals/requiredError",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6367,7 +6679,7 @@
         "title": "RequiredValidationError",
         "path": "api/forms/signals/RequiredValidationError",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6375,7 +6687,7 @@
         "title": "RootFieldContext",
         "path": "api/forms/signals/RootFieldContext",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6383,7 +6695,7 @@
         "title": "schema",
         "path": "api/forms/signals/schema",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6391,7 +6703,7 @@
         "title": "Schema",
         "path": "api/forms/signals/Schema",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6399,7 +6711,7 @@
         "title": "SchemaFn",
         "path": "api/forms/signals/SchemaFn",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6407,7 +6719,7 @@
         "title": "SchemaOrSchemaFn",
         "path": "api/forms/signals/SchemaOrSchemaFn",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6415,7 +6727,7 @@
         "title": "SchemaPath",
         "path": "api/forms/signals/SchemaPath",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6423,7 +6735,7 @@
         "title": "SchemaPathRules",
         "path": "api/forms/signals/SchemaPathRules",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6431,7 +6743,7 @@
         "title": "SchemaPathTree",
         "path": "api/forms/signals/SchemaPathTree",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6439,7 +6751,7 @@
         "title": "SignalFormsConfig",
         "path": "api/forms/signals/SignalFormsConfig",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6447,7 +6759,7 @@
         "title": "standardSchemaError",
         "path": "api/forms/signals/standardSchemaError",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6455,7 +6767,7 @@
         "title": "StandardSchemaValidationError",
         "path": "api/forms/signals/StandardSchemaValidationError",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6463,7 +6775,7 @@
         "title": "Subfields",
         "path": "api/forms/signals/Subfields",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6471,7 +6783,7 @@
         "title": "submit",
         "path": "api/forms/signals/submit",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6479,7 +6791,7 @@
         "title": "transformedValue",
         "path": "api/forms/signals/transformedValue",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6487,7 +6799,7 @@
         "title": "TransformedValueOptions",
         "path": "api/forms/signals/TransformedValueOptions",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6495,7 +6807,7 @@
         "title": "TransformedValueSignal",
         "path": "api/forms/signals/TransformedValueSignal",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6503,7 +6815,7 @@
         "title": "TreeValidationResult",
         "path": "api/forms/signals/TreeValidationResult",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6511,7 +6823,7 @@
         "title": "TreeValidator",
         "path": "api/forms/signals/TreeValidator",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6519,7 +6831,7 @@
         "title": "validate",
         "path": "api/forms/signals/validate",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6527,7 +6839,7 @@
         "title": "validateAsync",
         "path": "api/forms/signals/validateAsync",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6535,7 +6847,7 @@
         "title": "validateHttp",
         "path": "api/forms/signals/validateHttp",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6543,7 +6855,7 @@
         "title": "validateStandardSchema",
         "path": "api/forms/signals/validateStandardSchema",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6551,7 +6863,7 @@
         "title": "validateTree",
         "path": "api/forms/signals/validateTree",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6559,7 +6871,7 @@
         "title": "ValidationError",
         "path": "api/forms/signals/ValidationError",
         "docType": "interface",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6575,7 +6887,7 @@
         "title": "ValidationResult",
         "path": "api/forms/signals/ValidationResult",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6583,7 +6895,7 @@
         "title": "ValidationSuccess",
         "path": "api/forms/signals/ValidationSuccess",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6591,7 +6903,7 @@
         "title": "Validator",
         "path": "api/forms/signals/Validator",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6607,7 +6919,7 @@
         "title": "WithFieldTree",
         "path": "api/forms/signals/WithFieldTree",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6623,7 +6935,7 @@
         "title": "WithOptionalFieldTree",
         "path": "api/forms/signals/WithOptionalFieldTree",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6639,7 +6951,183 @@
         "title": "WithoutFieldTree",
         "path": "api/forms/signals/WithoutFieldTree",
         "docType": "type-alias",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "createlimitselectionkey",
+        "title": "createLimitSelectionKey",
+        "path": "api/forms/signals/createLimitSelectionKey",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "fieldstatebymode",
+        "title": "FieldStateByMode",
+        "path": "api/forms/signals/FieldStateByMode",
+        "docType": "type-alias",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "formfieldbinding",
+        "title": "FormFieldBinding",
+        "path": "api/forms/signals/FormFieldBinding",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "is_async_validation_resource",
+        "title": "IS_ASYNC_VALIDATION_RESOURCE",
+        "path": "api/forms/signals/IS_ASYNC_VALIDATION_RESOURCE",
+        "docType": "const",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "isfieldtree",
+        "title": "isFieldTree",
+        "path": "api/forms/signals/isFieldTree",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "limitkey",
+        "title": "LimitKey",
+        "path": "api/forms/signals/LimitKey",
+        "docType": "type-alias",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "limitselectionkey",
+        "title": "LimitSelectionKey",
+        "path": "api/forms/signals/LimitSelectionKey",
+        "docType": "type-alias",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "markastouchedoptions",
+        "title": "MarkAsTouchedOptions",
+        "path": "api/forms/signals/MarkAsTouchedOptions",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "max_date",
+        "title": "MAX_DATE",
+        "path": "api/forms/signals/MAX_DATE",
+        "docType": "const",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "max_number",
+        "title": "MAX_NUMBER",
+        "path": "api/forms/signals/MAX_NUMBER",
+        "docType": "const",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "maxdate",
+        "title": "maxDate",
+        "path": "api/forms/signals/maxDate",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "maxdateerror",
+        "title": "maxDateError",
+        "path": "api/forms/signals/maxDateError",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "maxdatevalidationerror",
+        "title": "MaxDateValidationError",
+        "path": "api/forms/signals/MaxDateValidationError",
+        "docType": "class",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "min_date",
+        "title": "MIN_DATE",
+        "path": "api/forms/signals/MIN_DATE",
+        "docType": "const",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "min_number",
+        "title": "MIN_NUMBER",
+        "path": "api/forms/signals/MIN_NUMBER",
+        "docType": "const",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "mindate",
+        "title": "minDate",
+        "path": "api/forms/signals/minDate",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "mindateerror",
+        "title": "minDateError",
+        "path": "api/forms/signals/minDateError",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "mindatevalidationerror",
+        "title": "MinDateValidationError",
+        "path": "api/forms/signals/MinDateValidationError",
+        "docType": "class",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "provideexperimentalwebmcpforms",
+        "title": "provideExperimentalWebMcpForms",
+        "path": "api/forms/signals/provideExperimentalWebMcpForms",
+        "docType": "function",
         "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "readonlycompatfieldstate",
+        "title": "ReadonlyCompatFieldState",
+        "path": "api/forms/signals/ReadonlyCompatFieldState",
+        "docType": "type-alias",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "readonlyfieldstate",
+        "title": "ReadonlyFieldState",
+        "path": "api/forms/signals/ReadonlyFieldState",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "readonlyfieldtree",
+        "title": "ReadonlyFieldTree",
+        "path": "api/forms/signals/ReadonlyFieldTree",
+        "docType": "type-alias",
+        "stability": "stable",
         "securityRisk": false
       }
     ]
@@ -6654,7 +7142,7 @@
         "title": "compatForm",
         "path": "api/forms/signals/compat/compatForm",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6662,7 +7150,7 @@
         "title": "CompatFormOptions",
         "path": "api/forms/signals/compat/CompatFormOptions",
         "docType": "type-alias",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6670,7 +7158,7 @@
         "title": "NG_STATUS_CLASSES",
         "path": "api/forms/signals/compat/NG_STATUS_CLASSES",
         "docType": "const",
-        "stability": "experimental",
+        "stability": "stable",
         "securityRisk": false
       },
       {
@@ -6678,7 +7166,15 @@
         "title": "SignalFormControl",
         "path": "api/forms/signals/compat/SignalFormControl",
         "docType": "class",
-        "stability": "experimental",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "extractvalue",
+        "title": "extractValue",
+        "path": "api/forms/signals/compat/extractValue",
+        "docType": "function",
+        "stability": "stable",
         "securityRisk": false
       }
     ]
@@ -7027,13 +7523,37 @@
         "title": "withIncrementalHydration",
         "path": "api/platform-browser/withIncrementalHydration",
         "docType": "function",
-        "stability": "stable",
+        "stability": "deprecated",
         "securityRisk": false
       },
       {
         "name": "withnohttptransfercache",
         "title": "withNoHttpTransferCache",
         "path": "api/platform-browser/withNoHttpTransferCache",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "cssvarnamespacer",
+        "title": "CssVarNamespacer",
+        "path": "api/platform-browser/CssVarNamespacer",
+        "docType": "class",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "providecssvarnamespacing",
+        "title": "provideCssVarNamespacing",
+        "path": "api/platform-browser/provideCssVarNamespacing",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "withnoincrementalhydration",
+        "title": "withNoIncrementalHydration",
+        "path": "api/platform-browser/withNoIncrementalHydration",
         "docType": "function",
         "stability": "stable",
         "securityRisk": false
@@ -7269,6 +7789,14 @@
         "title": "VERSION",
         "path": "api/platform-server/VERSION",
         "docType": "const",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "runtimeerrorcode",
+        "title": "RuntimeErrorCode",
+        "path": "api/platform-server/RuntimeErrorCode",
+        "docType": "enum",
         "stability": "stable",
         "securityRisk": false
       }
@@ -8339,7 +8867,7 @@
         "title": "withExperimentalAutoCleanupInjectors",
         "path": "api/router/withExperimentalAutoCleanupInjectors",
         "docType": "function",
-        "stability": "experimental",
+        "stability": "deprecated",
         "securityRisk": false
       },
       {
@@ -8394,6 +8922,78 @@
         "name": "withviewtransitions",
         "title": "withViewTransitions",
         "path": "api/router/withViewTransitions",
+        "docType": "function",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "autocleanupinjectorsfeature",
+        "title": "AutoCleanupInjectorsFeature",
+        "path": "api/router/AutoCleanupInjectorsFeature",
+        "docType": "type-alias",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "componentinputbindingoptions",
+        "title": "ComponentInputBindingOptions",
+        "path": "api/router/ComponentInputBindingOptions",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "containstree",
+        "title": "containsTree",
+        "path": "api/router/containsTree",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "nonblocking",
+        "title": "nonBlocking",
+        "path": "api/router/nonBlocking",
+        "docType": "function",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "resourcecontext",
+        "title": "ResourceContext",
+        "path": "api/router/ResourceContext",
+        "docType": "interface",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "resourceresult",
+        "title": "ResourceResult",
+        "path": "api/router/ResourceResult",
+        "docType": "type-alias",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "routerresourcesfeature",
+        "title": "RouterResourcesFeature",
+        "path": "api/router/RouterResourcesFeature",
+        "docType": "type-alias",
+        "stability": "experimental",
+        "securityRisk": false
+      },
+      {
+        "name": "withautocleanupinjectors",
+        "title": "withAutoCleanupInjectors",
+        "path": "api/router/withAutoCleanupInjectors",
+        "docType": "function",
+        "stability": "stable",
+        "securityRisk": false
+      },
+      {
+        "name": "withrouterresources",
+        "title": "withRouterResources",
+        "path": "api/router/withRouterResources",
         "docType": "function",
         "stability": "experimental",
         "securityRisk": false
@@ -8681,6 +9281,14 @@
         "docType": "function",
         "stability": "stable",
         "securityRisk": false
+      },
+      {
+        "name": "serverrenderingoptions",
+        "title": "ServerRenderingOptions",
+        "path": "api/ssr/ServerRenderingOptions",
+        "docType": "interface",
+        "stability": "stable",
+        "securityRisk": false
       }
     ]
   },
@@ -8710,7 +9318,7 @@
         "title": "CommonEngine",
         "path": "api/ssr/node/CommonEngine",
         "docType": "class",
-        "stability": "stable",
+        "stability": "deprecated",
         "securityRisk": false
       },
       {
@@ -8718,7 +9326,7 @@
         "title": "CommonEngineOptions",
         "path": "api/ssr/node/CommonEngineOptions",
         "docType": "interface",
-        "stability": "stable",
+        "stability": "deprecated",
         "securityRisk": false
       },
       {
@@ -8726,7 +9334,7 @@
         "title": "CommonEngineRenderOptions",
         "path": "api/ssr/node/CommonEngineRenderOptions",
         "docType": "interface",
-        "stability": "stable",
+        "stability": "deprecated",
         "securityRisk": false
       },
       {
