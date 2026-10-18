@@ -124,6 +124,14 @@ describe('CLI Angular 22 application', () => {
         expect(page('service', 'ReportLoader')).to.contain('cdx-badge--inject-async');
     });
 
+    it('notes the OnPush default only where changeDetection is not set', () => {
+        expect(page('component', 'AppComponent')).to.contain('OnPush (default)');
+        expect(page('component', 'DashboardComponent')).not.to.contain('OnPush (default)');
+        expect(page('component', 'DashboardComponent')).to.contain(
+            'ChangeDetectionStrategy.Default'
+        );
+    });
+
     it('keeps the Injectable class an injectable', () => {
         expect(names(data.injectables)).to.deep.equal(['PreferencesStore']);
     });

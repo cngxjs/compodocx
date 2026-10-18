@@ -35,6 +35,23 @@ export class AngularVersionUtil {
         return _result;
     }
 
+    /**
+     * Major version of `@angular/core` the project declares, from
+     * `dependencies`, then `peerDependencies`, then `devDependencies`
+     * (libraries usually declare Angular as a peer). The lowest major a range
+     * names; undefined without one or for a range without a number.
+     */
+    public getAngularMajorOfProject(packageData): number | undefined {
+        for (const field of ['dependencies', 'peerDependencies', 'devDependencies']) {
+            const range = packageData?.[field]?.[AngularVersionUtil.CorePackage];
+            if (typeof range === 'string') {
+                const major = /(\d+)/.exec(range)?.[1];
+                return major ? Number(major) : undefined;
+            }
+        }
+        return undefined;
+    }
+
     public getApiLink(api: IAngularApi): string {
         return `https://angular.dev/${api.path}`;
     }

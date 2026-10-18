@@ -106,6 +106,7 @@ const applyPackageJson = (ctx: RunContext, parsedData: Record<string, any>): voi
         mainData.documentationMainDescription = parsedData.description;
     }
     mainData.angularVersion = AngularVersionUtil.getAngularVersionOfProject(parsedData);
+    mainData.angularMajor = AngularVersionUtil.getAngularMajorOfProject(parsedData);
 
     // Detect zone.js in dependencies (if absent, app is zoneless)
     const allDeps = {
