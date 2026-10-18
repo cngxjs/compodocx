@@ -33,4 +33,20 @@ describe('Configuration pages', () => {
         expect(Configuration.hasPage(pageFile('', 'dependencies'))).toBe(true);
         expect(Configuration.hasPage(pageFile('', 'other'))).toBe(false);
     });
+
+    it('removes only the root markdown pages that exist', () => {
+        Configuration.addPage({ name: 'index', context: 'readme' } as never);
+        Configuration.addPage({ name: 'changelog', context: 'changelog' } as never);
+        Configuration.addPage({ name: 'Foo', path: 'components', context: 'component' } as never);
+        Configuration.addPage({ name: 'routes', context: 'routes' } as never);
+        Configuration.resetRootMarkdownPages();
+        expect(Configuration.pages.map(p => p.name)).toEqual(['Foo', 'routes']);
+    });
+
+    it('keeps every page when no root markdown page exists', () => {
+        Configuration.addPage({ name: 'Foo', path: 'components', context: 'component' } as never);
+        Configuration.addPage({ name: 'routes', context: 'routes' } as never);
+        Configuration.resetRootMarkdownPages();
+        expect(Configuration.pages.map(p => p.name)).toEqual(['Foo', 'routes']);
+    });
 });
