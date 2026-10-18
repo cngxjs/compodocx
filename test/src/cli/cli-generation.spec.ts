@@ -415,7 +415,7 @@ describe('CLI simple generation', () => {
                 '-d',
                 distFolder,
                 '-a',
-                './screenshots/'
+                './test/fixtures/kitchen-sink-standalone/assets/'
             ]);
 
             if (hasStderrError(ls.stderr.toString())) {
@@ -426,8 +426,8 @@ describe('CLI simple generation', () => {
         afterAll(() => tmp.clean(distFolder));
 
         it('should have copying assets folder', () => {
-            const isFolderExists = exists(`${distFolder}/screenshots`);
-            expect(isFolderExists).to.be.true;
+            const isFileExists = exists(`${distFolder}/assets/signal-card-short.html`);
+            expect(isFileExists).to.be.true;
         });
     });
 
