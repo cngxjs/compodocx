@@ -1,8 +1,8 @@
 import * as path from 'node:path';
-import { REMOVED_OVERRIDES, RENAMED_OVERRIDES } from '../../migrate/override-names';
 import * as helpers from '../../templates/helpers';
 import { logger } from '../../utils/logger';
 import FileEngine from './file.engine';
+import { REMOVED_OVERRIDES, RENAMED_OVERRIDES } from './override-names';
 
 export type CustomTemplateFn = (data: any, helpers: typeof templateHelpers) => string;
 
@@ -53,7 +53,7 @@ export function loadCustomTemplates(templatePath: string): void {
             const hint = replacement
                 ? `renamed to "${replacement}", rename the file`
                 : 'its page no longer exists';
-            logger.warn(`Custom template ${file} is ignored (${hint}); see \`compodocx migrate\``);
+            logger.warn(`Custom template ${file} is ignored (${hint}); see MIGRATION.md`);
             continue;
         }
 

@@ -30,7 +30,6 @@ export default defineConfig({
             'decache',
             'fast-glob',
             'fs-extra',
-            'handlebars',
             'i18next',
             'marked',
             'minimist',

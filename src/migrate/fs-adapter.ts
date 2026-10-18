@@ -1,19 +1,25 @@
 /**
- * Minimal filesystem adapter - keeps `templates.ts` testable without mocks
- * by isolating every disk touch behind a small interface.
+ * Minimal filesystem adapter - keeps the migrate commands testable without
+ * mocks by isolating every disk touch behind a small interface.
  */
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import type { FsAdapter } from './templates';
+
+export interface FsAdapter {
+    readdir: (dir: string) => readonly string[];
+    isDirectory: (filePath: string) => boolean;
+    isFile: (filePath: string) => boolean;
+    readFile: (filePath: string) => string;
+    writeFile: (filePath: string, content: string) => void;
+}
 
 export const realFs = (): FsAdapter => ({
     readdir: dir => fs.readdirSync(dir),
     isDirectory: p => fs.existsSync(p) && fs.statSync(p).isDirectory(),
     isFile: p => fs.existsSync(p) && fs.statSync(p).isFile(),
     readFile: p => fs.readFileSync(p, 'utf8'),
-    writeFile: (p, content) => fs.writeFileSync(p, content, 'utf8'),
-    ensureDir: dir => fs.mkdirSync(dir, { recursive: true })
+    writeFile: (p, content) => fs.writeFileSync(p, content, 'utf8')
 });
 
 /** In-memory adapter used by tests - no disk I/O. */
@@ -75,10 +81,6 @@ export const memoryFs = (
         writeFile: (p, content) => {
             state[p] = content;
             recordParents(p);
-        },
-        ensureDir: dir => {
-            directories.add(dir);
-            recordParents(dir);
         }
     };
     return { adapter, state };

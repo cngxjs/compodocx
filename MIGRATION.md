@@ -69,7 +69,7 @@ Old URLs: every version's output holds `redirects.json`:
 
 It covers the kind folders (with their old `-1`, `-2` names), `providers/`, `miscellaneous/` pages and collection anchors, `features/` and `categories/` pages. No stub pages are written; a web server can use the map for HTTP redirects. The version switcher follows the target version's map, and for a version built before the map existed it reads the current version's map backwards. `versions.json` is unchanged (schema 1). Links in README and additional-page markdown that still point at an old page are rewritten to its new place.
 
-Custom templates: pages are no longer all one folder deep. Build links with `data.depth` (`helpers.relativeUrl(data.depth)`), and pass it to the type-link helpers: `helpers.linkTypeHtml(type, { depth: data.depth })`, `helpers.functionSignature(method, data.depth)`. `compodocx migrate templates` writes these arguments for converted Handlebars templates.
+Custom templates: pages are no longer all one folder deep. Build links with `data.depth` (`helpers.relativeUrl(data.depth)`), and pass it to the type-link helpers: `helpers.linkTypeHtml(type, { depth: data.depth })`, `helpers.functionSignature(method, data.depth)`.
 
 ## Breaking change in 0.9.0: features replace category buckets
 
@@ -142,7 +142,7 @@ Template overrides:
 | `miscellaneous-functions`, `miscellaneous-variables`, `miscellaneous-typealiases`, `miscellaneous-enumerations` | `utilities` |
 | `miscellaneous-function`, `miscellaneous-variable`, `miscellaneous-typealias`, `miscellaneous-enumeration` | `function`, `variable`, `typealias`, `enumeration` |
 
-New page contexts: `utilities`, `dependency-injection`, `di-cluster` (the page of a feature type) and `resolver`. `compodocx migrate` maps the removed names to the new ones. The `referenced-by` block now renders the "Used by" list; its props are unchanged.
+New page contexts: `utilities`, `dependency-injection`, `di-cluster` (the page of a feature type) and `resolver`. The `referenced-by` block now renders the "Used by" list; its props are unchanged.
 
 JSON export (schema stays 3):
 
@@ -349,7 +349,7 @@ Full pattern, deployment recipes, and version-switcher reference: [`docs/version
 | `--publicApiOnly` | new | Restricts processing to symbols re-exported from a project's public entry. |
 | `--minimal`, `--silent`, `--language` | unchanged ||
 | `--maxSearchResults` | needs a value | Since v0.9.0 the flag takes an integer from `0` to `10000` (`0` shows all results); a bare `--maxSearchResults` or any other value stops the build. The `maxSearchResults` config key is read; the flag wins when both are set. |
-| `--templatePlayground` | removed in v0.4.0 | Deprecated in v0.3.0, removed in v0.4.0. Switch to the JS template override path (`--templates`). The `compodocx migrate` sub-CLI converts existing Handlebars partials automatically. |
+| `--templatePlayground` | removed in v0.4.0 | Deprecated in v0.3.0, removed in v0.4.0. Switch to the JS template override path (`--templates`) and convert existing Handlebars partials by hand ([cookbook](#hbs--js-cookbook)). |
 
 Config-file (`.compodocrc.json`, `.compodocrc.yaml`, `.compodocrc.js`) keys mirror the CLI flags one-to-one. Existing config files keep working unchanged.
 
@@ -605,65 +605,3 @@ What does NOT migrate cleanly:
 - **`--gaSite` flag.** Use `--gaID G-XXXXXXXXXX` (GA4 measurement ID).
 - **Bootstrap markup contract.** Downstream tooling that scraped specific Bootstrap selectors (e.g. `.card.text-center`, `.panel-default`) needs an update - those classes are no longer emitted. Use the `cdx-*` selectors or the stable `data-compodoc="<block-name>"` attributes instead.
 - **Lunr search index.** Replaced by Pagefind. The `js/search/` and `pageinfo.json` files are gone. Pagefind writes its index to `pagefind/` next to the HTML output.
-
-## `compodocx migrate` CLI
-
-Available since 0.3.0. Automates the mechanical 80% of the migration: HBS → JS template conversion, CSS class renames, project-level audit.
-
-```text
-compodocx migrate inspect <project-path>                    # audit, no writes
-compodocx migrate template <file.hbs> [--out <file.js>]     # single file
-compodocx migrate templates <hbs-dir> --out <js-dir>        # directory
-compodocx migrate css <file-or-dir> [--aggressive]          # CSS class renames
-```
-
-Common flags: `--dry-run`, `--json`, `--no-warnings`.
-
-### Workflow
-
-```bash
-# 1. Audit the project
-compodocx migrate inspect ./my-compodoc-project
-
-# 2. Convert templates
-compodocx migrate templates ./my-compodoc-project/templates --out ./templates-js
-
-# 3. Rewrite stylesheets (conservative)
-compodocx migrate css ./src/styles
-
-# 4. Run compodocx with the new templates dir
-compodocx -p tsconfig.json -d docs --templates ./templates-js
-```
-
-### Fidelity scoring
-
-| Score | Meaning | Exit code |
-|-|-|-|
-| green | Every node mapped, no warnings. Mechanical, ready to use. | 0 |
-| yellow | Mapped, but at least one lossy transformation. Manual review recommended. | 1 |
-| red | Unknown helper, unsupported block, or partial with no target. Output emitted with TODO comments; user MUST review before using. | 2 |
-
-CI pipelines can fail-fast on red migrations.
-
-### Hard limits
-
-The CLI rejects two cases instead of emitting broken output:
-
-1. **`page.hbs` (full-page layout).** compodocx's outer `Layout.tsx` is not overridable. Workarounds: custom CSS via `--extTheme`, analytics via `--gaID`, extra Markdown pages via `--includes`.
-2. **Override names not in the wiring map.** Anything not matching the page-level / block-level lists above. Custom user partials must be inlined into the surrounding override by hand.
-
-### CSS rewrites
-
-Conservative mode (default) rewrites class names in `.css` / `.scss` / `.sass` only. Aggressive mode (`--aggressive`) also rewrites `.html` / `.ts` / `.tsx` / `.js` - risky against string-literal class names, so the recommended workflow is `--dry-run --aggressive` first.
-
-`data-compodoc="<block-name>"` attributes are intentionally preserved.
-
-### ESM-package corner case
-
-If your project's `package.json` has `"type": "module"`, the `.js` overrides emitted by the converter will fail to load - the loader calls `require()`. Workarounds:
-
-- Rename converted outputs to `.cjs`, OR
-- Remove the `"type": "module"` declaration in the templates directory (if your overrides live in a sub-folder), OR
-- Keep the templates directory outside the ESM package boundary entirely.
-
-`compodocx migrate inspect` flags this case automatically.

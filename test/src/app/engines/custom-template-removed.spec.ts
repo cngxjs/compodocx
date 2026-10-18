@@ -44,10 +44,10 @@ describe('custom templates with removed or renamed override names', () => {
         loadCustomTemplates(dir);
         const warnings = vi.mocked(logger.warn).mock.calls.map(call => String(call[0]));
         expect(warnings).toContain(
-            'Custom template module.js is ignored (its page no longer exists); see `compodocx migrate`'
+            'Custom template module.js is ignored (its page no longer exists); see MIGRATION.md'
         );
         expect(warnings).toContain(
-            'Custom template modules.js is ignored (its page no longer exists); see `compodocx migrate`'
+            'Custom template modules.js is ignored (its page no longer exists); see MIGRATION.md'
         );
         expect(renderCustomTemplate('module', {})).toBeNull();
         expect(renderCustomTemplate('modules', {})).toBeNull();
@@ -61,7 +61,7 @@ describe('custom templates with removed or renamed override names', () => {
         expect(warnings[1]).toContain(
             'miscellaneous-functions.js is ignored (renamed to "utilities"'
         );
-        expect(warnings.every(w => w.includes('compodocx migrate'))).toBe(true);
+        expect(warnings.every(w => w.includes('see MIGRATION.md'))).toBe(true);
         expect(renderCustomTemplate('bucket-landing', {})).toBeNull();
         expect(renderCustomTemplate('overview', {})).toBe('<p>overview</p>');
     });
