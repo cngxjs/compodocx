@@ -1,4 +1,7 @@
-import { buildPlaygroundManifest } from '../../../../../src/app/engines/stackblitz/build-playground-manifest';
+import {
+    buildPlaygroundManifest,
+    typescriptDefaultFor
+} from '../../../../../src/app/engines/stackblitz/build-playground-manifest';
 import {
     STACKBLITZ_FILE_CAP,
     STACKBLITZ_TEMPLATE
@@ -32,6 +35,35 @@ const consumerPkg = {
         'random-other-pkg': '^1.0.0'
     }
 };
+
+describe('typescriptDefaultFor', () => {
+    it('picks the TypeScript the Angular major accepts', () => {
+        expect(typescriptDefaultFor('^21.0.0')).to.equal('~5.9.2');
+        expect(typescriptDefaultFor('^22.2.0')).to.equal('~6.0.2');
+        expect(typescriptDefaultFor('>=22.0.0 <23.0.0')).to.equal('~6.0.2');
+        expect(typescriptDefaultFor('latest')).to.equal('~5.9.2');
+    });
+
+    it('feeds the manifest when the project declares no typescript', () => {
+        const pkgFor = (manifest: object) => {
+            const result = buildPlaygroundManifest(
+                'MyButton',
+                block,
+                resolverFor([rootNode]),
+                manifest
+            );
+            return result.ok ? JSON.parse(result.value.files['package.json']) : undefined;
+        };
+        expect(pkgFor(consumerPkg).devDependencies.typescript).to.equal('~5.9.2');
+        expect(
+            pkgFor({ peerDependencies: { '@angular/core': '^22.2.0' } }).devDependencies.typescript
+        ).to.equal('~6.0.2');
+        expect(
+            pkgFor({ dependencies: { '@angular/core': '^22.2.0', typescript: '~6.0.3' } })
+                .devDependencies.typescript
+        ).to.equal('~6.0.3');
+    });
+});
 
 describe('buildPlaygroundManifest', () => {
     it('emits a complete Angular CLI 21 standalone project', () => {
