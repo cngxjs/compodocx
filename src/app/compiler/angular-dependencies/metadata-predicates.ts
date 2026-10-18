@@ -1,4 +1,6 @@
+import type { ts } from 'ts-morph';
 import { LEGACY_CLASS_DECORATORS } from '../legacy-scan';
+import { isAngularServiceDecorator } from './angular-service';
 
 export class MetadataPredicates {
     public parseDecorators(decorators, type: string): boolean {
@@ -49,8 +51,9 @@ export class MetadataPredicates {
         return this.parseDecorator(metadata, 'Injectable');
     }
 
-    public hasInternalDecorator(metadatas) {
+    public hasInternalDecorator(metadatas, sourceFile?: ts.SourceFile) {
         return (
+            metadatas.some(decorator => isAngularServiceDecorator(decorator, sourceFile)) ||
             this.parseDecorators(metadatas, 'Component') ||
             this.parseDecorators(metadatas, 'Pipe') ||
             this.parseDecorators(metadatas, 'Directive') ||

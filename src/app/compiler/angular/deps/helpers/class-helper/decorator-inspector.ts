@@ -1,5 +1,6 @@
 import { SyntaxKind, type ts } from 'ts-morph';
 import { getNodeDecorators } from '../../../../../../utils/node.util';
+import { isAngularServiceDecorator } from '../../../../angular-dependencies/angular-service';
 
 export class DecoratorInspector {
     public hasDecoratorType(decorator: ts.Decorator, ...types: string[]): boolean {
@@ -15,15 +16,24 @@ export class DecoratorInspector {
     }
 
     public isServiceDecorator(decorator) {
-        return this.hasDecoratorType(decorator, 'Injectable');
+        return (
+            this.hasDecoratorType(decorator, 'Injectable') || isAngularServiceDecorator(decorator)
+        );
     }
 
-    /** A class decorated with @Component, @Directive, @Pipe or @Injectable. */
+    /** A class decorated with @Component, @Directive, @Pipe, @Injectable or Angular's @Service. */
     public isAngularClass(node): boolean {
         return (
             !!node &&
-            getNodeDecorators(node).some((decorator: ts.Decorator) =>
-                this.hasDecoratorType(decorator, 'Component', 'Directive', 'Pipe', 'Injectable')
+            getNodeDecorators(node).some(
+                (decorator: ts.Decorator) =>
+                    this.hasDecoratorType(
+                        decorator,
+                        'Component',
+                        'Directive',
+                        'Pipe',
+                        'Injectable'
+                    ) || isAngularServiceDecorator(decorator)
             )
         );
     }

@@ -5,6 +5,7 @@ export class ExtendsMerger {
     private components;
     private classes;
     private injectables;
+    private services;
     private directives;
     private aliases;
 
@@ -21,6 +22,7 @@ export class ExtendsMerger {
         this.components = deps.components;
         this.classes = deps.classes;
         this.injectables = deps.injectables;
+        this.services = deps.services ?? [];
         this.directives = deps.directives;
         this.aliases = deps.aliases;
 
@@ -153,6 +155,7 @@ export class ExtendsMerger {
 
         this.classes.forEach(mergeExtendedClasses);
         this.injectables.forEach(mergeExtendedClasses);
+        this.services.forEach(mergeExtendedClasses);
         this.directives.forEach(mergeExtendedClasses);
         return deps;
     }
@@ -186,6 +189,7 @@ export class ExtendsMerger {
             ...this.components,
             ...this.classes,
             ...this.injectables,
+            ...this.services,
             ...this.directives
         ];
 
