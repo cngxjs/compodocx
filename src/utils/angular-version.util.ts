@@ -1,4 +1,3 @@
-import type { IAngularApi } from './angular-api.util';
 import { logger } from './logger';
 
 export class AngularVersionUtil {
@@ -50,10 +49,6 @@ export class AngularVersionUtil {
             }
         }
         return undefined;
-    }
-
-    public getApiLink(api: IAngularApi): string {
-        return `https://angular.dev/${api.path}`;
     }
 }
 

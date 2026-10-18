@@ -1,8 +1,5 @@
 import { Project, SyntaxKind, ts } from 'ts-morph';
-import {
-    ComponentCache,
-    ComponentHelper
-} from '../../../../../../../src/app/compiler/angular/deps/helpers/component-helper';
+import { ComponentHelper } from '../../../../../../../src/app/compiler/angular/deps/helpers/component-helper';
 
 describe('ComponentHelper', () => {
     let componentHelper: ComponentHelper;
@@ -624,55 +621,6 @@ describe('ComponentHelper', () => {
                 { name: 'Directive1', unresolved: true },
                 { name: 'Directive2', unresolved: true }
             ]);
-        });
-    });
-
-    describe('ComponentCache', () => {
-        let cache: ComponentCache;
-
-        beforeEach(() => {
-            cache = new ComponentCache();
-        });
-
-        describe('get', () => {
-            it('should return cached value for existing key', () => {
-                const testValue = { name: 'TestComponent' };
-                cache.set('testKey', testValue);
-
-                const result = cache.get('testKey');
-
-                expect(result).to.equal(testValue);
-            });
-
-            it('should return undefined for non-existing key', () => {
-                const result = cache.get('nonExistingKey');
-
-                expect(result).to.be.undefined;
-            });
-        });
-
-        describe('set', () => {
-            it('should store value in cache', () => {
-                const testValue = { selector: 'app-test' };
-
-                cache.set('testKey', testValue);
-                const result = cache.get('testKey');
-
-                expect(result).to.equal(testValue);
-            });
-
-            it('should overwrite existing value', () => {
-                const originalValue = { name: 'Original' };
-                const newValue = { name: 'New' };
-
-                cache.set('testKey', originalValue);
-                cache.set('testKey', newValue);
-
-                const result = cache.get('testKey');
-
-                expect(result).to.equal(newValue);
-                expect(result).to.not.equal(originalValue);
-            });
         });
     });
 });

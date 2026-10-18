@@ -10,5 +10,12 @@ export const RENAMED_OVERRIDES: Readonly<Record<string, string>> = {
     'miscellaneous-enumeration': 'enumeration'
 };
 
-/** Override names whose page no longer exists; a file with such a name is ignored. */
-export const REMOVED_OVERRIDES: readonly string[] = ['bucket-landing', 'module', 'modules'];
+/** Override names whose page or block no longer exists; a file with such a name is ignored. */
+export const REMOVED_OVERRIDES: readonly string[] = [
+    'bucket-landing',
+    'module',
+    'modules',
+    'block-enum',
+    'block-typealias',
+    'block-host-listener'
+];

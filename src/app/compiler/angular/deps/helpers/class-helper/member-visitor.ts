@@ -439,49 +439,40 @@ export class MemberVisitor {
                 ) {
                     if (
                         !(
-                            this.decoratorInspector.isInternal(member) &&
-                            Configuration.mainData.disableInternal
+                            this.decoratorInspector.isProtected(member) &&
+                            Configuration.mainData.disableProtected
                         )
                     ) {
-                        if (
-                            !(
-                                this.decoratorInspector.isProtected(member) &&
-                                Configuration.mainData.disableProtected
-                            )
+                        if (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) {
+                            methods.push(this.visitMethodDeclaration(member, sourceFile));
+                        } else if (
+                            ts.isPropertyDeclaration(member) ||
+                            ts.isPropertySignature(member)
                         ) {
-                            if (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) {
-                                methods.push(this.visitMethodDeclaration(member, sourceFile));
-                            } else if (
-                                ts.isPropertyDeclaration(member) ||
-                                ts.isPropertySignature(member)
-                            ) {
-                                properties.push(this.visitProperty(member, sourceFile));
-                            } else if (ts.isCallSignatureDeclaration(member)) {
-                                properties.push(this.visitCallDeclaration(member, sourceFile));
-                            } else if (
-                                ts.isGetAccessorDeclaration(member) ||
-                                ts.isSetAccessorDeclaration(member)
-                            ) {
-                                this.addAccessor(accessors, members[i], sourceFile);
-                            } else if (ts.isIndexSignatureDeclaration(member)) {
-                                indexSignatures.push(
-                                    this.visitIndexDeclaration(member, sourceFile)
-                                );
-                            } else if (
-                                ts.isConstructorDeclaration(member) &&
-                                !(injectsThroughConstructor && member.parameters.length > 0)
-                            ) {
-                                const _constructorProperties = this.visitConstructorProperties(
-                                    member,
-                                    sourceFile
-                                );
-                                let j = 0;
-                                const len = _constructorProperties.length;
-                                for (j; j < len; j++) {
-                                    properties.push(_constructorProperties[j]);
-                                }
-                                constructor = this.visitConstructorDeclaration(member, sourceFile);
+                            properties.push(this.visitProperty(member, sourceFile));
+                        } else if (ts.isCallSignatureDeclaration(member)) {
+                            properties.push(this.visitCallDeclaration(member, sourceFile));
+                        } else if (
+                            ts.isGetAccessorDeclaration(member) ||
+                            ts.isSetAccessorDeclaration(member)
+                        ) {
+                            this.addAccessor(accessors, members[i], sourceFile);
+                        } else if (ts.isIndexSignatureDeclaration(member)) {
+                            indexSignatures.push(this.visitIndexDeclaration(member, sourceFile));
+                        } else if (
+                            ts.isConstructorDeclaration(member) &&
+                            !(injectsThroughConstructor && member.parameters.length > 0)
+                        ) {
+                            const _constructorProperties = this.visitConstructorProperties(
+                                member,
+                                sourceFile
+                            );
+                            let j = 0;
+                            const len = _constructorProperties.length;
+                            for (j; j < len; j++) {
+                                properties.push(_constructorProperties[j]);
                             }
+                            constructor = this.visitConstructorDeclaration(member, sourceFile);
                         }
                     }
                 }

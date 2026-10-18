@@ -90,12 +90,10 @@ Block-level overrides replace a region inside a page rather than the whole page:
 | `block-input.js` | Inputs section on the API tab |
 | `block-output.js` | Outputs section on the API tab |
 | `block-accessors.js` | Accessors section on the API tab |
-| `block-host-listener.js` / `block-host-listeners.js` | Single host listener / host listeners section |
+| `block-host-listeners.js` | Host listeners section |
 | `block-host-bindings.js` | Host bindings section |
 | `block-derived-state.js` | Derived state (`computed` / `linkedSignal`) section |
 | `block-constructor.js` | Constructor section |
-| `block-enum.js` | Enum members block on enumeration detail pages |
-| `block-typealias.js` | Type alias definition block on typealias detail pages |
 | `block-index.js` | Index grid on the API tab |
 | `block-index-signatures.js` | Index signatures section |
 | `block-playground.js` | Whole Playground tab panel |

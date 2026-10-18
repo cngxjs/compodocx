@@ -537,7 +537,7 @@ The `feature` context targets the page of a feature, `features/<entry point>/<fe
 
 ### Block-level
 
-`block-theming`, `block-theming-token`, `block-theming-mixin`, `block-routed-at`, `block-method`, `block-property`, `block-input`, `block-output`, `block-accessors`, `block-host-listener`, `block-host-listeners`, `block-host-bindings`, `block-derived-state`, `block-constructor`, `block-enum`, `block-typealias`, `block-index`, `block-index-signatures`, `block-playground`, `playground-content`, `referenced-by`, `version-switcher`
+`block-theming`, `block-theming-token`, `block-theming-mixin`, `block-routed-at`, `block-method`, `block-property`, `block-input`, `block-output`, `block-accessors`, `block-host-listeners`, `block-host-bindings`, `block-derived-state`, `block-constructor`, `block-index`, `block-index-signatures`, `block-playground`, `playground-content`, `referenced-by`, `version-switcher`
 
 The `referenced-by` block (v0.6.0+) renders the "Used by" chip list: the declarations that use the symbol, from the project analysis. Data: `{ entries: ReferencedByEntry[], depth: number }`; `ReferencedByEntry = { name, kind, hrefPrefix }`.
 
@@ -545,6 +545,7 @@ The `referenced-by` block (v0.6.0+) renders the "Used by" chip list: the declara
 
 - `modules`, `module` - removed in v0.9.0 together with the module pages.
 - `bucket-landing` - removed in v0.9.0 together with the `categories/` pages; see "Breaking change in 0.9.0: features replace category buckets".
+- `block-enum`, `block-typealias`, `block-host-listener` - removed in v0.9.0; no page rendered these blocks. `block-host-listeners` covers host listeners.
 - `miscellaneous-functions`, `miscellaneous-variables`, `miscellaneous-typealiases`, `miscellaneous-enumerations`, `miscellaneous-function`, `miscellaneous-variable`, `miscellaneous-typealias`, `miscellaneous-enumeration` - renamed in v0.9.0, see the table in "Breaking change in 0.9.0: dependency injection and utilities pages".
 - `search-results`, `search-input` - Pagefind replaces Lunr and ships its own UI shell. No override hook.
 - `breadcrumbs` - replaced by inline rendering in the entity hero. Override the page-level template if you need to change breadcrumb markup.

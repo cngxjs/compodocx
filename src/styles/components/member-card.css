@@ -20,14 +20,6 @@
     }
 }
 
-.cdx-member-card--deprecated {
-    opacity: 0.85;
-}
-
-.cdx-member-card--deprecated .cdx-member-name .cdx-member-name-text {
-    text-decoration: line-through;
-}
-
 [data-compodoc^='block-'] > h3 {
     font-family: var(--font-sans);
     font-size: 13px;

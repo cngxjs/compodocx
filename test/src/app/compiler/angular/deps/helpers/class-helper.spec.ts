@@ -161,26 +161,6 @@ describe('ClassHelper', () => {
         });
     });
 
-    describe('visitTypeIndex', () => {
-        it('should return empty string for undefined node', () => {
-            const result = classHelper.visitTypeIndex(undefined);
-            expect(result).toBe('');
-        });
-
-        it('should handle indexed access types with literal', () => {
-            const node = {
-                type: {
-                    indexType: {
-                        literal: { text: 'key' }
-                    },
-                    kind: SyntaxKind.IndexedAccessType
-                }
-            } as any;
-            const result = classHelper.visitTypeIndex(node);
-            expect(result).toBe('key');
-        });
-    });
-
     describe('visitClassDeclaration', () => {
         let mockSourceFile: ts.SourceFile;
 

@@ -49,10 +49,6 @@ export class ClassHelper {
         };
     }
 
-    public visitTypeIndex(node): string {
-        return this.typeRenderer.visitTypeIndex(node);
-    }
-
     public visitType(node): string {
         return this.typeRenderer.visitType(node);
     }

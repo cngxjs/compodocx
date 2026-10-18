@@ -107,6 +107,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **`afterRender` badge.** Angular removed `afterRender` before v21; `afterEveryRender`, `afterNextRender` and `afterRenderEffect` keep their badges.
 - **Fallback to the old `compodoc-*` localStorage keys.** The theme, dark mode and sidebar state read only the `compodocx-*` keys.
 - **Parent-frame navigation message.** Pages no longer post a `compodoc-iframe-navigate` message to a parent frame.
+- **Template overrides `block-enum`, `block-typealias` and `block-host-listener`.** No page rendered these blocks; an override file with one of these names is ignored with a warning.
 
 ### Fixed
 

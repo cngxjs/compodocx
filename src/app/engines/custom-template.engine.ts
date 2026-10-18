@@ -59,7 +59,7 @@ export function loadCustomTemplates(templatePath: string): void {
         if (REMOVED_OVERRIDES.includes(name) || replacement !== undefined) {
             const hint = replacement
                 ? `renamed to "${replacement}", rename the file`
-                : 'its page no longer exists';
+                : 'its page or block no longer exists';
             logger.warn(`Custom template ${file} is ignored (${hint}); see MIGRATION.md`);
             continue;
         }

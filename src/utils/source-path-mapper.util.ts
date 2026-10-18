@@ -115,46 +115,6 @@ class SourcePathMapper {
 
         return patterns;
     }
-
-    /**
-     * Map multiple dist files to source files
-     */
-    public mapMultipleDistToSource(distFiles: Set<string>): Map<string, string> {
-        const result = new Map<string, string>();
-
-        for (const distFile of distFiles) {
-            const sourceFile = this.mapDistToSource(distFile);
-            if (sourceFile) {
-                result.set(distFile, sourceFile);
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Get source files for all declaration files that export a given symbol
-     */
-    public getSourceFilesForSymbol(
-        symbolName: string,
-        symbolToFiles: Map<string, Set<string>>
-    ): Set<string> {
-        const sourceFiles = new Set<string>();
-
-        const declarationFiles = symbolToFiles.get(symbolName);
-        if (!declarationFiles) {
-            return sourceFiles;
-        }
-
-        for (const declFile of declarationFiles) {
-            const sourceFile = this.mapDistToSource(declFile);
-            if (sourceFile) {
-                sourceFiles.add(sourceFile);
-            }
-        }
-
-        return sourceFiles;
-    }
 }
 
 /**
