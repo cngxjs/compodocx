@@ -77,6 +77,14 @@ const breakComma = (text: string): string => {
     return escaped.replaceAll(',', ',<br>');
 };
 
+/**
+ * From Angular 22 on a component without `changeDetection` runs as OnPush.
+ * Needs the project's Angular major; unknown or older majors show nothing.
+ */
+const isOnPushByDefault = (c: any): boolean =>
+    (c.changeDetection == null || c.changeDetection === '') &&
+    (Configuration.mainData.angularMajor ?? 0) >= 22;
+
 const ComponentMetadata = (c: any, depth: number): string => {
     if (!isInfoSection('metadata')) {
         return '';
@@ -97,7 +105,7 @@ const ComponentMetadata = (c: any, depth: number): string => {
     codeField('selector', c.selector);
     codeField('exportAs', c.exportAs);
     codeField('animations', c.animations);
-    codeField('changeDetection', c.changeDetection);
+    codeField('changeDetection', isOnPushByDefault(c) ? 'OnPush (default)' : c.changeDetection);
     codeField('encapsulation', c.encapsulation);
     codeField('preserveWhitespaces', c.preserveWhitespaces);
     codeField('interpolation', c.interpolation);
@@ -442,7 +450,7 @@ export const ComponentPage = (data: any): string => {
                     {c.zoneless ? <span class="cdx-badge cdx-badge--zoneless">Zoneless</span> : ''}
                     {(() => {
                         const cd = String(c.changeDetection ?? '');
-                        return cd.includes('OnPush') ? (
+                        return cd.includes('OnPush') || isOnPushByDefault(c) ? (
                             <span class="cdx-badge cdx-badge--trait">OnPush</span>
                         ) : (
                             ''

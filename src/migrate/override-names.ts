@@ -41,6 +41,7 @@ export const PAGE_LEVEL_OVERRIDES: readonly string[] = [
     'pipe',
     'resolver',
     'routes',
+    'service',
     'style',
     'token',
     'typealias',

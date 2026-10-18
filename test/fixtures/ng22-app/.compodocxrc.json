@@ -1,0 +1,4 @@
+{
+    "$schema": "../../../src/config/schema.json",
+    "name": "Angular 22 app"
+}

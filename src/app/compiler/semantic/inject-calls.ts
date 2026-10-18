@@ -34,6 +34,7 @@ const CONTEXT_APIS: ReadonlySet<string> = new Set([
     'resource',
     'rxResource',
     'httpResource',
+    'injectAsync',
     'outputFromObservable',
     'pendingUntilEvent',
     'assertInInjectionContext'

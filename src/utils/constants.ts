@@ -23,6 +23,7 @@ export const COMPODOC_CONSTANTS = {
                 'component',
                 'directive',
                 'injectable',
+                'service',
                 'pipe',
                 'class',
                 'interface',
@@ -72,7 +73,7 @@ export const COMPODOC_CONSTANTS = {
             href: '#example',
             'data-link': 'example',
             label: 'Examples',
-            depTypes: ['component', 'directive', 'injectable', 'pipe']
+            depTypes: ['component', 'directive', 'injectable', 'service', 'pipe']
         },
         {
             id: 'playground',
@@ -159,6 +160,7 @@ export const MENU_TOGGLE_KEYS: ReadonlyArray<string> = [
     'entities',
     'classes',
     'injectables',
+    'services',
     'dependency-injection',
     'guards',
     'interfaces',

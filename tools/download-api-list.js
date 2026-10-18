@@ -63,34 +63,72 @@ function convertManifest(manifest) {
     });
 }
 
-https
-    .get(MANIFEST_URL, res => {
-        if (res.statusCode !== 200) {
-            console.error(`Download failed: ${res.statusCode}`);
-            process.exit(1);
+/**
+ * Merge a fresh list into the current one. Entries the manifest no longer
+ * lists stay (projects keep using deprecated and removed APIs), entries it
+ * still lists take the manifest's values, new entries and packages are
+ * appended in manifest order, so existing lookups resolve as before.
+ */
+function mergeApiList(current, fresh) {
+    const freshByName = new Map(fresh.map(pkg => [pkg.name, pkg]));
+    const merged = current.map(pkg => {
+        const update = freshByName.get(pkg.name);
+        if (!update) {
+            return pkg;
         }
+        const updates = new Map(update.items.map(item => [item.title, item]));
+        const items = pkg.items.map(item => updates.get(item.title) ?? item);
+        const known = new Set(pkg.items.map(item => item.title));
+        return {
+            ...pkg,
+            ...update,
+            items: [...items, ...update.items.filter(item => !known.has(item.title))]
+        };
+    });
+    const knownPackages = new Set(current.map(pkg => pkg.name));
+    return [...merged, ...fresh.filter(pkg => !knownPackages.has(pkg.name))];
+}
 
-        let data = '';
-        res.on('data', chunk => {
-            data += chunk;
-        });
-        res.on('end', () => {
-            try {
-                const manifest = JSON.parse(data);
-                const apiList = convertManifest(manifest);
-                const totalEntries = apiList.reduce((sum, pkg) => sum + pkg.items.length, 0);
+const countEntries = list => list.reduce((sum, pkg) => sum + pkg.items.length, 0);
 
-                fs.writeFileSync(OUTPUT_PATH, JSON.stringify(apiList, null, 2));
-                console.log(
-                    `Written ${apiList.length} packages with ${totalEntries} entries to ${OUTPUT_PATH}`
-                );
-            } catch (err) {
-                console.error('Failed to parse manifest:', err.message);
+function download() {
+    https
+        .get(MANIFEST_URL, res => {
+            if (res.statusCode !== 200) {
+                console.error(`Download failed: ${res.statusCode}`);
                 process.exit(1);
             }
+
+            let data = '';
+            res.on('data', chunk => {
+                data += chunk;
+            });
+            res.on('end', () => {
+                try {
+                    const manifest = JSON.parse(data);
+                    const current = JSON.parse(fs.readFileSync(OUTPUT_PATH, 'utf8'));
+                    const apiList = mergeApiList(current, convertManifest(manifest));
+                    const before = countEntries(current);
+                    const after = countEntries(apiList);
+
+                    fs.writeFileSync(OUTPUT_PATH, JSON.stringify(apiList, null, 2));
+                    console.log(
+                        `Written ${apiList.length} packages with ${after} entries to ${OUTPUT_PATH} (was ${before}, ${after - before} added)`
+                    );
+                } catch (err) {
+                    console.error('Failed to parse manifest:', err.message);
+                    process.exit(1);
+                }
+            });
+        })
+        .on('error', err => {
+            console.error('Download error:', err.message);
+            process.exit(1);
         });
-    })
-    .on('error', err => {
-        console.error('Download error:', err.message);
-        process.exit(1);
-    });
+}
+
+if (require.main === module) {
+    download();
+}
+
+module.exports = { convertManifest, mergeApiList };

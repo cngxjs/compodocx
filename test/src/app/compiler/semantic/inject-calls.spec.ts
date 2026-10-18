@@ -109,6 +109,12 @@ describe('inject() detection', () => {
 });
 
 describe('injection context APIs', () => {
+    it('counts injectAsync as an injection context API', () => {
+        const source =
+            "import { injectAsync } from '@angular/core';\nfunction f() { injectAsync(() => import('./x')); }";
+        expect(contextApis(source)).toEqual(['injectAsync']);
+    });
+
     it('finds an effect call', () => {
         expect(contextApis(`${CORE}function f() { effect(() => undefined); }`)).toEqual(['effect']);
     });

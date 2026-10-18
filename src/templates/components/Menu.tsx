@@ -296,6 +296,7 @@ const KINDS_WITH_API_TAB: ReadonlySet<EntityKind> = new Set<EntityKind>([
     'directive',
     'pipe',
     'injectable',
+    'service',
     'class',
     'interface',
     'guard',
@@ -461,6 +462,7 @@ const kindIconHtml = (kind: TableKind): string => {
         case 'directive':
             return IconDirective();
         case 'injectable':
+        case 'service':
             return IconInjectable();
         case 'token':
             return IconToken();
@@ -897,6 +899,7 @@ const MENU_LISTS: readonly (readonly [string, TableKind])[] = [
     ['components', 'component'],
     ['directives', 'directive'],
     ['injectables', 'injectable'],
+    ['services', 'service'],
     ['tokens', 'token'],
     ['pipes', 'pipe'],
     ['classes', 'class'],
@@ -1039,6 +1042,7 @@ export const Menu = (props: MenuProps): string => {
     const components = d.components ?? [];
     const directives = d.directives ?? [];
     const injectables = d.injectables ?? [];
+    const services = d.services ?? [];
     const pipes = d.pipes ?? [];
     const entities = d.entities ?? [];
     const styles = styleMenuItems(d.symbols);
@@ -1274,6 +1278,16 @@ export const Menu = (props: MenuProps): string => {
                                 iconHtml: IconInjectable(),
                                 labelKey: 'injectables',
                                 kind: 'injectable',
+                                groupDepth: GROUP_EXPAND_DEPTH
+                            })}
+                        {services.length > 0 &&
+                            EntitySection({
+                                items: services,
+                                categorized: byFeature(services, 'service'),
+                                type: 'services',
+                                iconHtml: IconInjectable(),
+                                labelKey: 'services',
+                                kind: 'service',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {DependencyInjectionChapter(d)}

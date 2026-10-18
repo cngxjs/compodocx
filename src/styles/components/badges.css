@@ -89,7 +89,8 @@
     --cdx-badge-base: var(--color-cdx-badge-effect, hsl(45 70% 40%));
 }
 .cdx-badge--resource,
-.cdx-badge--rx-resource {
+.cdx-badge--rx-resource,
+.cdx-badge--http-resource {
     --cdx-badge-base: var(--color-cdx-badge-resource, hsl(190 55% 38%));
 }
 .cdx-badge--model {
@@ -130,7 +131,8 @@
 }
 
 /* DI + host */
-.cdx-badge--inject {
+.cdx-badge--inject,
+.cdx-badge--inject-async {
     --cdx-badge-base: var(--color-cdx-badge-inject, hsl(320 45% 45%));
 }
 .cdx-badge--host-binding,
@@ -249,7 +251,8 @@
     color: var(--color-cdx-text-inverse, white);
     border: none;
 }
-.cdx-badge--entity-injectable {
+.cdx-badge--entity-injectable,
+.cdx-badge--entity-service {
     background: var(--color-cdx-entity-service);
     color: var(--color-cdx-text-inverse, white);
     border: none;
@@ -316,7 +319,8 @@
     background: var(--color-cdx-entity-interceptor);
     color: var(--color-cdx-text-inverse);
 }
-.dark .cdx-badge--entity-injectable {
+.dark .cdx-badge--entity-injectable,
+.dark .cdx-badge--entity-service {
     background: var(--color-cdx-entity-service);
     color: var(--color-cdx-text-inverse);
 }

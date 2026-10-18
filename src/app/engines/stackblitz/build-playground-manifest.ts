@@ -158,7 +158,16 @@ const NON_ANGULAR_PEER_DEFAULTS: Record<string, string> = {
 // - keeping them out of `dependencies` keeps the runtime tree honest.
 const ANGULAR_DEV_PEERS = ['@angular/cli', '@angular/build', '@angular/compiler-cli'];
 
+// TypeScript the Angular compiler accepts, by Angular major: 21 takes 5.9,
+// 22 takes 6.0. Used only when the project declares no `typescript`.
 const TYPESCRIPT_DEV_PEER_DEFAULT = '~5.9.2';
+const TYPESCRIPT_DEV_PEER_ANGULAR_22 = '~6.0.2';
+
+/** The TypeScript default for an Angular range: its lowest major decides. */
+export const typescriptDefaultFor = (angularRange: string): string => {
+    const major = Number(/(\d+)/.exec(angularRange)?.[1] ?? 0);
+    return major >= 22 ? TYPESCRIPT_DEV_PEER_ANGULAR_22 : TYPESCRIPT_DEV_PEER_DEFAULT;
+};
 
 // Optional ecosystem peers - only forwarded when the consumer declares them.
 const OPTIONAL_ANGULAR_PEERS = ['@angular/cdk', '@angular/material'];
@@ -233,7 +242,7 @@ const collectAllDeps = (
     for (const peer of ANGULAR_DEV_PEERS) {
         devDependencies[peer] = provided[peer] ?? angularRef;
     }
-    devDependencies.typescript = provided.typescript ?? TYPESCRIPT_DEV_PEER_DEFAULT;
+    devDependencies.typescript = provided.typescript ?? typescriptDefaultFor(angularRef);
     return { dependencies, devDependencies };
 };
 

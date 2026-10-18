@@ -47,6 +47,12 @@ const GROUP_META: Record<string, GroupMeta & { singular: string }> = {
         badge: 'cdx-badge--entity-injectable',
         order: 3
     },
+    service: {
+        label: 'Services',
+        singular: 'Service',
+        badge: 'cdx-badge--entity-service',
+        order: 3.5
+    },
     class: { label: 'Classes', singular: 'Class', badge: 'cdx-badge--entity-class', order: 4 },
     interface: {
         label: 'Interfaces',

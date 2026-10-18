@@ -40,6 +40,7 @@ const fixture = (): Required<Omit<EngineData, 'miscellaneous'>> & {
             duplicateName: 'SettingsService-2'
         })
     ],
+    services: [],
     tokens: [item('DEFAULT_PAGE_SIZE', 'src/tokens.ts')],
     pipes: [],
     classes: [item('Page', 'src/page.ts'), item('Foo', 'src/foo.class.ts')],

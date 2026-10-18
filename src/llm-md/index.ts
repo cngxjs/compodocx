@@ -16,7 +16,9 @@ import type {
     ExportData,
     ExportEnumeration,
     ExportFunction,
+    ExportInjectable,
     ExportSemanticFacts,
+    ExportService,
     ExportTypeAlias,
     ExportVariable
 } from '../app/interfaces/export-data.interface';
@@ -32,6 +34,7 @@ import {
     emitInterceptor,
     emitInterface,
     emitPipe,
+    emitService,
     emitTypeAlias,
     emitVariable
 } from './emit';
@@ -104,6 +107,10 @@ const buildHeader = (meta: LlmMdSnapshotMeta, options: LlmMdEmitOptions): string
  * newline so file writes leave a clean line at EOF and stdout pipes don't
  * stick the next prompt onto the last section.
  */
+/** `@Service` classes share the injectables section; their entries say which decorator. */
+const emitInjectableOrService = (entity: ExportInjectable | ExportService): string =>
+    entity.type === 'service' ? emitService(entity) : emitInjectable(entity);
+
 export const emitLlmMd = (input: LlmMdInput): string => {
     const { meta, options, data } = input;
     const misc = data.miscellaneous;
@@ -113,7 +120,11 @@ export const emitLlmMd = (input: LlmMdInput): string => {
         renderSection('Components', data.components, emitComponent),
         renderSection('Directives', data.directives, emitDirective),
         renderSection('Pipes', data.pipes, emitPipe),
-        renderSection('Services / Injectables', data.injectables, emitInjectable),
+        renderSection(
+            'Services / Injectables',
+            [...(data.injectables ?? []), ...(data.services ?? [])],
+            emitInjectableOrService
+        ),
         renderSection('Guards', data.guards, emitGuard),
         renderSection('Interceptors', data.interceptors, emitInterceptor),
         renderSection('Classes', data.classes, emitClass),

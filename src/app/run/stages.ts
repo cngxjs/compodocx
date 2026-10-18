@@ -15,6 +15,7 @@ export interface SourceCounts {
     readonly directives: number;
     readonly entities: number;
     readonly injectables: number;
+    readonly services: number;
     readonly tokens: number;
     readonly interceptors: number;
     readonly guards: number;
@@ -90,6 +91,11 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
         key: 'injectable',
         when: hasAny(c => c.injectables),
         run: step(ctx => ctx.generators.injectable.prepare())
+    },
+    {
+        key: 'service',
+        when: hasAny(c => c.services),
+        run: step(ctx => ctx.generators.service.prepare())
     },
     { key: 'token', when: hasAny(c => c.tokens), run: step(ctx => ctx.generators.token.prepare()) },
     {
@@ -227,6 +233,7 @@ export const countsFromEngine = (routeCount = 0): SourceCounts => ({
     directives: DependenciesEngine.directives.length,
     entities: DependenciesEngine.entities.length,
     injectables: DependenciesEngine.injectables.length,
+    services: DependenciesEngine.services?.length ?? 0,
     tokens: DependenciesEngine.tokens?.length ?? 0,
     interceptors:
         DependenciesEngine.interceptors.length +
@@ -252,6 +259,7 @@ export const countsFromDiff = (diff: DependenciesData, routeCount = 0): SourceCo
     directives: diff.directives.length,
     entities: diff.entities.length,
     injectables: diff.injectables.length,
+    services: diff.services?.length ?? 0,
     tokens: diff.tokens?.length ?? 0,
     interceptors: diff.interceptors.length + functionalCount(diff.miscellaneous, 'interceptor'),
     guards: diff.guards.length + functionalCount(diff.miscellaneous, 'guard'),

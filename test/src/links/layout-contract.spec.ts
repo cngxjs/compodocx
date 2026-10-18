@@ -62,6 +62,7 @@ describe('page layout contract', () => {
         ['component', 'components'],
         ['directive', 'directives'],
         ['injectable', 'injectables'],
+        ['service', 'services'],
         ['pipe', 'pipes'],
         ['class', 'classes'],
         ['interface', 'interfaces'],

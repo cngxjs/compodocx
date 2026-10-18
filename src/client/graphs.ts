@@ -274,6 +274,7 @@ const entityColorMap: Record<string, string> = {
     pipe: 'var(--color-cdx-entity-pipe, #ec4899)',
     external: 'var(--color-cdx-text-muted, #888)',
     injectable: 'var(--color-cdx-entity-service, #f59e0b)',
+    service: 'var(--color-cdx-entity-service, #f59e0b)',
     guard: 'var(--color-cdx-entity-guard, #ef4444)',
     interceptor: 'var(--color-cdx-entity-interceptor, #c026d3)'
 };

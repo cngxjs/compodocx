@@ -220,6 +220,7 @@ export const TRANSLATION_JA_JP = {
     'feature-type': '機能タイプ',
     'other-providers': 'その他のプロバイダー',
     'components-and-directives': 'コンポーネントとディレクティブ',
+    service: 'サービス',
     services: 'サービス',
     configuration: '構成',
     constants: '定数',

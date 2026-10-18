@@ -13,6 +13,7 @@ export interface PageInterface {
     interface?: any;
     directive?: any;
     injectable?: any;
+    service?: any;
     additionalPage?: any;
     files?: any;
     data?: any;

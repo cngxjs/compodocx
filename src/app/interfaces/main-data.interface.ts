@@ -41,6 +41,7 @@ export interface MainDataInterface {
     entities: any;
     directives: any;
     injectables: any;
+    services: any;
     tokens?: any;
     interceptors: any;
     guards: any;
@@ -106,6 +107,8 @@ export interface MainDataInterface {
     unitTestCoverage: string;
     unitTestData: Object;
     angularVersion: string;
+    /** Major of `@angular/core` from the package.json (dependencies, peer, dev); internal. */
+    angularMajor?: number;
     exportFormat: string;
     /** Indent size (0–8) for `--exportFormat json`. 0 = single-line. */
     jsonIndent: number;

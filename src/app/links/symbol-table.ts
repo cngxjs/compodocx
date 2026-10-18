@@ -42,6 +42,7 @@ export interface EngineData {
     readonly components?: List;
     readonly directives?: List;
     readonly injectables?: List;
+    readonly services?: List;
     readonly tokens?: List;
     readonly pipes?: List;
     readonly classes?: List;
@@ -65,6 +66,8 @@ const listOf = (data: EngineData, kind: EntityKind): List => {
             return data.directives;
         case 'injectable':
             return data.injectables;
+        case 'service':
+            return data.services;
         case 'token':
             return data.tokens;
         case 'pipe':
@@ -95,6 +98,7 @@ const TABLE_ORDER: readonly EntityKind[] = [
     'component',
     'directive',
     'injectable',
+    'service',
     'token',
     'pipe',
     'class',
@@ -267,6 +271,7 @@ export type LookupPolicy = 'type-link' | 'doc-link' | 'related' | 'entity-index'
 const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
     'type-link': [
         'injectable',
+        'service',
         'interceptor',
         'guard',
         'resolver',
@@ -286,6 +291,7 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
         'entity',
         'directive',
         'injectable',
+        'service',
         'interceptor',
         'guard',
         'resolver',
@@ -302,6 +308,7 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
         'entity',
         'directive',
         'injectable',
+        'service',
         'interceptor',
         'guard',
         'resolver',
@@ -318,6 +325,7 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
         'component',
         'directive',
         'injectable',
+        'service',
         'pipe',
         'class',
         'interface',

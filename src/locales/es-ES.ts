@@ -221,6 +221,7 @@ export const TRANSLATION_ES_ES = {
     'feature-type': 'Tipo de característica',
     'other-providers': 'Otros providers',
     'components-and-directives': 'Componentes y directivas',
+    service: 'Servicio',
     services: 'Servicios',
     configuration: 'Configuración',
     constants: 'Constantes',

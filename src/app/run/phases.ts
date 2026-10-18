@@ -106,6 +106,7 @@ const applyPackageJson = (ctx: RunContext, parsedData: Record<string, any>): voi
         mainData.documentationMainDescription = parsedData.description;
     }
     mainData.angularVersion = AngularVersionUtil.getAngularVersionOfProject(parsedData);
+    mainData.angularMajor = AngularVersionUtil.getAngularMajorOfProject(parsedData);
 
     // Detect zone.js in dependencies (if absent, app is zoneless)
     const allDeps = {
@@ -186,6 +187,9 @@ const printStatistics = (): void => {
     }
     if (DependenciesEngine.injectables.length > 0) {
         logger.info(`- injectable   : ${DependenciesEngine.injectables.length}`);
+    }
+    if (DependenciesEngine.services.length > 0) {
+        logger.info(`- service      : ${DependenciesEngine.services.length}`);
     }
     if (DependenciesEngine.interceptors.length > 0) {
         logger.info(`- injector     : ${DependenciesEngine.interceptors.length}`);

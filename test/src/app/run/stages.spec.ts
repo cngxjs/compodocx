@@ -11,6 +11,7 @@ const EMPTY: SourceCounts = {
     directives: 0,
     entities: 0,
     injectables: 0,
+    services: 0,
     tokens: 0,
     interceptors: 0,
     guards: 0,
@@ -27,6 +28,7 @@ const EVERY_KIND: SourceCounts = {
     directives: 1,
     entities: 1,
     injectables: 1,
+    services: 1,
     tokens: 1,
     interceptors: 1,
     guards: 1,
@@ -43,6 +45,7 @@ const ALL_KEYS = [
     'directive',
     'entity',
     'injectable',
+    'service',
     'token',
     'diCluster',
     'dependencyInjection',
@@ -116,7 +119,7 @@ describe('prepare stage table', () => {
         ]);
     });
 
-    it('selects all 26 stages in table order for a full run with every kind', () => {
+    it('selects all 27 stages in table order for a full run with every kind', () => {
         const ctx = context('full', {
             unitTestCoverage: 'coverage.json',
             includes: 'docs',

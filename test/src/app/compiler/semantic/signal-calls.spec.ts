@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import { angularImports } from '../../../../../src/app/compiler/semantic/inject-calls';
 import {
+    importedMemberCall,
     type SignalMemberCall,
     signalMemberCall
 } from '../../../../../src/app/compiler/semantic/signal-calls';
@@ -197,5 +198,60 @@ describe('signalMemberCall', () => {
         expect(member('input().value')).toBeUndefined();
         expect(member('output.required<string>()')).toBeUndefined();
         expect(member("'<code>input</code> text'")).toBeUndefined();
+    });
+});
+
+/** The imported member call of the first property of the first class. */
+const imported = (initializer: string, header: string) => {
+    const sourceFile = ts.createSourceFile(
+        '/x/sample.ts',
+        `${header}class Sample {\n    value = ${initializer};\n}\n`,
+        ts.ScriptTarget.Latest,
+        true
+    );
+    const cls = sourceFile.statements.find(ts.isClassDeclaration);
+    const property = cls?.members.find(ts.isPropertyDeclaration);
+    if (!property?.initializer) {
+        throw new Error('no property initializer');
+    }
+    return importedMemberCall(property.initializer, angularImports(sourceFile), sourceFile);
+};
+
+const HTTP = "import { httpResource } from '@angular/common/http';\n";
+
+describe('importedMemberCall', () => {
+    it('reads httpResource with its type argument', () => {
+        expect(imported("httpResource<User>(() => '/api/user')", HTTP)).toEqual({
+            kind: 'http-resource',
+            type: 'User'
+        });
+    });
+
+    it('reads the httpResource response variants', () => {
+        expect(imported("httpResource.text(() => '/api/readme')", HTTP)).toEqual({
+            kind: 'http-resource'
+        });
+    });
+
+    it('reads aliased and namespace imports', () => {
+        const aliased = "import { httpResource as load } from '@angular/common/http';\n";
+        expect(imported("load(() => '/x')", aliased)?.kind).toBe('http-resource');
+        const ns = "import * as http from '@angular/common/http';\n";
+        expect(imported("http.httpResource(() => '/x')", ns)?.kind).toBe('http-resource');
+    });
+
+    it('reads injectAsync from @angular/core', () => {
+        const core = "import { injectAsync } from '@angular/core';\n";
+        expect(imported("injectAsync(() => import('./engine'))", core)).toEqual({
+            kind: 'inject-async'
+        });
+    });
+
+    it('ignores the same names from elsewhere or without an import', () => {
+        const other = "import { httpResource } from 'some-http-library';\n";
+        expect(imported("httpResource(() => '/x')", other)).toBeUndefined();
+        expect(imported("injectAsync(() => import('./engine'))", '')).toBeUndefined();
+        const wrongModule = "import { injectAsync } from '@angular/common/http';\n";
+        expect(imported("injectAsync(() => import('./engine'))", wrongModule)).toBeUndefined();
     });
 });

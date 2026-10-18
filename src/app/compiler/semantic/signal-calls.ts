@@ -125,3 +125,77 @@ export const signalMemberCall = (
         node: call
     };
 };
+
+/** Member APIs recognised by their import: export name, module and member kind. */
+const IMPORTED_MEMBER_APIS: ReadonlyArray<{
+    readonly name: string;
+    readonly module: string;
+    readonly kind: string;
+}> = [
+    { name: 'httpResource', module: '@angular/common/http', kind: 'http-resource' },
+    { name: 'injectAsync', module: ANGULAR_CORE, kind: 'inject-async' }
+];
+
+/** `httpResource.text(...)` and its siblings read other response types. */
+const HTTP_RESOURCE_VARIANTS: ReadonlySet<string> = new Set(['text', 'blob', 'arrayBuffer']);
+
+export interface ImportedMemberCall {
+    /** `http-resource` or `inject-async`. */
+    readonly kind: string;
+    /** Text of the first type argument, newlines stripped. */
+    readonly type?: string;
+}
+
+/** The imported name and module an identifier or `ns.name` expression refers to. */
+const importedApiOf = (
+    expression: ts.Expression,
+    imports: AngularImports
+): { readonly name: string; readonly module: string } | undefined => {
+    if (ts.isIdentifier(expression)) {
+        return imports.named.get(expression.text);
+    }
+    if (ts.isPropertyAccessExpression(expression) && ts.isIdentifier(expression.expression)) {
+        const module = imports.namespaces.get(expression.expression.text);
+        return module ? { name: expression.name.text, module } : undefined;
+    }
+    return undefined;
+};
+
+const memberKindOf = (callee: ts.Expression, imports: AngularImports): string | undefined => {
+    const direct = importedApiOf(callee, imports);
+    const api = IMPORTED_MEMBER_APIS.find(
+        entry => entry.name === direct?.name && entry.module === direct?.module
+    );
+    if (api) {
+        return api.kind;
+    }
+    if (!ts.isPropertyAccessExpression(callee) || !HTTP_RESOURCE_VARIANTS.has(callee.name.text)) {
+        return undefined;
+    }
+    const base = importedApiOf(callee.expression, imports);
+    return base?.name === 'httpResource' && base.module === '@angular/common/http'
+        ? 'http-resource'
+        : undefined;
+};
+
+/**
+ * `httpResource(...)` (and `httpResource.text(...)`, `.blob`, `.arrayBuffer`)
+ * from `@angular/common/http` or `injectAsync(...)` from `@angular/core` at the
+ * root of a member initializer, recognised by the import.
+ */
+export const importedMemberCall = (
+    expression: ts.Expression,
+    imports: AngularImports,
+    sourceFile: ts.SourceFile
+): ImportedMemberCall | undefined => {
+    const root = unwrapRoot(expression);
+    if (!ts.isCallExpression(root)) {
+        return undefined;
+    }
+    const kind = memberKindOf(root.expression, imports);
+    if (!kind) {
+        return undefined;
+    }
+    const typeArgument = root.typeArguments?.[0];
+    return typeArgument ? { kind, type: textOf(typeArgument, sourceFile) } : { kind };
+};

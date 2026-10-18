@@ -220,6 +220,7 @@ export const TRANSLATION_KA_GE = {
     'feature-type': 'ფუნქციის ტიპი',
     'other-providers': 'სხვა provider-ები',
     'components-and-directives': 'კომპონენტები და დირექტივები',
+    service: 'სერვისი',
     services: 'სერვისები',
     configuration: 'კონფიგურაცია',
     constants: 'მუდმივები',

@@ -11,6 +11,7 @@ import type {
     IInterceptorDep,
     IInterfaceDep,
     IPipeDep,
+    IServiceDep,
     ITypeAliasDecDep
 } from '../compiler/angular/dependencies.interfaces';
 import type { IComponentDep } from '../compiler/angular/deps/component-dep.factory';
@@ -39,6 +40,7 @@ export type EntityKind =
     | 'component'
     | 'directive'
     | 'injectable'
+    | 'service'
     | 'token'
     | 'pipe'
     | 'class'
@@ -57,6 +59,7 @@ export const PRIMARY_KINDS: ReadonlySet<TableKind> = new Set<TableKind>([
     'directive',
     'pipe',
     'injectable',
+    'service',
     'token',
     'class',
     'guard',
@@ -142,6 +145,7 @@ export class DependenciesEngine {
     public entities: IDep[];
     public directives: IDirectiveDep[];
     public injectables: IInjectableDep[];
+    public services: IServiceDep[];
     public tokens: IInjectableDep[];
     public interceptors: IInterceptorDep[];
     public guards: IGuardDep[];
@@ -193,6 +197,9 @@ export class DependenciesEngine {
         this.injectables = [...this.rawData.injectables].sort((a, b) =>
             (a as any).name.toLowerCase().localeCompare((b as any).name.toLowerCase())
         );
+        this.services = [...(this.rawData.services ?? [])].sort((a, b) =>
+            (a as any).name.toLowerCase().localeCompare((b as any).name.toLowerCase())
+        );
         this.tokens = [...(this.rawData.tokens ?? [])].sort((a, b) =>
             (a as any).name.toLowerCase().localeCompare((b as any).name.toLowerCase())
         );
@@ -239,6 +246,7 @@ export class DependenciesEngine {
         this.classes = this.classes.map(processDuplicates);
         this.interfaces = this.interfaces.map(processDuplicates);
         this.injectables = this.injectables.map(processDuplicates);
+        this.services = this.services.map(processDuplicates);
         this.pipes = this.pipes.map(processDuplicates);
         this.interceptors = this.interceptors.map(processDuplicates);
         this.guards = this.guards.map(processDuplicates);
@@ -295,6 +303,12 @@ export class DependenciesEngine {
             updatedData.injectables.forEach((injectable: IInjectableDep) => {
                 const _index = this.injectables.findIndex(i => (i as any).name === injectable.name);
                 this.injectables[_index] = injectable;
+            });
+        }
+        if (updatedData.services?.length > 0) {
+            updatedData.services.forEach((service: IServiceDep) => {
+                const _index = this.services.findIndex(i => (i as any).name === service.name);
+                this.services[_index] = service;
             });
         }
         if (updatedData.interceptors.length > 0) {
@@ -432,6 +446,10 @@ export class DependenciesEngine {
 
     public getInjectables() {
         return this.injectables;
+    }
+
+    public getServices() {
+        return this.services;
     }
 
     public getTokens() {
@@ -594,6 +612,9 @@ export class DependenciesEngine {
                 return 'Singleton service';
             }
             return 'Service';
+        }
+        if (type === 'service') {
+            return entity.autoProvided === false ? 'Service' : 'Singleton service';
         }
         if (type === 'pipe') {
             return entity.pure === 'false' ? 'Impure pipe' : 'Pure pipe';

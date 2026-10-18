@@ -46,6 +46,7 @@ These file names correspond to page contexts. Place them in `partials/` inside y
 | `component.js` | Component detail page |
 | `directive.js` | Directive detail page |
 | `injectable.js` | Injectable/service detail |
+| `service.js` | Detail of a class decorated with Angular's `@Service` (Angular 22) |
 | `interceptor.js` | Interceptor detail |
 | `guard.js` | Guard detail |
 | `pipe.js` | Pipe detail |

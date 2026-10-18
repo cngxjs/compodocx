@@ -26,6 +26,7 @@ import type {
     ExportMethod,
     ExportPipe,
     ExportProperty,
+    ExportService,
     ExportStyleFile,
     ExportTypeAlias,
     ExportVariable
@@ -327,6 +328,18 @@ export const emitInjectable = (entity: ExportInjectable): string => {
         if (entity.tokenType) {
             extras.push(`Token type: ${inlineCode(entity.tokenType)}`);
         }
+    }
+    return emitClassLike(entity, extras);
+};
+
+/** A class decorated with Angular's `@Service`. */
+export const emitService = (entity: ExportService): string => {
+    const extras: string[] = ['Decorator: `@Service`'];
+    if (entity.autoProvided === false) {
+        extras.push('autoProvided: `false`');
+    }
+    if (entity.factory) {
+        extras.push(`Factory: ${inlineCode(entity.factory)}`);
     }
     return emitClassLike(entity, extras);
 };

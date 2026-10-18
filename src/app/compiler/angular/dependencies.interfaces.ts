@@ -43,6 +43,12 @@ export interface IInjectableDep extends IDep {
     docsUrl?: string;
 }
 
+/** A class decorated with Angular's `@Service` (Angular 22). */
+export interface IServiceDep extends IInjectableDep {
+    /** `autoProvided` when written as a boolean literal. */
+    autoProvided?: boolean;
+}
+
 export interface IInterceptorDep extends IDep {
     file: any;
     properties: Array<any>;

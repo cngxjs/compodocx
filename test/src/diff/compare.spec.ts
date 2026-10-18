@@ -165,4 +165,24 @@ describe('diff/compare — engine', () => {
             expect.objectContaining({ kind: 'interface-added', name: 'Shape' })
         ]);
     });
+
+    it('reports an injectable that became a Service as removed and added', () => {
+        const oldData = baseExport({ injectables: [{ name: 'Store', file: 'src/store.ts' }] });
+        const newData = baseExport({ services: [{ name: 'Store', file: 'src/store.ts' }] });
+        const result = compare(oldData, newData);
+        expect(result.changes).toEqual([
+            expect.objectContaining({ kind: 'injectable-removed', name: 'Store' }),
+            expect.objectContaining({ kind: 'service-added', name: 'Store' })
+        ]);
+    });
+
+    it('compares the members of a service', () => {
+        const oldData = baseExport({ services: [{ name: 'Store', methods: [] }] });
+        const newData = baseExport({
+            services: [{ name: 'Store', methods: [{ name: 'load' } as never] }]
+        });
+        expect(compare(oldData, newData).changes).toEqual([
+            expect.objectContaining({ kind: 'service-changed', name: 'Store' })
+        ]);
+    });
 });

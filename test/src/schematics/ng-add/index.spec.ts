@@ -55,6 +55,25 @@ describe('ng-add schematic', () => {
         expect(installTasks).toHaveLength(1);
     });
 
+    it('sets up an Angular 22 workspace on TypeScript 6 without touching its dependencies', async () => {
+        const dependencies = { '@angular/core': '^22.2.0', '@angular/common': '^22.2.0' };
+        const devDependencies = { '@angular/cli': '^22.2.0', typescript: '~6.0.2' };
+        const tree = makeTree({
+            'package.json': JSON.stringify({ name: 'app-22', dependencies, devDependencies })
+        });
+        const result = await runner.runSchematic('ng-add', {}, tree);
+
+        const pkg = readJson<ScriptedPackageJson>(result, 'package.json');
+        expect(pkg.dependencies).toEqual(dependencies);
+        expect(pkg.devDependencies).toEqual(devDependencies);
+        expect(pkg.scripts?.['compodocx:build']).toBe('compodocx -p tsconfig.doc.json');
+        // No compiler options: nothing TypeScript 6 deprecates (baseUrl, moduleResolution node).
+        expect(readJson<Record<string, unknown>>(result, 'tsconfig.doc.json')).toEqual({
+            include: ['src/**/*.ts'],
+            exclude: ['src/**/*.spec.ts']
+        });
+    });
+
     it('migrates a legacy tree end-to-end', async () => {
         const tree = makeTree({
             'package.json': JSON.stringify({

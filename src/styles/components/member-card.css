@@ -475,7 +475,8 @@ a.cdx-member-permalink:hover {
     --cdx-io-color: hsl(340 50% 70%);
 }
 .dark .cdx-io-member--resource,
-.dark .cdx-io-member--rx-resource {
+.dark .cdx-io-member--rx-resource,
+.dark .cdx-io-member--http-resource {
     --cdx-io-color: hsl(190 50% 65%);
 }
 .dark .cdx-io-member--view-child,
@@ -486,7 +487,8 @@ a.cdx-member-permalink:hover {
 .dark .cdx-io-member--content-children {
     --cdx-io-color: hsl(55 55% 60%);
 }
-.dark .cdx-io-member--inject {
+.dark .cdx-io-member--inject,
+.dark .cdx-io-member--inject-async {
     --cdx-io-color: hsl(320 45% 70%);
 }
 
@@ -551,7 +553,8 @@ a.cdx-member-permalink:hover {
     --cdx-io-color: hsl(45 70% 35%);
 }
 .cdx-io-member--resource,
-.cdx-io-member--rx-resource {
+.cdx-io-member--rx-resource,
+.cdx-io-member--http-resource {
     --cdx-io-color: hsl(190 55% 30%);
 }
 .cdx-io-member--view-child,
@@ -562,7 +565,8 @@ a.cdx-member-permalink:hover {
 .cdx-io-member--content-children {
     --cdx-io-color: hsl(55 60% 30%);
 }
-.cdx-io-member--inject {
+.cdx-io-member--inject,
+.cdx-io-member--inject-async {
     --cdx-io-color: hsl(320 45% 40%);
 }
 .cdx-io-member--after-render {

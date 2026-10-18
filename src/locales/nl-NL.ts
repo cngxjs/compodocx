@@ -221,6 +221,7 @@ export const TRANSLATION_NL_NL = {
     'feature-type': 'Featuretype',
     'other-providers': 'Overige providers',
     'components-and-directives': 'Componenten en directives',
+    service: 'Service',
     services: 'Services',
     configuration: 'Configuratie',
     constants: 'Constanten',

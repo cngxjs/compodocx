@@ -5,6 +5,7 @@ export interface ParsedData {
     entities?;
     directives?;
     injectables?;
+    services?;
     tokens?;
     interceptors?;
     guards?;

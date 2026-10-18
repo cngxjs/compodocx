@@ -17,6 +17,7 @@ import type {
     IInjectableDep,
     IInterfaceDep,
     IPipeDep,
+    IServiceDep,
     ITypeAliasDecDep
 } from '../angular/dependencies.interfaces';
 import { ComponentDepFactory } from '../angular/deps/component-dep.factory';
@@ -26,6 +27,7 @@ import { ComponentCache } from '../angular/deps/helpers/component-helper';
 import { JsDocHelper } from '../angular/deps/helpers/js-doc-helper';
 import { FrameworkDependencies } from '../framework-dependencies';
 import { type LegacyFinding, scanLegacy, sortLegacyFindings } from '../legacy-scan';
+import { isAngularServiceDecorator, serviceOptions } from './angular-service';
 import { EntityVisitor } from './entity-visitor';
 import { ExpressionFinder } from './expression-finder';
 import { IoExtractor } from './io-extractor';
@@ -84,6 +86,7 @@ export class AngularDependencies extends FrameworkDependencies {
             components: [],
             entities: [],
             injectables: [],
+            services: [],
             tokens: [],
             interceptors: [],
             guards: [],
@@ -367,58 +370,34 @@ export class AngularDependencies extends FrameworkDependencies {
                                 props,
                                 srcFile
                             );
-                            const injectableDeps: IInjectableDep = {
+                            const injectableDeps = this.injectableDep(
+                                'injectable',
                                 name,
-                                id: `injectable-${name}-${hash}`,
-                                file: file,
-                                properties: IO.properties,
-                                methods: IO.methods,
-                                deprecated: IO.deprecated,
-                                deprecationMessage: IO.deprecationMessage,
-                                description: IO.description,
-                                rawdescription: IO.rawdescription,
-                                sourceCode: srcFile.getText(),
-                                exampleUrls: this.componentHelper.getComponentExampleUrls(
-                                    srcFile.getText()
-                                ),
-                                ...(providedIn && { providedIn }),
-                                // Custom JSDoc tags
-                                ...(IO.beta && { beta: true }),
-                                ...(IO.since && { since: IO.since }),
-                                ...(IO.breaking && { breaking: IO.breaking }),
-                                ...(IO.aiGenerated && { aiGenerated: IO.aiGenerated }),
-                                ...(IO.storybookUrl && { storybookUrl: IO.storybookUrl }),
-                                ...(IO.figmaUrl && { figmaUrl: IO.figmaUrl }),
-                                ...(IO.stackblitzUrl && { stackblitzUrl: IO.stackblitzUrl }),
-                                ...(IO.githubUrl && { githubUrl: IO.githubUrl }),
-                                ...(IO.docsUrl && { docsUrl: IO.docsUrl }),
-                                ...(IO.wcagLevel && { wcagLevel: IO.wcagLevel }),
-                                ...(IO.a11yNote && { a11yNote: IO.a11yNote }),
-                                ...(IO.taggedSelector && { taggedSelector: IO.taggedSelector }),
-                                ...(IO.relatedTo &&
-                                    IO.relatedTo.length > 0 && { relatedTo: IO.relatedTo })
-                            };
-                            if (IO.constructor && !Configuration.mainData.disableConstructors) {
-                                injectableDeps.constructorObj = IO.constructor;
-                            }
-                            if (IO.jsdoctags && IO.jsdoctags.length > 0) {
-                                injectableDeps.jsdoctags = (IO.jsdoctags[0] as any).tags;
-                            }
-                            if (IO.accessors) {
-                                injectableDeps.accessors = IO.accessors;
-                            }
-                            if (IO.extends) {
-                                injectableDeps.extends = IO.extends;
-                            }
-                            if (Configuration.mainData.disableLifeCycleHooks) {
-                                injectableDeps.methods = cleanLifecycleHooksFromMethods(
-                                    injectableDeps.methods
-                                );
-                            }
+                                hash,
+                                file,
+                                srcFile,
+                                IO,
+                                providedIn && { providedIn }
+                            );
                             deps = injectableDeps;
                             if (typeof IO.ignore === 'undefined') {
                                 injectableDeps.type = 'injectable';
                                 this.addNewEntityInStore(injectableDeps, outputSymbols.injectables);
+                            }
+                        } else if (isAngularServiceDecorator(visitedDecorator, srcFile)) {
+                            const serviceDeps: IServiceDep = this.injectableDep(
+                                'service',
+                                name,
+                                hash,
+                                file,
+                                srcFile,
+                                IO,
+                                serviceOptions(visitedDecorator, srcFile)
+                            );
+                            deps = serviceDeps;
+                            if (typeof IO.ignore === 'undefined') {
+                                serviceDeps.type = 'service';
+                                this.addNewEntityInStore(serviceDeps, outputSymbols.services);
                             }
                         } else if (this.metadataPredicates.isPipe(visitedDecorator)) {
                             const pipeDeps: IPipeDep = {
@@ -472,7 +451,10 @@ export class AngularDependencies extends FrameworkDependencies {
                             }
                         } else {
                             const hasMultipleDecoratorsWithInternalOne =
-                                this.metadataPredicates.hasInternalDecorator(nodeDecorators);
+                                this.metadataPredicates.hasInternalDecorator(
+                                    nodeDecorators,
+                                    srcFile
+                                );
                             // Just a class
                             if (
                                 !classWithCustomDecorator &&
@@ -1055,6 +1037,65 @@ export class AngularDependencies extends FrameworkDependencies {
 
             parseNode(fileName, scannedFile, initialNode, null, astFile);
         });
+    }
+
+    /**
+     * Entry of an `@Injectable` or `@Service` class. `options` (providedIn, or
+     * the Service options) sit where `providedIn` always sat in the entry.
+     */
+    private injectableDep(
+        idPrefix: 'injectable' | 'service',
+        name: string,
+        hash: string,
+        file,
+        srcFile: ts.SourceFile,
+        IO,
+        options: object | undefined
+    ): IInjectableDep {
+        const injectableDeps: IInjectableDep = {
+            name,
+            id: `${idPrefix}-${name}-${hash}`,
+            file: file,
+            properties: IO.properties,
+            methods: IO.methods,
+            deprecated: IO.deprecated,
+            deprecationMessage: IO.deprecationMessage,
+            description: IO.description,
+            rawdescription: IO.rawdescription,
+            sourceCode: srcFile.getText(),
+            exampleUrls: this.componentHelper.getComponentExampleUrls(srcFile.getText()),
+            ...options,
+            // Custom JSDoc tags
+            ...(IO.beta && { beta: true }),
+            ...(IO.since && { since: IO.since }),
+            ...(IO.breaking && { breaking: IO.breaking }),
+            ...(IO.aiGenerated && { aiGenerated: IO.aiGenerated }),
+            ...(IO.storybookUrl && { storybookUrl: IO.storybookUrl }),
+            ...(IO.figmaUrl && { figmaUrl: IO.figmaUrl }),
+            ...(IO.stackblitzUrl && { stackblitzUrl: IO.stackblitzUrl }),
+            ...(IO.githubUrl && { githubUrl: IO.githubUrl }),
+            ...(IO.docsUrl && { docsUrl: IO.docsUrl }),
+            ...(IO.wcagLevel && { wcagLevel: IO.wcagLevel }),
+            ...(IO.a11yNote && { a11yNote: IO.a11yNote }),
+            ...(IO.taggedSelector && { taggedSelector: IO.taggedSelector }),
+            ...(IO.relatedTo && IO.relatedTo.length > 0 && { relatedTo: IO.relatedTo })
+        };
+        if (IO.constructor && !Configuration.mainData.disableConstructors) {
+            injectableDeps.constructorObj = IO.constructor;
+        }
+        if (IO.jsdoctags && IO.jsdoctags.length > 0) {
+            injectableDeps.jsdoctags = (IO.jsdoctags[0] as any).tags;
+        }
+        if (IO.accessors) {
+            injectableDeps.accessors = IO.accessors;
+        }
+        if (IO.extends) {
+            injectableDeps.extends = IO.extends;
+        }
+        if (Configuration.mainData.disableLifeCycleHooks) {
+            injectableDeps.methods = cleanLifecycleHooksFromMethods(injectableDeps.methods);
+        }
+        return injectableDeps;
     }
 
     /**

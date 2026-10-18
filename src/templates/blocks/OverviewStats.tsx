@@ -31,6 +31,7 @@ type OverviewStatsProps = {
     readonly components?: any[];
     readonly directives?: any[];
     readonly injectables?: any[];
+    readonly services?: any[];
     readonly pipes?: any[];
     readonly classes?: any[];
     readonly guards?: any[];
@@ -92,6 +93,7 @@ function computeAdoption(props: OverviewStatsProps) {
         ...allDirectives,
         ...allPipes,
         ...(props.injectables ?? []),
+        ...(props.services ?? []),
         ...(props.classes ?? []),
         ...(props.guards ?? []),
         ...(props.interceptors ?? []),
@@ -233,6 +235,14 @@ function buildChipGroups(props: OverviewStatsProps): ChipGroup[] {
             count: props.injectables.length,
             label: t('injectables'),
             subtitle: tokens > 0 ? `${tokens} tokens` : undefined,
+            colorVar: 'var(--color-cdx-entity-service)'
+        });
+    }
+    if (props.services?.length) {
+        services.push({
+            icon: IconInjectable,
+            count: props.services.length,
+            label: t('services'),
             colorVar: 'var(--color-cdx-entity-service)'
         });
     }

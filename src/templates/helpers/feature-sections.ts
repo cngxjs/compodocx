@@ -41,6 +41,7 @@ export const sectionOf = (
         case 'pipe':
             return 'pipes';
         case 'injectable':
+        case 'service':
             return 'services';
         case 'variable':
             return 'constants';

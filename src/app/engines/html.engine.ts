@@ -32,6 +32,7 @@ import { PackageProperties } from '../../templates/pages/PackageProperties';
 import { PipePage } from '../../templates/pages/PipePage';
 import { ResolverPage } from '../../templates/pages/ResolverPage';
 import { Routes } from '../../templates/pages/Routes';
+import { ServicePage } from '../../templates/pages/ServicePage';
 import { StylePage } from '../../templates/pages/StylePage';
 import { TokenPage } from '../../templates/pages/TokenPage';
 import { UnitTestReport } from '../../templates/pages/UnitTestReport';
@@ -53,6 +54,7 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     entity: 'entity',
     directive: 'directive',
     injectable: 'injectable',
+    service: 'service',
     token: 'token',
     'di-cluster': 'di-cluster',
     'dependency-injection': 'dependency-injection',
@@ -142,6 +144,9 @@ export class HtmlEngine {
             case 'injectable':
                 data.relationships = DependenciesEngine.getRelationships(data.injectable?.name);
                 return InjectablePage(data);
+            case 'service':
+                data.relationships = DependenciesEngine.getRelationships(data.service?.name);
+                return ServicePage(data);
             case 'token':
                 return TokenPage(data);
             case 'di-cluster':

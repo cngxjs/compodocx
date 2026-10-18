@@ -35,6 +35,7 @@ export class CoveragePageGenerator {
                 entities: visible('entity', mainData.entities),
                 classes: visible('class', mainData.classes),
                 injectables: visible('injectable', mainData.injectables),
+                services: visible('service', mainData.services),
                 interfaces: visible('interface', mainData.interfaces),
                 guards: visible('guard', mainData.guards),
                 interceptors: visible('interceptor', mainData.interceptors),

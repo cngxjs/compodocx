@@ -219,6 +219,7 @@ export const TRANSLATION_ZH_CN = {
     'feature-type': '功能类型',
     'other-providers': '其他提供者',
     'components-and-directives': '组件和指令',
+    service: '服务',
     services: '服务',
     configuration: '配置',
     constants: '常量',

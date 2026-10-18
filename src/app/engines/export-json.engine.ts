@@ -456,6 +456,9 @@ export class ExportJsonEngine {
         exportData.pipes = facts(data.pipes);
         exportData.interfaces = facts(data.interfaces, 'type');
         exportData.injectables = facts(data.injectables);
+        if (data.services?.length > 0) {
+            exportData.services = facts(data.services);
+        }
         exportData.guards = facts(data.guards);
         exportData.interceptors = facts(data.interceptors);
         exportData.classes = facts(data.classes);

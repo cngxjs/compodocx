@@ -16,7 +16,8 @@ const WRAPPED_KINDS: ReadonlySet<string> = new Set([
     'directive',
     'pipe',
     'class',
-    'injectable'
+    'injectable',
+    'service'
 ]);
 
 /** Share of all features a wrapped feature may be used by before it counts as a hub. */

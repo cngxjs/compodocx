@@ -220,6 +220,7 @@ export const TRANSLATION_SK_SK = {
     'feature-type': 'Typ funkcie',
     'other-providers': 'Ďalšie providery',
     'components-and-directives': 'Komponenty a direktívy',
+    service: 'Služba',
     services: 'Služby',
     configuration: 'Konfigurácia',
     constants: 'Konštanty',

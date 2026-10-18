@@ -11,6 +11,7 @@ type OverviewProps = {
     readonly entities?: unknown[];
     readonly directives?: unknown[];
     readonly injectables?: unknown[];
+    readonly services?: unknown[];
     readonly interceptors?: unknown[];
     readonly pipes?: unknown[];
     readonly classes?: unknown[];
@@ -37,6 +38,7 @@ const hasAnyEntities = (props: OverviewProps): boolean =>
         props.entities?.length ||
         props.directives?.length ||
         props.injectables?.length ||
+        props.services?.length ||
         props.interceptors?.length ||
         props.pipes?.length ||
         props.classes?.length ||
@@ -91,6 +93,7 @@ export const Overview = (props: OverviewProps): string => {
                       components: props.components as any[],
                       directives: props.directives as any[],
                       injectables: props.injectables as any[],
+                      services: props.services as any[],
                       pipes: props.pipes as any[],
                       classes: props.classes as any[],
                       guards: props.guards as any[],

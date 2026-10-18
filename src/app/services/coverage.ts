@@ -26,6 +26,7 @@ export interface CoverageDependenciesInput {
     entities: ReadonlyArray<unknown>;
     classes: ReadonlyArray<unknown>;
     injectables: ReadonlyArray<unknown>;
+    services?: ReadonlyArray<unknown>;
     interfaces: ReadonlyArray<unknown>;
     guards: ReadonlyArray<unknown>;
     interceptors: ReadonlyArray<unknown>;
@@ -304,6 +305,7 @@ export function computeDocumentationCoverage(deps: CoverageDependenciesInput): C
 
     processClasses(deps.classes as any, 'class', 'classe');
     processClasses(deps.injectables as any, 'injectable', 'injectable');
+    processClasses((deps.services ?? []) as any, 'service', 'service');
     processClasses(deps.interfaces as any, 'interface', 'interface');
     processClasses(deps.guards as any, 'guard', 'guard');
     processClasses(deps.interceptors as any, 'interceptor', 'interceptor');
