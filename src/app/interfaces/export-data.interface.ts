@@ -404,9 +404,15 @@ export interface ExportInjectable extends ExportEntityCommon {
     tokenClass?: string;
     tokenType?: string;
     providedIn?: string;
-    /** Source text of the `factory` option of an `InjectionToken`; absent without one. */
+    /** Source text of the `factory` option of an `InjectionToken` or a `@Service`; absent without one. */
     factory?: string;
     jsdoctags?: JsdocTagInterface[];
+}
+
+/** A class decorated with Angular's `@Service` (Angular 22). */
+export interface ExportService extends ExportInjectable {
+    /** `autoProvided` when written as a boolean literal. */
+    autoProvided?: boolean;
 }
 
 export interface ExportInterceptor extends ExportEntityCommon {
@@ -589,6 +595,8 @@ export interface ExportData {
     pipes?: ExportPipe[];
     interfaces?: ExportInterface[];
     injectables?: ExportInjectable[];
+    /** Classes decorated with Angular's `@Service`; written only when there are any. */
+    services?: ExportService[];
     guards?: ExportGuard[];
     interceptors?: ExportInterceptor[];
     classes?: ExportClass[];

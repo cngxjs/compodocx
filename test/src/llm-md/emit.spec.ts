@@ -25,6 +25,7 @@ import {
     emitInterceptor,
     emitInterface,
     emitPipe,
+    emitService,
     emitTypeAlias,
     emitVariable
 } from '../../../src/llm-md/emit';
@@ -241,6 +242,18 @@ describe('llm-md/emit — emitPipe', () => {
 });
 
 describe('llm-md/emit — emitInjectable / emitInterceptor / emitGuard', () => {
+    it('emitService names the decorator, autoProvided false and the factory', () => {
+        const out = emitService({
+            name: 'Logger',
+            file: 'src/app/logger.ts',
+            autoProvided: false,
+            factory: '() => new ConsoleLogger()'
+        });
+        expect(out).toContain('Decorator: `@Service`');
+        expect(out).toContain('autoProvided: `false`');
+        expect(out).toContain('Factory: `() => new ConsoleLogger()`');
+    });
+
     it('emitInjectable renders providedIn and token type', () => {
         const inj: ExportInjectable = {
             name: 'AuthService',

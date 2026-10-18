@@ -38,6 +38,7 @@ const buckets = (data: ExportData): ReadonlyArray<EntityBucket<ExportEntityCommo
     { kind: 'directive', items: data.directives ?? [] },
     { kind: 'pipe', items: data.pipes ?? [] },
     { kind: 'injectable', items: data.injectables ?? [] },
+    { kind: 'service', items: data.services ?? [] },
     { kind: 'guard', items: data.guards ?? [] },
     { kind: 'interceptor', items: data.interceptors ?? [] },
     { kind: 'class', items: data.classes ?? [] },
@@ -254,6 +255,7 @@ const compareEntityByKind = (
         case 'pipe':
             return comparePipe(oldEntity as ExportPipe, newEntity as ExportPipe);
         case 'injectable':
+        case 'service':
         case 'interceptor':
         case 'guard':
         case 'class':

@@ -97,6 +97,21 @@ describe('CLI Angular 22 application', () => {
         expect(data.routes).to.have.length(1);
     });
 
+    it('exports the Angular services with their options', () => {
+        expect(names(data.services)).to.deep.equal([
+            'AuditService',
+            'Logger',
+            'ReportEngine',
+            'ReportLoader',
+            'SessionService'
+        ]);
+        const byName = (name: string) => data.services.find((s: any) => s.name === name);
+        expect(byName('AuditService').autoProvided).to.equal(false);
+        expect(byName('Logger').factory).to.equal('() => new ConsoleLogger()');
+        expect(byName('SessionService')).not.to.have.property('autoProvided');
+        expect(names(data.classes)).to.deep.equal(['ConsoleLogger', 'Registry']);
+    });
+
     it('keeps the Injectable class an injectable', () => {
         expect(names(data.injectables)).to.deep.equal(['PreferencesStore']);
     });
