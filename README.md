@@ -25,7 +25,7 @@ A fork of [compodoc](https://github.com/compodoc/compodoc) focused on modern Ang
 ## Requirements
 
 - Node.js 22 or newer
-- An Angular project with a `tsconfig.json` (Angular 21+, standalone code; tested against 21)
+- An Angular project with a `tsconfig.json` (Angular 21+, standalone code; tested against 21 and 22)
 
 ## Install
 
