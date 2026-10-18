@@ -107,6 +107,7 @@ const KIND_LABEL_TO_TYPE: Record<string, EntityType> = {
     Directive: 'directive',
     Pipe: 'pipe',
     Injectable: 'injectable',
+    Service: 'service',
     Token: 'token',
     Class: 'class',
     Interface: 'interface',

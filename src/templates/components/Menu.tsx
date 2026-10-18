@@ -296,6 +296,7 @@ const KINDS_WITH_API_TAB: ReadonlySet<EntityKind> = new Set<EntityKind>([
     'directive',
     'pipe',
     'injectable',
+    'service',
     'class',
     'interface',
     'guard',
@@ -461,6 +462,7 @@ const kindIconHtml = (kind: TableKind): string => {
         case 'directive':
             return IconDirective();
         case 'injectable':
+        case 'service':
             return IconInjectable();
         case 'token':
             return IconToken();
@@ -897,6 +899,7 @@ const MENU_LISTS: readonly (readonly [string, TableKind])[] = [
     ['components', 'component'],
     ['directives', 'directive'],
     ['injectables', 'injectable'],
+    ['services', 'service'],
     ['tokens', 'token'],
     ['pipes', 'pipe'],
     ['classes', 'class'],

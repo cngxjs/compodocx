@@ -32,6 +32,7 @@ export { PlaygroundValidator } from './playground-validator';
 export { PlaygroundVendorResolver } from './playground-vendor-resolver';
 export { ResolverPageGenerator } from './resolver-page-generator';
 export { RoutesPageGenerator } from './routes-page-generator';
+export { ServicePageGenerator } from './service-page-generator';
 export {
     createDesignTokensPageGenerator,
     createStylePageGenerator,

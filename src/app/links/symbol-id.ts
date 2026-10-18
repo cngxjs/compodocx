@@ -34,6 +34,7 @@ const SYMBOL_KINDS: ReadonlySet<string> = new Set<TableKind>([
     'component',
     'directive',
     'injectable',
+    'service',
     'token',
     'pipe',
     'class',

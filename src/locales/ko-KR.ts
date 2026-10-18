@@ -219,6 +219,7 @@ export const TRANSLATION_KO_KR = {
     'feature-type': '기능 타입',
     'other-providers': '기타 프로바이더',
     'components-and-directives': '컴포넌트와 디렉티브',
+    service: '서비스',
     services: '서비스',
     configuration: '구성',
     constants: '상수',

@@ -122,6 +122,12 @@ const entityMeta: Record<
         label: 'Injectable',
         icon: IconInjectable
     },
+    service: {
+        color: 'var(--color-cdx-entity-service)',
+        badge: 'cdx-badge--entity-service',
+        label: 'Service',
+        icon: IconInjectable
+    },
     entity: {
         color: 'var(--color-cdx-entity-class)',
         badge: 'cdx-badge--entity-class',

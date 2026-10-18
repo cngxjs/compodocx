@@ -40,6 +40,7 @@ export type EntityKind =
     | 'component'
     | 'directive'
     | 'injectable'
+    | 'service'
     | 'token'
     | 'pipe'
     | 'class'
@@ -58,6 +59,7 @@ export const PRIMARY_KINDS: ReadonlySet<TableKind> = new Set<TableKind>([
     'directive',
     'pipe',
     'injectable',
+    'service',
     'token',
     'class',
     'guard',
@@ -610,6 +612,9 @@ export class DependenciesEngine {
                 return 'Singleton service';
             }
             return 'Service';
+        }
+        if (type === 'service') {
+            return entity.autoProvided === false ? 'Service' : 'Singleton service';
         }
         if (type === 'pipe') {
             return entity.pure === 'false' ? 'Impure pipe' : 'Pure pipe';

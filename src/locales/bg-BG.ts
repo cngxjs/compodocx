@@ -221,6 +221,7 @@ export const TRANSLATION_BG_BG = {
     'feature-type': 'Тип функционалност',
     'other-providers': 'Други providers',
     'components-and-directives': 'Компоненти и директиви',
+    service: 'Услуга',
     services: 'Услуги',
     configuration: 'Конфигурация',
     constants: 'Константи',

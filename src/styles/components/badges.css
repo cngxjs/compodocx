@@ -249,7 +249,8 @@
     color: var(--color-cdx-text-inverse, white);
     border: none;
 }
-.cdx-badge--entity-injectable {
+.cdx-badge--entity-injectable,
+.cdx-badge--entity-service {
     background: var(--color-cdx-entity-service);
     color: var(--color-cdx-text-inverse, white);
     border: none;
@@ -316,7 +317,8 @@
     background: var(--color-cdx-entity-interceptor);
     color: var(--color-cdx-text-inverse);
 }
-.dark .cdx-badge--entity-injectable {
+.dark .cdx-badge--entity-injectable,
+.dark .cdx-badge--entity-service {
     background: var(--color-cdx-entity-service);
     color: var(--color-cdx-text-inverse);
 }

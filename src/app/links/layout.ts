@@ -8,6 +8,7 @@ export type SymbolKind =
     | 'component'
     | 'directive'
     | 'injectable'
+    | 'service'
     | 'token'
     | 'pipe'
     | 'class'
@@ -32,6 +33,7 @@ export const KIND_FOLDER = {
     component: 'components',
     directive: 'directives',
     injectable: 'injectables',
+    service: 'services',
     pipe: 'pipes',
     class: 'classes',
     interface: 'interfaces',

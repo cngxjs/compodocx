@@ -47,6 +47,7 @@ export class PlaygroundValidator {
             Configuration.mainData.components,
             Configuration.mainData.directives,
             Configuration.mainData.injectables,
+            Configuration.mainData.services,
             Configuration.mainData.guards,
             Configuration.mainData.interceptors,
             Configuration.mainData.pipes,

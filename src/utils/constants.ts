@@ -23,6 +23,7 @@ export const COMPODOC_CONSTANTS = {
                 'component',
                 'directive',
                 'injectable',
+                'service',
                 'pipe',
                 'class',
                 'interface',
@@ -72,7 +73,7 @@ export const COMPODOC_CONSTANTS = {
             href: '#example',
             'data-link': 'example',
             label: 'Examples',
-            depTypes: ['component', 'directive', 'injectable', 'pipe']
+            depTypes: ['component', 'directive', 'injectable', 'service', 'pipe']
         },
         {
             id: 'playground',

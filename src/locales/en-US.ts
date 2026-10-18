@@ -219,6 +219,7 @@ export const TRANSLATION_EN_US = {
     'feature-type': 'Feature type',
     'other-providers': 'Other providers',
     'components-and-directives': 'Components and directives',
+    service: 'Service',
     services: 'Services',
     configuration: 'Configuration',
     constants: 'Constants',

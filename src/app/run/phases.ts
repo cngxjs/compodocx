@@ -187,6 +187,9 @@ const printStatistics = (): void => {
     if (DependenciesEngine.injectables.length > 0) {
         logger.info(`- injectable   : ${DependenciesEngine.injectables.length}`);
     }
+    if (DependenciesEngine.services.length > 0) {
+        logger.info(`- service      : ${DependenciesEngine.services.length}`);
+    }
     if (DependenciesEngine.interceptors.length > 0) {
         logger.info(`- injector     : ${DependenciesEngine.interceptors.length}`);
     }

@@ -221,6 +221,7 @@ export const TRANSLATION_HU_HU = {
     'feature-type': 'Funkciótípus',
     'other-providers': 'Egyéb providerek',
     'components-and-directives': 'Komponensek és direktívák',
+    service: 'Szolgáltatás',
     services: 'Szolgáltatások',
     configuration: 'Konfiguráció',
     constants: 'Konstansok',

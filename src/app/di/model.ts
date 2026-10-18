@@ -119,6 +119,7 @@ const PAGE_KINDS: ReadonlySet<string> = new Set<EntityKind>([
     'component',
     'directive',
     'injectable',
+    'service',
     'token',
     'pipe',
     'class',

@@ -28,6 +28,7 @@ describe('sectionOf', () => {
         ['directive', 'directives'],
         ['pipe', 'pipes'],
         ['injectable', 'services'],
+        ['service', 'services'],
         ['token', 'configuration'],
         ['variable', 'constants'],
         ['interface', 'types'],

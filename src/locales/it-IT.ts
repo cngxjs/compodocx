@@ -221,6 +221,7 @@ export const TRANSLATION_IT_IT = {
     'feature-type': 'Tipo di funzionalità',
     'other-providers': 'Altri provider',
     'components-and-directives': 'Componenti e direttive',
+    service: 'Servizio',
     services: 'Servizi',
     configuration: 'Configurazione',
     constants: 'Costanti',

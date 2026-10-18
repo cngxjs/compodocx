@@ -220,6 +220,7 @@ export const TRANSLATION_PL_PL = {
     'feature-type': 'Typ funkcji',
     'other-providers': 'Inne providery',
     'components-and-directives': 'Komponenty i dyrektywy',
+    service: 'Serwis',
     services: 'Serwisy',
     configuration: 'Konfiguracja',
     constants: 'Stałe',

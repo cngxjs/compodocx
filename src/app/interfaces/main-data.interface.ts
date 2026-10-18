@@ -41,6 +41,7 @@ export interface MainDataInterface {
     entities: any;
     directives: any;
     injectables: any;
+    services: any;
     tokens?: any;
     interceptors: any;
     guards: any;

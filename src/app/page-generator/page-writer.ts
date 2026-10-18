@@ -100,6 +100,7 @@ export class PageWriter {
         const directives = (Configuration.mainData.directives as any[]) ?? [];
         const pipes = (Configuration.mainData.pipes as any[]) ?? [];
         const injectables = (Configuration.mainData.injectables as any[]) ?? [];
+        const services = (Configuration.mainData.services as any[]) ?? [];
 
         // Build a name→type+url lookup for all known entities
         const { symbols, di } = Configuration.mainData;
@@ -113,7 +114,8 @@ export class PageWriter {
             ['component', components],
             ['directive', directives],
             ['pipe', pipes],
-            ['injectable', injectables]
+            ['injectable', injectables],
+            ['service', services]
         ] as const;
         for (const [kind, list] of graphKinds) {
             for (const item of list) {

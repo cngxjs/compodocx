@@ -40,6 +40,7 @@ const GROUP_META: Record<string, GroupMeta> = {
     directive: { label: 'Directives', badge: 'cdx-badge--entity-directive', order: 1 },
     pipe: { label: 'Pipes', badge: 'cdx-badge--entity-pipe', order: 2 },
     injectable: { label: 'Injectables', badge: 'cdx-badge--entity-injectable', order: 3 },
+    service: { label: 'Services', badge: 'cdx-badge--entity-service', order: 3.5 },
     class: { label: 'Classes', badge: 'cdx-badge--entity-class', order: 4 },
     interface: { label: 'Interfaces', badge: 'cdx-badge--entity-interface', order: 5 },
     guard: { label: 'Guards', badge: 'cdx-badge--entity-guard', order: 6 },

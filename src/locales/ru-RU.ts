@@ -222,6 +222,7 @@ export const TRANSLATION_RU_RU = {
     'feature-type': 'Тип функциональности',
     'other-providers': 'Другие провайдеры',
     'components-and-directives': 'Компоненты и директивы',
+    service: 'Сервис',
     services: 'Сервисы',
     configuration: 'Конфигурация',
     constants: 'Константы',

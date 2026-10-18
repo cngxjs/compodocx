@@ -33,6 +33,7 @@ import {
     PlaygroundVendorResolver,
     ResolverPageGenerator,
     RoutesPageGenerator,
+    ServicePageGenerator,
     type StylePageGenerator,
     TokenPageGenerator
 } from '../page-generator';
@@ -55,6 +56,7 @@ export interface Generators {
     readonly directive: DirectivePageGenerator;
     readonly entity: EntityPageGenerator;
     readonly injectable: InjectablePageGenerator;
+    readonly service: ServicePageGenerator;
     readonly token: TokenPageGenerator;
     readonly interceptor: InterceptorPageGenerator;
     readonly guard: GuardPageGenerator;
@@ -87,6 +89,7 @@ export const createGenerators = (): Generators => {
         directive: new DirectivePageGenerator(navTabs),
         entity: new EntityPageGenerator(navTabs),
         injectable: new InjectablePageGenerator(navTabs),
+        service: new ServicePageGenerator(navTabs),
         token: new TokenPageGenerator(navTabs),
         interceptor: new InterceptorPageGenerator(navTabs),
         guard: new GuardPageGenerator(navTabs),

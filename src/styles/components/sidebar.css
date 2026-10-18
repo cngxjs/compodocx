@@ -719,7 +719,8 @@ button.menu-toggler:focus-visible {
 .cdx-feature-link[data-cdx-kind="directive"] .cdx-feature-kind-icon {
     color: var(--color-cdx-entity-directive);
 }
-.cdx-feature-link[data-cdx-kind="injectable"] .cdx-feature-kind-icon {
+.cdx-feature-link[data-cdx-kind="injectable"] .cdx-feature-kind-icon,
+.cdx-feature-link[data-cdx-kind="service"] .cdx-feature-kind-icon {
     color: var(--color-cdx-entity-service);
 }
 .cdx-feature-link[data-cdx-kind="pipe"] .cdx-feature-kind-icon {
