@@ -17,7 +17,7 @@ describe('t', () => {
 
     it('translates tab labels written with capitals through their lowercase key', async () => {
         await i18next.changeLanguage('de-DE');
-        expect(t('DOM Tree')).toBe('DOM baum');
+        expect(t('DOM Tree')).toBe('DOM-Baum');
         expect(t('Source')).toBe('Quelle');
         expect(t('Examples')).toBe('Beispiele');
         expect(t('Template')).toBe('Vorlage');
