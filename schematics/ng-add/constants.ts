@@ -23,7 +23,6 @@ export const TSCONFIG_DOC_TEMPLATE = {
 };
 
 export interface ScriptValueContext {
-    prefix: string;
     tsconfigPath: string;
 }
 
@@ -32,9 +31,9 @@ export const SCRIPT_VALUE_TEMPLATES: {
     'build-and-serve': (ctx: ScriptValueContext) => string;
     serve: (ctx: ScriptValueContext) => string;
 } = {
-    build: ({ prefix, tsconfigPath }) => `${prefix} -p ${tsconfigPath}`,
-    'build-and-serve': ({ prefix, tsconfigPath }) => `${prefix} -p ${tsconfigPath} -s`,
-    serve: ({ prefix }) => `${prefix} -s`
+    build: ({ tsconfigPath }) => `${CLI_BIN} -p ${tsconfigPath}`,
+    'build-and-serve': ({ tsconfigPath }) => `${CLI_BIN} -p ${tsconfigPath} -s`,
+    serve: () => `${CLI_BIN} -s`
 };
 
 export type GeneratedScriptKey = 'build' | 'build-and-serve' | 'serve';

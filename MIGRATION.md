@@ -63,7 +63,7 @@ Useful flags:
 
 - `--skip-migration` - leave the legacy dependency and `compodoc:*` scripts in place.
 - `--project <name>` - required when `angular.json` declares more than one project.
-- `--script-prefix compodoc` - produce `compodoc:*` script names instead of the default.
+- `--script-prefix compodoc` - produce `compodoc:*` script names instead of the default. The scripts still call `compodocx`.
 
 Re-running `ng add @cngxjs/compodocx` is idempotent (zero diff on the second pass). CI workflow files that invoke `compodoc -p ...` directly are not rewritten - update those manually, or rely on the `compodoc` bin alias the new package still ships. The schematic does not touch your sources, templates or config file: the warnings of the first run still apply.
 

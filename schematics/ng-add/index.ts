@@ -53,9 +53,9 @@ function writePackageJson(tree: Tree, path: string, packageJson: PackageJsonLike
     tree.overwrite(path, serialized);
 }
 
-function buildScriptValue(key: string, prefix: string, tsconfigPath: string): string {
+function buildScriptValue(key: string, tsconfigPath: string): string {
     if (key === 'build' || key === 'serve' || key === 'build-and-serve') {
-        return SCRIPT_VALUE_TEMPLATES[key]({ prefix, tsconfigPath });
+        return SCRIPT_VALUE_TEMPLATES[key]({ tsconfigPath });
     }
     throw new SchematicsException(`Unknown generated script key '${key}'.`);
 }
@@ -70,7 +70,7 @@ function applyGeneratedScripts(
 
     for (const key of GENERATED_SCRIPT_KEYS) {
         const fullKey = `${scriptPrefix}:${key}`;
-        const value = buildScriptValue(key, scriptPrefix, target.tsconfigDocPath);
+        const value = buildScriptValue(key, target.tsconfigDocPath);
         if (scripts[fullKey] !== value) {
             scripts[fullKey] = value;
             added += 1;
