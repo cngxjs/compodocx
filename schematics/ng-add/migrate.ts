@@ -1,4 +1,5 @@
 import {
+    CLI_BIN,
     LEGACY_BIN_PATTERN,
     LEGACY_PACKAGE_NAME,
     LEGACY_SCRIPT_KEY_PREFIX
@@ -35,9 +36,10 @@ function removeLegacyDep(
     return { changed: true, deps: next };
 }
 
-function rewriteValue(value: string, scriptPrefix: string): string {
+/** Replaces the legacy binary with `compodocx`; the script prefix only names script keys. */
+function rewriteValue(value: string): string {
     LEGACY_BIN_PATTERN.lastIndex = 0;
-    return value.replace(LEGACY_BIN_PATTERN, scriptPrefix);
+    return value.replace(LEGACY_BIN_PATTERN, `$1$2${CLI_BIN}`);
 }
 
 interface RenameScriptOptions {
@@ -144,7 +146,7 @@ export function migrateLegacyArtefacts(
         if (typeof value !== 'string') {
             continue;
         }
-        const rewritten = rewriteValue(value, scriptPrefix);
+        const rewritten = rewriteValue(value);
         if (rewritten !== value) {
             scripts[currentKey] = rewritten;
             rewrittenScripts.push(currentKey);
