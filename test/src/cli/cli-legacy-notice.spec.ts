@@ -36,18 +36,26 @@ describe('CLI legacy notice', () => {
 
     it('warns with the count of legacy constructs and exits 0', () => {
         expect(legacy.status).to.equal(0);
-        expect(legacy.stdout).to.match(
-            /Angular 21\+ only: \d+ legacy constructs are not documented/
+        expect(legacy.stdout).to.contain(
+            'Angular 21+ only: 21 legacy constructs are not documented'
         );
     });
 
     it('prints one location line per kind group', () => {
         expect(legacy.stdout).to.contain(
-            '  ng-module (9): test/fixtures/kitchen-sink-module/src/app/about/about.module.ts:15 AboutModule'
+            '  ng-module (2): test/fixtures/kitchen-sink-module/src/app/about/about.module.ts:14 AboutModule, test/fixtures/kitchen-sink-module/src/app/app-routing.module.ts:33 AppRoutingModule'
         );
-        expect(legacy.stdout).to.match(/ {2}input-decorator \(\d+\): .*, \.\.\. and \d+ more/);
         expect(legacy.stdout).to.match(
-            / {2}class-interceptor \(3\): test\/fixtures\/kitchen-sink-module\/src\/app\/core\/interceptors\/auth\.interceptor\.ts:\d+ AuthInterceptor/
+            / {2}input-decorator \(2\): .*todo-item\.component\.ts:\d+ TodoItemComponent\.todo/
+        );
+        expect(legacy.stdout).to.match(
+            / {2}constructor-injection \(2\): .*auth\.guard\.ts:\d+ AuthGuard/
+        );
+        expect(legacy.stdout).to.match(
+            / {2}class-guard \(3\): test\/fixtures\/kitchen-sink-module\/src\/app\/core\/guards\/auth\.guard\.ts:\d+ AuthGuard/
+        );
+        expect(legacy.stdout).to.match(
+            / {2}class-interceptor \(1\): test\/fixtures\/kitchen-sink-module\/src\/app\/core\/interceptors\/auth\.interceptor\.ts:\d+ AuthInterceptor/
         );
     });
 

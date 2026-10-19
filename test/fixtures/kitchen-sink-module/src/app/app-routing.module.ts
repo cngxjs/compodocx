@@ -11,36 +11,19 @@ import { UnsavedChangesGuard } from './core/guards/unsaved-changes.guard';
 const routes: Routes = [
     {
         path: '',
-        redirectTo: 'dashboard',
+        redirectTo: 'about',
         pathMatch: 'full',
-    },
-    {
-        path: 'dashboard',
-        loadChildren: () =>
-            import('./features/dashboard/dashboard.module').then((m) => m.DashboardModule),
-        canActivate: [AuthGuard],
-    },
-    {
-        path: 'users',
-        loadChildren: () =>
-            import('./features/users/users.module').then((m) => m.UsersModule),
-        canActivate: [AuthGuard, RoleGuard],
-    },
-    {
-        path: 'settings',
-        loadChildren: () =>
-            import('./features/settings/settings.module').then((m) => m.SettingsModule),
-        canActivate: [AuthGuard],
-        canDeactivate: [UnsavedChangesGuard],
     },
     {
         path: 'about',
         loadChildren: () =>
             import('./about/about.module').then((m) => m.AboutModule),
+        canActivate: [AuthGuard, RoleGuard],
+        canDeactivate: [UnsavedChangesGuard],
     },
     {
         path: '**',
-        redirectTo: 'dashboard',
+        redirectTo: 'about',
     },
 ];
 

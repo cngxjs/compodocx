@@ -91,8 +91,8 @@ test.describe('Source viewer — sticky scroll stack', () => {
     // standalone-app fixture is 45 lines, which puts the class decl
     // roughly in the viewport middle after full-scroll — still below
     // the trigger, so the stack never pins. These behaviours are
-    // verified manually against the kitchen-sink fixtures (dev:module
-    // / dev:standalone) which have 200+ line components. If a longer
+    // verified manually against the kitchen-sink-standalone fixture
+    // (npm run dev), which has 200+ line components. If a longer
     // TS file is added to standalone-app, re-introduce the populate +
     // click tests here.
 });
