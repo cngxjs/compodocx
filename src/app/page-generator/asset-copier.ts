@@ -11,6 +11,7 @@ import type { MainDataInterface } from '../interfaces/main-data.interface';
 import { REDIRECTS_FILE } from '../links/layout';
 import { REDIRECTS_SCHEMA_VERSION, type RedirectsFile } from '../links/redirects';
 import { type Halt, halt } from '../run/halt';
+import { faviconImage, IMAGES_FOLDER, logoImage } from './brand-images';
 
 const cwd = process.cwd();
 
@@ -73,7 +74,7 @@ const copyFavicon = (mainData: MainDataInterface, finalOutput: string): Promise<
     logger.info(`Custom favicon supplied`);
     return copyOrReject(
         path.resolve(cwd + path.sep + mainData.customFavicon),
-        path.resolve(`${finalOutput}/images/favicon.ico`),
+        path.resolve(finalOutput, IMAGES_FOLDER, faviconImage(mainData.customFavicon).file),
         'External custom favicon copy succeeded',
         'Error during resources copy of favicon'
     );
@@ -86,7 +87,7 @@ const copyLogo = (mainData: MainDataInterface, finalOutput: string): Promise<voi
     logger.info(`Custom logo supplied`);
     return copyOrReject(
         path.resolve(cwd + path.sep + mainData.customLogo),
-        path.resolve(`${finalOutput}/images/${mainData.customLogo.split('/').pop()}`),
+        path.resolve(finalOutput, IMAGES_FOLDER, logoImage(mainData.customLogo)),
         'External custom logo copy succeeded',
         'Error during resources copy of logo'
     );
