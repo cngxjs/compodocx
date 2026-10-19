@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
-## [Unreleased]
+## [0.9.0] - 2026-10-19
 
 Upgrading from 0.8: this release documents Angular 21+ standalone code only, moves every symbol page into the folder of its feature (old URLs are mapped in `redirects.json`), makes the feature sidebar the default and writes the JSON export with schema 6. Removed flags, config keys and template overrides are ignored with a warning instead of failing the build. Update the package, run it once and work through the warnings; [MIGRATION.md](MIGRATION.md) explains each change.
 
