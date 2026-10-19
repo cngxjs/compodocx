@@ -9,7 +9,10 @@ import {
     mergeEntry,
     readManifest,
     sortVersions,
-    writeManifest
+    VERSIONS_ROOT_INDEX_MARKER,
+    versionsRootIndexHtml,
+    writeManifest,
+    writeVersionsRootIndex
 } from '../../../src/utils/versions-manifest.util';
 
 let tempRoot: string;
@@ -160,5 +163,50 @@ describe('writeManifest', () => {
         const body = readFileSync(getManifestPath(tempRoot), 'utf8');
         expect(body.endsWith('\n')).toBe(true);
         expect(body).toMatch(/"schemaVersion":\s*1/);
+    });
+});
+
+describe('versions root index', () => {
+    const manifest = (...labels: string[]) => ({
+        ...emptyManifest('2026-05-08T00:00:00.000Z'),
+        versions: labels.map(label => entry(label))
+    });
+    const indexPath = () => join(tempRoot, 'index.html');
+
+    it('redirects to the first (newest) version with a relative URL', () => {
+        const html = versionsRootIndexHtml(manifest('v2.0.0', 'v1.0.0'));
+        expect(html).toContain(`<meta name="generator" content="${VERSIONS_ROOT_INDEX_MARKER}">`);
+        expect(html).toContain('<meta http-equiv="refresh" content="0; url=v2.0.0/index.html">');
+        expect(html).toContain('<a href="v2.0.0/index.html">v2.0.0</a>');
+        expect(html).not.toMatch(/<(script|link)\b/);
+        expect(html).not.toMatch(/https?:/);
+    });
+
+    it('escapes the label and encodes the path', () => {
+        const html = versionsRootIndexHtml(manifest('<b> & "x"'));
+        expect(html).toContain('&lt;b&gt; &amp; &quot;x&quot;');
+        expect(html).not.toContain('<b>');
+    });
+
+    it('writes index.html next to versions.json', () => {
+        expect(writeVersionsRootIndex(tempRoot, manifest('v1.0.0'))).toBe('written');
+        expect(readFileSync(indexPath(), 'utf8')).toContain('url=v1.0.0/index.html');
+    });
+
+    it('replaces an index.html it wrote before', () => {
+        writeVersionsRootIndex(tempRoot, manifest('v1.0.0'));
+        expect(writeVersionsRootIndex(tempRoot, manifest('v2.0.0', 'v1.0.0'))).toBe('written');
+        expect(readFileSync(indexPath(), 'utf8')).toContain('url=v2.0.0/index.html');
+    });
+
+    it('keeps a landing page the user wrote', () => {
+        writeFileSync(indexPath(), '<h1>My landing page</h1>');
+        expect(writeVersionsRootIndex(tempRoot, manifest('v1.0.0'))).toBe('kept');
+        expect(readFileSync(indexPath(), 'utf8')).toBe('<h1>My landing page</h1>');
+    });
+
+    it('writes nothing for a manifest without versions', () => {
+        expect(writeVersionsRootIndex(tempRoot, manifest())).toBe('skipped');
+        expect(existsSync(indexPath())).toBe(false);
     });
 });

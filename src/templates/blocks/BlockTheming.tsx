@@ -1,7 +1,6 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { highlightCode } from '../../app/engines/syntax-highlight.engine';
-import { markedAcl } from '../../utils/marked.acl';
 import type {
     StyleMixin,
     StyleSource,
@@ -10,6 +9,7 @@ import type {
 } from '../../utils/theme-doc-parser';
 import { groupThemeTokens } from '../../utils/theme-doc-parser';
 import { isThemingSection, t } from '../helpers';
+import { themingProse } from '../helpers/theming-prose';
 import { type RelatedEntry, resolveRelated } from './RelatedSection';
 
 type BlockThemingProps = {
@@ -21,8 +21,13 @@ type BlockThemingProps = {
     readonly mixins?: readonly StyleMixin[];
     /** Style files that theme the symbol (`@themes`), named above the overview. */
     readonly linked?: readonly { readonly label: string; readonly href?: string }[];
+    /** Tokens rendered by another block on the same page that `{@link --name}` may target. */
+    readonly linkTokens?: readonly ThemeToken[];
     readonly depth?: number;
 };
+
+/** Markdown to HTML with `{@link}` resolved (see `themingProse`). */
+type Prose = (markdown: string) => string;
 
 const slugifyId = (raw: string): string =>
     raw
@@ -32,6 +37,15 @@ const slugifyId = (raw: string): string =>
         .replaceAll(/^-+|-+$/g, '');
 
 const tokenAnchor = (token: ThemeToken): string => `theme-${slugifyId(token.name)}`;
+
+/**
+ * Row ids of the tokens a page renders, by token name, for `{@link --name}`;
+ * empty when `themingTabSections` hides the token rows.
+ */
+export const tokenAnchors = (tokens: readonly ThemeToken[]): ReadonlyMap<string, string> =>
+    new Map(
+        isThemingSection('tokens') ? tokens.map(token => [token.name, tokenAnchor(token)]) : []
+    );
 
 const renderBadges = (token: Pick<ThemeToken, 'since' | 'deprecated'>): string => {
     const badges: string[] = [];
@@ -103,7 +117,7 @@ const renderRelated = (related: readonly RelatedEntry[]): string => {
     return `<p class="cdx-theming-see cdx-theming-related">${t('related')}: ${items}</p>`;
 };
 
-const renderTokenRow = (token: ThemeToken, depth?: number): string => {
+const renderTokenRow = (token: ThemeToken, prose: Prose, depth?: number): string => {
     const related = (token.relatedTo ?? []).map(name => resolveRelated(name, depth ?? 0));
     const custom = renderCustomTemplate('block-theming-token', {
         token,
@@ -128,10 +142,10 @@ const renderTokenRow = (token: ThemeToken, depth?: number): string => {
 
     const badgesRow = renderBadges(token);
     const descHtml = token.description
-        ? `<div class="cdx-io-member-desc cdx-prose">${markedAcl(token.description) as string}</div>`
+        ? `<div class="cdx-io-member-desc cdx-prose">${prose(token.description)}</div>`
         : '';
     const deprecatedReason = token.deprecated
-        ? `<p class="cdx-theming-deprecated">${markedAcl(token.deprecated) as string}</p>`
+        ? `<p class="cdx-theming-deprecated">${prose(token.deprecated)}</p>`
         : '';
     const defaultHtml = token.defaultValue
         ? `<div class="cdx-io-member-default"><span class="cdx-io-member-default-label">${t(
@@ -158,13 +172,13 @@ const renderTokenRow = (token: ThemeToken, depth?: number): string => {
     );
 };
 
-const renderGroup = (group: ThemeTokenGroup, depth?: number): string => {
+const renderGroup = (group: ThemeTokenGroup, prose: Prose, depth?: number): string => {
     const heading = group.name
         ? `<h4 class="cdx-section-heading" id="theme-group-${slugifyId(group.name)}">${
               Html.escapeHtml(group.name) as string
           }</h4>`
         : '';
-    const members = group.tokens.map(token => renderTokenRow(token, depth)).join('');
+    const members = group.tokens.map(token => renderTokenRow(token, prose, depth)).join('');
     return (
         `<section class="cdx-theming-group" data-group="${
             Html.escapeHtml(group.name) as string
@@ -225,7 +239,7 @@ const mixinSignature = (mixin: StyleMixin): string =>
         .map(param => `$${param.name}${param.default ? `: ${param.default}` : ''}`)
         .join(', ')})`;
 
-const renderMixinParams = (mixin: StyleMixin): string => {
+const renderMixinParams = (mixin: StyleMixin, prose: Prose): string => {
     if (mixin.params.length === 0) {
         return '';
     }
@@ -240,7 +254,7 @@ const renderMixinParams = (mixin: StyleMixin): string => {
                   }</code>`
                 : '';
             const desc = param.description
-                ? `<div class="cdx-prose">${markedAcl(param.description) as string}</div>`
+                ? `<div class="cdx-prose">${prose(param.description)}</div>`
                 : '';
             return `<li><code>$${Html.escapeHtml(param.name) as string}</code>${type}${fallback}${desc}</li>`;
         })
@@ -248,7 +262,7 @@ const renderMixinParams = (mixin: StyleMixin): string => {
     return `<div class="cdx-theming-params"><h5>${t('parameters')}</h5>` + `<ul>${rows}</ul></div>`;
 };
 
-const renderMixin = (mixin: StyleMixin, depth?: number): string => {
+const renderMixin = (mixin: StyleMixin, prose: Prose, depth?: number): string => {
     const related = mixin.relatedTo.map(name => resolveRelated(name, depth ?? 0));
     const custom = renderCustomTemplate('block-theming-mixin', { mixin, depth, related });
     if (custom !== null) {
@@ -261,11 +275,11 @@ const renderMixin = (mixin: StyleMixin, depth?: number): string => {
     const contentHtml =
         mixin.content !== null
             ? `<p class="cdx-theming-mixin-content">${t('mixin-content')}${
-                  mixin.content ? `: ${markedAcl(mixin.content) as string}` : ''
+                  mixin.content ? `: ${prose(mixin.content)}` : ''
               }</p>`
             : '';
     const returnsHtml = mixin.returns
-        ? `<p class="cdx-theming-mixin-returns">${t('returns')}: ${markedAcl(mixin.returns) as string}</p>`
+        ? `<p class="cdx-theming-mixin-returns">${t('returns')}: ${prose(mixin.returns)}</p>`
         : '';
     return (
         `<div class="cdx-io-member cdx-io-member--theming cdx-io-member--theming-${mixin.kind}${
@@ -282,12 +296,12 @@ const renderMixin = (mixin: StyleMixin, depth?: number): string => {
             Html.escapeHtml(mixinSignature(mixin)) as string
         }</code></div>` +
         (mixin.description
-            ? `<div class="cdx-io-member-desc cdx-prose">${markedAcl(mixin.description) as string}</div>`
+            ? `<div class="cdx-io-member-desc cdx-prose">${prose(mixin.description)}</div>`
             : '') +
         (mixin.deprecated
-            ? `<p class="cdx-theming-deprecated">${markedAcl(mixin.deprecated) as string}</p>`
+            ? `<p class="cdx-theming-deprecated">${prose(mixin.deprecated)}</p>`
             : '') +
-        renderMixinParams(mixin) +
+        renderMixinParams(mixin, prose) +
         contentHtml +
         returnsHtml +
         renderExamples(mixin) +
@@ -297,7 +311,7 @@ const renderMixin = (mixin: StyleMixin, depth?: number): string => {
     );
 };
 
-const renderMixins = (mixins: readonly StyleMixin[], depth?: number): string => {
+const renderMixins = (mixins: readonly StyleMixin[], prose: Prose, depth?: number): string => {
     if (mixins.length === 0) {
         return '';
     }
@@ -305,7 +319,7 @@ const renderMixins = (mixins: readonly StyleMixin[], depth?: number): string => 
         `<section class="cdx-content-section" data-compodoc="block-theming-mixins">` +
         `<h3 class="cdx-section-heading" id="theme-mixins">${t('mixins')}` +
         `<a class="cdx-member-permalink" href="#theme-mixins">#</a></h3>` +
-        mixins.map(mixin => renderMixin(mixin, depth)).join('') +
+        mixins.map(mixin => renderMixin(mixin, prose, depth)).join('') +
         `</section>`
     );
 };
@@ -373,16 +387,18 @@ export const BlockTheming = (props: BlockThemingProps): string => {
         return custom;
     }
 
+    const anchors = tokenAnchors([...tokens, ...(props.linkTokens ?? [])]);
+    const prose: Prose = markdown => themingProse(markdown, props.depth ?? 0, anchors);
     const linkedHtml = renderLinked(linked);
     const overviewHtml =
         isThemingSection('overview') && overview
-            ? `<div class="cdx-theming-overview cdx-prose">${markedAcl(overview) as string}</div>`
+            ? `<div class="cdx-theming-overview cdx-prose">${prose(overview)}</div>`
             : '';
     const indexHtml = isThemingSection('index') ? renderIndex(groups) : '';
     const tokensHtml = isThemingSection('tokens')
-        ? groups.map(group => renderGroup(group, props.depth)).join('')
+        ? groups.map(group => renderGroup(group, prose, props.depth)).join('')
         : '';
-    const mixinsHtml = isThemingSection('mixins') ? renderMixins(mixins, props.depth) : '';
+    const mixinsHtml = isThemingSection('mixins') ? renderMixins(mixins, prose, props.depth) : '';
     const sourceHtml = isThemingSection('source') ? renderSourcePanel(styleSources) : '';
 
     return (

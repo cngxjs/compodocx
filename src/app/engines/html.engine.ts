@@ -48,6 +48,7 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     changelog: 'markdown',
     contributing: 'markdown',
     license: 'markdown',
+    todo: 'markdown',
     overview: 'overview',
     component: 'component',
     entity: 'entity',
@@ -112,6 +113,7 @@ export class HtmlEngine {
             case 'changelog':
             case 'contributing':
             case 'license':
+            case 'todo':
                 return Markdown({ markdown: data.markdown, aiGenerated: data.aiGenerated });
             case 'additional-page':
                 return AdditionalPage({

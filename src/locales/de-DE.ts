@@ -30,7 +30,7 @@ export const TRANSLATION_DE_DE = {
     description: 'Beschreibung',
     directive: 'Direktive',
     directives: 'Direktiven',
-    'dom tree': 'DOM baum',
+    'dom tree': 'DOM-Baum',
     effects: 'Effekte',
     'empty-dom-tree-desc': 'Ein Template wird benötigt, um den DOM-Baum zu erzeugen.',
     'empty-dom-tree-title': 'Kein DOM-Baum verfügbar',

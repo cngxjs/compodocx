@@ -3,11 +3,12 @@ import Configuration from '../../app/configuration';
 import type { SymbolEntry } from '../../app/links/symbol-table';
 import type { StylePageData, StyleThemeLink } from '../../app/page-generator/style-page-generator';
 import { markedAcl } from '../../utils/marked.acl';
-import { BlockTheming } from '../blocks/BlockTheming';
+import { BlockTheming, tokenAnchors } from '../blocks/BlockTheming';
 import { RelatedSection } from '../blocks/RelatedSection';
 import { FeatureCrumbs } from '../components/FeatureCrumbs';
 import { isThemingSection, pagefindFilterBlock, pagefindMetaBlock, t } from '../helpers';
 import { featureInfoOf } from '../helpers/feature-info';
+import { themingProse } from '../helpers/theming-prose';
 
 const Section = (id: string, title: string, body: string): string =>
     body
@@ -58,13 +59,17 @@ export const StylePage = (data: any): string => {
     const tokens = style.groups.flatMap(group => group.tokens);
     const overviewHtml =
         isThemingSection('overview') && style.overview
-            ? `<div class="cdx-theming-overview cdx-prose">${markedAcl(style.overview) as string}</div>`
+            ? `<div class="cdx-theming-overview cdx-prose">${themingProse(
+                  style.overview,
+                  depth,
+                  tokenAnchors(tokens)
+              )}</div>`
             : '';
     const tokensHtml =
         tokens.length > 0 && isThemingSection('tokens') ? BlockTheming({ tokens, depth }) : '';
     const mixinsHtml =
         style.mixins.length > 0 && isThemingSection('mixins')
-            ? BlockTheming({ tokens: [], mixins: style.mixins, depth })
+            ? BlockTheming({ tokens: [], mixins: style.mixins, linkTokens: tokens, depth })
             : '';
     const sourceHtml =
         style.sources.length > 0

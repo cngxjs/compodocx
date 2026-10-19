@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { hasStderrError, shell } from '../helpers';
@@ -56,6 +56,10 @@ describe('CLI multi-version', () => {
             }
             const manifest = JSON.parse(readFileSync(join(out, 'versions.json'), 'utf8'));
             expect(manifest.versions.map(v => v.label)).toEqual(['v2.0.0', 'v1.0.0']);
+            // The root index opens the newest version.
+            const rootIndex = readFileSync(join(out, 'index.html'), 'utf8');
+            expect(rootIndex).toContain('content="compodocx-versions-root"');
+            expect(rootIndex).toContain('url=v2.0.0/index.html');
         } finally {
             rmSync(outRoot, { recursive: true, force: true });
         }
@@ -71,10 +75,31 @@ describe('CLI multi-version', () => {
                 throw new Error('CLI error');
             }
             expect(existsSync(join(out, 'index.html'))).toBe(true);
+            expect(readFileSync(join(out, 'index.html'), 'utf8')).not.toContain(
+                'compodocx-versions-root'
+            );
             // When opting out, no version subfolder should appear next to docs.
             expect(existsSync(join(out, 'v0.2.0'))).toBe(false);
             // versions.json must NOT be written in flat mode.
             expect(existsSync(join(out, 'versions.json'))).toBe(false);
+        } finally {
+            rmSync(outRoot, { recursive: true, force: true });
+        }
+    });
+
+    it('keeps a landing page of its own in the versions root', () => {
+        const outRoot = isolatedDir();
+        const out = join(outRoot, 'docs');
+        try {
+            mkdirSync(out, { recursive: true });
+            writeFileSync(join(out, 'index.html'), '<h1>Landing</h1>');
+            const ls = runCli(['-p', TSCONFIG, '-d', out, '--versionLabel', 'v1.0.0']);
+            if (hasStderrError(ls.stderr.toString())) {
+                console.error(ls.stderr.toString());
+                throw new Error('CLI error');
+            }
+            expect(existsSync(join(out, 'v1.0.0', 'index.html'))).toBe(true);
+            expect(readFileSync(join(out, 'index.html'), 'utf8')).toBe('<h1>Landing</h1>');
         } finally {
             rmSync(outRoot, { recursive: true, force: true });
         }

@@ -23,6 +23,15 @@ import { pageFile } from './links/layout';
 export const pageOutputPath = (page: PageInterface): string =>
     pageFile(page.path ?? '', page.filename || page.name);
 
+/** Root pages built from the project markdown files; README is written as `index`. */
+const ROOT_MARKDOWN_PAGE_NAMES: ReadonlySet<string> = new Set([
+    'index',
+    'changelog',
+    'contributing',
+    'license',
+    'todo'
+]);
+
 export class Configuration implements ConfigurationInterface {
     private _pages: PageInterface[] = [];
     private readonly _mainData: MainDataInterface = {
@@ -200,17 +209,9 @@ export class Configuration implements ConfigurationInterface {
         this._mainData.additionalPages = [];
     }
 
+    /** Drops the root markdown pages (README as `index`, CHANGELOG, ...) that are queued. */
     public resetRootMarkdownPages() {
-        let indexPage = this._pages.findIndex(p => p.name === 'index');
-        this._pages.splice(indexPage, 1);
-        indexPage = this._pages.findIndex(p => p.name === 'changelog');
-        this._pages.splice(indexPage, 1);
-        indexPage = this._pages.findIndex(p => p.name === 'contributing');
-        this._pages.splice(indexPage, 1);
-        indexPage = this._pages.findIndex(p => p.name === 'license');
-        this._pages.splice(indexPage, 1);
-        indexPage = this._pages.findIndex(p => p.name === 'todo');
-        this._pages.splice(indexPage, 1);
+        this._pages = this._pages.filter(p => !(ROOT_MARKDOWN_PAGE_NAMES.has(p.name) && !p.path));
         this._mainData.markdowns = [];
     }
 

@@ -195,7 +195,7 @@ A doc block carrying `@overview` becomes the first paragraph on the Theming tab,
  */
 ```
 
-The body uses Markdown: `**bold**`, `_italic_`, ` ``code`` `, `[links](url)`, `> blockquote`, lists. `{@link}` is not resolved here and shows as written; link to a token's row with `@see --acme-alert-bg` on the token instead.
+The body uses Markdown: `**bold**`, `_italic_`, ` ``code`` `, `[links](url)`, `> blockquote`, lists. `{@link --acme-alert-bg}` links to that token's row on the same tab (a token without a row there renders as code); `{@link AcmeAlert}`, URLs and `.md` / `.html` files resolve like `{@link}` in any other description, and a name that is none of these renders as code.
 
 ## Tag reference
 
@@ -658,7 +658,7 @@ Migrating to `@property` is a separate, optional step. Do it once the inline-doc
 }
 ```
 
-Token descriptions are plain Markdown: `{@link}` is not resolved there and shows as written, so name the other token in backticks and link it with `@see`. `@see` entries appear as a comma-separated footer; URLs open in a new tab, token names (`--name`, `$name`) link to their rows.
+Token descriptions, `@deprecated` notes and mixin descriptions are Markdown and resolve `{@link}` like the overview: `{@link --acme-alert-bg}` (or `{@link --acme-alert-bg|label}`) links to that token's row on the same page (on `design-tokens.html`, to the row there), and a token without a row on the page renders as code. `@see` entries appear as a comma-separated footer; URLs open in a new tab, token names (`--name`, `$name`) link to their rows.
 
 ## What this guide does NOT cover
 

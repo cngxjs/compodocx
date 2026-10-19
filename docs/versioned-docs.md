@@ -12,6 +12,7 @@ writes:
 
 ```text
 docs/                    ← deploy this folder
+├── index.html           ← opens the newest version
 ├── versions.json        ← manifest of every version built into docs/
 └── v1.2.0/              ← this run
     ├── index.html
@@ -22,7 +23,7 @@ docs/                    ← deploy this folder
 
 Run it again for another version into the same `-d` folder and the new version folder lands next to the first one; `versions.json` gains an entry. Building a label that is already listed replaces its folder and its entry.
 
-compodocx writes no `index.html` into the `-d` folder itself. Add your own landing page there, or a redirect to the version readers should see first.
+The `index.html` in the `-d` folder (the `--versionsRoot` folder when set) opens the newest version, the first entry of `versions.json`, through a relative `<meta http-equiv="refresh">` redirect and a plain link, so `compodocx -s` and static hosts show the docs at the root. compodocx marks the file with `<meta name="generator" content="compodocx-versions-root">` and replaces only a file with that marker: put your own landing page there instead and every later build leaves it alone. `--no-multiVersion` writes no such file.
 
 Only HTML output is versioned. `--exportFormat json` and `llm-md` write a single snapshot into the output folder as before.
 

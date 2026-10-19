@@ -227,3 +227,63 @@ export function writeManifest(versionsRoot: string, manifest: VersionsManifest):
         throw err;
     }
 }
+
+/** `generator` meta of the root `index.html` compodocx writes; only such a file is replaced. */
+export const VERSIONS_ROOT_INDEX_MARKER = 'compodocx-versions-root';
+
+const ROOT_INDEX_FILE_NAME = 'index.html';
+
+const escapeHtml = (text: string): string =>
+    text
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+
+/**
+ * Root `index.html` of a multi-version deploy: redirects to the newest
+ * version (the first manifest entry) with a relative URL, plus a plain link.
+ * No scripts, styles or external resources.
+ */
+export function versionsRootIndexHtml(manifest: VersionsManifest): string {
+    const latest = manifest.versions[0];
+    const href = escapeHtml(`${encodeURI(latest.path)}index.html`);
+    const label = escapeHtml(latest.label);
+    return (
+        [
+            '<!doctype html>',
+            '<html>',
+            '<head>',
+            '<meta charset="utf-8">',
+            `<meta name="generator" content="${VERSIONS_ROOT_INDEX_MARKER}">`,
+            `<meta http-equiv="refresh" content="0; url=${href}">`,
+            `<title>${label}</title>`,
+            '</head>',
+            '<body>',
+            `<p><a href="${href}">${label}</a></p>`,
+            '</body>',
+            '</html>'
+        ].join('\n') + '\n'
+    );
+}
+
+/**
+ * Writes the root `index.html` next to `versions.json`. A file without the
+ * compodocx marker is the user's own landing page and is kept (`'kept'`);
+ * a manifest without versions writes nothing (`'skipped'`).
+ */
+export function writeVersionsRootIndex(
+    versionsRoot: string,
+    manifest: VersionsManifest
+): 'written' | 'kept' | 'skipped' {
+    if (manifest.versions.length === 0) {
+        return 'skipped';
+    }
+    const target = join(versionsRoot, ROOT_INDEX_FILE_NAME);
+    const ours = `<meta name="generator" content="${VERSIONS_ROOT_INDEX_MARKER}">`;
+    if (existsSync(target) && !readFileSync(target, 'utf8').includes(ours)) {
+        return 'kept';
+    }
+    writeFileSync(target, versionsRootIndexHtml(manifest), 'utf8');
+    return 'written';
+}
