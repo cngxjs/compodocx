@@ -1,4 +1,4 @@
-import { exists, hasStderrError, shell, stats, temporaryDir } from '../helpers';
+import { exists, hasStderrError, read, shell, stats, temporaryDir } from '../helpers';
 
 const tmp = temporaryDir();
 
@@ -37,6 +37,11 @@ describe('CLI custom logo', () => {
                 copiedFileSize = (stats(`${distFolder}/images/logo.png`) as Image).size;
             expect(originalFileSize).to.equal(copiedFileSize);
         });
+
+        it('should link the copied customLogo in the sidebar', () => {
+            const index = read(`${distFolder}/index.html`);
+            expect(index).to.contain('<img src="./images/logo.png"');
+        });
     });
 
     describe('when specifying a custom logo svg image', () => {
@@ -66,6 +71,11 @@ describe('CLI custom logo', () => {
             const originalFileSize = (stats('test/fixtures/todomvc-ng2/logo.svg') as Image).size,
                 copiedFileSize = (stats(`${distFolder}/images/logo.svg`) as Image).size;
             expect(originalFileSize).to.equal(copiedFileSize);
+        });
+
+        it('should link the copied customLogo in the sidebar', () => {
+            const index = read(`${distFolder}/index.html`);
+            expect(index).to.contain('<img src="./images/logo.svg"');
         });
     });
 

@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { hrefFor, hrefText, pageFile, ROOT_DEPTH } from '../app/links/layout';
+import { faviconImage, IMAGES_FOLDER, logoImage } from '../app/page-generator/brand-images';
 import { ENTITIES_SCRIPT, MENU_SCRIPT } from '../app/page-generator/shared-scripts';
 import { VersionSwitcher } from './blocks/VersionSwitcher';
 import { IconMoon, IconPalette, IconSearch, IconSun } from './components/Icons';
@@ -15,6 +16,7 @@ export type PageData = {
     readonly filename?: string;
     readonly theme?: string;
     readonly customLogo?: string;
+    readonly customFavicon?: string;
     readonly disableSearch?: boolean;
     readonly disableDependencies?: boolean;
     readonly disableProperties?: boolean;
@@ -187,7 +189,10 @@ const SidebarHeader = (props: {
             <div class="cdx-sidebar-header-row">
                 {props.logo ? (
                     <a href={INDEX_HREF} data-type="index-link" class="cdx-sidebar-logo">
-                        <img src={props.r(`images/${props.logo}`)} alt={props.name} />
+                        <img
+                            src={props.r(`${IMAGES_FOLDER}/${logoImage(props.logo)}`)}
+                            alt={props.name}
+                        />
                     </a>
                 ) : (
                     <a href={INDEX_HREF} data-type="index-link" class="cdx-sidebar-brand">
@@ -306,6 +311,7 @@ export const Layout = (props: LayoutProps): string => {
     const r = (path: string) => relativeUrl(data.depth, path);
     // A custom or named theme is locked: no picker, and no stored choice may swap it.
     const themePicker = !data.theme || ['default', 'gitbook'].includes(data.theme);
+    const favicon = faviconImage(data.customFavicon);
 
     return ('<!doctype html>\n' +
     (
@@ -316,7 +322,7 @@ export const Layout = (props: LayoutProps): string => {
                 <title>{pageTitle(data)}</title>
                 <meta name="description" content="" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <link rel="icon" type="image/svg+xml" href={r('images/favicon.svg')} />
+                <link rel="icon" type={favicon.type} href={r(`${IMAGES_FOLDER}/${favicon.file}`)} />
                 <script>{`(function(){try{var d=localStorage.getItem('compodocx_darkmode-state');var dark=d!==null?d==='true':window.matchMedia('(prefers-color-scheme:dark)').matches;if(dark)document.documentElement.classList.add('dark');if(/Mac|iPhone|iPad/.test(navigator.platform||''))document.documentElement.classList.add('cdx-mac');if(location.hash&&location.hash!=='#')document.documentElement.classList.add('cdx-hash-pending')}catch(e){}}())`}</script>
                 <style>{`
                     .menu .collapse.in { display: block !important; visibility: visible !important; }

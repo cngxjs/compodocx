@@ -8,6 +8,11 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ## [Unreleased]
 
+### Fixed
+
+- **`customFavicon` is now the icon the pages link to.** The file was copied to `images/favicon.ico` while every page kept linking the bundled `images/favicon.svg`. It is now copied as `images/favicon.<ext>` (`.svg`, `.ico` and `.png` keep their type) and linked with the matching `type`; the bundled icon is linked only without `customFavicon`.
+- **`customLogo` shows in the sidebar again.** The image source was built from the configured path (`images/./brand/logo.svg`) instead of the copied file name (`images/logo.svg`).
+
 ## [0.9.0] - 2026-10-19
 
 Upgrading from 0.8: this release documents Angular 21+ standalone code only, moves every symbol page into the folder of its feature (old URLs are mapped in `redirects.json`), makes the feature sidebar the default and writes the JSON export with schema 6. Removed flags, config keys and template overrides are ignored with a warning instead of failing the build. Update the package, run it once and work through the warnings; [MIGRATION.md](MIGRATION.md) explains each change.

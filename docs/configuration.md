@@ -118,8 +118,8 @@ Compodocx ships with multiple built-in themes and supports custom CSS. All theme
 | theme | `--theme` | string | `'default'` | Built-in theme name or path to a custom CSS file. Built-in themes: `default`, `ocean`, `ember`, `midnight`, `neon`, `brutalist`, `nord`, `rose-pine`, `gitbook`. A custom CSS file is loaded *instead of* the built-in theme. Upstream compodoc theme names warn and map to a built-in theme (`material`, `original`, `readthedocs` to `default`; `postmark` to `nord`; `stripe` to `ocean`; `vagrant` to `midnight`; `laravel` to `ember`) |
 | extTheme | `-y, --extTheme` | string | -- | **Deprecated** -- use `--theme` instead. When set and no `--theme` is provided, treated as a custom theme path. Does not load an additional stylesheet |
 | shikiTheme | `--shikiTheme` | string | `'github-light:github-dark'` | Shiki syntax highlighting theme pair for code blocks. Format: `'light-theme:dark-theme'` or a single theme name used for both modes. Uses [Shiki's bundled themes](https://shiki.style/themes). Applies to both the Source Viewer and inline code snippets |
-| customFavicon | `--customFavicon` | string | -- | Path to a custom favicon file. Copied into the output and referenced in the HTML `<head>` |
-| customLogo | `--customLogo` | string | -- | Path to a custom logo image displayed in the sidebar header |
+| customFavicon | `--customFavicon` | string | -- | Path to a custom favicon file (`.svg`, `.ico` or `.png`). Copied to `images/favicon.<ext>` and linked in every page's `<head>` instead of the bundled icon |
+| customLogo | `--customLogo` | string | -- | Path to a custom logo image displayed in the sidebar header. Copied to `images/` under its own file name |
 | hideGenerator | `--hideGenerator` | boolean | `false` | Remove the "Built with compodocx" link in the page footer |
 | hideDarkModeToggle | `--hideDarkModeToggle` | boolean | `false` | Remove the light/dark mode toggle button from the top-right header area |
 
