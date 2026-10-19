@@ -4,8 +4,8 @@
     "description": "Static documentation generator for modern Angular projects — signals, inject(), standalone components, theming tab, JS-based template overrides, Pagefind search.",
     "main": "dist/index.js",
     "bin": {
-        "compodocx": "./bin/index-cli.js",
-        "compodoc": "./bin/index-cli.js"
+        "compodocx": "bin/index-cli.js",
+        "compodoc": "bin/index-cli.js"
     },
     "scripts": {
         "start": "npm run test:watch",
@@ -16,7 +16,6 @@
         "build:css": "tailwindcss -i src/styles/compodocx.css -o src/resources/styles/compodocx.css --minify",
         "dev": "node scripts/dev-watch.mjs",
         "dev:standalone": "node scripts/dev-watch.mjs --fixture=kitchen-sink-standalone --port=8081",
-        "dev:module": "node scripts/dev-watch.mjs --fixture=kitchen-sink-module --port=8080",
         "build-schematics": "tsc --project schematics/tsconfig.json && cp schematics/collection.json dist && cp schematics/ng-add/schema.json dist/schematics/ng-add/schema.json",
         "*********UTILS********": "*******************",
         "download-api-list": "node tools/download-api-list.js",

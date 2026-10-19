@@ -103,11 +103,10 @@ npm run test:all
 | Playwright e2e | `npm run test-e2e-playwright` |
 | Lint / Format | `npm run lint` / `npm run format:write` |
 
-The dev watcher rebuilds the docs site for one of the bundled fixtures whenever a source file changes:
+The dev watcher rebuilds the docs site for the standalone fixture whenever a source file changes:
 
 ```bash
-npm run dev          # standalone fixture, port 8081
-npm run dev:module   # legacy NgModule fixture (legacy notice only), port 8080
+npm run dev          # port 8081
 ```
 
 Issues and pull requests welcome at [github.com/cngxjs/compodocx](https://github.com/cngxjs/compodocx).
