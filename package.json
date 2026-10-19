@@ -4,8 +4,8 @@
     "description": "Static documentation generator for modern Angular projects — signals, inject(), standalone components, theming tab, JS-based template overrides, Pagefind search.",
     "main": "dist/index.js",
     "bin": {
-        "compodocx": "./bin/index-cli.js",
-        "compodoc": "./bin/index-cli.js"
+        "compodocx": "bin/index-cli.js",
+        "compodoc": "bin/index-cli.js"
     },
     "scripts": {
         "start": "npm run test:watch",
