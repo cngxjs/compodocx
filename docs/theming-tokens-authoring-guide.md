@@ -52,6 +52,14 @@ $padding: 8px !default;
 ```
 
 ```css
+/* Hook: a property the component reads but never sets */
+/**
+ * Text colour of the badge.
+ * @cssprop {<color>} [--badge-color=#06c] - Falls back to the accent colour.
+ */
+```
+
+```css
 /* File-level intro */
 /**
  * @overview
@@ -82,7 +90,7 @@ The parser thinks like JSDoc, not like a CSS preprocessor. Three rules cover alm
 
 1. **Doc blocks attach to the next declaration.** A `///` block (SCSS) or `/** */` block (CSS) immediately above a `$variable: ...;`, `--property: ...;`, or `@property --name { ... }` describes that target. Anything other than blank lines between the block and the target breaks the association silently.
 
-2. **`@overview` and `@themes` claim the block.** A doc block carrying `@overview` or `@themes` describes the file and is never associated with a following declaration. Use it for a one-paragraph description at the top of the file and for the file-level links.
+2. **`@overview`, `@themes` and `@cssprop` claim the block.** A doc block carrying `@overview` or `@themes` describes the file and is never associated with a following declaration. Use it for a one-paragraph description at the top of the file and for the file-level links. A block carrying `@cssprop` documents the hook it names and is claimed the same way.
 
 3. **Single-asterisk `/* */` blocks are invisible.** Only `/**` (two asterisks) opens a doc comment. SCSS `//` line comments (one or two slashes, not three) are also invisible.
 
@@ -197,6 +205,35 @@ A doc block carrying `@overview` becomes the first paragraph on the Theming tab,
 
 The body uses Markdown: `**bold**`, `_italic_`, ` ``code`` `, `[links](url)`, `> blockquote`, lists. `{@link --acme-alert-bg}` links to that token's row on the same tab (a token without a row there renders as code); `{@link AcmeAlert}`, URLs and `.md` / `.html` files resolve like `{@link}` in any other description, and a name that is none of these renders as code.
 
+### Pattern 5: hook token (read, not set)
+
+A component often only reads a custom property, for example `color: var(--badge-color, var(--accent, #06c))`, and never declares it. There is no declaration a doc block could sit above, so the block names the property itself with `@cssprop` (or its alias `@cssproperty`). The form is the one of the custom-elements-manifest, so a library that already documents its properties for that tooling needs no edits:
+
+```css
+/**
+ * Text colour of the badge.
+ *
+ * @cssprop {<color>} [--badge-color=var(--accent)] - Falls back to the accent colour.
+ * @cssprop --badge-gap - Space between icon and label.
+ */
+```
+
+Every part of the line except the name is optional:
+
+| Part | Meaning |
+|-|-|
+| `{<syntax>}` | The type, shown in the Type cell. Braces inside the syntax are fine (`{<length>{1,4}}`) |
+| `[--name=default]` | The name with a default. The default is taken as written and never guessed from a `var()` fallback chain |
+| `- text` | The description of this property. Without it, the description of the block is used |
+
+A separate `@type` or `@default` tag in the block wins over the inline forms. Several `@cssprop` lines in one block give one hook each; they share the other tags of the block (`@group`, `@since`, `@deprecated`, `@see`, `@example`, `@relatedTo`). Only the lowercase spellings `@cssprop` and `@cssproperty` are read. The name must start with `--`; a line without a usable name is reported as an [unknown tag](#unknown-tags).
+
+A hook block never attaches to the declaration below it, so it can sit anywhere. Hooks show on the Theming tab with a **Hook** badge ("Read by the component, not set by it"), in the style page, in the JSON export with `kind: 'css-hook'` and in the llm-md export like any other token.
+
+`@cssprop` lines also work inside an `@overview` or `@themes` block, which is handy for a free-standing style file that lists the hooks of the component it themes. There only the inline text counts as the description, because the description of that block is the file overview.
+
+If the same stylesheet also declares the property (`--badge-color: ...;` or `@property --badge-color`), the declaration wins: the token becomes that kind of token at the declaration's line and the build says so, see [Hook and declaration in one sheet](#hook-and-declaration-in-one-sheet).
+
 ## Tag reference
 
 | Tag | Value | Effect |
@@ -210,6 +247,8 @@ The body uses Markdown: `**bold**`, `_italic_`, ` ``code`` `, `[links](url)`, `>
 | `@deprecated` | Optional reason, free-form text | Strikes through the token name and renders the reason as muted prose. Bare `@deprecated` (no reason) still strikes the name |
 | `@see` | URL, repeatable; OR token name (`--other-token`, `$other-var`), repeatable | Rendered as a comma-separated link list at the bottom of the description. Token references resolve to in-page anchors |
 | `@relatedTo` | `Name[, Name]`, symbol names | On a token or mixin: a "Related" row of links to the named symbols. At file level (in the `@overview` block): a Related section on the style page. See [`@relatedTo`](#relatedto) |
+| `@cssprop` | `{<syntax>} [--name=default] - description`, repeatable; every part but the name is optional | Documents a property the component reads and never sets (a hook). The block never attaches to the next declaration. See [Pattern 5](#pattern-5-hook-token-read-not-set) |
+| `@cssproperty` | Same as `@cssprop` | Alias of `@cssprop` |
 | `@themes` | `Name[, Name...]`, comma or space separated, repeatable | File level only. Links a free-standing style file to the components and directives it themes. See [`@themes`](#linking-a-file-with-themes) |
 
 Which tags are read where:
@@ -217,7 +256,8 @@ Which tags are read where:
 | Position | Tags |
 |-|-|
 | Token (variable, custom property, `@property`) | `@type`, `@default`, `@group`, `@example`, `@since`, `@deprecated`, `@see`, `@relatedTo` |
-| File level (`@overview` block or a block carrying `@themes`) | `@overview`, `@themes`, `@relatedTo` |
+| Hook block (carries `@cssprop`) | `@cssprop`/`@cssproperty` plus the token tags above, shared by the hooks of the block |
+| File level (`@overview` block or a block carrying `@themes`) | `@overview`, `@themes`, `@relatedTo`, `@cssprop`/`@cssproperty` |
 | SCSS mixin or function | `@param`, `@content`, `@return`, `@output`, `@example`, `@since`, `@deprecated`, `@see`, `@relatedTo` |
 
 Any other tag is dropped and reported in the build log, see [Unknown tags](#unknown-tags).
@@ -283,6 +323,33 @@ $baz: 8px !default;         // !default modifier OK
     initial-value: 8px;
 }
 ```
+
+A block that carries `@cssprop` is the exception to the first rule above: it never attaches to the next declaration, so a declaration right below it needs a doc block of its own.
+
+## Same token in several sheets
+
+A token that is documented more than once under the same name in one component (for example as `@property` in a theme sheet and as a `:host` declaration with the description in the base sheet), in one style file, or in a component and the files that theme it, is listed once. The pieces are merged:
+
+| Field | Rule |
+|-|-|
+| Kind, file, line | From the strongest declaration: `@property` beats a custom property or SCSS variable, which beats a hook. On a tie the first in style-source order wins |
+| Type, default | From that winner; if it has none, the first sheet that has one |
+| Description, group, examples, since, see, related | From the first sheet that has them. Lists are taken whole, never concatenated |
+| Deprecated | From the winner; if it is not deprecated, the first sheet that is |
+| Position | Where the name first appeared |
+
+`$name` and `--name` never merge. The same token written in two components stays two tokens, one per component.
+
+## Hook and declaration in one sheet
+
+A `@cssprop` line above a property that the same sheet declares is a habit carried over from the manifest tooling. The declaration is the better source, so the hook is replaced by it (default from `@default` or the inline default, else the declared value or `initial-value`; type from `@type` or the inline type, else the `@property` syntax) and the build logs one line per name, still exiting with code 0:
+
+```text
+Style comments: 1 hook token also declared in its sheet, declaration kept
+  src/chip/chip.css:22 --chip-bg
+```
+
+Declarations in another sheet of the same component are not a conflict; they merge as described above.
 
 ## Source resolution
 
@@ -468,7 +535,7 @@ Documented mixins render in a **Mixins** section on the Theming tab and on the s
 
 ## Unknown tags
 
-A tag the parser does not read in its position (see "Which tags are read where" in the [Tag reference](#tag-reference)) is dropped. It does not end up in the description. Tags inside an `@overview` block other than `@themes` and `@relatedTo` count as unknown. The build reports them once per run and still exits with code 0:
+A tag the parser does not read in its position (see "Which tags are read where" in the [Tag reference](#tag-reference)) is dropped. It does not end up in the description. Tags inside an `@overview` block other than `@themes`, `@relatedTo` and `@cssprop`/`@cssproperty` count as unknown. The build reports them once per run and still exits with code 0:
 
 ```text
 Style comments: 2 unknown tags ignored (@todo x1, @note x1)
@@ -477,6 +544,18 @@ Style comments: 2 unknown tags ignored (@todo x1, @note x1)
 ```
 
 Text you want readers to see belongs in the description, above the first tag.
+
+## Unattached blocks
+
+A doc block that carries at least one token tag (`@type`, `@default`, `@group`, `@example`, `@since`, `@deprecated`, `@see`, `@relatedTo`) but documents nothing is reported too: no property, `@property` or SCSS variable follows it, or something else sits in between. Blocks with prose only, blocks with only unknown tags, file-level blocks, hook blocks and the block above a private SCSS mixin are not reported.
+
+```text
+Style comments: 2 doc blocks not attached
+  src/chip/chip.theme.css:14
+  src/chip/chip.scss:3
+```
+
+The location is the first line of the block. The build still exits with code 0.
 
 ## Anti-patterns
 
@@ -495,6 +574,10 @@ These compile cleanly but produce no documentation. Audit for them when retrofit
 | `@type Length` written as `@type "Length"` | Quotes appear in the rendered cell | Tags are free-form; do not quote |
 | Multiple `@default` lines | Last one wins; the others are silently dropped | Use one `@default` per token |
 | `@property --foo { syntax: '<color>'; ... }` with `@type Length` in the doc | Explicit `@type` overrides: the cell shows `Length` even though the runtime accepts `<color>` only | Match the doc to the runtime, or omit `@type` and let the merge fill it |
+| `@cssprop` above a property the same sheet declares | The declaration is used and the build logs `hook token also declared in its sheet` | Keep the hook only for properties the sheet never declares, or drop the tag |
+| `@cssProperty` or `@CSSPROP` | Listed as an unknown tag; no hook | Use the lowercase `@cssprop` or `@cssproperty` |
+| `@cssprop` written without the leading dashes (`@cssprop badge-color`) | Listed as an unknown tag; no hook | Write the full name: `--badge-color` |
+| Tagged doc block above a rule that declares no property | Block not documented; logged as `doc block not attached` | Move it directly above its declaration, or remove the tags |
 | Doc block placed below the declaration | Token not documented (parser only looks above) | Move the block above |
 
 ## Verification loop
