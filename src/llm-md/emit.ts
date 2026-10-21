@@ -245,6 +245,7 @@ export const emitDesignTokens = (files: ReadonlyArray<ExportStyleFile>): string 
     for (const file of unlinked) {
         for (const token of file.tokens) {
             const documented =
+                token.kind === 'css-hook' ||
                 token.description.trim() !== '' ||
                 token.group !== '' ||
                 (token.type !== '' && token.kind !== 'css-at-property');

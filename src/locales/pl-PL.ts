@@ -140,6 +140,8 @@ export const TRANSLATION_PL_PL = {
     theming: 'Motywy',
     mixins: 'Mixiny',
     'mixin-content': 'Blok treści',
+    'theme-token-hook': 'Hook',
+    'theme-token-hook-title': 'Odczytywana przez komponent, nieustawiana przez niego',
     'style-files': 'Pliki stylów',
     'style-file': 'Plik stylów',
     'design-tokens': 'Tokeny projektowe',

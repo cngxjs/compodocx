@@ -6,8 +6,12 @@ import AngularVersionUtil from '../../utils/angular-version.util';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import {
+    formatHookConflictNotice,
+    formatOrphanBlockNotice,
     formatUnknownStyleTagNotice,
     type StyleSource,
+    styleHookConflicts,
+    styleOrphanBlocks,
     unknownStyleTags
 } from '../../utils/theme-doc-parser';
 import { formatLegacyNotice } from '../compiler/legacy-scan';
@@ -394,17 +398,19 @@ const microCrawl: Stage = async current => {
     return proceed(withSymbols({ ...ctx, diff }));
 };
 
-/** One notice per run for tags the style-comment parser does not read. */
-const logUnknownStyleTags = (ctx: RunContext): void => {
+/** One notice group per run for style comments the parser did not take as written. */
+const logStyleComments = (ctx: RunContext): void => {
     const components = (ctx.config.mainData.components ?? []) as {
         themeStyleSources?: StyleSource[];
     }[];
     const sources = components.flatMap(component => component.themeStyleSources ?? []);
-    const notice = formatUnknownStyleTagNotice([
-        ...unknownStyleTags(sources),
-        ...(ctx.config.mainData.styles?.unknownTags ?? [])
-    ]);
-    if (notice.length > 0) {
+    const styles = ctx.config.mainData.styles;
+    const groups = [
+        formatUnknownStyleTagNotice([...unknownStyleTags(sources), ...(styles?.unknownTags ?? [])]),
+        formatOrphanBlockNotice([...styleOrphanBlocks(sources), ...(styles?.orphanBlocks ?? [])]),
+        formatHookConflictNotice([...styleHookConflicts(sources), ...(styles?.hookConflicts ?? [])])
+    ];
+    for (const notice of groups.filter(group => group.length > 0)) {
         logger.warn(notice.join('\n'));
     }
 };
@@ -425,7 +431,7 @@ const prepare: Stage = async ctx => {
         return err(halt(1, 'prepare'));
     }
     if (!isDiff) {
-        logUnknownStyleTags(ctx);
+        logStyleComments(ctx);
     }
     return proceed(ctx);
 };

@@ -18,6 +18,43 @@ const undocumentedProperty =
 const mixinOnly = '/// Emits the theme.\n/// @param $theme - Theme map.\n@mixin theme($theme) {}\n';
 
 describe('buildStyleModel', () => {
+    it('collects the unattached blocks of every file without leaking them into the files', () => {
+        const model = buildStyleModel([
+            { file: 'a/x.css', content: '/**\n * @group G\n */\n.chip { x: y; }\n' },
+            { file: 'a/y.css', content: documentedToken }
+        ]);
+        expect(model.orphanBlocks).toEqual([{ file: 'a/x.css', line: 1 }]);
+        expect(model.files[0]).not.toHaveProperty('orphanBlocks');
+    });
+
+    it('counts a file that only holds hook tokens as content and collects its conflicts', () => {
+        const model = buildStyleModel([
+            { file: 'a/hooks.css', content: '/**\n * @cssprop --h\n */\n' },
+            {
+                file: 'a/both.css',
+                content: '/**\n * @cssprop --d - Gap.\n */\n:root { --d: 1; }\n'
+            }
+        ]);
+        expect(model.files.map(f => f.file)).toEqual(['a/both.css', 'a/hooks.css']);
+        expect(model.hookConflicts).toEqual([{ file: 'a/both.css', line: 4, name: '--d' }]);
+        expect(model.files[0]).not.toHaveProperty('hookConflicts');
+    });
+
+    it('lists a token once when one file documents it as a declaration and a property', () => {
+        const model = buildStyleModel([
+            {
+                file: 'a/both.css',
+                content:
+                    '/**\n * Primary colour.\n */\n:root { --p: red; }\n' +
+                    "/**\n * @group Colour\n */\n@property --p {\n  syntax: '<color>';\n  inherits: true;\n  initial-value: red;\n}\n"
+            }
+        ]);
+        const [file] = model.files;
+        expect(file.tokens.map(t => [t.name, t.kind, t.group, t.description])).toEqual([
+            ['--p', 'css-at-property', 'Colour', 'Primary colour.']
+        ]);
+    });
+
     it('counts an overview, a documented token or a documented mixin as content', () => {
         const model = buildStyleModel([
             { file: 'b/overview.css', content: overviewOnly },

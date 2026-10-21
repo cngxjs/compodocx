@@ -140,6 +140,8 @@ export const TRANSLATION_KA_GE = {
     theming: 'თემები',
     mixins: 'მიქსინები',
     'mixin-content': 'შიგთავსის ბლოკი',
+    'theme-token-hook': 'ჰუკი',
+    'theme-token-hook-title': 'კომპონენტი მხოლოდ კითხულობს და არ ადგენს',
     'style-files': 'სტილის ფაილები',
     'style-file': 'სტილის ფაილი',
     'design-tokens': 'დიზაინის ტოკენები',

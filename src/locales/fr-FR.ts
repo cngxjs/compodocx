@@ -141,6 +141,8 @@ export const TRANSLATION_FR_FR = {
     theming: 'Theming',
     mixins: 'Mixins',
     'mixin-content': 'Bloc de contenu',
+    'theme-token-hook': 'Hook',
+    'theme-token-hook-title': 'Lue par le composant, non définie par lui',
     'style-files': 'Fichiers de style',
     'style-file': 'Fichier de style',
     'design-tokens': 'Jetons de design',

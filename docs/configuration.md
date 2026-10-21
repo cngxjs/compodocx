@@ -581,17 +581,20 @@ The doc block can sit directly above the property OR above a wrapping selector t
 | `@deprecated` | optional reason | Strikes through the token name and renders the reason as muted prose |
 | `@see` | URL or token name (`--other-token`, `$other-var`), repeatable | Cross-link footer. Token references resolve to in-page anchors |
 | `@relatedTo` | `Name[, Name]` | On a token: a "Related" row linking the named symbols (unresolved names render as code). At file level: a Related section on the style page |
+| `@cssprop` (alias `@cssproperty`) | `{<syntax>} [--name=default] - description`, repeatable | Documents a property the component reads but never sets (a hook), in the form of the custom-elements-manifest. The block never attaches to the next declaration. Shown with a "Hook" badge; JSON `kind` is `css-hook`. Also read inside an `@overview` block |
 | `@themes` | `Name[, Name...]`, file level, repeatable | Links a [style file](#style-files) to the components and directives it themes, resolved like `{@link}` names. Written in the `@overview` block or in a block of its own (a block carrying `@themes` never documents the declaration after it) |
 
 Documented SCSS mixins and functions: a `///` block directly above `@mixin name(...)` or `@function name(...)` with `@param` (SassDoc `@param {Type} $name [default] - text` or plain `@param $name text`), `@content`, `@return`, `@example`, `@since`, `@deprecated`, `@see` and `@relatedTo`. Parameters come from the signature, so a parameter without a `@param` line is still listed. Private names (`_x`, `-x`) and undocumented mixins are not shown. They render in the **Mixins** section of the Theming tab and on the style page.
 
-Unknown tags are dropped, not added to the description. Tags inside an `@overview` block other than `@themes` and `@relatedTo` count as unknown. The build logs them once per run and exits with code 0:
+Unknown tags are dropped, not added to the description. Tags inside an `@overview` block other than `@themes`, `@relatedTo` and `@cssprop` count as unknown. The build logs them once per run and exits with code 0:
 
 ```text
 Style comments: 2 unknown tags ignored (@todo x1, @note x1)
   src/theming/button.css:14 @todo
   src/theming/button.css:31 @note
 ```
+
+Two more groups appear in the same place when they apply: `Style comments: <n> doc blocks not attached` (a block with token tags that documents nothing, with `file:line` of its first line) and `Style comments: <n> hook tokens also declared in their sheets, declaration kept` (a `@cssprop` for a property the same sheet declares). A name documented in several sheets of one component is listed once, the `@property` winning over a plain declaration.
 
 ### Source resolution
 
@@ -620,7 +623,7 @@ The second line names the first five files, then `...`.
 - **Pages.** A file that themes no symbol, themes two or more, or has documented mixins gets a page, `<file name>.html` in its feature folder (`stylesheets/` without project analysis facts): file name, CSS/SCSS badge, entry point and feature breadcrumb, import line, then Overview, Theming (the symbols it themes), Tokens, Mixins and Source (when `source` is in `themingTabSections` and `disableSourceCode` is off). A file that themes exactly one symbol and has no mixins shows on that symbol's tab only. The import line comes from the nearest `package.json` `exports` entry that maps the file exactly or through one `*` pattern (`@use '<name>/<subpath>';` for SCSS, `@import '<name>/<subpath>';` for CSS) and is left out otherwise.
 - **Features and navigation.** Style files are placed into features like symbols (they never move a symbol); a folder holding only style files can become a feature of its own. The feature layout lists style pages after a feature's primary members, the type layout has a **Style files** chapter (`toggleMenuItems` key `styles`), `references.html` lists them under their feature, and search shows them as kind "Style". Feature pages list their style pages (first sentence of the overview, token and mixin counts) and their components and directives with a Theming tab.
 - **Design tokens page.** `design-tokens.html` collects the documented tokens of every style file that themes no symbol, grouped by `@group` (the default group first, then by name), with name, type, default, description and the defining file. Token anchors are `token-<name>` and group anchors `group-<slug>`; a name defined again in a later file gets `-2` and one warning. The page is generated only when such tokens exist and is linked from the Features chapter, the Style files chapter, `references.html` and the feature pages that feed it.
-- **Exports.** The JSON export lists documented files under the optional top-level `styleFiles` (`file`, `language`, `overview`, `tokens`, `mixins`, `themes`, `relatedTo`, `feature`), their sources join `styleSources`, and themed directives carry `themeTokens`, `themeOverview` and `themeStyleSources`. `compodocx diff` does not compare `styleFiles`. The llm-md export adds a "Design tokens" section.
+- **Exports.** The JSON export lists documented files under the optional top-level `styleFiles` (`file`, `language`, `overview`, `tokens`, `mixins`, `themes`, `relatedTo`, `feature`), their sources join `styleSources`, and themed directives carry `themeTokens`, `themeOverview` and `themeStyleSources`. A token's `kind` is `css-custom-property`, `scss-variable`, `css-at-property` or `css-hook` (a property the component reads, written with `@cssprop`); a name documented in several sheets of one component appears once. `compodocx diff` does not compare `styleFiles`. The llm-md export adds a "Design tokens" section.
 
 ## JSDoc Tags
 

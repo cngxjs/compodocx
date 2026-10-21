@@ -139,6 +139,8 @@ export const TRANSLATION_KO_KR = {
     theming: '테마',
     mixins: '믹스인',
     'mixin-content': '콘텐츠 블록',
+    'theme-token-hook': '훅',
+    'theme-token-hook-title': '컴포넌트가 읽기만 하고 설정하지는 않습니다',
     'style-files': '스타일 파일',
     'style-file': '스타일 파일',
     'design-tokens': '디자인 토큰',

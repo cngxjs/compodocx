@@ -1,0 +1,19 @@
+:host {
+    display: inline-block;
+
+    /** Background of the chip. */
+    --tk-chip-bg: #eef2ff;
+}
+
+span {
+    background: var(--tk-chip-bg);
+}
+
+/**
+ * Text colour of the chip.
+ *
+ * @cssprop {<color>} [--tk-chip-fg=var(--tk-accent)] - Falls back to the accent colour.
+ */
+span {
+    color: var(--tk-chip-fg, var(--tk-accent, #0a66c2));
+}

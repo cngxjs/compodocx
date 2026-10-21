@@ -179,6 +179,15 @@ describe('llm-md/emit - style files', () => {
         expect(out).toContain('`--hl-bg: <length> = 1px`');
     });
 
+    it('lists a hook token like any other token, undocumented or not', () => {
+        const hook = { ...token('--hk'), kind: 'css-hook' as const, type: '', description: '' };
+        expect(emitDirective({ name: 'D', file: 'd.ts', themeTokens: [hook] })).toContain(
+            '`--hk = 1px`'
+        );
+        const design = emitDesignTokens([{ file: 't.css', language: 'css', tokens: [hook] }]);
+        expect(design).toContain('`--hk = 1px`');
+    });
+
     it('lists unlinked tokens by group and mixins by signature', () => {
         const out = emitDesignTokens([
             {

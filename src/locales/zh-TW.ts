@@ -139,6 +139,8 @@ export const TRANSLATION_ZH_TW = {
     theming: '主題',
     mixins: '混入',
     'mixin-content': '內容區塊',
+    'theme-token-hook': '掛鉤',
+    'theme-token-hook-title': '由元件讀取，而非由元件設定',
     'style-files': '樣式檔案',
     'style-file': '樣式檔案',
     'design-tokens': '設計權杖',

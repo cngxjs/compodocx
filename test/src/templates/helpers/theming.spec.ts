@@ -50,6 +50,34 @@ describe('themingFor', () => {
         ]);
     });
 
+    it('lists a name once when the component and a linked file both document it', () => {
+        const merged = themingFor(
+            {
+                ...card,
+                themeTokens: [
+                    {
+                        name: '--sty-hl-bg',
+                        kind: 'css-custom-property',
+                        type: '',
+                        defaultValue: '',
+                        description: 'Own words.',
+                        group: '',
+                        examples: [],
+                        since: '',
+                        deprecated: null,
+                        see: [],
+                        file: 'kit/card.css',
+                        line: 1
+                    }
+                ]
+            },
+            'component',
+            { symbols, styles }
+        );
+        expect(merged.tokens.map(token => token.name)).toEqual(['--sty-hl-bg']);
+        expect(merged.tokens[0].description).toBe('Own words.');
+    });
+
     it('gives a directive the tab of the files that theme it, nothing otherwise', () => {
         expect(hasTheming(themingFor(highlight, 'directive', { symbols, styles }))).toBe(true);
         expect(

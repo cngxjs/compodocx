@@ -34,6 +34,18 @@ describe('BlockTheming', () => {
         Configuration.mainData.themingTabSections = [];
     });
 
+    it('marks a hook token with a row class and a Hook badge that explains itself', () => {
+        const html = BlockTheming({ tokens: [makeToken({ kind: 'css-hook' })] });
+        expect(html).to.include('cdx-io-member--theming-css-hook');
+        expect(html).to.match(
+            /<span class="cdx-badge cdx-badge--hook" title="Read by the component, not set by it">Hook<\/span>/
+        );
+    });
+
+    it('shows no Hook badge on a token the component sets', () => {
+        expect(BlockTheming({ tokens: [makeToken()] })).to.not.include('cdx-badge--hook');
+    });
+
     it('renders the root section with data-compodoc but without an inner h3 heading', () => {
         const html = BlockTheming({ tokens: [makeToken()] });
         expect(html).to.include('data-compodoc="block-theming"');

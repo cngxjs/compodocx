@@ -47,6 +47,13 @@ export const tokenAnchors = (tokens: readonly ThemeToken[]): ReadonlyMap<string,
         isThemingSection('tokens') ? tokens.map(token => [token.name, tokenAnchor(token)]) : []
     );
 
+const renderHookBadge = (token: Pick<ThemeToken, 'kind'>): string =>
+    token.kind === 'css-hook'
+        ? `<span class="cdx-badge cdx-badge--hook" title="${
+              Html.escapeHtml(t('theme-token-hook-title')) as string
+          }">${Html.escapeHtml(t('theme-token-hook')) as string}</span>`
+        : '';
+
 const renderBadges = (token: Pick<ThemeToken, 'since' | 'deprecated'>): string => {
     const badges: string[] = [];
     if (token.since) {
@@ -140,7 +147,7 @@ const renderTokenRow = (token: ThemeToken, prose: Prose, depth?: number): string
         ? `<span class="cdx-io-member-type"><code>${Html.escapeHtml(token.type) as string}</code></span>`
         : '';
 
-    const badgesRow = renderBadges(token);
+    const badgesRow = renderHookBadge(token) + renderBadges(token);
     const descHtml = token.description
         ? `<div class="cdx-io-member-desc cdx-prose">${prose(token.description)}</div>`
         : '';

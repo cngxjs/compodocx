@@ -159,6 +159,11 @@
     margin-left: 0.25rem;
 }
 
+/* Hook token: read by the component, not set by it */
+.cdx-badge--hook {
+    --cdx-badge-base: var(--color-cdx-text-secondary);
+}
+
 /* Since version */
 .cdx-badge--since {
     color: var(--color-cdx-text-secondary);

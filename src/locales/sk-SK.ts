@@ -140,6 +140,8 @@ export const TRANSLATION_SK_SK = {
     theming: 'Motívy',
     mixins: 'Mixiny',
     'mixin-content': 'Blok obsahu',
+    'theme-token-hook': 'Hook',
+    'theme-token-hook-title': 'Komponent ju číta, ale nenastavuje',
     'style-files': 'Súbory štýlov',
     'style-file': 'Súbor štýlov',
     'design-tokens': 'Dizajnové tokeny',

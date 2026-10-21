@@ -249,22 +249,20 @@ export function versionsRootIndexHtml(manifest: VersionsManifest): string {
     const latest = manifest.versions[0];
     const href = escapeHtml(`${encodeURI(latest.path)}index.html`);
     const label = escapeHtml(latest.label);
-    return (
-        [
-            '<!doctype html>',
-            '<html>',
-            '<head>',
-            '<meta charset="utf-8">',
-            `<meta name="generator" content="${VERSIONS_ROOT_INDEX_MARKER}">`,
-            `<meta http-equiv="refresh" content="0; url=${href}">`,
-            `<title>${label}</title>`,
-            '</head>',
-            '<body>',
-            `<p><a href="${href}">${label}</a></p>`,
-            '</body>',
-            '</html>'
-        ].join('\n') + '\n'
-    );
+    return `${[
+        '<!doctype html>',
+        '<html>',
+        '<head>',
+        '<meta charset="utf-8">',
+        `<meta name="generator" content="${VERSIONS_ROOT_INDEX_MARKER}">`,
+        `<meta http-equiv="refresh" content="0; url=${href}">`,
+        `<title>${label}</title>`,
+        '</head>',
+        '<body>',
+        `<p><a href="${href}">${label}</a></p>`,
+        '</body>',
+        '</html>'
+    ].join('\n')}\n`;
 }
 
 /**

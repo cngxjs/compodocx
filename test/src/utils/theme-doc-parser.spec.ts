@@ -5,12 +5,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     collectStyleSources,
     collectThemeTokens,
+    formatHookConflictNotice,
+    formatOrphanBlockNotice,
     formatUnknownStyleTagNotice,
     groupThemeTokens,
+    mergeThemeTokens,
     parseCssTokens,
     parseDocBody,
     parseScssTokens,
     parseStyleSource,
+    type ThemeToken,
     unknownStyleTags
 } from '../../../src/utils/theme-doc-parser';
 
@@ -628,6 +632,383 @@ describe('Utils - theme-doc-parser', () => {
         });
     });
 
+    describe('hook tokens (@cssprop)', () => {
+        const hooks = (tokens: ThemeToken[]) => tokens.filter(t => t.kind === 'css-hook');
+
+        it('reads a /** */ hook block and does not attach it to the next declaration', () => {
+            const css = [
+                '/**',
+                ' * Text colour.',
+                ' * @cssprop --x-fg',
+                ' */',
+                ':root { --x-other: red; }'
+            ].join('\n');
+            const result = parseCssTokens(css, 'a.css');
+            expect(result.tokens.map(t => [t.name, t.kind])).to.deep.equal([
+                ['--x-fg', 'css-hook']
+            ]);
+            expect(result.tokens[0].description).to.equal('Text colour.');
+            expect(result.tokens[0].line).to.equal(3);
+        });
+
+        it('reads a /// hook block in SCSS and keeps source order with other tokens', () => {
+            const scss = [
+                '/// Colour.',
+                '/// @cssprop {<color>} [--x-fg=red] - Foreground.',
+                '',
+                '/// Padding',
+                '$pad: 4px;'
+            ].join('\n');
+            const result = parseStyleSource(scss, 'a.scss', 'scss');
+            expect(result.tokens.map(t => [t.name, t.kind])).to.deep.equal([
+                ['--x-fg', 'css-hook'],
+                ['$pad', 'scss-variable']
+            ]);
+        });
+
+        it('creates one hook per tag, sharing the block tags', () => {
+            const css =
+                '/**\n * @group Surface\n * @cssprop --a\n * @cssproperty --b - Bee.\n */\n';
+            const result = parseCssTokens(css, 'a.css');
+            expect(result.tokens.map(t => [t.name, t.group, t.line])).to.deep.equal([
+                ['--a', 'Surface', 3],
+                ['--b', 'Surface', 4]
+            ]);
+            expect(result.tokens[1].description).to.equal('Bee.');
+            expect(result.unknownTags).to.deep.equal([]);
+        });
+
+        it('reads the inline syntax, default and description', () => {
+            const [hook] = parseCssTokens(
+                '/**\n * Block text.\n * @cssprop {<color>} [--x=var(--accent, red)] - Inline text.\n */\n',
+                'a.css'
+            ).tokens;
+            expect(hook.type).to.equal('<color>');
+            expect(hook.defaultValue).to.equal('var(--accent, red)');
+            expect(hook.description).to.equal('Inline text.');
+        });
+
+        it('lets @type and @default win over the inline forms', () => {
+            const [hook] = parseCssTokens(
+                '/**\n * @type <length>\n * @default 2px\n * @cssprop {<color>} [--x=red]\n */\n',
+                'a.css'
+            ).tokens;
+            expect(hook.type).to.equal('<length>');
+            expect(hook.defaultValue).to.equal('2px');
+        });
+
+        it('falls back to the block description without an inline text', () => {
+            const [hook] = parseCssTokens(
+                '/**\n * Block text.\n * @cssprop --x\n */\n',
+                'a.css'
+            ).tokens;
+            expect(hook.description).to.equal('Block text.');
+        });
+
+        it('balances braces inside the syntax', () => {
+            const [hook] = parseCssTokens(
+                '/**\n * @cssprop {<length>{1,4}} [--x=1px] - Edges.\n */\n',
+                'a.css'
+            ).tokens;
+            expect(hook.type).to.equal('<length>{1,4}');
+            expect(hook.name).to.equal('--x');
+        });
+
+        it('reports a name without leading dashes, or only lower-case tags, as unknown', () => {
+            const result = parseCssTokens(
+                '/**\n * @cssprop no-dashes\n * @cssProperty --y\n * @cssprop --ok\n */\n',
+                'a.css'
+            );
+            expect(hooks(result.tokens).map(t => t.name)).to.deep.equal(['--ok']);
+            expect(result.unknownTags.map(t => [t.tag, t.line])).to.deep.equal([
+                ['cssprop', 2],
+                ['cssProperty', 3]
+            ]);
+        });
+
+        it('reads @cssprop lines inside an @overview block, with the inline text only', () => {
+            const result = parseCssTokens(
+                '/**\n * Intro text.\n * @overview\n * @cssprop --a - Inline.\n * @cssprop --b\n */\n',
+                'a.css'
+            );
+            expect(result.overview).to.deep.equal(['Intro text.']);
+            expect(result.tokens.map(t => [t.name, t.description, t.line])).to.deep.equal([
+                ['--a', 'Inline.', 4],
+                ['--b', '', 5]
+            ]);
+            expect(result.unknownTags).to.deep.equal([]);
+        });
+
+        it('turns a hook into the declaration of its own sheet and records the conflict once', () => {
+            const css = [
+                '/**',
+                ' * @cssprop {<color>} --x',
+                ' */',
+                ':host {',
+                '    --x: blue;',
+                '    --x: green;',
+                '}'
+            ].join('\n');
+            const result = parseCssTokens(css, 'a.css');
+            expect(result.tokens).to.have.lengthOf(1);
+            expect(result.tokens[0]).to.include({
+                kind: 'css-custom-property',
+                line: 5,
+                defaultValue: 'blue',
+                type: '<color>'
+            });
+            expect(result.hookConflicts).to.deep.equal([{ file: 'a.css', line: 5, name: '--x' }]);
+        });
+
+        it('turns a hook into a registered property when the sheet registers it', () => {
+            const css = [
+                '/** @cssprop --x */',
+                "@property --x {\n  syntax: '<length>';\n  inherits: true;\n  initial-value: 1px;\n}"
+            ].join('\n');
+            const result = parseCssTokens(css, 'a.css');
+            const registered = result.tokens.filter(t => t.name === '--x');
+            expect(registered.every(t => t.kind === 'css-at-property')).to.equal(true);
+            expect(registered[0]).to.include({ type: '<length>', defaultValue: '1px', line: 2 });
+            expect(result.hookConflicts).to.deep.equal([{ file: 'a.css', line: 2, name: '--x' }]);
+        });
+
+        it('does not take a var() read or a commented-out declaration for a declaration', () => {
+            const css = [
+                '/** @cssprop --x */',
+                'a { color: var(--x, red); }',
+                '/* b { --x: 1; } */',
+                '/* c {',
+                '  --x: 2;',
+                '} */'
+            ].join('\n');
+            const result = parseCssTokens(css, 'a.css');
+            expect(result.tokens.map(t => t.kind)).to.deep.equal(['css-hook']);
+            expect(result.hookConflicts).to.deep.equal([]);
+        });
+
+        it('ignores a // comment in SCSS when looking for the declaration', () => {
+            const scss = ['/// @cssprop --x', '// a { --x: 1; }', 'b { color: var(--x); }'].join(
+                '\n'
+            );
+            const result = parseStyleSource(scss, 'a.scss', 'scss');
+            expect(result.tokens.map(t => t.kind)).to.deep.equal(['css-hook']);
+        });
+    });
+
+    describe('unattached doc blocks', () => {
+        const orphans = (css: string, file = 'a.css') =>
+            parseStyleSource(css, file, file.endsWith('.scss') ? 'scss' : 'css').orphanBlocks.map(
+                o => o.line
+            );
+
+        it('reports a tagged CSS block above an unrelated rule, at its first line', () => {
+            expect(
+                orphans('a { x: y; }\n\n/**\n * Pad.\n * @group G\n */\n.chip { color: red; }')
+            ).to.deep.equal([3]);
+        });
+
+        it('reports a tagged block at the end of a CSS file', () => {
+            expect(orphans('a { x: y; }\n/**\n * @default 3\n */\n')).to.deep.equal([2]);
+        });
+
+        it('reports a block above a wrapper rule without a custom property inside', () => {
+            expect(orphans('/**\n * @type <color>\n */\n:host { color: red; }')).to.deep.equal([1]);
+        });
+
+        it('reports a /** */ block above a SCSS variable and a /// block cut off by a rule', () => {
+            expect(orphans('/**\n * @since 1\n */\n$a: 1;\n')).to.deep.equal([1]);
+            expect(orphans('/// Pad.\n/// @group G\n.chip { x: y; }\n', 'a.scss')).to.deep.equal([
+                1
+            ]);
+        });
+
+        it('reports a /// block at the end of a SCSS file and one replaced by a later block', () => {
+            expect(orphans('$a: 1;\n/// @since 1\n', 'a.scss')).to.deep.equal([2]);
+            expect(
+                orphans('/// First\n/// @since 1\n\n/// Second\n$b: 2;\n', 'a.scss')
+            ).to.deep.equal([1]);
+        });
+
+        it('does not report attached blocks, whatever their kind', () => {
+            expect(orphans('/**\n * @group G\n */\n:root { --a: 1; }')).to.deep.equal([]);
+            expect(orphans('/**\n * @group G\n */\n:host { --a: 1; }')).to.deep.equal([]);
+            expect(
+                orphans(
+                    "/**\n * @group G\n */\n@property --a {\n  syntax: '*';\n  inherits: true;\n}"
+                )
+            ).to.deep.equal([]);
+            expect(orphans('/// @group G\n$a: 1;', 'a.scss')).to.deep.equal([]);
+            expect(orphans('/// Pad.\n/// @since 1\n@mixin pad() {}', 'a.scss')).to.deep.equal([]);
+        });
+
+        it('does not report prose, unknown tags only, file-level or hook blocks', () => {
+            expect(orphans('/** Just prose. */\n.chip { x: y; }')).to.deep.equal([]);
+            expect(orphans('/**\n * @author me\n */\n.chip { x: y; }')).to.deep.equal([]);
+            expect(orphans('/**\n * @overview\n * @group G\n */\n.chip { x: y; }')).to.deep.equal(
+                []
+            );
+            expect(
+                orphans('/**\n * @cssprop --a\n * @group G\n */\n.chip { x: y; }')
+            ).to.deep.equal([]);
+        });
+
+        it('skips a block above a private mixin on purpose', () => {
+            expect(orphans('/// Inner.\n/// @since 1\n@mixin _inner() {}', 'a.scss')).to.deep.equal(
+                []
+            );
+        });
+    });
+
+    describe('formatOrphanBlockNotice', () => {
+        it('is empty without blocks', () => {
+            expect(formatOrphanBlockNotice([])).to.deep.equal([]);
+        });
+
+        it('counts in the singular and the plural', () => {
+            const at = (line: number) => ({ file: 'a.css', line });
+            expect(formatOrphanBlockNotice([at(3)])).to.deep.equal([
+                'Style comments: 1 doc block not attached',
+                '  a.css:3'
+            ]);
+            expect(formatOrphanBlockNotice([at(3), at(9)])).to.deep.equal([
+                'Style comments: 2 doc blocks not attached',
+                '  a.css:3',
+                '  a.css:9'
+            ]);
+        });
+    });
+
+    describe('formatHookConflictNotice', () => {
+        it('is empty without conflicts', () => {
+            expect(formatHookConflictNotice([])).to.deep.equal([]);
+        });
+
+        it('names one conflict in the singular and several in the plural', () => {
+            const one = { file: 'a.css', line: 3, name: '--x' };
+            expect(formatHookConflictNotice([one])).to.deep.equal([
+                'Style comments: 1 hook token also declared in its sheet, declaration kept',
+                '  a.css:3 --x'
+            ]);
+            expect(formatHookConflictNotice([one, { ...one, name: '--y' }])[0]).to.equal(
+                'Style comments: 2 hook tokens also declared in their sheets, declaration kept'
+            );
+        });
+    });
+
+    describe('mergeThemeTokens', () => {
+        const token = (over: Partial<ThemeToken>): ThemeToken => ({
+            name: '--x',
+            kind: 'css-custom-property',
+            type: '',
+            defaultValue: '',
+            description: '',
+            group: '',
+            examples: [],
+            since: '',
+            deprecated: null,
+            see: [],
+            file: 'a.css',
+            line: 1,
+            ...over
+        });
+
+        it('returns the same array when no name repeats', () => {
+            const tokens = [token({ name: '--a' }), token({ name: '--b' })];
+            expect(mergeThemeTokens(tokens)).to.equal(tokens);
+        });
+
+        it('lets a registered property win over a declaration in either order', () => {
+            const declared = token({ file: 'base.css', line: 3, description: 'Declared.' });
+            const registered = token({ kind: 'css-at-property', file: 'theme.css', line: 9 });
+            for (const list of [
+                [declared, registered],
+                [registered, declared]
+            ]) {
+                const [merged] = mergeThemeTokens(list);
+                expect(merged.kind).to.equal('css-at-property');
+                expect(merged.file).to.equal('theme.css');
+                expect(merged.line).to.equal(9);
+                expect(merged.description).to.equal('Declared.');
+            }
+        });
+
+        it('keeps the first on a tie and the position of the first occurrence', () => {
+            const merged = mergeThemeTokens([
+                token({ name: '--a' }),
+                token({ file: 'one.css', line: 2 }),
+                token({ name: '--b' }),
+                token({ file: 'two.css', line: 5 })
+            ]);
+            expect(merged.map(t => t.name)).to.deep.equal(['--a', '--x', '--b']);
+            expect(merged[1].file).to.equal('one.css');
+        });
+
+        it('fills prose fields from the first token that has them, never concatenating', () => {
+            const [merged] = mergeThemeTokens([
+                token({ description: 'First.', examples: ['a'], see: ['s1'] }),
+                token({
+                    kind: 'css-at-property',
+                    group: 'Surface',
+                    since: '1.0',
+                    examples: ['b'],
+                    see: ['s2'],
+                    relatedTo: ['Chip']
+                })
+            ]);
+            expect(merged.description).to.equal('First.');
+            expect(merged.group).to.equal('Surface');
+            expect(merged.since).to.equal('1.0');
+            expect(merged.examples).to.deep.equal(['a']);
+            expect(merged.see).to.deep.equal(['s1']);
+            expect(merged.relatedTo).to.deep.equal(['Chip']);
+        });
+
+        it('falls back for type and default only when the winner has none', () => {
+            const [empty] = mergeThemeTokens([
+                token({ type: '<color>', defaultValue: 'red' }),
+                token({ kind: 'css-at-property' })
+            ]);
+            expect(empty.type).to.equal('<color>');
+            expect(empty.defaultValue).to.equal('red');
+            const [own] = mergeThemeTokens([
+                token({ type: '<color>', defaultValue: 'red' }),
+                token({ kind: 'css-at-property', type: '<length>', defaultValue: '1px' })
+            ]);
+            expect(own.type).to.equal('<length>');
+            expect(own.defaultValue).to.equal('1px');
+        });
+
+        it('takes deprecated from the winner, else the first that is not null', () => {
+            expect(
+                mergeThemeTokens([
+                    token({ deprecated: 'old' }),
+                    token({ kind: 'css-at-property', deprecated: '' })
+                ])[0].deprecated
+            ).to.equal('');
+            expect(
+                mergeThemeTokens([
+                    token({ deprecated: 'old' }),
+                    token({ kind: 'css-at-property' })
+                ])[0].deprecated
+            ).to.equal('old');
+        });
+
+        it('lets any declaration win over a hook', () => {
+            const [merged] = mergeThemeTokens([
+                token({ kind: 'css-hook', description: 'Hook text.' }),
+                token({ file: 'decl.css', line: 4 })
+            ]);
+            expect(merged.kind).to.equal('css-custom-property');
+            expect(merged.file).to.equal('decl.css');
+            expect(merged.description).to.equal('Hook text.');
+        });
+
+        it('keeps a scss variable and a custom property of the same spelling apart', () => {
+            const tokens = [token({ name: '$x', kind: 'scss-variable' }), token({ name: '--x' })];
+            expect(mergeThemeTokens(tokens)).to.equal(tokens);
+        });
+    });
+
     describe('collectStyleSources + collectThemeTokens (filesystem)', () => {
         let tmp: string;
 
@@ -727,6 +1108,23 @@ describe('Utils - theme-doc-parser', () => {
             expect(result.tokens).to.have.lengthOf(1);
             expect(result.tokens[0].file).to.equal('rel/chip.component.css');
             expect(path.isAbsolute(result.tokens[0].file)).to.equal(false);
+        });
+
+        it('merges a token documented in two sheets of one component', () => {
+            const entity = writeFile('chip/chip.ts', '// stub');
+            writeFile('chip/chip.css', ':host {\n  /** Background. */\n  --c-bg: red;\n}\n');
+            writeFile(
+                'chip/chip.theme.css',
+                "/**\n * @group Surface\n */\n@property --c-bg {\n  syntax: '<color>';\n  inherits: true;\n  initial-value: red;\n}\n"
+            );
+            const result = collectThemeTokens({
+                entityFile: entity,
+                styleUrls: ['./chip.css', './chip.theme.css']
+            });
+            expect(result.tokens).to.have.lengthOf(1);
+            expect(result.tokens[0].kind).to.equal('css-at-property');
+            expect(result.tokens[0].group).to.equal('Surface');
+            expect(result.tokens[0].description).to.equal('Background.');
         });
 
         it('returns an empty result when no styleUrls and no styles are provided', () => {
