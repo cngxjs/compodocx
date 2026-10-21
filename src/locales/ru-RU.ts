@@ -142,6 +142,8 @@ export const TRANSLATION_RU_RU = {
     theming: 'Темы',
     mixins: 'Миксины',
     'mixin-content': 'Блок содержимого',
+    'theme-token-hook': 'Хук',
+    'theme-token-hook-title': 'Читается компонентом, но не задаётся им',
     'style-files': 'Файлы стилей',
     'style-file': 'Файл стилей',
     'design-tokens': 'Дизайн-токены',

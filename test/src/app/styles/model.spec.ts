@@ -18,6 +18,19 @@ const undocumentedProperty =
 const mixinOnly = '/// Emits the theme.\n/// @param $theme - Theme map.\n@mixin theme($theme) {}\n';
 
 describe('buildStyleModel', () => {
+    it('counts a file that only holds hook tokens as content and collects its conflicts', () => {
+        const model = buildStyleModel([
+            { file: 'a/hooks.css', content: '/**\n * @cssprop --h\n */\n' },
+            {
+                file: 'a/both.css',
+                content: '/**\n * @cssprop --d - Gap.\n */\n:root { --d: 1; }\n'
+            }
+        ]);
+        expect(model.files.map(f => f.file)).toEqual(['a/both.css', 'a/hooks.css']);
+        expect(model.hookConflicts).toEqual([{ file: 'a/both.css', line: 4, name: '--d' }]);
+        expect(model.files[0]).not.toHaveProperty('hookConflicts');
+    });
+
     it('lists a token once when one file documents it as a declaration and a property', () => {
         const model = buildStyleModel([
             {

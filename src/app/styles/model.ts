@@ -1,5 +1,6 @@
 import { isErr, type Result } from '../../lib';
 import {
+    type HookConflict,
     mergeThemeTokens,
     parseStyleSource,
     type StyleMixin,
@@ -39,6 +40,8 @@ export interface StyleModel {
     /** Symbol -> ids of the style files that theme it. */
     readonly byTarget: ReadonlyMap<SymbolId, readonly string[]>;
     readonly unknownTags: readonly UnknownStyleTag[];
+    /** Hook tokens whose sheet also declares the property. */
+    readonly hookConflicts: readonly HookConflict[];
 }
 
 /** A file listed without content that names `@themes` targets. */
@@ -57,9 +60,11 @@ const styleFileId = (file: string): string => `style:${file}`;
 
 /**
  * A token counts as documented when it has a description, a group, or a type
- * of its own; an undocumented `@property` (type from its syntax) does not.
+ * of its own; an undocumented `@property` (type from its syntax) does not. A
+ * hook always counts: it exists only because a tag names it.
  */
 export const isDocumentedToken = (token: ThemeToken): boolean =>
+    token.kind === 'css-hook' ||
     token.description.trim() !== '' ||
     token.group !== '' ||
     (token.type !== '' && token.kind !== 'css-at-property');
@@ -71,6 +76,7 @@ export const readStyleFile = (
     source: StyleSourceFile
 ): StyleFile & {
     readonly unknownTags: readonly UnknownStyleTag[];
+    readonly hookConflicts: readonly HookConflict[];
 } => {
     const language = languageOf(source.file);
     const parsed = parseStyleSource(source.content, source.file, language);
@@ -88,7 +94,8 @@ export const readStyleFile = (
         themes: [],
         relatedTo: [...new Set(parsed.relatedTo)],
         hasContent: overview !== '' || tokens.some(isDocumentedToken) || parsed.mixins.length > 0,
-        unknownTags: parsed.unknownTags
+        unknownTags: parsed.unknownTags,
+        hookConflicts: parsed.hookConflicts
     };
 };
 
@@ -103,13 +110,16 @@ export const buildStyleModel = (sources: readonly StyleSourceFile[]): StyleModel
         .map(readStyleFile);
     const listed = read.filter(file => !file.hasContent);
     return {
-        files: read.filter(file => file.hasContent).map(({ unknownTags: _, ...file }) => file),
+        files: read
+            .filter(file => file.hasContent)
+            .map(({ unknownTags: _, hookConflicts: __, ...file }) => file),
         listed: listed.map(file => file.file),
         listedThemes: listed
             .filter(file => file.themeNames.length > 0)
             .map(file => ({ file: file.file, names: file.themeNames })),
         byTarget: new Map(),
-        unknownTags: read.flatMap(file => file.unknownTags)
+        unknownTags: read.flatMap(file => file.unknownTags),
+        hookConflicts: read.flatMap(file => file.hookConflicts)
     };
 };
 

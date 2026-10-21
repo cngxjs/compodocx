@@ -141,6 +141,8 @@ export const TRANSLATION_BG_BG = {
     theming: 'Теми',
     mixins: 'Миксини',
     'mixin-content': 'Блок със съдържание',
+    'theme-token-hook': 'Хук',
+    'theme-token-hook-title': 'Чете се от компонента, но не се задава от него',
     'style-files': 'Файлове със стилове',
     'style-file': 'Файл със стилове',
     'design-tokens': 'Дизайн токени',

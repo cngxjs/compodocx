@@ -1,0 +1,12 @@
+/**
+ * Hooks the chip reads from its surroundings.
+ *
+ * @overview
+ * @themes TkChip
+ * @cssprop {<length>} [--tk-chip-gap=4px] - Space between the label and the icon.
+ * @cssprop --tk-chip-radius - Corner radius of the chip.
+ */
+
+:root {
+    --tk-chip-gap: 4px;
+}

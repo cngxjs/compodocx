@@ -538,6 +538,25 @@ describe('export-json style files', () => {
         expect(highlight).not.toHaveProperty('themeTokens');
     });
 
+    it('passes a hook token through with its kind', () => {
+        const hooked = resolveThemes(
+            buildStyleModel([
+                {
+                    file: 'kit/theming/hooks.css',
+                    content: '/**\n * @overview\n * @themes Card\n * @cssprop --hk - Read.\n */\n'
+                }
+            ]),
+            themeResolver(symbols)
+        ).model;
+        const [component] =
+            withLinkedTheming([card], 'component', { styles: hooked, symbols }) ?? [];
+        expect((component as any).themeTokens.map((t: any) => [t.name, t.kind])).toEqual([
+            ['--hk', 'css-hook']
+        ]);
+        const { files } = exportStyleFiles(hooked, symbols, undefined);
+        expect(files[0].tokens[0].kind).toBe('css-hook');
+    });
+
     it('leaves everything as it was without style files', () => {
         const items = [highlight];
         expect(withLinkedTheming(items, 'directive', { styles: undefined, symbols })?.[0]).toBe(

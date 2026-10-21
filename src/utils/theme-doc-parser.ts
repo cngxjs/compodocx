@@ -9,11 +9,21 @@ import { logger } from './logger';
  * and `line` may be empty. A tag the parser does not know is left out of the
  * token and reported in `ParsedStyleResult.unknownTags`.
  */
+export type ThemeTokenKind =
+    | 'css-custom-property'
+    | 'scss-variable'
+    | 'css-at-property'
+    | 'css-hook';
+
 export interface ThemeToken {
     /** Variable name including prefix: `--cngx-alert-padding` or `$alert-padding` */
     name: string;
-    /** Source kind - drives rendering and the prefix in the name column */
-    kind: 'css-custom-property' | 'scss-variable' | 'css-at-property';
+    /**
+     * Source kind - drives rendering and the prefix in the name column.
+     * `css-hook` is a property the component reads but never sets; it exists
+     * only because a `@cssprop` tag names it.
+     */
+    kind: ThemeTokenKind;
     /** Resolved type - from @type tag, from @property syntax, or '' */
     type: string;
     /** Resolved default - from @default tag or the literal declaration value */
@@ -75,6 +85,14 @@ export interface UnknownStyleTag {
     readonly tag: string;
 }
 
+/** A hook token whose sheet also declares the property, so the declaration was kept. */
+export interface HookConflict {
+    readonly file: string;
+    /** 1-based line of the declaration that was kept. */
+    readonly line: number;
+    readonly name: string;
+}
+
 export interface ThemeTokenGroup {
     /** '' for the flat default bucket */
     name: string;
@@ -93,6 +111,8 @@ export interface ParsedStyleResult {
     unknownTags: UnknownStyleTag[];
     /** Documented SCSS mixins and functions, in source order. */
     mixins: StyleMixin[];
+    /** Hook tokens the same sheet also declares, one per name. */
+    hookConflicts: HookConflict[];
 }
 
 export interface StyleSource {
@@ -213,14 +233,156 @@ interface FileLevelCollector {
     readonly themes: string[];
     readonly relatedTo: string[];
     readonly unknownTags: UnknownStyleTag[];
+    /** Hook tokens written as `@cssprop` lines inside those blocks. */
+    readonly hooks: ThemeToken[];
 }
 
 const newCollector = (): FileLevelCollector => ({
     overview: [],
     themes: [],
     relatedTo: [],
-    unknownTags: []
+    unknownTags: [],
+    hooks: []
 });
+
+/** The file-level fields of a collector as they appear in a scan result. */
+const levelFields = (
+    collector: FileLevelCollector
+): Pick<ParsedStyleResult, 'overview' | 'themes' | 'relatedTo' | 'unknownTags'> => ({
+    overview: collector.overview,
+    themes: collector.themes,
+    relatedTo: collector.relatedTo,
+    unknownTags: collector.unknownTags
+});
+
+/** Tags that document a custom property the component reads (custom-elements-manifest names). */
+export const HOOK_TAGS = ['cssprop', 'cssproperty'] as const;
+
+const isHookTag = (name: string): boolean => (HOOK_TAGS as readonly string[]).includes(name);
+
+/** Index of the bracket that closes the one at `open`, or -1. */
+const closingIndex = (text: string, open: number, up: string, down: string): number => {
+    let depth = 0;
+    for (let i = open; i < text.length; i++) {
+        if (text[i] === up) {
+            depth++;
+        } else if (text[i] === down) {
+            depth--;
+            if (depth === 0) {
+                return i;
+            }
+        }
+    }
+    return -1;
+};
+
+interface HookLine {
+    readonly name: string;
+    readonly type: string;
+    readonly defaultValue: string;
+    readonly description: string;
+}
+
+/**
+ * Read `{<syntax>} [--name=default] - description` (every part but the name
+ * optional; `--name` without brackets is fine). Returns null when the name is
+ * missing, does not start with `--`, or a bracket is left open.
+ */
+export function parseHookLine(value: string): HookLine | null {
+    let rest = value.trim();
+    let type = '';
+    if (rest.startsWith('{')) {
+        const close = closingIndex(rest, 0, '{', '}');
+        if (close === -1) {
+            return null;
+        }
+        type = rest.slice(1, close).trim();
+        rest = rest.slice(close + 1).trimStart();
+    }
+    let name: string;
+    let defaultValue = '';
+    if (rest.startsWith('[')) {
+        const close = closingIndex(rest, 0, '[', ']');
+        if (close === -1) {
+            return null;
+        }
+        const inner = rest.slice(1, close);
+        const eq = inner.indexOf('=');
+        name = (eq === -1 ? inner : inner.slice(0, eq)).trim();
+        defaultValue = eq === -1 ? '' : inner.slice(eq + 1).trim();
+        rest = rest.slice(close + 1);
+    } else {
+        name = rest.match(/^\S+/)?.[0] ?? '';
+        rest = rest.slice(name.length);
+    }
+    if (!/^--[\w-]+$/.test(name)) {
+        return null;
+    }
+    const description = rest.trim().replace(/^-(?:\s+|$)/, '');
+    return { name, type, defaultValue, description };
+}
+
+/**
+ * The hook tokens of one block, one per `@cssprop` line. `ownBlock` blocks
+ * share their description and tags among the hooks (an inline text wins); in a
+ * file-level block the description is the file overview, so only the inline
+ * text counts. A line without a usable name is reported as an unknown tag.
+ */
+const readHooks = (args: {
+    body: string;
+    bodyLine: number;
+    file: string;
+    ownBlock: boolean;
+    unknownTags: UnknownStyleTag[];
+}): ThemeToken[] => {
+    const parsed = parseDocBody(args.body);
+    const lines = tagLineIndexes(args.body);
+    const hooks: ThemeToken[] = [];
+    parsed.tags.forEach((tag, i) => {
+        if (!isHookTag(tag.name)) {
+            return;
+        }
+        const line = args.bodyLine + (lines[i] ?? 0);
+        const hook = parseHookLine(tag.value);
+        if (!hook) {
+            args.unknownTags.push({ file: args.file, line, tag: tag.name });
+            return;
+        }
+        const token = buildToken({
+            name: hook.name,
+            kind: 'css-hook',
+            body: args.ownBlock ? args.body : '',
+            inferredType: hook.type,
+            literalDefault: hook.defaultValue,
+            file: args.file,
+            line,
+            bodyLine: args.bodyLine,
+            unknownTags: hooks.length === 0 ? args.unknownTags : []
+        });
+        hooks.push({ ...token, description: hook.description || token.description });
+    });
+    return hooks;
+};
+
+/**
+ * Claim a block with `@cssprop` lines: it documents the properties it names
+ * and never attaches to the declaration after it. Returns false for any other
+ * block.
+ */
+const readHookBlock = (
+    body: string,
+    file: string,
+    bodyLine: number,
+    into: { readonly tokens: ThemeToken[]; readonly unknownTags: UnknownStyleTag[] }
+): boolean => {
+    if (!parseDocBody(body).tags.some(tag => isHookTag(tag.name))) {
+        return false;
+    }
+    into.tokens.push(
+        ...readHooks({ body, bodyLine, file, ownBlock: true, unknownTags: into.unknownTags })
+    );
+    return true;
+};
 
 /**
  * Read a block that carries `@overview` or `@themes`: such a block describes
@@ -242,6 +404,9 @@ const readFileLevelBlock = (
         into.overview.push(intro);
     }
     const lines = tagLineIndexes(body);
+    into.hooks.push(
+        ...readHooks({ body, bodyLine, file, ownBlock: false, unknownTags: into.unknownTags })
+    );
     parsed.tags.forEach((tag, i) => {
         switch (tag.name) {
             case 'overview':
@@ -251,6 +416,9 @@ const readFileLevelBlock = (
                 break;
             case 'relatedTo':
                 into.relatedTo.push(...tagNames(tag.value));
+                break;
+            case 'cssprop':
+            case 'cssproperty':
                 break;
             default:
                 into.unknownTags.push({ file, line: bodyLine + (lines[i] ?? 0), tag: tag.name });
@@ -317,6 +485,9 @@ function buildToken(args: {
                 break;
             case 'relatedTo':
                 relatedTo.push(...tagNames(tag.value));
+                break;
+            case 'cssprop':
+            case 'cssproperty':
                 break;
             default:
                 args.unknownTags.push({
@@ -484,6 +655,9 @@ const buildMixin = (args: {
             case 'relatedTo':
                 relatedTo.push(...tagNames(tag.value));
                 break;
+            case 'cssprop':
+            case 'cssproperty':
+                break;
             default:
                 args.unknownTags.push({
                     file: args.file,
@@ -534,7 +708,15 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
     const flushPending = () => {
         if (pendingLines?.length) {
             const body = pendingLines.join('\n');
-            if (readFileLevelBlock(body, file, pendingStart + 1, fileLevel)) {
+            const fileBlock = readFileLevelBlock(body, file, pendingStart + 1, fileLevel);
+            tokens.push(...fileLevel.hooks.splice(0));
+            const claimed =
+                fileBlock ||
+                readHookBlock(body, file, pendingStart + 1, {
+                    tokens,
+                    unknownTags: fileLevel.unknownTags
+                });
+            if (claimed) {
                 pending = null;
             } else {
                 pending = { body, line: pendingStart + 1 };
@@ -613,7 +795,13 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
         flushPending();
     }
 
-    return { tokens, ...fileLevel, mixins };
+    const resolved = resolveHookConflicts(source, file, tokens, true);
+    return {
+        tokens: resolved.tokens,
+        ...levelFields(fileLevel),
+        mixins,
+        hookConflicts: resolved.conflicts
+    };
 }
 
 // ---------------------------------------------------------------------------
@@ -729,6 +917,74 @@ function parseAtPropertyBody(body: string): AtPropertyInfo {
     return { syntax, initialValue };
 }
 
+/** Block comments (and `//` lines in SCSS) blanked out, line breaks kept so offsets still map to lines. */
+const blankComments = (source: string, scss: boolean): string => {
+    const blank = (text: string): string => text.replace(/[^\n]/g, ' ');
+    const noBlocks = source.replace(/\/\*[\s\S]*?\*\//g, blank);
+    return scss
+        ? noBlocks.replace(/(^|[^:])(\/\/[^\n]*)/g, (_, lead, rest) => lead + blank(rest))
+        : noBlocks;
+};
+
+const escapeRegExp = (text: string): string => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const uniqueConflicts = (conflicts: readonly HookConflict[]): HookConflict[] => {
+    const seen = new Set<string>();
+    return conflicts.filter(conflict => {
+        const key = `${conflict.file}\0${conflict.name}`;
+        if (seen.has(key)) {
+            return false;
+        }
+        seen.add(key);
+        return true;
+    });
+};
+
+/**
+ * A hook token names a property the component only reads. When the same sheet
+ * declares it (`--x:` or `@property --x`), the declaration is the better
+ * truth: the hook becomes that kind of token at the declaration's line and the
+ * conflict is recorded once per name. A `var(--x)` read is not a declaration.
+ */
+function resolveHookConflicts(
+    source: string,
+    file: string,
+    tokens: ThemeToken[],
+    scss: boolean
+): { tokens: ThemeToken[]; conflicts: HookConflict[] } {
+    if (!tokens.some(token => token.kind === 'css-hook')) {
+        return { tokens, conflicts: [] };
+    }
+    const clean = blankComments(source, scss);
+    const conflicts: HookConflict[] = [];
+    const resolved = tokens.map(token => {
+        if (token.kind !== 'css-hook') {
+            return token;
+        }
+        const name = escapeRegExp(token.name);
+        const declared = new RegExp(`(^|[;{\\s])(${name})\\s*:\\s*([^;{}]*?)\\s*;`).exec(clean);
+        const registered = new RegExp(`@property\\s+${name}\\s*\\{([^}]*)\\}`).exec(clean);
+        const declaredAt = declared ? declared.index + declared[1].length : Infinity;
+        const registeredAt = registered?.index ?? Infinity;
+        if (declaredAt === Infinity && registeredAt === Infinity) {
+            return token;
+        }
+        const useRegistered = registered !== null && registeredAt < declaredAt;
+        const at = useRegistered ? registeredAt : declaredAt;
+        const info = useRegistered ? parseAtPropertyBody(registered?.[1] ?? '') : null;
+        const line = offsetToLine(source, at);
+        conflicts.push({ file, line, name: token.name });
+        return {
+            ...token,
+            kind: useRegistered ? ('css-at-property' as const) : ('css-custom-property' as const),
+            type: token.type || (info?.syntax ?? ''),
+            defaultValue: token.defaultValue || (info ? info.initialValue : (declared?.[3] ?? '')),
+            line
+        };
+    });
+    return { tokens: resolved, conflicts: uniqueConflicts(conflicts) };
+}
+
 export function parseCssTokens(source: string, file: string): ParsedStyleResult {
     const tokens: ThemeToken[] = [];
     const fileLevel = newCollector();
@@ -737,6 +993,15 @@ export function parseCssTokens(source: string, file: string): ParsedStyleResult 
 
     for (const block of blocks) {
         if (readFileLevelBlock(block.body, file, block.bodyLine, fileLevel)) {
+            tokens.push(...fileLevel.hooks.splice(0));
+            continue;
+        }
+        if (
+            readHookBlock(block.body, file, block.bodyLine, {
+                tokens,
+                unknownTags: fileLevel.unknownTags
+            })
+        ) {
             continue;
         }
         const docArgs = {
@@ -838,7 +1103,13 @@ export function parseCssTokens(source: string, file: string): ParsedStyleResult 
         m = undocAtProp.exec(source);
     }
 
-    return { tokens, ...fileLevel, mixins: [] };
+    const resolved = resolveHookConflicts(source, file, tokens, /\.scss$/i.test(file));
+    return {
+        tokens: resolved.tokens,
+        ...levelFields(fileLevel),
+        mixins: [],
+        hookConflicts: resolved.conflicts
+    };
 }
 
 export function parseStyleSource(
@@ -855,7 +1126,8 @@ export function parseStyleSource(
             themes: [...scss.themes, ...css.themes],
             relatedTo: [...scss.relatedTo, ...css.relatedTo],
             unknownTags: [...scss.unknownTags, ...css.unknownTags],
-            mixins: scss.mixins
+            mixins: scss.mixins,
+            hookConflicts: uniqueConflicts([...scss.hookConflicts, ...css.hookConflicts])
         };
     }
     return parseCssTokens(source, file);
@@ -1013,7 +1285,8 @@ export function collectThemeTokens(args: {
 const KIND_RANK: Record<ThemeToken['kind'], number> = {
     'css-at-property': 3,
     'css-custom-property': 2,
-    'scss-variable': 2
+    'scss-variable': 2,
+    'css-hook': 1
 };
 
 /**
@@ -1100,6 +1373,20 @@ export const unknownStyleTags = (sources: readonly StyleSource[]): UnknownStyleT
     return found;
 };
 
+/** Hook conflicts of every source, each file read once. */
+export const styleHookConflicts = (sources: readonly StyleSource[]): HookConflict[] => {
+    const seen = new Set<string>();
+    const found: HookConflict[] = [];
+    for (const src of sources) {
+        if (seen.has(src.file)) {
+            continue;
+        }
+        seen.add(src.file);
+        found.push(...parseStyleSource(src.content, src.file, src.language).hookConflicts);
+    }
+    return found;
+};
+
 /**
  * The build notice for unknown style-comment tags: a count line with the
  * tag tally, then one `file:line @tag` per finding. Empty without findings.
@@ -1119,6 +1406,23 @@ export const formatUnknownStyleTagNotice = (
     return [
         `Style comments: ${findings.length} unknown ${noun} ignored (${tally})`,
         ...findings.map(finding => `  ${finding.file}:${finding.line} @${finding.tag}`)
+    ];
+};
+
+/**
+ * The build notice for hook tokens whose sheet also declares the property:
+ * a count line, then one `file:line --name` per conflict. Empty without any.
+ */
+export const formatHookConflictNotice = (conflicts: readonly HookConflict[]): readonly string[] => {
+    if (conflicts.length === 0) {
+        return [];
+    }
+    const one = conflicts.length === 1;
+    return [
+        `Style comments: ${conflicts.length} hook ${one ? 'token' : 'tokens'} also declared in ${
+            one ? 'its sheet' : 'their sheets'
+        }, declaration kept`,
+        ...conflicts.map(conflict => `  ${conflict.file}:${conflict.line} ${conflict.name}`)
     ];
 };
 

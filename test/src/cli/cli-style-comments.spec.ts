@@ -8,8 +8,11 @@ describe('CLI style comments', () => {
     const fixture = `${tmp.name}-style-comments-fixture`;
     const htmlDist = `${tmp.name}-style-comments-html`;
     const jsonDist = `${tmp.name}-style-comments-json`;
+    const llmDist = `${tmp.name}-style-comments-llm`;
     let exported: any;
     let stdout: string;
+    let status: number | null;
+    let markdown: string;
 
     const run = (format: string, dist: string) => {
         const ls = shell('node', [
@@ -28,6 +31,7 @@ describe('CLI style comments', () => {
             console.error(`shell error: ${ls.stderr.toString()}`);
             throw new Error('error');
         }
+        status = ls.status;
         return ls.stdout.toString();
     };
 
@@ -42,8 +46,11 @@ describe('CLI style comments', () => {
         fs.cpSync(path.resolve('test/fixtures/style-comments'), fixture, { recursive: true });
         tmp.create(htmlDist);
         tmp.create(jsonDist);
+        tmp.create(llmDist);
         stdout = run('html', htmlDist);
         run('json', jsonDist);
+        run('llm-md', llmDist);
+        markdown = read(`${llmDist}/llm-context.md`);
         exported = JSON.parse(read(`${jsonDist}/documentation.json`));
     });
 
@@ -51,6 +58,7 @@ describe('CLI style comments', () => {
         tmp.clean(fixture);
         tmp.clean(htmlDist);
         tmp.clean(jsonDist);
+        tmp.clean(llmDist);
     });
 
     it('renders a token documented in two sheets once on the component page', () => {
@@ -73,7 +81,43 @@ describe('CLI style comments', () => {
         expect(tokens[0].description).toBe('Background of the chip.');
     });
 
-    it('prints no style comment notice for a clean fixture', () => {
-        expect(stdout).not.toContain('Style comments');
+    it('shows a hook with its badge and the default of a fallback chain', () => {
+        const html = componentPage();
+        expect(html).toContain('id="theme-tk-chip-fg"');
+        expect(html).toContain('cdx-io-member--theming-css-hook');
+        expect(html).toContain('cdx-badge--hook');
+        expect(html).toContain('var(--tk-accent)');
+    });
+
+    it('shows the hooks of the overview block of a themes file on the component', () => {
+        const html = componentPage();
+        expect(html).toContain('id="theme-tk-chip-radius"');
+        expect(html).toContain('Corner radius of the chip.');
+    });
+
+    it('keeps the declaration when the sheet of a hook also declares it, and says so once', () => {
+        const html = componentPage();
+        const gap = html.match(
+            /class="cdx-io-member cdx-io-member--theming cdx-io-member--theming-([\w-]+)" id="theme-tk-chip-gap"/
+        );
+        expect(gap?.[1]).toBe('css-custom-property');
+        expect(stdout).toMatch(
+            /Style comments: 1 hook token also declared in its sheet, declaration kept\n\s+\S*tk-chip-hooks\.css:11 --tk-chip-gap/
+        );
+        expect(stdout.match(/Style comments:/g)).toHaveLength(1);
+    });
+
+    it('exports the hooks with their kind and lists them in llm-md', () => {
+        const chip = exported.components.find((c: any) => c.name === 'TkChip');
+        const kinds = Object.fromEntries(chip.themeTokens.map((t: any) => [t.name, t.kind]));
+        expect(kinds['--tk-chip-fg']).toBe('css-hook');
+        expect(kinds['--tk-chip-radius']).toBe('css-hook');
+        expect(kinds['--tk-chip-gap']).toBe('css-custom-property');
+        expect(exported.styleFiles[0].tokens.map((t: any) => t.name)).toContain('--tk-chip-radius');
+        expect(markdown).toContain('--tk-chip-fg: <color> = var(--tk-accent)');
+    });
+
+    it('finishes with exit code 0 although it printed a notice', () => {
+        expect(status).toBe(0);
     });
 });

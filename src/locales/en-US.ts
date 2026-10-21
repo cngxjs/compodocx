@@ -139,6 +139,8 @@ export const TRANSLATION_EN_US = {
     theming: 'Theming',
     mixins: 'Mixins',
     'mixin-content': 'Content block',
+    'theme-token-hook': 'Hook',
+    'theme-token-hook-title': 'Read by the component, not set by it',
     'style-files': 'Style files',
     'style-file': 'Style file',
     'design-tokens': 'Design tokens',

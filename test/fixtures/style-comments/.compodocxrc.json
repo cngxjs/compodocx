@@ -1,4 +1,5 @@
 {
     "$schema": "../../../src/config/schema.json",
-    "menuLayout": "feature"
+    "menuLayout": "feature",
+    "styleFiles": ["src/theming/**/*.css"]
 }

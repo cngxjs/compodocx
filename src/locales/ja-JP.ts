@@ -140,6 +140,8 @@ export const TRANSLATION_JA_JP = {
     theming: 'テーマ',
     mixins: 'ミックスイン',
     'mixin-content': 'コンテンツブロック',
+    'theme-token-hook': 'フック',
+    'theme-token-hook-title': 'コンポーネントが読み取る値で、コンポーネント自身は設定しません',
     'style-files': 'スタイルファイル',
     'style-file': 'スタイルファイル',
     'design-tokens': 'デザイントークン',

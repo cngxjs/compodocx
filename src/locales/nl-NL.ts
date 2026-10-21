@@ -141,6 +141,8 @@ export const TRANSLATION_NL_NL = {
     theming: 'Theming',
     mixins: 'Mixins',
     'mixin-content': 'Inhoudsblok',
+    'theme-token-hook': 'Hook',
+    'theme-token-hook-title': 'Wordt door de component gelezen, niet ingesteld',
     'style-files': 'Stijlbestanden',
     'style-file': 'Stijlbestand',
     'design-tokens': 'Designtokens',

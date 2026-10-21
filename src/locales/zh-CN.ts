@@ -139,6 +139,8 @@ export const TRANSLATION_ZH_CN = {
     theming: '主题',
     mixins: '混入',
     'mixin-content': '内容块',
+    'theme-token-hook': '钩子',
+    'theme-token-hook-title': '由组件读取，而非由组件设置',
     'style-files': '样式文件',
     'style-file': '样式文件',
     'design-tokens': '设计令牌',

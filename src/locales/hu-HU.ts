@@ -141,6 +141,8 @@ export const TRANSLATION_HU_HU = {
     theming: 'Témák',
     mixins: 'Mixinek',
     'mixin-content': 'Tartalomblokk',
+    'theme-token-hook': 'Hook',
+    'theme-token-hook-title': 'A komponens olvassa, de nem állítja be',
     'style-files': 'Stílusfájlok',
     'style-file': 'Stílusfájl',
     'design-tokens': 'Design tokenek',
