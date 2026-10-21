@@ -17,7 +17,15 @@ export class OverviewPageGenerator {
             const numberOfMarkdowns = 5;
             const loop = () => {
                 if (i < numberOfMarkdowns) {
-                    MarkdownEngine.getTraditionalMarkdown(markdowns[i].toUpperCase())
+                    const fileName = markdowns[i].toUpperCase();
+                    const found = MarkdownEngine.hasTraditionalMarkdown(fileName);
+                    // Only a missing README is worth a warning; the other files are optional.
+                    if (!found && markdowns[i] !== 'readme') {
+                        i++;
+                        loop();
+                        return;
+                    }
+                    MarkdownEngine.getTraditionalMarkdown(fileName)
                         .then((readmeData: markdownReadedDatas) => {
                             logger.info(`${markdowns[i].toUpperCase()}.md file found`);
                             const aiGenerated = detectAiGeneratedMarker(readmeData.rawData);
@@ -72,7 +80,9 @@ export class OverviewPageGenerator {
                             loop();
                         })
                         .catch(errorMessage => {
-                            logger.warn(errorMessage);
+                            if (found) {
+                                logger.warn(errorMessage);
+                            }
                             logger.warn(`Continuing without ${markdowns[i].toUpperCase()}.md file`);
                             if (markdowns[i] === 'readme') {
                                 if (!Configuration.mainData.disableOverview) {

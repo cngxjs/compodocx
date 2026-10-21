@@ -84,6 +84,12 @@ export class MarkdownEngine {
         return MarkdownEngine.instance;
     }
 
+    /** True when `<name>.md` or `<name>` exists in the cwd. */
+    public hasTraditionalMarkdown(name: string): boolean {
+        const file = process.cwd() + path.sep + name;
+        return FileEngine.existsSync(`${file}.md`) || FileEngine.existsSync(file);
+    }
+
     public getTraditionalMarkdown(filepath: string): Promise<markdownReadedDatas> {
         return FileEngine.get(`${process.cwd() + path.sep + filepath}.md`)
             .catch(_err => FileEngine.get(process.cwd() + path.sep + filepath))

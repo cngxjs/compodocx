@@ -132,6 +132,17 @@ describe('CLI simple flags', () => {
                 'No error displayed for package.json'
             ).to.be.true;
         });
+
+        it('should not report the missing optional markdown files', () => {
+            const output: string = command.stdout.toString();
+
+            for (const name of ['README', 'CHANGELOG', 'CONTRIBUTING', 'LICENSE', 'TODO']) {
+                expect(output).not.to.contain(`${name} read`);
+            }
+            for (const name of ['CHANGELOG', 'CONTRIBUTING', 'LICENSE', 'TODO']) {
+                expect(output).not.to.contain(`Continuing without ${name}.md file`);
+            }
+        });
     });
 
     describe('showing the output type', () => {
