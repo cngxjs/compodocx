@@ -1,5 +1,6 @@
 import * as crypto from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { pageLocation } from '../../../../src/app/links/layout';
 import {
     type ResolvedAdditionalPage,
     resolveAdditionalPages
@@ -16,6 +17,14 @@ const resolvedOf = (summary: unknown): readonly ResolvedAdditionalPage[] => {
     return result.value;
 };
 
+const errorOf = (summary: unknown): string => {
+    const result = resolveAdditionalPages(summary);
+    if (isOk(result)) {
+        throw new Error('expected an error result');
+    }
+    return result.message;
+};
+
 const nested = (depth: number): unknown[] => {
     const build = (level: number): unknown => {
         const node = { title: `Level ${level}`, file: `level${level}.md` };
@@ -26,13 +35,16 @@ const nested = (depth: number): unknown[] => {
 
 describe('resolveAdditionalPages', () => {
     let error: ReturnType<typeof vi.spyOn>;
+    let warn: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
         error = vi.spyOn(logger, 'error').mockImplementation(() => undefined);
+        warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
     });
 
     afterEach(() => {
         error.mockRestore();
+        warn.mockRestore();
     });
 
     it('lists nodes in document order, each node before its children', () => {
@@ -133,5 +145,148 @@ describe('resolveAdditionalPages', () => {
             '.children[0].children[0]',
             '.children[1]'
         ]);
+    });
+
+    it('lets an explicit slug replace only its own segment, also when it equals an ancestor slug', () => {
+        const pages = resolvedOf([
+            {
+                title: 'Error Reference',
+                slug: 'errors',
+                file: 'errors.md',
+                children: [{ title: 'Some Long Title', slug: 'e0001', file: 'e0001.md' }]
+            },
+            {
+                title: 'Guide',
+                slug: 'guide',
+                file: 'guide.md',
+                children: [{ title: 'Other', slug: 'guide', file: 'guide-inner.md' }]
+            }
+        ]);
+        expect(pages.map(p => p.segments)).toEqual([
+            ['errors'],
+            ['errors', 'e0001'],
+            ['guide'],
+            ['guide', 'guide']
+        ]);
+        expect(pages.map(p => p.title)).toEqual([
+            'Error Reference',
+            'Some Long Title',
+            'Guide',
+            'Other'
+        ]);
+        expect(
+            pageLocation({
+                type: 'additional',
+                folder: 'additional-documentation',
+                slugs: pages[3].segments
+            })
+        ).toMatchObject({
+            path: 'additional-documentation/guide',
+            filename: 'guide'
+        });
+    });
+
+    it('uses the slug of a slugged parent for the segments of its children', () => {
+        const pages = resolvedOf([
+            {
+                title: 'Renamed Parent',
+                slug: 'stable',
+                file: 'parent.md',
+                children: [{ title: 'Child Page', file: 'child.md' }]
+            }
+        ]);
+        expect(pages[1].segments).toEqual(['stable', 'child-page']);
+    });
+
+    it.each([
+        'Upper',
+        'über',
+        'a/b',
+        '..',
+        '.hidden',
+        '',
+        'a b'
+    ])('rejects the invalid slug %j with the node path', slug => {
+        const message = errorOf([
+            { title: 'Ok', file: 'ok.md' },
+            {
+                title: 'Parent',
+                file: 'parent.md',
+                children: [{ title: 'Bad', slug, file: 'bad.md' }]
+            }
+        ]);
+        expect(message).toBe(
+            `Additional pages: invalid slug "${slug}" at summary.json[1].children[0] (bad.md); expected one segment matching ^[a-z0-9][a-z0-9._-]*$`
+        );
+    });
+
+    it('rejects two derived slugs that give the same path and names both nodes and files', () => {
+        const message = errorOf([
+            { title: 'Same Name', file: 'one.md' },
+            { title: 'Same name', file: 'two.md' }
+        ]);
+        expect(message).toBe(
+            'Additional pages: "same-name.html" is claimed by summary.json[0] (one.md) and summary.json[1] (two.md)'
+        );
+    });
+
+    it('rejects an explicit slug that collides with a derived slug', () => {
+        const message = errorOf([
+            { title: 'Getting Started', file: 'start.md' },
+            { title: 'Anything', slug: 'getting-started', file: 'other.md' }
+        ]);
+        expect(message).toBe(
+            'Additional pages: "getting-started.html" is claimed by summary.json[0] (start.md) and summary.json[1] (other.md)'
+        );
+    });
+
+    it('treats NFC and NFD spellings of the same derived title as one path', () => {
+        const message = errorOf([
+            { title: 'caf\u00e9', file: 'nfc.md' },
+            { title: 'cafe\u0301', file: 'nfd.md' }
+        ]);
+        expect(message).toContain(
+            'is claimed by summary.json[0] (nfc.md) and summary.json[1] (nfd.md)'
+        );
+    });
+
+    it('uses the path as DOM id with an explicit slug and the hash without', () => {
+        const pages = resolvedOf([
+            {
+                title: 'Slugged',
+                slug: 'fixed',
+                file: 'a.md',
+                children: [{ title: 'Kid', slug: 'kid', file: 'k.md' }]
+            },
+            { title: 'Plain', file: 'b.md' }
+        ]);
+        expect(pages[0].domId).toBe('fixed');
+        expect(pages[1].domId).toBe('fixed/kid');
+        expect(pages[2].domId).toBe(crypto.createHash('sha512').update('Plainb.md').digest('hex'));
+    });
+
+    it('warns about a slug below a parent without a slug and stays quiet when the parent has one', () => {
+        resolvedOf([
+            {
+                title: 'No Slug',
+                file: 'parent.md',
+                children: [{ title: 'Child', slug: 'child', file: 'child.md' }]
+            }
+        ]);
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn).toHaveBeenCalledWith(
+            'Additional pages: summary.json[0].children[0] has a slug but its parent summary.json[0] has none; renaming the parent moves this page'
+        );
+
+        warn.mockClear();
+        resolvedOf([
+            {
+                title: 'With Slug',
+                slug: 'parent',
+                file: 'parent.md',
+                children: [{ title: 'Child', slug: 'child', file: 'child.md' }]
+            }
+        ]);
+        expect(warn).not.toHaveBeenCalled();
     });
 });

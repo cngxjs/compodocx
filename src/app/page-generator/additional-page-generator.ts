@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 
-import { isOk } from '../../lib';
+import { isErr } from '../../lib';
 import { detectAiGeneratedMarker } from '../../utils/ai-generated.util';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
@@ -39,7 +39,7 @@ export class AdditionalPageGenerator {
         // Scan include folder for files detailed in summary.json
         // For each file, add to Configuration.mainData.additionalPages
         // Each file will be converted to html page, inside COMPODOC_DEFAULTS.additionalEntryPath
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
             FileEngine.get(this.getIncludedPathForFile('summary.json')).then(
                 summaryData => {
                     logger.info('Additional documentation: summary.json file found');
@@ -47,7 +47,11 @@ export class AdditionalPageGenerator {
                     const parsedSummaryData = JSON.parse(summaryData);
 
                     const resolved = resolveAdditionalPages(parsedSummaryData);
-                    const resolvedPages = isOk(resolved) ? resolved.value : [];
+                    if (isErr(resolved)) {
+                        reject(resolved.message);
+                        return;
+                    }
+                    const resolvedPages = resolved.value;
                     let lastLevelOnePage;
 
                     for (const resolvedPage of resolvedPages) {
