@@ -34,3 +34,15 @@ describe('stored theme restore script', () => {
         }
     });
 });
+
+describe('page title', () => {
+    it('prefers displayName over name', () => {
+        const html = render({
+            context: 'additional-page',
+            name: 'Short',
+            displayName: 'Long page title'
+        });
+        expect(html).toMatch(/<title[^>]*>Long page title - additional page - Docs<\/title>/);
+        expect(html).not.toMatch(/<title[^>]*>Short/);
+    });
+});

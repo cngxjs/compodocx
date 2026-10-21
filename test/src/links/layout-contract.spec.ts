@@ -218,6 +218,20 @@ describe('page layout contract', () => {
                 slugs: ['guide', 'setup']
             })
         ).toEqual({ path: 'additional-documentation/guide', filename: 'setup', depth: 2 });
+        expect(
+            pageLocation({
+                type: 'additional',
+                folder: 'additional-documentation',
+                slugs: ['guide-basics', 'guide']
+            })
+        ).toEqual({ path: 'additional-documentation/guide-basics', filename: 'guide', depth: 2 });
+        expect(
+            pageLocation({
+                type: 'additional',
+                folder: 'additional-documentation',
+                slugs: ['guide', 'guide']
+            })
+        ).toEqual({ path: 'additional-documentation/guide', filename: 'guide', depth: 2 });
     });
 
     it('keeps asset paths as given', () => {

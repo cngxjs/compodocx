@@ -179,6 +179,13 @@
             "default": "Additional documentation",
             "examples": [""]
         },
+        "includesLabels": {
+            "$id": "/properties/includesLabels",
+            "type": "string",
+            "title": "JSON file with label and title per additional-page slug",
+            "default": "",
+            "examples": [""]
+        },
         "coverageTest": {
             "$id": "/properties/coverageTest",
             "type": "integer",
