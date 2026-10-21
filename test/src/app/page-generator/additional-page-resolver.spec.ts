@@ -218,7 +218,24 @@ describe('resolveAdditionalPages', () => {
             }
         ]);
         expect(message).toBe(
-            `Additional pages: invalid slug "${slug}" at summary.json[1].children[0] (bad.md); expected one segment matching ^[a-z0-9][a-z0-9._-]*$`
+            `Additional pages: invalid slug "${slug}" at summary.json[1].children[0] (bad.md); expected one segment of at most 200 characters matching ^[a-z0-9][a-z0-9._-]*$`
+        );
+    });
+
+    it('accepts a slug of 200 characters and rejects one of 201', () => {
+        const ok = 'a'.repeat(200);
+        const [page] = resolvedOf([{ title: 'Long', slug: ok, file: 'long.md' }]);
+        expect(page.segments).toEqual([ok]);
+        const slug = 'a'.repeat(201);
+        expect(errorOf([{ title: 'Long', slug, file: 'long.md' }])).toBe(
+            `Additional pages: invalid slug "${slug}" at summary.json[0] (long.md); expected one segment of at most 200 characters matching ^[a-z0-9][a-z0-9._-]*$`
+        );
+    });
+
+    it('rejects an alias with a segment of 201 characters', () => {
+        const alias = `guides/${'a'.repeat(201)}`;
+        expect(errorOf([{ title: 'Ok', file: 'ok.md', aliases: [alias] }])).toBe(
+            `Additional pages: invalid alias "${alias}" at summary.json[0] (ok.md); each segment must have at most 200 characters and match ^[a-z0-9][a-z0-9._-]*$`
         );
     });
 
@@ -267,7 +284,7 @@ describe('resolveAdditionalPages', () => {
     it('rejects an alias that is not a path of slug segments, naming the node', () => {
         const message = errorOf([{ title: 'Ok', file: 'ok.md', aliases: ['fine', 'Not/Fine'] }]);
         expect(message).toBe(
-            'Additional pages: invalid alias "Not/Fine" at summary.json[0] (ok.md); each segment must match ^[a-z0-9][a-z0-9._-]*$'
+            'Additional pages: invalid alias "Not/Fine" at summary.json[0] (ok.md); each segment must have at most 200 characters and match ^[a-z0-9][a-z0-9._-]*$'
         );
         expect(errorOf([{ title: 'Ok', file: 'ok.md', aliases: 'old' }])).toContain(
             'invalid alias "old"'

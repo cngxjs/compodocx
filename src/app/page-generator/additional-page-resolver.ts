@@ -6,6 +6,10 @@ import { cleanNameWithoutSpaceAndToLowerCase } from '../../utils/utils';
 
 const MAX_DEPTH = 5;
 const SLUG_PATTERN = /^[a-z0-9][a-z0-9._-]*$/;
+const MAX_SLUG_LENGTH = 200;
+
+const isValidSegment = (segment: string): boolean =>
+    segment.length <= MAX_SLUG_LENGTH && SLUG_PATTERN.test(segment);
 
 export interface LabelEntry {
     readonly label?: string;
@@ -97,13 +101,13 @@ const claimKey = (segments: readonly string[]): string =>
     segments.join('/').normalize('NFC').toLowerCase();
 
 const invalidSlugMessage = (slug: unknown, nodePath: string, file: unknown): string =>
-    `Additional pages: invalid slug "${String(slug)}" at summary.json${nodePath} (${String(file)}); expected one segment matching ${SLUG_PATTERN.source}`;
+    `Additional pages: invalid slug "${String(slug)}" at summary.json${nodePath} (${String(file)}); expected one segment of at most ${MAX_SLUG_LENGTH} characters matching ${SLUG_PATTERN.source}`;
 
 const noTitleMessage = (nodePath: string, file: unknown): string =>
     `Additional pages: no title for summary.json${nodePath} (${String(file)}); set "title" on the node or in the labels file`;
 
 const invalidAliasMessage = (alias: unknown, nodePath: string, file: unknown): string =>
-    `Additional pages: invalid alias "${String(alias)}" at summary.json${nodePath} (${String(file)}); each segment must match ${SLUG_PATTERN.source}`;
+    `Additional pages: invalid alias "${String(alias)}" at summary.json${nodePath} (${String(file)}); each segment must have at most ${MAX_SLUG_LENGTH} characters and match ${SLUG_PATTERN.source}`;
 
 const ownPathAliasMessage = (alias: string, nodePath: string, file: string): string =>
     `Additional pages: alias "${alias}" at summary.json${nodePath} (${file}) is the path of its own page`;
@@ -115,7 +119,7 @@ const collisionMessage = (segments: readonly string[], first: Claim, second: Cla
     `Additional pages: "${segments.join('/')}.html" is claimed by ${claimOwner(first)} and ${claimOwner(second)}`;
 
 const isValidAlias = (alias: unknown): alias is string =>
-    typeof alias === 'string' && alias.split('/').every(segment => SLUG_PATTERN.test(segment));
+    typeof alias === 'string' && alias.split('/').every(isValidSegment);
 
 /** The value that makes the `aliases` of a node invalid, if any. */
 const invalidAliasOf = (aliases: unknown): { readonly value: unknown } | undefined => {
@@ -163,7 +167,7 @@ const visit = (
         if (!hasTitle && !explicitSlug) {
             continue;
         }
-        if (explicitSlug && !(typeof node.slug === 'string' && SLUG_PATTERN.test(node.slug))) {
+        if (explicitSlug && !(typeof node.slug === 'string' && isValidSegment(node.slug))) {
             return err(invalidSlugMessage(node.slug, nodePath, node.file));
         }
         const invalidAlias = invalidAliasOf(node.aliases);

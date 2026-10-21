@@ -85,11 +85,11 @@ All fields are optional, so existing `summary.json` files keep working unchanged
 
 Rules:
 
-- A `slug` matches `^[a-z0-9][a-z0-9._-]*$`: lowercase ASCII letters, digits, `.`, `_` and `-`, starting with a letter or digit. It is one path segment, so it cannot contain `/`.
+- A `slug` matches `^[a-z0-9][a-z0-9._-]*$`: lowercase ASCII letters, digits, `.`, `_` and `-`, starting with a letter or digit, and at most 200 characters long. It is one path segment, so it cannot contain `/`.
 - The slug is the last segment of the page URL only. The slugs of the ancestors form the folder, so a page keeps its URL when its ancestors are renamed only if every ancestor has a `slug` too. A node with a `slug` whose parent has none logs a warning: `Additional pages: summary.json<path> has a slug but its parent summary.json<path> has none; renaming the parent moves this page`.
 - The derived slug always comes from the node's own `title`. A title from the labels file never moves a URL.
 - Two pages, or a page and an alias, that end up at the same path stop the build. Paths are compared after Unicode (NFC) normalization and lower-casing, so a title with a precomposed `é` and one with `e` plus a combining accent collide.
-- An alias is a full path below `additional-documentation/` without `.html`, for example `errors/e0001-old-name`. Each segment follows the slug pattern.
+- An alias is a full path below `additional-documentation/` without `.html`, for example `errors/e0001-old-name`. Each segment follows the slug rules (pattern and length).
 
 ## Writing the Markdown
 
@@ -265,8 +265,8 @@ These problems stop the build with exit code 1. The message names the position i
 
 | Message | Cause |
 |-|-|
-| `Additional pages: invalid slug "<slug>" at summary.json<path> (<file>); expected one segment matching ^[a-z0-9][a-z0-9._-]*$` | The `slug` is not a string or does not match the pattern |
-| `Additional pages: invalid alias "<alias>" at summary.json<path> (<file>); each segment must match ^[a-z0-9][a-z0-9._-]*$` | An alias is not a string or a segment does not match the pattern |
+| `Additional pages: invalid slug "<slug>" at summary.json<path> (<file>); expected one segment of at most 200 characters matching ^[a-z0-9][a-z0-9._-]*$` | The `slug` is not a string or does not match the pattern or is longer than 200 characters |
+| `Additional pages: invalid alias "<alias>" at summary.json<path> (<file>); each segment must have at most 200 characters and match ^[a-z0-9][a-z0-9._-]*$` | An alias is not a string or a segment does not match the pattern or is longer than 200 characters |
 | `Additional pages: alias "<alias>" at summary.json<path> (<file>) is the path of its own page` | An alias equals the path of the page it belongs to |
 | `Additional pages: no title for summary.json<path> (<file>); set "title" on the node or in the labels file` | A node with a `slug` has no title on the node and none in the labels file |
 | `Additional pages: "<path>.html" is claimed by summary.json<path> (<file>) and summary.json<path> (<file>)` | Two pages, or a page and an alias (the alias side is marked `as alias`), end up at the same path |
