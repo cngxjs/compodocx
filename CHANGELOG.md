@@ -12,6 +12,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 - **`customFavicon` is now the icon the pages link to.** The file was copied to `images/favicon.ico` while every page kept linking the bundled `images/favicon.svg`. It is now copied as `images/favicon.<ext>` (`.svg`, `.ico` and `.png` keep their type) and linked with the matching `type`; the bundled icon is linked only without `customFavicon`.
 - **`customLogo` shows in the sidebar again.** The image source was built from the configured path (`images/./brand/logo.svg`) instead of the copied file name (`images/logo.svg`).
+- **No more read errors for missing optional root files.** Every run logged `Error during <cwd>/TODO read` (and the same for a missing `CHANGELOG`, `CONTRIBUTING` or `LICENSE`) as if something had failed. Missing optional files are now skipped quietly; a missing `README.md` still gets its one `Continuing without README.md file` notice, and a file that exists but cannot be read is still reported.
 
 ## [0.9.0] - 2026-10-19
 
