@@ -88,7 +88,58 @@ export const buildRedirects = (input: RedirectInput): Redirects => {
     return Object.fromEntries([...redirects].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
 };
 
+/** An old page path (root-relative, with `.html`) and the page it moved to. */
+export interface AliasRedirect {
+    readonly from: string;
+    readonly to: string;
+}
+
+/**
+ * The redirects plus one entry per alias, all keys sorted like `buildRedirects`
+ * sorts them. Without aliases the input object itself is returned.
+ */
+export const withAliases = (redirects: Redirects, aliases: readonly AliasRedirect[]): Redirects => {
+    if (aliases.length === 0) {
+        return redirects;
+    }
+    const merged = new Map(Object.entries(redirects));
+    for (const { from, to } of aliases) {
+        merged.set(from, to);
+    }
+    return Object.fromEntries([...merged].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+};
+
 const EXTERNAL = /^(?:[a-z][a-z0-9+.-]*:|\/\/|\/|#)/i;
+
+interface LegacyFolders {
+    readonly folders: ReadonlySet<string>;
+    readonly pattern: RegExp | undefined;
+}
+
+const legacyFolders = new WeakMap<Redirects, LegacyFolders>();
+
+/**
+ * The folders some old path starts with and a pattern for a relative href that
+ * starts with one of them; built once per map.
+ */
+const legacyFoldersOf = (redirects: Redirects): LegacyFolders => {
+    const cached = legacyFolders.get(redirects);
+    if (cached) {
+        return cached;
+    }
+    const folders = new Set(
+        Object.keys(redirects).map(key => key.slice(0, Math.max(key.indexOf('/'), 0)))
+    );
+    folders.delete('');
+    const escaped = [...folders].map(folder => folder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const pattern =
+        escaped.length > 0
+            ? new RegExp(`\\shref="(?:\\.\\.?/)*(?:${escaped.join('|')})/`)
+            : undefined;
+    const built = { folders, pattern };
+    legacyFolders.set(redirects, built);
+    return built;
+};
 
 /**
  * Hand-written links (README and additional-page markdown) that still point
@@ -96,26 +147,6 @@ const EXTERNAL = /^(?:[a-z][a-z0-9+.-]*:|\/\/|\/|#)/i;
  * resolves to a redirect key and is not a current page is pointed at the
  * page it moved to. Generated links never hit an old path.
  */
-const patterns = new WeakMap<Redirects, RegExp | undefined>();
-
-/** Matches a relative href that starts with a folder some old path starts with; built once per map. */
-const legacyHrefPattern = (redirects: Redirects): RegExp | undefined => {
-    if (!patterns.has(redirects)) {
-        const folders = new Set(
-            Object.keys(redirects).map(key => key.slice(0, Math.max(key.indexOf('/'), 0)))
-        );
-        folders.delete('');
-        const escaped = [...folders].map(folder => folder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-        patterns.set(
-            redirects,
-            escaped.length > 0
-                ? new RegExp(`\\shref="(?:\\.\\.?/)*(?:${escaped.join('|')})/`)
-                : undefined
-        );
-    }
-    return patterns.get(redirects);
-};
-
 export const rewriteLegacyLinks = (
     html: string,
     page: string,
@@ -123,9 +154,10 @@ export const rewriteLegacyLinks = (
     redirects: Redirects,
     pages: ReadonlySet<string>
 ): string => {
-    // Most pages hold no link into an old folder; leave them as they are.
-    const pattern = legacyHrefPattern(redirects);
-    if (!pattern?.test(html)) {
+    // Most pages hold no link into an old folder; leave them as they are. A
+    // page inside such a folder links to its neighbours without naming it.
+    const { folders, pattern } = legacyFoldersOf(redirects);
+    if (!pattern?.test(html) && !folders.has(page.split('/')[0])) {
         return html;
     }
     return html.replace(

@@ -32,6 +32,7 @@ interface SummaryNode {
     readonly slug?: unknown;
     readonly label?: unknown;
     readonly heading?: unknown;
+    readonly aliases?: unknown;
     readonly file?: unknown;
     readonly children?: unknown;
 }
@@ -56,6 +57,7 @@ interface ParentNode {
 interface Claim {
     readonly nodePath: string;
     readonly file: string;
+    readonly alias?: boolean;
 }
 
 const resolvePage = (
@@ -66,7 +68,8 @@ const resolvePage = (
     file: string,
     segments: readonly string[],
     explicitSlug: boolean,
-    childrenLength: number
+    childrenLength: number,
+    aliases: readonly string[]
 ): ResolvedAdditionalPage => ({
     nodePath,
     file,
@@ -74,7 +77,7 @@ const resolvePage = (
     title,
     label,
     heading,
-    aliases: [],
+    aliases,
     domId: explicitSlug ? segments.join('/') : domIdOf(title, file),
     depth: segments.length,
     childrenLength
@@ -99,8 +102,35 @@ const invalidSlugMessage = (slug: unknown, nodePath: string, file: unknown): str
 const noTitleMessage = (nodePath: string, file: unknown): string =>
     `Additional pages: no title for summary.json${nodePath} (${String(file)}); set "title" on the node or in the labels file`;
 
+const invalidAliasMessage = (alias: unknown, nodePath: string, file: unknown): string =>
+    `Additional pages: invalid alias "${String(alias)}" at summary.json${nodePath} (${String(file)}); each segment must match ${SLUG_PATTERN.source}`;
+
+const ownPathAliasMessage = (alias: string, nodePath: string, file: string): string =>
+    `Additional pages: alias "${alias}" at summary.json${nodePath} (${file}) is the path of its own page`;
+
+const claimOwner = (claim: Claim): string =>
+    `summary.json${claim.nodePath}${claim.alias ? ' as alias' : ''} (${claim.file})`;
+
 const collisionMessage = (segments: readonly string[], first: Claim, second: Claim): string =>
-    `Additional pages: "${segments.join('/')}.html" is claimed by summary.json${first.nodePath} (${first.file}) and summary.json${second.nodePath} (${second.file})`;
+    `Additional pages: "${segments.join('/')}.html" is claimed by ${claimOwner(first)} and ${claimOwner(second)}`;
+
+const isValidAlias = (alias: unknown): alias is string =>
+    typeof alias === 'string' && alias.split('/').every(segment => SLUG_PATTERN.test(segment));
+
+/** The value that makes the `aliases` of a node invalid, if any. */
+const invalidAliasOf = (aliases: unknown): { readonly value: unknown } | undefined => {
+    if (aliases === undefined) {
+        return undefined;
+    }
+    if (!Array.isArray(aliases)) {
+        return { value: aliases };
+    }
+    const index = aliases.findIndex(alias => !isValidAlias(alias));
+    return index === -1 ? undefined : { value: aliases[index] };
+};
+
+const aliasesOf = (node: SummaryNode): readonly string[] =>
+    Array.isArray(node.aliases) ? node.aliases.filter(isValidAlias) : [];
 
 export const labelsFileMessage = (source: string, reason: string): string =>
     `Additional pages: labels file ${source}: ${reason}`;
@@ -136,6 +166,11 @@ const visit = (
         if (explicitSlug && !(typeof node.slug === 'string' && SLUG_PATTERN.test(node.slug))) {
             return err(invalidSlugMessage(node.slug, nodePath, node.file));
         }
+        const invalidAlias = invalidAliasOf(node.aliases);
+        if (invalidAlias !== undefined) {
+            return err(invalidAliasMessage(invalidAlias.value, nodePath, node.file));
+        }
+        const aliases = aliasesOf(node);
         const entry = typeof node.slug === 'string' ? labelEntryOf(context, node.slug) : undefined;
         const title = hasTitle ? node.title : entry?.title;
         if (typeof title !== 'string') {
@@ -170,6 +205,19 @@ const visit = (
                 return err(collisionMessage(segments, claimed, { nodePath, file }));
             }
             claims.set(key, { nodePath, file });
+            for (const alias of aliases) {
+                const aliasSegments = alias.split('/');
+                const aliasKey = claimKey(aliasSegments);
+                if (aliasKey === key) {
+                    return err(ownPathAliasMessage(alias, nodePath, file));
+                }
+                const aliasClaim = { nodePath, file, alias: true };
+                const owner = claims.get(aliasKey);
+                if (owner !== undefined) {
+                    return err(collisionMessage(aliasSegments, owner, aliasClaim));
+                }
+                claims.set(aliasKey, aliasClaim);
+            }
             const matched = context.matches.get(slug) ?? [];
             matched.push({ nodePath, file });
             context.matches.set(slug, matched);
@@ -182,7 +230,8 @@ const visit = (
                     file,
                     segments,
                     explicitSlug,
-                    children.length
+                    children.length,
+                    aliases
                 )
             );
         }
@@ -228,8 +277,12 @@ const checkLabelKeys = (context: LabelContext, source: string): Result<void, str
  * file key is the effective slug (last segment): a key matching several
  * pages aborts the resolution, a key matching no page logs a warning.
  * `heading` is true only for the boolean `true`; an explicit `slug` replaces the
- * node's own segment and must match the slug pattern; two pages whose paths
- * are equal after NFC normalization and lower-casing abort the resolution;
+ * node's own segment and must match the slug pattern; each of the `aliases`
+ * of a page is a path below the folder whose segments match the slug pattern
+ * and claims that path like a page does; two claims (pages or aliases) whose
+ * paths are equal after NFC normalization and lower-casing abort the
+ * resolution, so does an alias equal to the path of its own page; the
+ * aliases of a node that is not a page are validated but otherwise ignored;
  * nodes without a file are not pages but still contribute their segment to
  * their children's path. The summary is either an array of nodes or an
  * object whose `children` array holds them; that root object is not a page

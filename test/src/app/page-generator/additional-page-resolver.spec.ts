@@ -252,6 +252,80 @@ describe('resolveAdditionalPages', () => {
         );
     });
 
+    it('accepts multi-segment aliases and passes them on', () => {
+        const [page] = resolvedOf([
+            {
+                title: 'Signals',
+                slug: 'signals',
+                file: 'signals.md',
+                aliases: ['guides/signals-and-reactivity', 'old-signals']
+            }
+        ]);
+        expect(page.aliases).toEqual(['guides/signals-and-reactivity', 'old-signals']);
+    });
+
+    it('rejects an alias that is not a path of slug segments, naming the node', () => {
+        const message = errorOf([{ title: 'Ok', file: 'ok.md', aliases: ['fine', 'Not/Fine'] }]);
+        expect(message).toBe(
+            'Additional pages: invalid alias "Not/Fine" at summary.json[0] (ok.md); each segment must match ^[a-z0-9][a-z0-9._-]*$'
+        );
+        expect(errorOf([{ title: 'Ok', file: 'ok.md', aliases: 'old' }])).toContain(
+            'invalid alias "old"'
+        );
+        expect(errorOf([{ title: 'Ok', file: 'ok.md', aliases: [3] }])).toContain(
+            'invalid alias "3"'
+        );
+    });
+
+    it('rejects an alias equal to the path of its own page', () => {
+        const message = errorOf([
+            {
+                title: 'Guides',
+                slug: 'guides',
+                children: [
+                    { title: 'Intro', slug: 'intro', file: 'intro.md', aliases: ['guides/intro'] }
+                ]
+            }
+        ]);
+        expect(message).toBe(
+            'Additional pages: alias "guides/intro" at summary.json[0].children[0] (intro.md) is the path of its own page'
+        );
+    });
+
+    it('rejects an alias that is the path of another page, whichever comes first', () => {
+        const message = errorOf([
+            { title: 'One', slug: 'one', file: 'one.md', aliases: ['two'] },
+            { title: 'Two', slug: 'two', file: 'two.md' }
+        ]);
+        expect(message).toBe(
+            'Additional pages: "two.html" is claimed by summary.json[0] as alias (one.md) and summary.json[1] (two.md)'
+        );
+        expect(
+            errorOf([
+                { title: 'Two', slug: 'two', file: 'two.md' },
+                { title: 'One', slug: 'one', file: 'one.md', aliases: ['two'] }
+            ])
+        ).toBe(
+            'Additional pages: "two.html" is claimed by summary.json[0] (two.md) and summary.json[1] as alias (one.md)'
+        );
+        expect(
+            errorOf([
+                { title: 'Two', slug: 'two', file: 'two.md' },
+                { title: 'One', slug: 'one', file: 'one.md', aliases: ['Two'] }
+            ])
+        ).toMatch(/^Additional pages: invalid alias "Two" at summary\.json\[1\]/);
+    });
+
+    it('rejects two aliases with the same path and names both nodes', () => {
+        const message = errorOf([
+            { title: 'One', slug: 'one', file: 'one.md', aliases: ['old'] },
+            { title: 'Two', slug: 'two', file: 'two.md', aliases: ['old'] }
+        ]);
+        expect(message).toBe(
+            'Additional pages: "old.html" is claimed by summary.json[0] as alias (one.md) and summary.json[1] as alias (two.md)'
+        );
+    });
+
     it('uses the path as DOM id with an explicit slug and the hash without', () => {
         const pages = resolvedOf([
             {

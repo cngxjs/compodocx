@@ -58,6 +58,7 @@ export class Configuration implements ConfigurationInterface {
         todo: '',
         markdowns: [],
         additionalPages: [],
+        additionalAliases: [],
         pipes: [],
         classes: [],
         interfaces: [],
@@ -208,6 +209,7 @@ export class Configuration implements ConfigurationInterface {
 
     public resetAdditionalPages() {
         this._mainData.additionalPages = [];
+        this._mainData.additionalAliases = [];
     }
 
     /** Drops the root markdown pages (README as `index`, CHANGELOG, ...) that are queued. */

@@ -7,7 +7,7 @@ import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import MarkdownEngine from '../engines/markdown.engine';
-import { pageLocation } from '../links/layout';
+import { pageLocation, pagePath } from '../links/layout';
 import {
     type LabelMap,
     labelsFileMessage,
@@ -69,6 +69,7 @@ export class AdditionalPageGenerator {
                     }
                     const resolvedPages = resolved.value;
                     let lastLevelOnePage;
+                    const aliases: { from: string; to: string; title: string }[] = [];
 
                     for (const resolvedPage of resolvedPages) {
                         const location = pageLocation({
@@ -76,6 +77,13 @@ export class AdditionalPageGenerator {
                             folder: Configuration.mainData.includesFolder,
                             slugs: resolvedPage.segments
                         });
+                        for (const alias of resolvedPage.aliases) {
+                            aliases.push({
+                                from: this.pagePathOf(alias.split('/')),
+                                to: this.pagePathOf(resolvedPage.segments),
+                                title: resolvedPage.title
+                            });
+                        }
                         const { html: markdownFile, raw: markdownRaw } =
                             MarkdownEngine.getTraditionalMarkdownSyncWithRaw(
                                 this.getIncludedPathForFile(resolvedPage.file)
@@ -110,6 +118,7 @@ export class AdditionalPageGenerator {
                         }
                     }
 
+                    Configuration.mainData.additionalAliases = aliases;
                     resolve(true);
                 },
                 () => {
@@ -123,6 +132,16 @@ export class AdditionalPageGenerator {
         return FileEngine.get(labelsPath).then(
             raw => parseLabelMap(raw, labelsPath),
             () => err(labelsFileMessage(labelsPath, 'unreadable'))
+        );
+    }
+
+    private pagePathOf(slugs: readonly string[]): string {
+        return pagePath(
+            pageLocation({
+                type: 'additional',
+                folder: Configuration.mainData.includesFolder,
+                slugs
+            })
         );
     }
 

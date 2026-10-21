@@ -33,6 +33,12 @@ export interface MainDataInterface {
     todo: string;
     markdowns: any[];
     additionalPages: any;
+    /** Old paths of additional pages (root-relative, with `.html`), the page each one moved to and its title. */
+    additionalAliases: readonly {
+        readonly from: string;
+        readonly to: string;
+        readonly title: string;
+    }[];
     pipes: any;
     classes: any;
     interfaces: any;
