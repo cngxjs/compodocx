@@ -2,6 +2,8 @@ import * as crypto from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { pageLocation } from '../../../../src/app/links/layout';
 import {
+    type LabelMap,
+    parseLabelMap,
     type ResolvedAdditionalPage,
     resolveAdditionalPages
 } from '../../../../src/app/page-generator/additional-page-resolver';
@@ -9,16 +11,16 @@ import { isOk } from '../../../../src/lib';
 import { logger } from '../../../../src/utils/logger';
 import { cleanNameWithoutSpaceAndToLowerCase } from '../../../../src/utils/utils';
 
-const resolvedOf = (summary: unknown): readonly ResolvedAdditionalPage[] => {
-    const result = resolveAdditionalPages(summary);
+const resolvedOf = (summary: unknown, labels?: LabelMap): readonly ResolvedAdditionalPage[] => {
+    const result = resolveAdditionalPages(summary, labels, 'labels.json');
     if (!isOk(result)) {
         throw new Error(result.message);
     }
     return result.value;
 };
 
-const errorOf = (summary: unknown): string => {
-    const result = resolveAdditionalPages(summary);
+const errorOf = (summary: unknown, labels?: LabelMap): string => {
+    const result = resolveAdditionalPages(summary, labels, 'labels.json');
     if (isOk(result)) {
         throw new Error('expected an error result');
     }
@@ -319,6 +321,133 @@ describe('resolveAdditionalPages', () => {
     it('rejects a node with a slug and no title', () => {
         expect(errorOf([{ slug: 'e0001', file: 'e.md' }])).toBe(
             'Additional pages: no title for summary.json[0] (e.md); set "title" on the node or in the labels file'
+        );
+    });
+
+    it('lets the node beat the labels file for title and label', () => {
+        const [page] = resolvedOf(
+            [
+                {
+                    title: 'Node title',
+                    label: 'Node label',
+                    slug: 'e1',
+                    file: 'e.md'
+                }
+            ],
+            { e1: { title: 'File title', label: 'File label' } }
+        );
+        expect(page.title).toBe('Node title');
+        expect(page.label).toBe('Node label');
+    });
+
+    it('lets the labels file beat the default for title and label', () => {
+        const pages = resolvedOf(
+            [
+                { slug: 'e1', file: 'e.md' },
+                { title: 'Plain', file: 'p.md' }
+            ],
+            {
+                e1: { title: 'File title', label: 'File label' },
+                plain: { label: 'Plain label' }
+            }
+        );
+        expect(pages[0].title).toBe('File title');
+        expect(pages[0].label).toBe('File label');
+        expect(pages[1].title).toBe('Plain');
+        expect(pages[1].label).toBe('Plain label');
+    });
+
+    it('never lets a labels file title change the derived slug', () => {
+        const [page] = resolvedOf([{ title: 'Plain Page', file: 'p.md' }], {
+            'plain-page': { title: 'Something else' },
+            plainpage: { title: 'Another' }
+        });
+        expect(page.segments).toEqual([cleanNameWithoutSpaceAndToLowerCase('Plain Page')]);
+        expect(page.title).toBe('Plain Page');
+    });
+
+    it('rejects a key that matches several pages and names all of them', () => {
+        const message = errorOf(
+            [
+                { title: 'A', slug: 'dup', file: 'a.md' },
+                {
+                    title: 'B',
+                    slug: 'b',
+                    file: 'b.md',
+                    children: [{ slug: 'dup', title: 'C', file: 'c.md' }]
+                }
+            ],
+            { dup: { label: 'x' } }
+        );
+        expect(message).toBe(
+            'Additional pages: labels file labels.json: key "dup" matches several pages: summary.json[0] (a.md), summary.json[1].children[0] (c.md)'
+        );
+    });
+
+    it('warns about a key that matches no page and still resolves', () => {
+        const pages = resolvedOf([{ title: 'A', slug: 'a', file: 'a.md' }], {
+            a: { label: 'A1' },
+            unused: { label: 'x' }
+        });
+        expect(pages).toHaveLength(1);
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn).toHaveBeenCalledWith(
+            'Additional pages: labels file labels.json: key "unused" matches no page'
+        );
+    });
+
+    it('does not warn about a key that titles a group without a file', () => {
+        const pages = resolvedOf(
+            [{ slug: 'group', children: [{ title: 'A', slug: 'a', file: 'a.md' }] }],
+            { group: { title: 'Group' } }
+        );
+        expect(pages.map(page => page.segments)).toEqual([['group', 'a']]);
+        expect(warn).not.toHaveBeenCalled();
+    });
+});
+
+describe('parseLabelMap', () => {
+    const messageOf = (raw: string): string => {
+        const result = parseLabelMap(raw, 'labels.json');
+        if (isOk(result)) {
+            throw new Error('expected an error result');
+        }
+        return result.message;
+    };
+
+    it('parses entries with optional label and title', () => {
+        const result = parseLabelMap('{"a":{"label":"A"},"b":{"title":"B"},"c":{}}', 'labels.json');
+        if (!isOk(result)) {
+            throw new Error(result.message);
+        }
+        expect(result.value.a.label).toBe('A');
+        expect(result.value.b.title).toBe('B');
+        expect(result.value.c.label).toBeUndefined();
+    });
+
+    it('keeps a __proto__ key as an entry', () => {
+        const result = parseLabelMap('{"__proto__":{"label":"P"}}', 'labels.json');
+        if (!isOk(result)) {
+            throw new Error(result.message);
+        }
+        expect(Object.hasOwn(result.value, '__proto__')).toBe(true);
+    });
+
+    it('rejects invalid JSON', () => {
+        expect(messageOf('{nope')).toMatch(
+            /^Additional pages: labels file labels\.json: invalid JSON \(/
+        );
+    });
+
+    it('rejects an entry that is not an object', () => {
+        expect(messageOf('{"a":"text"}')).toBe(
+            'Additional pages: labels file labels.json: entry "a" is not an object'
+        );
+    });
+
+    it('rejects a non-string label', () => {
+        expect(messageOf('{"a":{"label":7}}')).toBe(
+            'Additional pages: labels file labels.json: entry "a": "label" must be a string'
         );
     });
 });

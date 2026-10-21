@@ -82,6 +82,7 @@ export class Configuration implements ConfigurationInterface {
         templates: '',
         includes: '',
         includesName: COMPODOC_DEFAULTS.additionalEntryName,
+        includesLabels: '',
         includesFolder: COMPODOC_DEFAULTS.additionalEntryPath,
         disableSourceCode: COMPODOC_DEFAULTS.disableSourceCode,
         disableDomTree: COMPODOC_DEFAULTS.disableDomTree,

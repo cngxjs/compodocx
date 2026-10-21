@@ -55,6 +55,7 @@ export interface MainDataInterface {
     templates: string;
     includes: string;
     includesName: string;
+    includesLabels: string;
     includesFolder: string;
     disableSourceCode: boolean;
     disableDomTree: boolean;

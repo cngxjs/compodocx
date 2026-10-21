@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 
-import { isErr } from '../../lib';
+import { err, isErr, type Result } from '../../lib';
 import { detectAiGeneratedMarker } from '../../utils/ai-generated.util';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
@@ -8,7 +8,12 @@ import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
-import { resolveAdditionalPages } from './additional-page-resolver';
+import {
+    type LabelMap,
+    labelsFileMessage,
+    parseLabelMap,
+    resolveAdditionalPages
+} from './additional-page-resolver';
 import type { PageWriter } from './page-writer';
 
 export class AdditionalPageGenerator {
@@ -41,12 +46,23 @@ export class AdditionalPageGenerator {
         // Each file will be converted to html page, inside COMPODOC_DEFAULTS.additionalEntryPath
         return new Promise((resolve, reject) => {
             FileEngine.get(this.getIncludedPathForFile('summary.json')).then(
-                summaryData => {
+                async summaryData => {
                     logger.info('Additional documentation: summary.json file found');
 
                     const parsedSummaryData = JSON.parse(summaryData);
 
-                    const resolved = resolveAdditionalPages(parsedSummaryData);
+                    const labelsPath = Configuration.mainData.includesLabels;
+                    let labels: LabelMap | undefined;
+                    if (labelsPath) {
+                        const loaded = await this.loadLabels(labelsPath);
+                        if (isErr(loaded)) {
+                            reject(loaded.message);
+                            return;
+                        }
+                        labels = loaded.value;
+                    }
+
+                    const resolved = resolveAdditionalPages(parsedSummaryData, labels, labelsPath);
                     if (isErr(resolved)) {
                         reject(resolved.message);
                         return;
@@ -101,6 +117,13 @@ export class AdditionalPageGenerator {
                 }
             );
         });
+    }
+
+    private loadLabels(labelsPath: string): Promise<Result<LabelMap, string>> {
+        return FileEngine.get(labelsPath).then(
+            raw => parseLabelMap(raw, labelsPath),
+            () => err(labelsFileMessage(labelsPath, 'unreadable'))
+        );
     }
 
     private getIncludedPathForFile(file: string): string {

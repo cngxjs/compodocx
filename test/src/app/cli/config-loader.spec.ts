@@ -46,6 +46,7 @@ const makeMainData = (): MainDataInterface => {
         navTabConfig: [],
         includes: '',
         includesName: 'Additional documentation',
+        includesLabels: '',
         coverageTest: false,
         coverageTestThreshold: 70,
         coverageTestPerFile: false,
@@ -118,6 +119,7 @@ const makeProgram = (argv: readonly string[] = []): Command => {
         .option('-c, --config [config]')
         .option('-d, --output [folder]', '', './documentation/')
         .option('--theme [theme]')
+        .option('--includesLabels [path]')
         .option('--port [port]', '', '8080')
         .option('--exportFormat [format]', '', 'html')
         .option('--jsonIndent <spaces>', '', '0')
@@ -309,6 +311,23 @@ describe('applyConfigToMainData', () => {
         const program = makeProgram(['--maxSearchResults', '40']);
         applyConfigToMainData(mainData, { maxSearchResults: 7 }, program, { cwd: '/tmp/test' });
         expect(mainData.maxSearchResults).toBe(40);
+    });
+
+    it('config-file includesLabels sets mainData.includesLabels', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(mainData, { includesLabels: 'labels.json' }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(mainData.includesLabels).toBe('labels.json');
+    });
+
+    it('--includesLabels from CLI wins over the config file', () => {
+        const mainData = makeMainData();
+        const program = makeProgram(['--includesLabels', 'cli.json']);
+        applyConfigToMainData(mainData, { includesLabels: 'labels.json' }, program, {
+            cwd: '/tmp/test'
+        });
+        expect(mainData.includesLabels).toBe('cli.json');
     });
 
     it('--port from CLI overrides config-file port', () => {
