@@ -8,6 +8,21 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ## [Unreleased]
 
+### Added
+
+- **Stable identity for additional pages.** Nodes in `summary.json` take optional `slug`, `label`, `title`, `heading` and `aliases`, so a page keeps its URL when its wording changes: the slug fixes the URL, the label is the sidebar text, the title is the page title, `heading` renders the title as an `<h1>`, and an alias keeps an old URL working through a redirect page and a `redirects.json` entry. New `--includesLabels` flag and `includesLabels` config key read labels and titles per slug from a JSON file. Invalid slugs and aliases stop the build with the position in `summary.json`. See [docs/additional-pages.md](docs/additional-pages.md).
+
+### Changed
+
+- **Two additional pages with the same path stop the build.** One no longer silently overwrites the other; the error names both nodes and files. Give one of them a `slug`.
+- **A sidebar group that gets a slug loses its remembered open/closed state once.** The stored state is keyed by the group id, which is now the slug path.
+- **Links to a renamed page are also fixed when they are relative.** A Markdown link such as `e0003-old-name.html` on a page in the same folder now points to the new page.
+
+### Fixed
+
+- **Nested additional pages are written to the right folder.** A page whose slug is a prefix of an ancestor's slug (a child `guide` below `guide-basics`) was written to a wrong folder.
+- **Malformed `summary.json` entries no longer crash or hang the build.** Entries with a non-string `title` or `file`, children of a node with neither `title` nor `slug`, a non-array `children`, `null` entries, objects under keys other than `children` and pages deeper than five levels with a missing file are skipped.
+
 ## [0.9.1] - 2026-10-21
 
 ### Fixed
