@@ -6,6 +6,7 @@ import {
     collectStyleSources,
     collectThemeTokens,
     formatHookConflictNotice,
+    formatOrphanBlockNotice,
     formatUnknownStyleTagNotice,
     groupThemeTokens,
     mergeThemeTokens,
@@ -791,6 +792,89 @@ describe('Utils - theme-doc-parser', () => {
             );
             const result = parseStyleSource(scss, 'a.scss', 'scss');
             expect(result.tokens.map(t => t.kind)).to.deep.equal(['css-hook']);
+        });
+    });
+
+    describe('unattached doc blocks', () => {
+        const orphans = (css: string, file = 'a.css') =>
+            parseStyleSource(css, file, file.endsWith('.scss') ? 'scss' : 'css').orphanBlocks.map(
+                o => o.line
+            );
+
+        it('reports a tagged CSS block above an unrelated rule, at its first line', () => {
+            expect(
+                orphans('a { x: y; }\n\n/**\n * Pad.\n * @group G\n */\n.chip { color: red; }')
+            ).to.deep.equal([3]);
+        });
+
+        it('reports a tagged block at the end of a CSS file', () => {
+            expect(orphans('a { x: y; }\n/**\n * @default 3\n */\n')).to.deep.equal([2]);
+        });
+
+        it('reports a block above a wrapper rule without a custom property inside', () => {
+            expect(orphans('/**\n * @type <color>\n */\n:host { color: red; }')).to.deep.equal([1]);
+        });
+
+        it('reports a /** */ block above a SCSS variable and a /// block cut off by a rule', () => {
+            expect(orphans('/**\n * @since 1\n */\n$a: 1;\n')).to.deep.equal([1]);
+            expect(orphans('/// Pad.\n/// @group G\n.chip { x: y; }\n', 'a.scss')).to.deep.equal([
+                1
+            ]);
+        });
+
+        it('reports a /// block at the end of a SCSS file and one replaced by a later block', () => {
+            expect(orphans('$a: 1;\n/// @since 1\n', 'a.scss')).to.deep.equal([2]);
+            expect(
+                orphans('/// First\n/// @since 1\n\n/// Second\n$b: 2;\n', 'a.scss')
+            ).to.deep.equal([1]);
+        });
+
+        it('does not report attached blocks, whatever their kind', () => {
+            expect(orphans('/**\n * @group G\n */\n:root { --a: 1; }')).to.deep.equal([]);
+            expect(orphans('/**\n * @group G\n */\n:host { --a: 1; }')).to.deep.equal([]);
+            expect(
+                orphans(
+                    "/**\n * @group G\n */\n@property --a {\n  syntax: '*';\n  inherits: true;\n}"
+                )
+            ).to.deep.equal([]);
+            expect(orphans('/// @group G\n$a: 1;', 'a.scss')).to.deep.equal([]);
+            expect(orphans('/// Pad.\n/// @since 1\n@mixin pad() {}', 'a.scss')).to.deep.equal([]);
+        });
+
+        it('does not report prose, unknown tags only, file-level or hook blocks', () => {
+            expect(orphans('/** Just prose. */\n.chip { x: y; }')).to.deep.equal([]);
+            expect(orphans('/**\n * @author me\n */\n.chip { x: y; }')).to.deep.equal([]);
+            expect(orphans('/**\n * @overview\n * @group G\n */\n.chip { x: y; }')).to.deep.equal(
+                []
+            );
+            expect(
+                orphans('/**\n * @cssprop --a\n * @group G\n */\n.chip { x: y; }')
+            ).to.deep.equal([]);
+        });
+
+        it('skips a block above a private mixin on purpose', () => {
+            expect(orphans('/// Inner.\n/// @since 1\n@mixin _inner() {}', 'a.scss')).to.deep.equal(
+                []
+            );
+        });
+    });
+
+    describe('formatOrphanBlockNotice', () => {
+        it('is empty without blocks', () => {
+            expect(formatOrphanBlockNotice([])).to.deep.equal([]);
+        });
+
+        it('counts in the singular and the plural', () => {
+            const at = (line: number) => ({ file: 'a.css', line });
+            expect(formatOrphanBlockNotice([at(3)])).to.deep.equal([
+                'Style comments: 1 doc block not attached',
+                '  a.css:3'
+            ]);
+            expect(formatOrphanBlockNotice([at(3), at(9)])).to.deep.equal([
+                'Style comments: 2 doc blocks not attached',
+                '  a.css:3',
+                '  a.css:9'
+            ]);
         });
     });
 

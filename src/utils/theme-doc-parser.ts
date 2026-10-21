@@ -85,6 +85,13 @@ export interface UnknownStyleTag {
     readonly tag: string;
 }
 
+/** Where a style comment sits. */
+export interface StyleCommentLocation {
+    readonly file: string;
+    /** 1-based line the comment starts on. */
+    readonly line: number;
+}
+
 /** A hook token whose sheet also declares the property, so the declaration was kept. */
 export interface HookConflict {
     readonly file: string;
@@ -113,6 +120,8 @@ export interface ParsedStyleResult {
     mixins: StyleMixin[];
     /** Hook tokens the same sheet also declares, one per name. */
     hookConflicts: HookConflict[];
+    /** Doc blocks with token tags that document nothing, in source order. */
+    orphanBlocks: StyleCommentLocation[];
 }
 
 export interface StyleSource {
@@ -254,6 +263,21 @@ const levelFields = (
     relatedTo: collector.relatedTo,
     unknownTags: collector.unknownTags
 });
+
+/** Tags a block needs to count as an attempt to document a token. */
+const TOKEN_TAGS: readonly string[] = [
+    'type',
+    'default',
+    'group',
+    'example',
+    'since',
+    'deprecated',
+    'see',
+    'relatedTo'
+];
+
+const hasTokenTag = (body: string): boolean =>
+    parseDocBody(body).tags.some(tag => TOKEN_TAGS.includes(tag.name));
 
 /** Tags that document a custom property the component reads (custom-elements-manifest names). */
 export const HOOK_TAGS = ['cssprop', 'cssproperty'] as const;
@@ -700,13 +724,22 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
     const tokens: ThemeToken[] = [];
     const mixins: StyleMixin[] = [];
     const fileLevel = newCollector();
+    const orphanBlocks: StyleCommentLocation[] = [];
 
     let pending: { body: string; line: number } | null = null;
+    const dropBlock = (block: { body: string; line: number }) => {
+        if (hasTokenTag(block.body)) {
+            orphanBlocks.push({ file, line: block.line });
+        }
+    };
     let pendingLines: string[] | null = null;
     let pendingStart = -1;
 
     const flushPending = () => {
         if (pendingLines?.length) {
+            if (pending) {
+                dropBlock(pending);
+            }
             const body = pendingLines.join('\n');
             const fileBlock = readFileLevelBlock(body, file, pendingStart + 1, fileLevel);
             tokens.push(...fileLevel.hooks.splice(0));
@@ -782,6 +815,10 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
                     })
                 );
             }
+            const isDeclaration = declMatch !== null || mixinMatch !== null;
+            if (!isDeclaration) {
+                dropBlock(pending);
+            }
             pending = null;
         }
 
@@ -794,13 +831,17 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
     if (pendingLines !== null) {
         flushPending();
     }
+    if (pending) {
+        dropBlock(pending);
+    }
 
     const resolved = resolveHookConflicts(source, file, tokens, true);
     return {
         tokens: resolved.tokens,
         ...levelFields(fileLevel),
         mixins,
-        hookConflicts: resolved.conflicts
+        hookConflicts: resolved.conflicts,
+        orphanBlocks
     };
 }
 
@@ -991,7 +1032,19 @@ export function parseCssTokens(source: string, file: string): ParsedStyleResult 
     const blocks = scanJsdocBlocks(source);
     const consumedAtProperties = new Set<string>();
 
+    const orphanBlocks: StyleCommentLocation[] = [];
+    // The block whose attachment is still open: it counts as dropped when the
+    // next block (or the end of the file) arrives and no token came out of it.
+    let open: { body: string; start: number; tokenCount: number } | null = null;
+    const closeBlock = () => {
+        if (open && tokens.length === open.tokenCount && hasTokenTag(open.body)) {
+            orphanBlocks.push({ file, line: offsetToLine(source, open.start) });
+        }
+        open = null;
+    };
+
     for (const block of blocks) {
+        closeBlock();
         if (readFileLevelBlock(block.body, file, block.bodyLine, fileLevel)) {
             tokens.push(...fileLevel.hooks.splice(0));
             continue;
@@ -1004,6 +1057,7 @@ export function parseCssTokens(source: string, file: string): ParsedStyleResult 
         ) {
             continue;
         }
+        open = { body: block.body, start: block.start, tokenCount: tokens.length };
         const docArgs = {
             body: block.body,
             bodyLine: block.bodyLine,
@@ -1076,6 +1130,8 @@ export function parseCssTokens(source: string, file: string): ParsedStyleResult 
         }
     }
 
+    closeBlock();
+
     // Pick up any undocumented `@property --foo { ... }` rules so the
     // browser-native source-of-truth still surfaces. Documented ones were
     // already captured above; the Set guards against duplicates.
@@ -1108,7 +1164,8 @@ export function parseCssTokens(source: string, file: string): ParsedStyleResult 
         tokens: resolved.tokens,
         ...levelFields(fileLevel),
         mixins: [],
-        hookConflicts: resolved.conflicts
+        hookConflicts: resolved.conflicts,
+        orphanBlocks
     };
 }
 
@@ -1127,7 +1184,8 @@ export function parseStyleSource(
             relatedTo: [...scss.relatedTo, ...css.relatedTo],
             unknownTags: [...scss.unknownTags, ...css.unknownTags],
             mixins: scss.mixins,
-            hookConflicts: uniqueConflicts([...scss.hookConflicts, ...css.hookConflicts])
+            hookConflicts: uniqueConflicts([...scss.hookConflicts, ...css.hookConflicts]),
+            orphanBlocks: [...scss.orphanBlocks, ...css.orphanBlocks]
         };
     }
     return parseCssTokens(source, file);
@@ -1373,6 +1431,20 @@ export const unknownStyleTags = (sources: readonly StyleSource[]): UnknownStyleT
     return found;
 };
 
+/** Doc blocks that attach to nothing, every source's file read once. */
+export const styleOrphanBlocks = (sources: readonly StyleSource[]): StyleCommentLocation[] => {
+    const seen = new Set<string>();
+    const found: StyleCommentLocation[] = [];
+    for (const src of sources) {
+        if (seen.has(src.file)) {
+            continue;
+        }
+        seen.add(src.file);
+        found.push(...parseStyleSource(src.content, src.file, src.language).orphanBlocks);
+    }
+    return found;
+};
+
 /** Hook conflicts of every source, each file read once. */
 export const styleHookConflicts = (sources: readonly StyleSource[]): HookConflict[] => {
     const seen = new Set<string>();
@@ -1406,6 +1478,24 @@ export const formatUnknownStyleTagNotice = (
     return [
         `Style comments: ${findings.length} unknown ${noun} ignored (${tally})`,
         ...findings.map(finding => `  ${finding.file}:${finding.line} @${finding.tag}`)
+    ];
+};
+
+/**
+ * The build notice for doc blocks that carry token tags but sit above nothing
+ * the parser can document: a count line, then one `file:line` per block.
+ * Empty without any.
+ */
+export const formatOrphanBlockNotice = (
+    blocks: readonly StyleCommentLocation[]
+): readonly string[] => {
+    if (blocks.length === 0) {
+        return [];
+    }
+    const noun = blocks.length === 1 ? 'doc block' : 'doc blocks';
+    return [
+        `Style comments: ${blocks.length} ${noun} not attached`,
+        ...blocks.map(block => `  ${block.file}:${block.line}`)
     ];
 };
 

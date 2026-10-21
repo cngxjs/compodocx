@@ -104,7 +104,7 @@ describe('CLI style comments', () => {
         expect(stdout).toMatch(
             /Style comments: 1 hook token also declared in its sheet, declaration kept\n\s+\S*tk-chip-hooks\.css:11 --tk-chip-gap/
         );
-        expect(stdout.match(/Style comments:/g)).toHaveLength(1);
+        expect(stdout.match(/hook token also declared/g)).toHaveLength(1);
     });
 
     it('exports the hooks with their kind and lists them in llm-md', () => {
@@ -115,6 +115,16 @@ describe('CLI style comments', () => {
         expect(kinds['--tk-chip-gap']).toBe('css-custom-property');
         expect(exported.styleFiles[0].tokens.map((t: any) => t.name)).toContain('--tk-chip-radius');
         expect(markdown).toContain('--tk-chip-fg: <color> = var(--tk-accent)');
+    });
+
+    it('says which doc block attaches to nothing, and leaves prose and private mixins alone', () => {
+        expect(stdout).toMatch(
+            /Style comments: 1 doc block not attached\n\s+\S*tk-chip\.theme\.css:11\n/
+        );
+        expect(stdout).not.toContain('_tk-chip-helpers.scss:1\n');
+        expect(stdout.indexOf('doc block not attached')).toBeLessThan(
+            stdout.indexOf('hook token also declared')
+        );
     });
 
     it('finishes with exit code 0 although it printed a notice', () => {

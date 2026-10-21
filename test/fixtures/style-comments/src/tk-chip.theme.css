@@ -7,3 +7,17 @@
     inherits: true;
     initial-value: #eef2ff;
 }
+
+/**
+ * Inner spacing of the chip.
+ *
+ * @group Spacing
+ */
+.tk-chip {
+    color: red;
+}
+
+/** Notes on the chip that document no token. */
+.tk-chip-note {
+    color: blue;
+}

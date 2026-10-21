@@ -7,9 +7,11 @@ import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import {
     formatHookConflictNotice,
+    formatOrphanBlockNotice,
     formatUnknownStyleTagNotice,
     type StyleSource,
     styleHookConflicts,
+    styleOrphanBlocks,
     unknownStyleTags
 } from '../../utils/theme-doc-parser';
 import { formatLegacyNotice } from '../compiler/legacy-scan';
@@ -405,6 +407,7 @@ const logStyleComments = (ctx: RunContext): void => {
     const styles = ctx.config.mainData.styles;
     const groups = [
         formatUnknownStyleTagNotice([...unknownStyleTags(sources), ...(styles?.unknownTags ?? [])]),
+        formatOrphanBlockNotice([...styleOrphanBlocks(sources), ...(styles?.orphanBlocks ?? [])]),
         formatHookConflictNotice([...styleHookConflicts(sources), ...(styles?.hookConflicts ?? [])])
     ];
     for (const notice of groups.filter(group => group.length > 0)) {

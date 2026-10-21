@@ -18,6 +18,15 @@ const undocumentedProperty =
 const mixinOnly = '/// Emits the theme.\n/// @param $theme - Theme map.\n@mixin theme($theme) {}\n';
 
 describe('buildStyleModel', () => {
+    it('collects the unattached blocks of every file without leaking them into the files', () => {
+        const model = buildStyleModel([
+            { file: 'a/x.css', content: '/**\n * @group G\n */\n.chip { x: y; }\n' },
+            { file: 'a/y.css', content: documentedToken }
+        ]);
+        expect(model.orphanBlocks).toEqual([{ file: 'a/x.css', line: 1 }]);
+        expect(model.files[0]).not.toHaveProperty('orphanBlocks');
+    });
+
     it('counts a file that only holds hook tokens as content and collects its conflicts', () => {
         const model = buildStyleModel([
             { file: 'a/hooks.css', content: '/**\n * @cssprop --h\n */\n' },

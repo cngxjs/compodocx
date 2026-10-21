@@ -1,0 +1,5 @@
+/// Pads the chip.
+/// @param $inset - Space on every side.
+@mixin _tk-chip-pad($inset) {
+    padding: $inset;
+}

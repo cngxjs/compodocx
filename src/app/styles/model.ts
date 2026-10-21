@@ -3,6 +3,7 @@ import {
     type HookConflict,
     mergeThemeTokens,
     parseStyleSource,
+    type StyleCommentLocation,
     type StyleMixin,
     type ThemeToken,
     type UnknownStyleTag
@@ -42,6 +43,8 @@ export interface StyleModel {
     readonly unknownTags: readonly UnknownStyleTag[];
     /** Hook tokens whose sheet also declares the property. */
     readonly hookConflicts: readonly HookConflict[];
+    /** Doc blocks with token tags that attach to nothing. */
+    readonly orphanBlocks: readonly StyleCommentLocation[];
 }
 
 /** A file listed without content that names `@themes` targets. */
@@ -77,6 +80,7 @@ export const readStyleFile = (
 ): StyleFile & {
     readonly unknownTags: readonly UnknownStyleTag[];
     readonly hookConflicts: readonly HookConflict[];
+    readonly orphanBlocks: readonly StyleCommentLocation[];
 } => {
     const language = languageOf(source.file);
     const parsed = parseStyleSource(source.content, source.file, language);
@@ -95,7 +99,8 @@ export const readStyleFile = (
         relatedTo: [...new Set(parsed.relatedTo)],
         hasContent: overview !== '' || tokens.some(isDocumentedToken) || parsed.mixins.length > 0,
         unknownTags: parsed.unknownTags,
-        hookConflicts: parsed.hookConflicts
+        hookConflicts: parsed.hookConflicts,
+        orphanBlocks: parsed.orphanBlocks
     };
 };
 
@@ -112,14 +117,15 @@ export const buildStyleModel = (sources: readonly StyleSourceFile[]): StyleModel
     return {
         files: read
             .filter(file => file.hasContent)
-            .map(({ unknownTags: _, hookConflicts: __, ...file }) => file),
+            .map(({ unknownTags: _, hookConflicts: __, orphanBlocks: ___, ...file }) => file),
         listed: listed.map(file => file.file),
         listedThemes: listed
             .filter(file => file.themeNames.length > 0)
             .map(file => ({ file: file.file, names: file.themeNames })),
         byTarget: new Map(),
         unknownTags: read.flatMap(file => file.unknownTags),
-        hookConflicts: read.flatMap(file => file.hookConflicts)
+        hookConflicts: read.flatMap(file => file.hookConflicts),
+        orphanBlocks: read.flatMap(file => file.orphanBlocks)
     };
 };
 
