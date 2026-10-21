@@ -23,6 +23,8 @@ export interface ResolvedAdditionalPage {
 interface SummaryNode {
     readonly title?: unknown;
     readonly slug?: unknown;
+    readonly label?: unknown;
+    readonly heading?: unknown;
     readonly file?: unknown;
     readonly children?: unknown;
 }
@@ -52,6 +54,8 @@ interface Claim {
 const resolvePage = (
     nodePath: string,
     title: string,
+    label: string,
+    heading: boolean,
     file: string,
     segments: readonly string[],
     explicitSlug: boolean,
@@ -61,8 +65,8 @@ const resolvePage = (
     file,
     segments,
     title,
-    label: title,
-    heading: false,
+    label,
+    heading,
     aliases: [],
     domId: explicitSlug ? segments.join('/') : domIdOf(title, file),
     depth: segments.length,
@@ -74,6 +78,9 @@ const claimKey = (segments: readonly string[]): string =>
 
 const invalidSlugMessage = (slug: unknown, nodePath: string, file: unknown): string =>
     `Additional pages: invalid slug "${String(slug)}" at summary.json${nodePath} (${String(file)}); expected one segment matching ${SLUG_PATTERN.source}`;
+
+const noTitleMessage = (nodePath: string, file: unknown): string =>
+    `Additional pages: no title for summary.json${nodePath} (${String(file)}); set "title" on the node or in the labels file`;
 
 const collisionMessage = (segments: readonly string[], first: Claim, second: Claim): string =>
     `Additional pages: "${segments.join('/')}.html" is claimed by summary.json${first.nodePath} (${first.file}) and summary.json${second.nodePath} (${second.file})`;
@@ -96,21 +103,29 @@ const visit = (
     claims: Map<string, Claim>
 ): Result<void, string> => {
     for (const [index, node] of nodes.entries()) {
-        if (!isSummaryNode(node) || typeof node.title !== 'string') {
+        if (!isSummaryNode(node)) {
             continue;
         }
         const nodePath = `${parentPath}[${index}]`;
         const explicitSlug = node.slug !== undefined;
+        const hasTitle = typeof node.title === 'string';
+        if (!hasTitle && !explicitSlug) {
+            continue;
+        }
         if (explicitSlug && !(typeof node.slug === 'string' && SLUG_PATTERN.test(node.slug))) {
             return err(invalidSlugMessage(node.slug, nodePath, node.file));
+        }
+        if (typeof node.title !== 'string') {
+            return err(noTitleMessage(nodePath, node.file));
         }
         if (explicitSlug) {
             warnParentWithoutSlug(nodePath, parent);
         }
+        const title = node.title;
         const slug =
-            typeof node.slug === 'string'
-                ? node.slug
-                : cleanNameWithoutSpaceAndToLowerCase(node.title);
+            typeof node.slug === 'string' ? node.slug : cleanNameWithoutSpaceAndToLowerCase(title);
+        const label = typeof node.label === 'string' ? node.label : title;
+        const heading = node.heading === true;
         const segments = [...parentSegments, slug];
         const children = childrenOf(node);
         const file = node.file;
@@ -127,7 +142,16 @@ const visit = (
             }
             claims.set(key, { nodePath, file });
             resolved.push(
-                resolvePage(nodePath, node.title, file, segments, explicitSlug, children.length)
+                resolvePage(
+                    nodePath,
+                    title,
+                    label,
+                    heading,
+                    file,
+                    segments,
+                    explicitSlug,
+                    children.length
+                )
             );
         }
         const nested = visit(
@@ -147,8 +171,10 @@ const visit = (
 
 /**
  * Resolves the nodes of a parsed summary.json into a flat list of pages in
- * document order (each node before its children). Nodes without a title are
- * skipped together with their children; an explicit `slug` replaces the
+ * document order (each node before its children). Nodes with neither title
+ * nor slug are skipped together with their children, a node with a slug but
+ * no title aborts the resolution; the label defaults to the title and
+ * `heading` is true only for the boolean `true`; an explicit `slug` replaces the
  * node's own segment and must match the slug pattern; two pages whose paths
  * are equal after NFC normalization and lower-casing abort the resolution;
  * nodes without a file are not pages but still contribute their segment to

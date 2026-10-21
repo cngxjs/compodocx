@@ -66,7 +66,11 @@ export class AdditionalPageGenerator {
                             );
                         const aiGenerated = detectAiGeneratedMarker(markdownRaw);
                         const _page = {
-                            name: resolvedPage.title,
+                            name: resolvedPage.label,
+                            ...(resolvedPage.title !== resolvedPage.label && {
+                                displayName: resolvedPage.title
+                            }),
+                            ...(resolvedPage.heading && { pageHeading: resolvedPage.title }),
                             id: resolvedPage.domId,
                             filename: location.filename,
                             context: 'additional-page',

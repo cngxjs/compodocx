@@ -289,4 +289,36 @@ describe('resolveAdditionalPages', () => {
         ]);
         expect(warn).not.toHaveBeenCalled();
     });
+
+    it('defaults the label to the title and heading to false', () => {
+        const [page] = resolvedOf([{ title: 'Plain', file: 'plain.md' }]);
+        expect(page.title).toBe('Plain');
+        expect(page.label).toBe('Plain');
+        expect(page.heading).toBe(false);
+    });
+
+    it('keeps the label independent of title and slug', () => {
+        const pages = resolvedOf([
+            {
+                title: 'Long page title',
+                label: 'Short',
+                slug: 'fixed',
+                heading: true,
+                file: 'a.md',
+                children: [{ title: 'Kid', label: 7, heading: 'yes', file: 'b.md' }]
+            }
+        ]);
+        expect(pages[0].label).toBe('Short');
+        expect(pages[0].title).toBe('Long page title');
+        expect(pages[0].heading).toBe(true);
+        expect(pages[0].segments).toEqual(['fixed']);
+        expect(pages[1].label).toBe('Kid');
+        expect(pages[1].heading).toBe(false);
+    });
+
+    it('rejects a node with a slug and no title', () => {
+        expect(errorOf([{ slug: 'e0001', file: 'e.md' }])).toBe(
+            'Additional pages: no title for summary.json[0] (e.md); set "title" on the node or in the labels file'
+        );
+    });
 });

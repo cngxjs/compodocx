@@ -4,6 +4,7 @@ import { AiGeneratedBadge } from '../components/AiGeneratedBadge';
 type AdditionalPageProps = {
     readonly additionalPage: string;
     readonly aiGenerated?: string | true | false;
+    readonly pageHeading?: string;
 };
 
 export const AdditionalPage = (props: AdditionalPageProps): string =>
@@ -15,6 +16,11 @@ export const AdditionalPage = (props: AdditionalPageProps): string =>
                 </div>
             ) : (
                 ''
+            )}
+            {props.pageHeading === undefined ? (
+                ''
+            ) : (
+                <h1>{Html.escapeHtml(props.pageHeading) as string}</h1>
             )}
             {(props.additionalPage ?? '') as string}
         </div>
