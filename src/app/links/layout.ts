@@ -239,9 +239,8 @@ export const pageLocation = (target: PageTarget): PageLocation => {
         case 'feature':
             return located(target.segments.join('/'), FEATURE_INDEX);
         case 'additional': {
-            const filename = last(target.slugs);
-            const nested = target.slugs.map(slug => `/${slug}`).join('');
-            return located(`${target.folder}${nested}`.replace(`/${filename}`, ''), filename);
+            const path = [target.folder, ...target.slugs.slice(0, -1)].join('/');
+            return located(path, last(target.slugs));
         }
         case 'asset': {
             const slash = target.path.lastIndexOf('/');
