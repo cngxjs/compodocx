@@ -8,6 +8,21 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ## [Unreleased]
 
+### Added
+
+- **Hook tokens.** A property a component only reads (`color: var(--badge-color, var(--accent))`) can now be documented with `@cssprop {<syntax>} [--name=default] - description`, or its alias `@cssproperty`, the form the custom-elements-manifest uses. The block never attaches to the declaration below it, several lines in one block give one hook each, and `@cssprop` lines also work inside an `@overview` block. Hooks show on the Theming tab and the style page with a "Hook" badge (translated in all 17 locales) and carry `kind: 'css-hook'` in the JSON export (schema stays 6); the llm-md export lists them like any other token.
+- **Notice for doc blocks that attach to nothing.** A style doc block with token tags (`@type`, `@default`, `@group`, `@example`, `@since`, `@deprecated`, `@see`, `@relatedTo`) that sits above no property is reported once per run as `Style comments: <n> doc blocks not attached` with `file:line`. The build still exits with code 0. Prose-only blocks, file-level blocks and the block above a private mixin are not reported.
+- **Notice for a hook that its own sheet declares.** `Style comments: <n> hook tokens also declared in their sheets, declaration kept`.
+
+### Changed
+
+- **A token documented in several sheets of one component is listed once.** The Theming tab, the style pages and the JSON export merge same-name tokens: `@property` beats a plain declaration, which beats a hook; description, group and the other fields come from the first sheet that has them.
+
+### Fixed
+
+- **Repeated token names no longer repeat the row id on the Theming tab.**
+- **A `@cssprop` tag is no longer reported as an unknown tag.**
+
 ## [0.9.1] - 2026-10-21
 
 ### Fixed
