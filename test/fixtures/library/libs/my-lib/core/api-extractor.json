@@ -5,5 +5,5 @@
       "tsconfigFilePath": "../tsconfig.lib.json"
     },
     "projectFolder": ".",
-    "mainEntryPointFilePath": "../../../dist/libs/my-lib/core/index.d.ts"
+    "mainEntryPointFilePath": "../../../dist/libs/my-lib/types/my-lib-core.d.ts"
   }

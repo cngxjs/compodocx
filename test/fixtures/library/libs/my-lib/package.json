@@ -2,8 +2,8 @@
     "name": "my-lib",
     "version": "0.0.1",
     "license": "MIT",
-    "dependencies": {
-        "@angular/core": "16.0.0"
+    "peerDependencies": {
+        "@angular/core": "^21.0.0"
     },
     "devDependencies": {
         "@angular/cli": "16.0.0"
