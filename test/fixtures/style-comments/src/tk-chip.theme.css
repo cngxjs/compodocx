@@ -1,0 +1,9 @@
+/**
+ * @type <color>
+ * @group Surface
+ */
+@property --tk-chip-bg {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #eef2ff;
+}

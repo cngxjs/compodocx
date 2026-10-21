@@ -5,6 +5,7 @@ import { symbolId } from '../../app/links/symbol-id';
 import { entryInFile, styleFileName } from '../../app/links/symbol-table';
 import type { StyleFile } from '../../app/styles/model';
 import {
+    mergeThemeTokens,
     type StyleMixin,
     type StyleSource,
     styleMixins,
@@ -83,7 +84,10 @@ export const themingFor = (
         .filter(Boolean)
         .join('\n\n');
     return {
-        tokens: [...(data.themeTokens ?? []), ...linked.flatMap(file => file.tokens)],
+        tokens: mergeThemeTokens([
+            ...(data.themeTokens ?? []),
+            ...linked.flatMap(file => file.tokens)
+        ]),
         overview,
         sources: [
             ...ownSources,

@@ -7,10 +7,12 @@ import {
     collectThemeTokens,
     formatUnknownStyleTagNotice,
     groupThemeTokens,
+    mergeThemeTokens,
     parseCssTokens,
     parseDocBody,
     parseScssTokens,
     parseStyleSource,
+    type ThemeToken,
     unknownStyleTags
 } from '../../../src/utils/theme-doc-parser';
 
@@ -628,6 +630,110 @@ describe('Utils - theme-doc-parser', () => {
         });
     });
 
+    describe('mergeThemeTokens', () => {
+        const token = (over: Partial<ThemeToken>): ThemeToken => ({
+            name: '--x',
+            kind: 'css-custom-property',
+            type: '',
+            defaultValue: '',
+            description: '',
+            group: '',
+            examples: [],
+            since: '',
+            deprecated: null,
+            see: [],
+            file: 'a.css',
+            line: 1,
+            ...over
+        });
+
+        it('returns the same array when no name repeats', () => {
+            const tokens = [token({ name: '--a' }), token({ name: '--b' })];
+            expect(mergeThemeTokens(tokens)).to.equal(tokens);
+        });
+
+        it('lets a registered property win over a declaration in either order', () => {
+            const declared = token({ file: 'base.css', line: 3, description: 'Declared.' });
+            const registered = token({ kind: 'css-at-property', file: 'theme.css', line: 9 });
+            for (const list of [
+                [declared, registered],
+                [registered, declared]
+            ]) {
+                const [merged] = mergeThemeTokens(list);
+                expect(merged.kind).to.equal('css-at-property');
+                expect(merged.file).to.equal('theme.css');
+                expect(merged.line).to.equal(9);
+                expect(merged.description).to.equal('Declared.');
+            }
+        });
+
+        it('keeps the first on a tie and the position of the first occurrence', () => {
+            const merged = mergeThemeTokens([
+                token({ name: '--a' }),
+                token({ file: 'one.css', line: 2 }),
+                token({ name: '--b' }),
+                token({ file: 'two.css', line: 5 })
+            ]);
+            expect(merged.map(t => t.name)).to.deep.equal(['--a', '--x', '--b']);
+            expect(merged[1].file).to.equal('one.css');
+        });
+
+        it('fills prose fields from the first token that has them, never concatenating', () => {
+            const [merged] = mergeThemeTokens([
+                token({ description: 'First.', examples: ['a'], see: ['s1'] }),
+                token({
+                    kind: 'css-at-property',
+                    group: 'Surface',
+                    since: '1.0',
+                    examples: ['b'],
+                    see: ['s2'],
+                    relatedTo: ['Chip']
+                })
+            ]);
+            expect(merged.description).to.equal('First.');
+            expect(merged.group).to.equal('Surface');
+            expect(merged.since).to.equal('1.0');
+            expect(merged.examples).to.deep.equal(['a']);
+            expect(merged.see).to.deep.equal(['s1']);
+            expect(merged.relatedTo).to.deep.equal(['Chip']);
+        });
+
+        it('falls back for type and default only when the winner has none', () => {
+            const [empty] = mergeThemeTokens([
+                token({ type: '<color>', defaultValue: 'red' }),
+                token({ kind: 'css-at-property' })
+            ]);
+            expect(empty.type).to.equal('<color>');
+            expect(empty.defaultValue).to.equal('red');
+            const [own] = mergeThemeTokens([
+                token({ type: '<color>', defaultValue: 'red' }),
+                token({ kind: 'css-at-property', type: '<length>', defaultValue: '1px' })
+            ]);
+            expect(own.type).to.equal('<length>');
+            expect(own.defaultValue).to.equal('1px');
+        });
+
+        it('takes deprecated from the winner, else the first that is not null', () => {
+            expect(
+                mergeThemeTokens([
+                    token({ deprecated: 'old' }),
+                    token({ kind: 'css-at-property', deprecated: '' })
+                ])[0].deprecated
+            ).to.equal('');
+            expect(
+                mergeThemeTokens([
+                    token({ deprecated: 'old' }),
+                    token({ kind: 'css-at-property' })
+                ])[0].deprecated
+            ).to.equal('old');
+        });
+
+        it('keeps a scss variable and a custom property of the same spelling apart', () => {
+            const tokens = [token({ name: '$x', kind: 'scss-variable' }), token({ name: '--x' })];
+            expect(mergeThemeTokens(tokens)).to.equal(tokens);
+        });
+    });
+
     describe('collectStyleSources + collectThemeTokens (filesystem)', () => {
         let tmp: string;
 
@@ -727,6 +833,23 @@ describe('Utils - theme-doc-parser', () => {
             expect(result.tokens).to.have.lengthOf(1);
             expect(result.tokens[0].file).to.equal('rel/chip.component.css');
             expect(path.isAbsolute(result.tokens[0].file)).to.equal(false);
+        });
+
+        it('merges a token documented in two sheets of one component', () => {
+            const entity = writeFile('chip/chip.ts', '// stub');
+            writeFile('chip/chip.css', ':host {\n  /** Background. */\n  --c-bg: red;\n}\n');
+            writeFile(
+                'chip/chip.theme.css',
+                "/**\n * @group Surface\n */\n@property --c-bg {\n  syntax: '<color>';\n  inherits: true;\n  initial-value: red;\n}\n"
+            );
+            const result = collectThemeTokens({
+                entityFile: entity,
+                styleUrls: ['./chip.css', './chip.theme.css']
+            });
+            expect(result.tokens).to.have.lengthOf(1);
+            expect(result.tokens[0].kind).to.equal('css-at-property');
+            expect(result.tokens[0].group).to.equal('Surface');
+            expect(result.tokens[0].description).to.equal('Background.');
         });
 
         it('returns an empty result when no styleUrls and no styles are provided', () => {

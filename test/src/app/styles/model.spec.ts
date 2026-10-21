@@ -18,6 +18,21 @@ const undocumentedProperty =
 const mixinOnly = '/// Emits the theme.\n/// @param $theme - Theme map.\n@mixin theme($theme) {}\n';
 
 describe('buildStyleModel', () => {
+    it('lists a token once when one file documents it as a declaration and a property', () => {
+        const model = buildStyleModel([
+            {
+                file: 'a/both.css',
+                content:
+                    '/**\n * Primary colour.\n */\n:root { --p: red; }\n' +
+                    "/**\n * @group Colour\n */\n@property --p {\n  syntax: '<color>';\n  inherits: true;\n  initial-value: red;\n}\n"
+            }
+        ]);
+        const [file] = model.files;
+        expect(file.tokens.map(t => [t.name, t.kind, t.group, t.description])).toEqual([
+            ['--p', 'css-at-property', 'Colour', 'Primary colour.']
+        ]);
+    });
+
     it('counts an overview, a documented token or a documented mixin as content', () => {
         const model = buildStyleModel([
             { file: 'b/overview.css', content: overviewOnly },

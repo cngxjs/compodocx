@@ -1001,8 +1001,73 @@ export function collectThemeTokens(args: {
         mixins.push(...parsed.mixins);
         overviewParts.push(...parsed.overview);
     }
-    return { tokens, sources, overview: overviewParts.join('\n\n').trim(), mixins };
+    return {
+        tokens: mergeThemeTokens(tokens),
+        sources,
+        overview: overviewParts.join('\n\n').trim(),
+        mixins
+    };
 }
+
+/** How firmly a kind declares its token: a registered property beats a plain declaration. */
+const KIND_RANK: Record<ThemeToken['kind'], number> = {
+    'css-at-property': 3,
+    'css-custom-property': 2,
+    'scss-variable': 2
+};
+
+/**
+ * Collapse tokens that share a name into one, at the position of the first.
+ * The strongest kind wins (ties keep the first in list order) and supplies
+ * `kind`, `file` and `line`; `type` and `defaultValue` fall back to the first
+ * non-empty value, and the prose fields (`description`, `group`, `examples`,
+ * `since`, `see`, `relatedTo`) come from the first token that has them.
+ * Returns the input array itself when no name repeats.
+ */
+export function mergeThemeTokens(tokens: readonly ThemeToken[]): ThemeToken[] {
+    const byName = new Map<string, ThemeToken[]>();
+    for (const token of tokens) {
+        const same = byName.get(token.name);
+        if (same) {
+            same.push(token);
+        } else {
+            byName.set(token.name, [token]);
+        }
+    }
+    if (byName.size === tokens.length) {
+        return tokens as ThemeToken[];
+    }
+    return [...byName.values()].map(group => (group.length === 1 ? group[0] : mergeGroup(group)));
+}
+
+const mergeGroup = (group: readonly ThemeToken[]): ThemeToken => {
+    const winner = group.reduce((best, token) =>
+        KIND_RANK[token.kind] > KIND_RANK[best.kind] ? token : best
+    );
+    const first = <T>(read: (token: ThemeToken) => T, isSet: (value: T) => boolean): T =>
+        read(group.find(token => isSet(read(token))) ?? winner);
+    const filled = (value: string | readonly unknown[]): boolean => value.length > 0;
+    const relatedTo = first(token => token.relatedTo ?? [], filled);
+    return {
+        name: winner.name,
+        kind: winner.kind,
+        type: winner.type || firstNonEmpty(group, 'type'),
+        defaultValue: winner.defaultValue || firstNonEmpty(group, 'defaultValue'),
+        description: first(token => token.description, filled),
+        group: first(token => token.group, filled),
+        examples: first(token => token.examples, filled),
+        since: first(token => token.since, filled),
+        deprecated:
+            winner.deprecated ?? group.find(token => token.deprecated !== null)?.deprecated ?? null,
+        see: first(token => token.see, filled),
+        ...(relatedTo.length > 0 && { relatedTo }),
+        file: winner.file,
+        line: winner.line
+    };
+};
+
+const firstNonEmpty = (group: readonly ThemeToken[], field: 'type' | 'defaultValue'): string =>
+    group.find(token => token[field] !== '')?.[field] ?? '';
 
 /** Documented mixins and functions of every source, each file read once. */
 export const styleMixins = (sources: readonly StyleSource[]): StyleMixin[] => {

@@ -1,5 +1,6 @@
 import { isErr, type Result } from '../../lib';
 import {
+    mergeThemeTokens,
     parseStyleSource,
     type StyleMixin,
     type ThemeToken,
@@ -74,19 +75,19 @@ export const readStyleFile = (
     const language = languageOf(source.file);
     const parsed = parseStyleSource(source.content, source.file, language);
     const overview = parsed.overview.join('\n\n').trim();
+    const tokens = mergeThemeTokens(parsed.tokens);
     return {
         id: styleFileId(source.file),
         file: source.file,
         language,
         content: source.content,
         overview,
-        tokens: parsed.tokens,
+        tokens,
         mixins: parsed.mixins,
         themeNames: [...new Set(parsed.themes)],
         themes: [],
         relatedTo: [...new Set(parsed.relatedTo)],
-        hasContent:
-            overview !== '' || parsed.tokens.some(isDocumentedToken) || parsed.mixins.length > 0,
+        hasContent: overview !== '' || tokens.some(isDocumentedToken) || parsed.mixins.length > 0,
         unknownTags: parsed.unknownTags
     };
 };

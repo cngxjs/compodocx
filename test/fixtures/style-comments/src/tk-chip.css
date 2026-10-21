@@ -1,0 +1,10 @@
+:host {
+    display: inline-block;
+
+    /** Background of the chip. */
+    --tk-chip-bg: #eef2ff;
+}
+
+span {
+    background: var(--tk-chip-bg);
+}
