@@ -8,6 +8,13 @@ import type { RoutingModel } from '../routing/model';
 import type { StyleModel } from '../styles/model';
 import type { CoverageData } from './coverageData.interface';
 
+/** An old additional-page path moved to a new page; `from` and `to` are root-relative page paths (with `.html`). */
+export interface AdditionalAlias {
+    readonly from: string;
+    readonly to: string;
+    readonly title: string;
+}
+
 export interface MainDataInterface {
     output: string;
     theme: string;
@@ -34,11 +41,7 @@ export interface MainDataInterface {
     markdowns: any[];
     additionalPages: any;
     /** Old paths of additional pages (root-relative, with `.html`), the page each one moved to and its title. */
-    additionalAliases: readonly {
-        readonly from: string;
-        readonly to: string;
-        readonly title: string;
-    }[];
+    additionalAliases: readonly AdditionalAlias[];
     pipes: any;
     classes: any;
     interfaces: any;

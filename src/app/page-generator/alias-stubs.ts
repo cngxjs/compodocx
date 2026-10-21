@@ -1,13 +1,7 @@
 import Html from '@kitajs/html';
 
+import type { AdditionalAlias } from '../interfaces/main-data.interface';
 import { relativePrefix } from '../links/layout';
-
-/** An old additional-page path (root-relative, with `.html`), the page it moved to and that page's title. */
-export interface AliasStub {
-    readonly from: string;
-    readonly to: string;
-    readonly title: string;
-}
 
 /**
  * Redirect page for an old URL: `target` is the root-relative path of the
@@ -33,7 +27,7 @@ export const aliasStub = (target: string, depth: number, title: string): string 
 
 /** Stub file (root-relative path and content) of every alias. */
 export const aliasStubFiles = (
-    aliases: readonly AliasStub[]
+    aliases: readonly AdditionalAlias[]
 ): readonly { readonly file: string; readonly content: string }[] =>
     aliases.map(({ from, to, title }) => ({
         file: from,

@@ -7,6 +7,7 @@ import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import MarkdownEngine from '../engines/markdown.engine';
+import type { AdditionalAlias } from '../interfaces/main-data.interface';
 import { pageLocation, pagePath } from '../links/layout';
 import {
     type LabelMap,
@@ -69,7 +70,7 @@ export class AdditionalPageGenerator {
                     }
                     const resolvedPages = resolved.value;
                     let lastLevelOnePage;
-                    const aliases: { from: string; to: string; title: string }[] = [];
+                    const aliases: AdditionalAlias[] = [];
 
                     for (const resolvedPage of resolvedPages) {
                         const location = pageLocation({
