@@ -1,0 +1,50 @@
+[
+    {
+        "title": "Fehlerreferenz",
+        "slug": "errors",
+        "file": "errors/index.md",
+        "children": [
+            {
+                "title": "Ausdruck geaendert",
+                "label": "E0001: Ausdruck geaendert",
+                "slug": "e0001",
+                "file": "errors/e0001.md"
+            },
+            {
+                "title": "Wert geaendert",
+                "label": "E0002: Wert geaendert",
+                "slug": "e0002",
+                "file": "errors/e0002.md"
+            },
+            {
+                "title": "Umbenannte Seite",
+                "label": "E0003: Umbenannt",
+                "slug": "e0003",
+                "heading": true,
+                "aliases": [
+                    "errors/e0003-old-name",
+                    "e0003"
+                ],
+                "file": "errors/e0003.md"
+            },
+            {
+                "title": "Vierter Fehler",
+                "label": "E0004: Vierter Fehler",
+                "slug": "e0004",
+                "file": "errors/e0004.md"
+            }
+        ]
+    },
+    {
+        "title": "Anleitungen",
+        "slug": "guides",
+        "file": "guides/index.md",
+        "children": [
+            {
+                "title": "Erste Schritte",
+                "slug": "getting-started",
+                "file": "guides/getting-started.md"
+            }
+        ]
+    }
+]

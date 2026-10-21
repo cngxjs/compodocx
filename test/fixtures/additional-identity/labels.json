@@ -1,0 +1,17 @@
+{
+    "e0001": {
+        "label": "E0001: Expression changed",
+        "title": "Expression changed after it was checked"
+    },
+    "e0002": {
+        "label": "E0002: from labels file",
+        "title": "Title from labels file"
+    },
+    "e0003": {
+        "label": "E0003: from labels file"
+    },
+    "e0004": {
+        "label": "E0004: from labels file",
+        "title": "Fourth error from labels file"
+    }
+}
