@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { symbolFolder } from '../../../src/app/links/layout';
-import { buildRedirects, rewriteLegacyLinks } from '../../../src/app/links/redirects';
+import { buildRedirects, rewriteLegacyLinks, withAliases } from '../../../src/app/links/redirects';
 import { buildSymbolTable, placeInFolders } from '../../../src/app/links/symbol-table';
 
 describe('redirect map', () => {
@@ -72,5 +72,44 @@ describe('redirect map', () => {
         const html = '<a href="core/tokens/SelectPanel.html">t</a>';
         const map = { 'tokens/SelectPanel.html': 'core/tokens/SelectPanel.html' };
         expect(rewriteLegacyLinks(html, 'index.html', 0, map, new Set())).toBe(html);
+    });
+});
+
+describe('alias redirects', () => {
+    const aliases = [
+        {
+            from: 'additional-documentation/old/guide.html',
+            to: 'additional-documentation/guide.html'
+        },
+        { from: 'additional-documentation/a.html', to: 'additional-documentation/guide.html' }
+    ];
+
+    it('adds the aliases to the redirects and sorts all keys', () => {
+        const base = { 'z.html': 'y.html', 'components/A.html': 'core/A.html' };
+        const merged = withAliases(base, aliases);
+        expect(Object.keys(merged)).toEqual([
+            'additional-documentation/a.html',
+            'additional-documentation/old/guide.html',
+            'components/A.html',
+            'z.html'
+        ]);
+        expect(merged['additional-documentation/old/guide.html']).toBe(
+            'additional-documentation/guide.html'
+        );
+        expect(Object.keys(base)).toEqual(['z.html', 'components/A.html']);
+    });
+
+    it('returns the same object when there are no aliases', () => {
+        const base = { 'z.html': 'y.html' };
+        expect(withAliases(base, [])).toBe(base);
+    });
+
+    it('points a hand link to an alias at the canonical page', () => {
+        const redirects = withAliases({}, aliases);
+        const pages = new Set(['additional-documentation/guide.html']);
+        const html = '<a href="old/guide.html#intro">g</a>';
+        expect(
+            rewriteLegacyLinks(html, 'additional-documentation/start.html', 1, redirects, pages)
+        ).toBe('<a href="../additional-documentation/guide.html#intro">g</a>');
     });
 });

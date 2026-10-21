@@ -11,6 +11,7 @@ export interface ConfigurationFileInterface {
     navTabConfig;
     includes;
     includesName: string;
+    includesLabels?: string;
     silent: boolean;
     serve;
     host: string;

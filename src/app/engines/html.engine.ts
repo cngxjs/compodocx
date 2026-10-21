@@ -118,7 +118,8 @@ export class HtmlEngine {
             case 'additional-page':
                 return AdditionalPage({
                     additionalPage: data.additionalPage,
-                    aiGenerated: data.aiGenerated
+                    aiGenerated: data.aiGenerated,
+                    pageHeading: data.pageHeading
                 });
             case 'package-dependencies':
                 return data.disableDependencies ? '' : PackageDependencies(data);

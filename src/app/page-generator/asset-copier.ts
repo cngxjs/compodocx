@@ -11,6 +11,7 @@ import type { MainDataInterface } from '../interfaces/main-data.interface';
 import { REDIRECTS_FILE } from '../links/layout';
 import { REDIRECTS_SCHEMA_VERSION, type RedirectsFile } from '../links/redirects';
 import { type Halt, halt } from '../run/halt';
+import { aliasStubFiles } from './alias-stubs';
 import { faviconImage, IMAGES_FOLDER, logoImage } from './brand-images';
 
 const cwd = process.cwd();
@@ -147,6 +148,12 @@ export const finalizeOutput = async (ctx: OutputContext): Promise<Result<void, H
     // Run Pagefind search indexing after all HTML files are written
     if (!mainData.disableSearch) {
         runPagefindIndex(mainData.output);
+    }
+
+    // Redirect pages for old additional-page URLs; written after the
+    // indexing so the search never lists them.
+    for (const { file, content } of aliasStubFiles(mainData.additionalAliases)) {
+        FileEngine.writeSync(path.join(mainData.output, file), content);
     }
 
     // Old page paths of earlier layouts, next to this version's pages (the

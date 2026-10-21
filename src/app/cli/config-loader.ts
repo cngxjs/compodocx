@@ -491,6 +491,13 @@ export function applyConfigToMainData(
         mainData.includesName = programOptions.includesName;
     }
 
+    if (configFile.includesLabels) {
+        mainData.includesLabels = configFile.includesLabels;
+    }
+    if (programOptions.includesLabels) {
+        mainData.includesLabels = programOptions.includesLabels;
+    }
+
     if (configFile.silent) {
         logger.silent = false;
     }

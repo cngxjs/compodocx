@@ -2,6 +2,8 @@ export interface PageInterface {
     name: string;
     /** Page title when `name` is an internal id. */
     displayName?: string;
+    /** Heading rendered before the markdown of an additional page. */
+    pageHeading?: string;
     id: string;
     navTabs?: any[];
     filename?: string;

@@ -189,6 +189,7 @@ Include external documentation, static assets, or supply custom templates.
 |-|-|-|-|-|
 | includes | `--includes` | string | -- | Path to a folder of external markdown files. Each `.md` file becomes a page in the documentation, accessible via a dedicated sidebar section. Supports nested folders for sub-navigation |
 | includesName | `--includesName` | string | `'Additional documentation'` | Sidebar label for the external markdown pages section |
+| includesLabels | `--includesLabels` | string | -- | Path to a JSON file keyed by page slug, each entry with an optional `label` (sidebar text) and `title` (page title). Read only when `includes` is set. See [Additional pages](additional-pages.md) |
 | assetsFolder | `-a, --assetsFolder` | string | -- | Path to a folder of static assets (images, files) copied into the output directory. Referenced from markdown or custom templates via relative paths |
 | templates | `--templates` | string | -- | Path to a directory containing JS template overrides. Each file exports a function `(data, helpers) => string` that replaces the corresponding built-in template. See [Custom Templates](custom-templates.md) for the full API. Handlebars `.hbs` files in `partials/` are skipped with one warning. The removed `--templatePlayground` / `templatePlayground` are ignored with a warning |
 

@@ -6,7 +6,12 @@ import HtmlEngine from '../engines/html.engine';
 import type { PageInterface } from '../interfaces/page.interface';
 import { featureSegments } from '../links/feature-paths';
 import { hrefFor, hrefText, pageLocation, pagePath, ROOT_DEPTH } from '../links/layout';
-import { buildRedirects, type Redirects, rewriteLegacyLinks } from '../links/redirects';
+import {
+    buildRedirects,
+    type Redirects,
+    rewriteLegacyLinks,
+    withAliases
+} from '../links/redirects';
 import { placedLink } from '../links/resolve';
 import type { TableKind } from '../links/symbol-id';
 import { entryInFile } from '../links/symbol-table';
@@ -43,7 +48,7 @@ export class PageWriter {
         const pages = new Set([...Configuration.pages, ...additional].map(pageOutputPath));
         const features = mainData.semantic?.features?.features ?? [];
         const utilities = pagePath(pageLocation({ type: 'root', page: 'utilities' }));
-        const redirects = mainData.symbols
+        const symbolRedirects = mainData.symbols
             ? buildRedirects({
                   table: mainData.symbols,
                   di: mainData.di,
@@ -52,6 +57,7 @@ export class PageWriter {
                   utilities: pages.has(utilities) ? utilities : undefined
               })
             : {};
+        const redirects = withAliases(symbolRedirects, mainData.additionalAliases);
         mainData.redirects = redirects;
         this.legacy = { redirects, pages };
         return this.legacy;

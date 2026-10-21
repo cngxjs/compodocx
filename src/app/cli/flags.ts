@@ -130,6 +130,10 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
             COMPODOC_DEFAULTS.additionalEntryName
         )
         .option(
+            '--includesLabels [path]',
+            'JSON file with label and title per additional-page slug'
+        )
+        .option(
             '--coverageTest [threshold]',
             'Test command of documentation coverage with a threshold (default 70)'
         )
