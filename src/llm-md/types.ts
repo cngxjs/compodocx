@@ -24,6 +24,8 @@ export interface LlmMdEmitOptions {
     readonly projectName: string;
     /** Optional one-line description from package.json. */
     readonly projectDescription?: string;
+    /** Heading of the additional pages section (`includesName`); "Additional documentation" when absent. */
+    readonly additionalPagesName?: string;
 }
 
 /**
