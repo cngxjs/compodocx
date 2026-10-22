@@ -22,6 +22,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **A sidebar group that gets a slug loses its remembered open/closed state once.** The stored state is keyed by the group id, which is now the slug path.
 - **Links to a renamed page are also fixed when they are relative.** A Markdown link such as `e0003-old-name.html` on a page in the same folder now points to the new page.
 - **A token documented in several sheets of one component is listed once.** The Theming tab, the style pages and the JSON export merge same-name tokens: `@property` beats a plain declaration, which beats a hook; description, group and the other fields come from the first sheet that has them.
+- **The template helper `extractJsdocCodeExamples` is now `exampleComments`.** It returns the rendered HTML of each `@example` body (Shiki code blocks) instead of `<pre class="cdx-code-example">` wrappers; the `cdx-code-example` styles are gone. Custom templates that call the old name need the new one.
 
 ### Fixed
 
@@ -30,6 +31,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **Malformed `summary.json` entries no longer crash or hang the build.** Entries with a non-string `title` or `file`, children of a node with neither `title` nor `slug`, a non-array `children`, `null` entries, objects under keys other than `children` and pages deeper than five levels with a missing file are skipped.
 - **Repeated token names no longer repeat the row id on the Theming tab.**
 - **A `@cssprop` tag is no longer reported as an unknown tag.**
+- **`@example` blocks on component, directive, class and service pages show highlighted code.** The Examples section showed the highlighter's HTML as escaped text. Each example is now a Shiki code block in its own language, like the code blocks in the README and the additional pages. An example without a code fence is shown as HTML code instead of being written into the page as markup, and a `<caption>` becomes a label above the code on every page.
 
 ## [0.9.1] - 2026-10-21
 
