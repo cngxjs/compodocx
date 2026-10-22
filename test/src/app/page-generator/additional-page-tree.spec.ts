@@ -14,6 +14,7 @@ import {
 import {
     type AdditionalPageContent,
     buildAdditionalPages,
+    isAdditionalGroup,
     skippedPageMessage
 } from '../../../../src/app/page-generator/additional-page-tree';
 import { err, isOk, ok, type Result } from '../../../../src/lib';
@@ -48,6 +49,13 @@ const outline = (pages: readonly PageInterface[]) =>
         path: `${page.path}/${page.filename}`,
         children: (page.children ?? []).map(child => `${child.path}/${child.filename}`)
     }));
+
+/** Top-level entries as `group <name>` or the page path, with the child paths. */
+const entries = (pages: readonly PageInterface[]) =>
+    pages.map(page => [
+        isAdditionalGroup(page) ? `group ${page.name}` : `${page.path}/${page.filename}`,
+        ...(page.children ?? []).map(child => `${child.path}/${child.filename}`)
+    ]);
 
 describe('buildAdditionalPages', () => {
     it('builds the tree of the additional-identity summary', () => {
@@ -164,5 +172,121 @@ describe('buildAdditionalPages', () => {
                 title: 'A'
             }
         ]);
+    });
+
+    it('turns a first node without a file into a group', () => {
+        const { pages } = buildAdditionalPages(
+            resolvedOf([{ title: 'Group', children: [{ title: 'A', file: 'a.md' }] }]),
+            read,
+            locate
+        );
+
+        expect(entries(pages)).toEqual([['group Group', 'additional-documentation/group/a']]);
+        expect(pages[0]).toEqual({
+            name: 'Group',
+            id: 'group',
+            context: 'additional-group',
+            depth: 1,
+            children: [expect.objectContaining({ name: 'A' })]
+        });
+    });
+
+    it('keeps the pages of a group after a page out of that page', () => {
+        const { pages } = buildAdditionalPages(
+            resolvedOf([
+                { title: 'First', file: 'first.md' },
+                { title: 'Group', children: [{ title: 'B', file: 'b.md' }] },
+                { title: 'Last', file: 'last.md' }
+            ]),
+            read,
+            locate
+        );
+
+        expect(entries(pages)).toEqual([
+            ['additional-documentation/first'],
+            ['group Group', 'additional-documentation/group/b'],
+            ['additional-documentation/last']
+        ]);
+    });
+
+    it('builds groups for an object root', () => {
+        const { pages } = buildAdditionalPages(
+            resolvedOf({
+                children: [
+                    { title: 'First', file: 'first.md' },
+                    { title: 'Group', children: [{ title: 'B', file: 'b.md' }] }
+                ]
+            }),
+            read,
+            locate
+        );
+
+        expect(entries(pages)).toEqual([
+            ['additional-documentation/first'],
+            ['group Group', 'additional-documentation/group/b']
+        ]);
+    });
+
+    it('turns a depth-1 page with a missing file into a group for its children', () => {
+        const { pages, skipped } = buildAdditionalPages(
+            resolvedOf([
+                { title: 'First', file: 'first.md' },
+                {
+                    title: 'Parent',
+                    label: 'Parent label',
+                    file: 'parent.md',
+                    aliases: ['old-parent'],
+                    children: [{ title: 'Kid', file: 'kid.md' }]
+                }
+            ]),
+            readWithout('parent.md'),
+            locate
+        );
+
+        expect(entries(pages)).toEqual([
+            ['additional-documentation/first'],
+            ['group Parent label', 'additional-documentation/parent/kid']
+        ]);
+        expect(pages[1].displayName).toBe('Parent');
+        expect(skipped).toEqual([{ nodePath: '[1]', file: 'parent.md' }]);
+    });
+
+    it('leaves out a group without pages below it', () => {
+        const { pages } = buildAdditionalPages(
+            resolvedOf([
+                { title: 'Empty', children: [] },
+                { title: 'Gone', file: 'gone.md' },
+                { title: 'Lost', children: [{ title: 'Kid', file: 'kid.md' }] },
+                { title: 'A', file: 'a.md' }
+            ]),
+            readWithout('gone.md', 'kid.md'),
+            locate
+        );
+
+        expect(entries(pages)).toEqual([['additional-documentation/a']]);
+    });
+
+    it('keeps the pages below a deeper node without a file under its depth-1 entry', () => {
+        const { pages } = buildAdditionalPages(
+            resolvedOf([
+                {
+                    title: 'Top',
+                    file: 'top.md',
+                    children: [{ title: 'Inner', children: [{ title: 'Deep', file: 'deep.md' }] }]
+                },
+                {
+                    title: 'Group',
+                    children: [{ title: 'Inner', children: [{ title: 'Deep', file: 'g.md' }] }]
+                }
+            ]),
+            read,
+            locate
+        );
+
+        expect(entries(pages)).toEqual([
+            ['additional-documentation/top', 'additional-documentation/top/inner/deep'],
+            ['group Group', 'additional-documentation/group/inner/deep']
+        ]);
+        expect(pages[0].children[0].depth).toBe(3);
     });
 });

@@ -5,19 +5,23 @@ import {
     type LabelMap,
     parseLabelMap,
     type ResolvedAdditionalPage,
+    type ResolvedAdditionalPages,
     resolveAdditionalPages
 } from '../../../../src/app/page-generator/additional-page-resolver';
 import { isOk } from '../../../../src/lib';
 import { logger } from '../../../../src/utils/logger';
 import { cleanNameWithoutSpaceAndToLowerCase } from '../../../../src/utils/utils';
 
-const resolvedOf = (summary: unknown, labels?: LabelMap): readonly ResolvedAdditionalPage[] => {
+const resolvedWithGroupsOf = (summary: unknown, labels?: LabelMap): ResolvedAdditionalPages => {
     const result = resolveAdditionalPages(summary, labels, 'labels.json');
     if (!isOk(result)) {
         throw new Error(result.message);
     }
     return result.value;
 };
+
+const resolvedOf = (summary: unknown, labels?: LabelMap): readonly ResolvedAdditionalPage[] =>
+    resolvedWithGroupsOf(summary, labels).pages;
 
 const errorOf = (summary: unknown, labels?: LabelMap): string => {
     const result = resolveAdditionalPages(summary, labels, 'labels.json');
@@ -494,6 +498,35 @@ describe('resolveAdditionalPages', () => {
         );
         expect(pages.map(page => page.segments)).toEqual([['group', 'a']]);
         expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('lists the depth-1 nodes without a file as groups', () => {
+        const { pages, groups } = resolvedWithGroupsOf(
+            [
+                { title: 'First', file: 'first.md' },
+                {
+                    title: 'Group',
+                    label: 'Group label',
+                    children: [{ title: 'Inner', children: [{ title: 'Deep', file: 'deep.md' }] }]
+                },
+                { slug: 'titled', children: [] }
+            ],
+            { titled: { title: 'From labels' } }
+        );
+        expect(pages.map(page => page.segments)).toEqual([['first'], ['group', 'inner', 'deep']]);
+        expect(groups).toEqual([
+            { nodePath: '[1]', segments: ['group'], title: 'Group', label: 'Group label' },
+            { nodePath: '[2]', segments: ['titled'], title: 'From labels', label: 'From labels' }
+        ]);
+    });
+
+    it('lists the groups of an object root with its node paths', () => {
+        const { groups } = resolvedWithGroupsOf({
+            children: [{ title: 'Group', children: [{ title: 'A', file: 'a.md' }] }]
+        });
+        expect(groups).toEqual([
+            { nodePath: '.children[0]', segments: ['group'], title: 'Group', label: 'Group' }
+        ]);
     });
 });
 

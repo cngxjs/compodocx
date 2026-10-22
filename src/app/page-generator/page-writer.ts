@@ -15,6 +15,7 @@ import {
 import { placedLink } from '../links/resolve';
 import type { TableKind } from '../links/symbol-id';
 import { entryInFile } from '../links/symbol-table';
+import { isAdditionalGroup } from './additional-page-tree';
 import {
     contentVersion,
     ENTITIES_SCRIPT,
@@ -42,7 +43,7 @@ export class PageWriter {
         }
         const { mainData } = Configuration;
         const additional = mainData.additionalPages.flatMap((page: PageInterface) => [
-            page,
+            ...(isAdditionalGroup(page) ? [] : [page]),
             ...((page as { children?: PageInterface[] }).children ?? [])
         ]);
         const pages = new Set([...Configuration.pages, ...additional].map(pageOutputPath));

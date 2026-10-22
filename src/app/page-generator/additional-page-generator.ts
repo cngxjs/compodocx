@@ -15,6 +15,7 @@ import {
 import {
     type AdditionalPageContent,
     buildAdditionalPages,
+    isAdditionalGroup,
     skippedPageMessage
 } from './additional-page-tree';
 import type { PageWriter } from './page-writer';
@@ -25,14 +26,10 @@ export class AdditionalPageGenerator {
         const pages = Configuration.mainData.additionalPages;
         return Promise.all(
             pages.map(page => {
-                if (page.children.length > 0) {
-                    return Promise.all([
-                        pageWriter.processPage(page),
-                        ...page.children.map(childPage => pageWriter.processPage(childPage))
-                    ]);
-                } else {
-                    return pageWriter.processPage(page);
-                }
+                const children = page.children.map(childPage => pageWriter.processPage(childPage));
+                return isAdditionalGroup(page)
+                    ? Promise.all(children)
+                    : Promise.all([pageWriter.processPage(page), ...children]);
             })
         )
             .then(() => undefined)

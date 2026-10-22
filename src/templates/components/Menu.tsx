@@ -21,6 +21,7 @@ import {
 import { itemTarget, placedLink, placeTarget } from '../../app/links/resolve';
 import type { SymbolId, TableKind } from '../../app/links/symbol-id';
 import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
+import { isAdditionalGroup } from '../../app/page-generator/additional-page-tree';
 import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
 import { t } from '../helpers';
 import {
@@ -1034,6 +1035,88 @@ const styleMenuItems = (table: SymbolTable | undefined): any[] =>
               .map(entry => ({ name: entry.ref.name, file: entry.ref.file }))
         : [];
 
+/** The pages below a depth-1 additional page or group. */
+const AdditionalChildren = (props: { id: string; children: any[] }): string =>
+    (
+        <ul class="links collapse" id={props.id}>
+            {props.children.map((child: any) => (
+                <li class={`link${child.depth > 1 ? ` for-chapter${child.depth}` : ''}`}>
+                    <a
+                        href={pageFile(child.path, child.filename)}
+                        data-type="entity-link"
+                        data-context="sub-entity"
+                        data-context-id="additional"
+                    >
+                        {Html.escapeHtml(child.name) as string}
+                    </a>
+                </li>
+            ))}
+        </ul>
+    ) as string;
+
+/** A top-level entry of the additional pages: a group, a page with children, or a page. */
+const AdditionalEntry = (page: any): string => {
+    if (isAdditionalGroup(page)) {
+        const id = `additional-group-${page.id}`;
+        return (
+            <li class="chapter inner cdx-additional-group">
+                <button
+                    class="simple menu-toggler"
+                    type="button"
+                    data-cdx-toggle="collapse"
+                    data-cdx-target={`#${id}`}
+                    aria-expanded="false"
+                    aria-controls={id}
+                >
+                    <span class="link-name">{Html.escapeHtml(page.name) as string}</span>
+                    {IconChevronRight('cdx-chevron')}
+                </button>
+                {AdditionalChildren({ id, children: page.children })}
+            </li>
+        ) as string;
+    }
+    if (page.children?.length > 0 && page.depth === 1) {
+        return (
+            <li class="chapter inner">
+                <a
+                    data-type="chapter-link"
+                    href={pageFile(page.path, page.filename)}
+                    data-context-id="additional"
+                >
+                    {/* biome-ignore lint/a11y/useFocusableInteractive: Bootstrap collapse toggle wired to data-cdx-toggle */}
+                    {/* biome-ignore lint/a11y/useSemanticElements: Bootstrap collapse toggle wired to data-cdx-toggle */}
+                    <div
+                        class="menu-toggler linked"
+                        role="button"
+                        data-cdx-toggle="collapse"
+                        data-cdx-target={`#additional-page-${page.id}`}
+                        aria-expanded="false"
+                        aria-controls={`additional-page-${page.id}`}
+                    >
+                        <span class="link-name">{Html.escapeHtml(page.name) as string}</span>
+                        {IconChevronRight('cdx-chevron')}
+                    </div>
+                </a>
+                {AdditionalChildren({
+                    id: `additional-page-${page.id}`,
+                    children: page.children
+                })}
+            </li>
+        ) as string;
+    }
+    return (
+        <li class={`link${page.depth > 1 ? ` for-chapter${page.depth}` : ''}`}>
+            <a
+                href={pageFile(page.path, page.filename)}
+                data-type="entity-link"
+                data-context-id="additional"
+            >
+                {Html.escapeHtml(page.name) as string}
+            </a>
+        </li>
+    ) as string;
+};
+
 export const Menu = (props: MenuProps): string => {
     const d = withoutHidden(withFunctionalKinds(props.data));
     const byFeature = (items: any[] | undefined, kind: TableKind) =>
@@ -1135,64 +1218,7 @@ export const Menu = (props: MenuProps): string => {
                             class={`links collapse${chapterOpen('additionalPages') ? ' in' : ''}`}
                             id="additional-pages"
                         >
-                            {d.additionalPages.map((page: any) =>
-                                page.children?.length > 0 && page.depth === 1 ? (
-                                    <li class="chapter inner">
-                                        <a
-                                            data-type="chapter-link"
-                                            href={pageFile(page.path, page.filename)}
-                                            data-context-id="additional"
-                                        >
-                                            {/* biome-ignore lint/a11y/useFocusableInteractive: Bootstrap collapse toggle wired to data-cdx-toggle */}
-                                            {/* biome-ignore lint/a11y/useSemanticElements: Bootstrap collapse toggle wired to data-cdx-toggle */}
-                                            <div
-                                                class="menu-toggler linked"
-                                                role="button"
-                                                data-cdx-toggle="collapse"
-                                                data-cdx-target={`#additional-page-${page.id}`}
-                                                aria-expanded="false"
-                                                aria-controls={`additional-page-${page.id}`}
-                                            >
-                                                <span class="link-name">
-                                                    {Html.escapeHtml(page.name) as string}
-                                                </span>
-                                                {IconChevronRight('cdx-chevron')}
-                                            </div>
-                                        </a>
-                                        <ul
-                                            class="links collapse"
-                                            id={`additional-page-${page.id}`}
-                                        >
-                                            {page.children.map((child: any) => (
-                                                <li
-                                                    class={`link${child.depth > 1 ? ` for-chapter${child.depth}` : ''}`}
-                                                >
-                                                    <a
-                                                        href={pageFile(child.path, child.filename)}
-                                                        data-type="entity-link"
-                                                        data-context="sub-entity"
-                                                        data-context-id="additional"
-                                                    >
-                                                        {Html.escapeHtml(child.name) as string}
-                                                    </a>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </li>
-                                ) : (
-                                    <li
-                                        class={`link${page.depth > 1 ? ` for-chapter${page.depth}` : ''}`}
-                                    >
-                                        <a
-                                            href={pageFile(page.path, page.filename)}
-                                            data-type="entity-link"
-                                            data-context-id="additional"
-                                        >
-                                            {Html.escapeHtml(page.name) as string}
-                                        </a>
-                                    </li>
-                                )
-                            )}
+                            {d.additionalPages.map(AdditionalEntry)}
                         </ul>
                     </li>
                 )}

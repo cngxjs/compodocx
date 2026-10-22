@@ -31,6 +31,19 @@ export interface ResolvedAdditionalPage {
     readonly childrenLength: number;
 }
 
+/** A depth-1 node without a file: a sidebar group for the pages below it. */
+export interface ResolvedAdditionalGroup {
+    readonly nodePath: string;
+    readonly segments: readonly string[];
+    readonly title: string;
+    readonly label: string;
+}
+
+export interface ResolvedAdditionalPages {
+    readonly pages: readonly ResolvedAdditionalPage[];
+    readonly groups: readonly ResolvedAdditionalGroup[];
+}
+
 interface SummaryNode {
     readonly title?: unknown;
     readonly slug?: unknown;
@@ -154,6 +167,7 @@ const visit = (
     parentSegments: readonly string[],
     parent: ParentNode | undefined,
     resolved: ResolvedAdditionalPage[],
+    groups: ResolvedAdditionalGroup[],
     claims: Map<string, Claim>,
     context: LabelContext
 ): Result<void, string> => {
@@ -239,12 +253,16 @@ const visit = (
                 )
             );
         }
+        if (typeof file !== 'string' && segments.length === 1) {
+            groups.push({ nodePath, segments, title, label });
+        }
         const nested = visit(
             children,
             `${nodePath}.children`,
             segments,
             { nodePath, hasSlug: explicitSlug },
             resolved,
+            groups,
             claims,
             context
         );
@@ -288,29 +306,40 @@ const checkLabelKeys = (context: LabelContext, source: string): Result<void, str
  * resolution, so does an alias equal to the path of its own page; the
  * aliases of a node that is not a page are validated but otherwise ignored;
  * nodes without a file are not pages but still contribute their segment to
- * their children's path. The summary is either an array of nodes or an
- * object whose `children` array holds them; that root object is not a page
- * itself. `labelsSource` names the labels file in messages.
+ * their children's path; such a node at depth 1 is listed in `groups`. The
+ * summary is either an array of nodes or an object whose `children` array
+ * holds them; that root object is not a page itself. `labelsSource` names
+ * the labels file in messages.
  */
 export const resolveAdditionalPages = (
     summary: unknown,
     labels: LabelMap = {},
     labelsSource = ''
-): Result<readonly ResolvedAdditionalPage[], string> => {
+): Result<ResolvedAdditionalPages, string> => {
     const resolved: ResolvedAdditionalPage[] = [];
+    const groups: ResolvedAdditionalGroup[] = [];
     const claims = new Map<string, Claim>();
     const context: LabelContext = { labels, matches: new Map(), used: new Set() };
     let visited: Result<void, string> = ok(undefined);
     if (Array.isArray(summary)) {
-        visited = visit(summary, '', [], undefined, resolved, claims, context);
+        visited = visit(summary, '', [], undefined, resolved, groups, claims, context);
     } else if (isSummaryNode(summary)) {
-        visited = visit(childrenOf(summary), '.children', [], undefined, resolved, claims, context);
+        visited = visit(
+            childrenOf(summary),
+            '.children',
+            [],
+            undefined,
+            resolved,
+            groups,
+            claims,
+            context
+        );
     }
     if (isErr(visited)) {
         return visited;
     }
     const checked = checkLabelKeys(context, labelsSource);
-    return isErr(checked) ? checked : ok(resolved);
+    return isErr(checked) ? checked : ok({ pages: resolved, groups });
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
