@@ -13,6 +13,7 @@ import {
     codeText,
     codeWrap,
     deriveLibFromBucket,
+    exampleComments,
     functionSignature,
     hasJsdocParams,
     linkTypeHtml,
@@ -103,27 +104,9 @@ const Section = (props: SectionProps): string => {
     ) as string;
 };
 
-/** JSDoc `@example` comments are pre-rendered by `markedtags()` in
- * `src/utils/utils.ts` - by the time we see them here `tag.comment` already
- * contains the Shiki output (`<div class="cdx-code-snippet">...`). We collect
- * those rendered strings directly; routing them through
- * `extractJsdocCodeExamples` would re-wrap and html-entity-escape the already-
- * rendered HTML (the function's `parseCodeFences` `if (!hasCodeFences)` branch
- * treats the entire HTML blob as a single language-html block). */
-export const collectExampleComments = (item: any): string[] => {
-    const tags = item.jsdoctags ?? [];
-    const out: string[] = [];
-    for (const tag of tags) {
-        if (
-            tag?.tagName?.text === 'example' &&
-            typeof tag.comment === 'string' &&
-            tag.comment.trim().length > 0
-        ) {
-            out.push(tag.comment);
-        }
-    }
-    return out;
-};
+/** Rendered `@example` bodies of an item (see `exampleComments`). */
+export const collectExampleComments = (item: any): string[] =>
+    exampleComments(item.jsdoctags ?? []);
 
 //  Info-tab content (description + prose)
 
@@ -276,8 +259,7 @@ const ApiContent = (props: MiscDetailProps): string => {
 
 //  Examples-tab content (@example JSDoc blocks)
 // Same rendering pipeline as the markdown-engine code renderer
-// (`<div class="cdx-code-snippet">` with Shiki output) - see `collectExampleComments`
-// for why we don't go through JsdocExamplesBlock/extractJsdocCodeExamples here.
+// (`<div class="cdx-code-snippet">` with Shiki output), see `exampleComments`.
 
 const ExamplesContent = (item: any): string => {
     const examples = collectExampleComments(item);

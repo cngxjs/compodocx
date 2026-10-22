@@ -944,10 +944,17 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support @example', () => {
-        // @example fenced markdown content surfaces inside a
-        // `cdx-code-example` block on the Info tab.
-        expect(todoMVCComponentFile).to.contain('cdx-code-example');
-        expect(todoMVCComponentFile).to.contain('&lt;todomvc&gt;The example of the component');
+        // An @example without a code fence becomes an html code block
+        // (Shiki), so the tag shows as code and not as markup.
+        const start = todoMVCComponentFile.indexOf('cdx-section-heading">Example');
+        const section = todoMVCComponentFile.slice(
+            start,
+            todoMVCComponentFile.indexOf('</section>', start)
+        );
+        expect(section).to.contain('cdx-code-snippet');
+        expect(section.replace(/<[^>]+>/g, '')).to.contain(
+            '&#x3C;todomvc>The example of the component&#x3C;/todomvc>'
+        );
     });
 
     it('should support class name includes an interface name', () => {

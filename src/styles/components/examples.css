@@ -12,18 +12,3 @@
 .cdx-example-container + .cdx-example-container {
     margin-top: var(--spacing-cdx-lg);
 }
-
-/* JSDoc code example (variant: 'code') */
-pre.cdx-code-example {
-    background: var(--color-cdx-bg-code) !important;
-    color: var(--color-cdx-text);
-    border: 1px solid var(--color-cdx-border);
-    border-radius: var(--radius-cdx-md);
-    font-size: 0.8125rem;
-    line-height: 1.6;
-    position: relative;
-}
-
-pre.cdx-code-example code {
-    color: inherit;
-}

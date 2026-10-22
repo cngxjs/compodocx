@@ -1,5 +1,5 @@
 import Html from '@kitajs/html';
-import { extractJsdocCodeExamples, extractJsdocExamples, t } from '../helpers';
+import { exampleComments, extractJsdocExamples, t } from '../helpers';
 
 type JsdocExamplesBlockProps = {
     readonly tags: any[];
@@ -11,7 +11,7 @@ type JsdocExamplesBlockProps = {
 /**
  * Shared JSDoc example renderer.
  *
- * - `variant: 'code'` (default) uses `extractJsdocCodeExamples` (fenced code blocks -> <pre><code>)
+ * - `variant: 'code'` (default) uses `exampleComments` (the Shiki HTML from `markedtags()`)
  * - `variant: 'text'` uses `extractJsdocExamples` (simple caption replacement)
  * - `level: 'section'` wraps in `<section>` with `<h3>` (EntityPage style)
  * - `level: 'inline'` (default) renders bare content
@@ -23,13 +23,15 @@ export function JsdocExamplesBlock({
     level = 'inline'
 }: JsdocExamplesBlockProps): string {
     const examples =
-        variant === 'code' ? extractJsdocCodeExamples(tags) : extractJsdocExamples(tags);
+        variant === 'code'
+            ? exampleComments(tags)
+            : extractJsdocExamples(tags).map(ex => ex.comment);
 
     if (examples.length === 0) {
         return '';
     }
 
-    const items = examples.map(ex => (<div class={cssClass}>{ex.comment}</div>) as string).join('');
+    const items = examples.map(html => (<div class={cssClass}>{html}</div>) as string).join('');
 
     if (level === 'section') {
         return (

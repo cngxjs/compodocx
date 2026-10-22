@@ -8,7 +8,7 @@ export { t } from './i18n';
 export { indexableSignature } from './indexable-signature';
 export type { ComponentPlaygroundBlock } from './jsdoc';
 export {
-    extractJsdocCodeExamples,
+    exampleComments,
     extractJsdocExamples,
     extractJsdocParams,
     extractJsdocPlaygroundBlocks,
