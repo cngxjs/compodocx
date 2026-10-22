@@ -2,6 +2,7 @@ import path from 'node:path';
 import fs from 'fs-extra';
 
 import { exists, hasStderrError, shell, temporaryDir } from '../helpers';
+import { pagesIn } from '../helpers/pages';
 import { hasKindPages, readKindPages } from './paths';
 
 const tmp = temporaryDir();
@@ -13,11 +14,12 @@ describe('CLI public-api-only option', () => {
         const distDir = './test/fixtures/library/dist/libs/my-lib';
 
         const distExists = fs.existsSync(distDir);
-        const coreIndexExists = fs.existsSync(path.join(distDir, 'core/index.d.ts'));
-        const dataIndexExists = fs.existsSync(path.join(distDir, 'data/index.d.ts'));
+        // Angular 21 ng-packagr dists have no index.d.ts, the types sit in types/<package>.d.ts
+        const coreTypesExists = fs.existsSync(path.join(distDir, 'types/my-lib-core.d.ts'));
+        const dataTypesExists = fs.existsSync(path.join(distDir, 'types/my-lib-data.d.ts'));
 
         // If dist already exists with proper structure, skip build
-        if (distExists && coreIndexExists && dataIndexExists) {
+        if (distExists && coreTypesExists && dataTypesExists) {
             console.log('Fixture dist already built, skipping build step');
             return;
         }
@@ -25,7 +27,7 @@ describe('CLI public-api-only option', () => {
         try {
             // First ensure npm dependencies are installed
             console.log('Installing npm dependencies...');
-            const npmInstallResult = shell('npm', ['install', '--prefer-offline', '--no-audit'], {
+            const npmInstallResult = shell('npm', ['install', '--no-audit'], {
                 cwd: fixtureDir
             });
             if (npmInstallResult.status !== 0) {
@@ -105,6 +107,10 @@ describe('CLI public-api-only option', () => {
             expect(readKindPages(distFolder, 'function')).not.to.contain('getDefaultApiRoot');
         });
 
+        it('does not log any public API filtering', () => {
+            expect(stdoutString).not.to.contain('Skipping InjectionToken API_ROOT');
+        });
+
         it('lists both getDefaultApiRoot copies in the build log', () => {
             expect(stdoutString).to.contain('reach no entry point and are not documented:');
             expect(stdoutString).to.match(/libs\/my-lib\/core\/src\/utils[^\n]*getDefaultApiRoot/);
@@ -154,6 +160,17 @@ describe('CLI public-api-only option', () => {
             expect(isIndexExists).to.be.true;
             const isCoverageExists = exists(`${distFolder}/coverage.html`);
             expect(isCoverageExists).to.be.true;
+        });
+
+        it('reads the public API from the api reports and skips the rest', () => {
+            expect(stdoutString).to.contain('Extracted 3 public API symbol(s)');
+            expect(stdoutString).to.contain('Skipping InjectionToken API_ROOT (not in public API)');
+        });
+
+        it('keeps the component that the api reports list', () => {
+            expect(
+                exists(`${distFolder}/${pagesIn(distFolder).of('component', 'ApiStatusComponent')}`)
+            ).to.be.true;
         });
 
         it('should NOT document getDefaultApiRoot when using public API filter', () => {

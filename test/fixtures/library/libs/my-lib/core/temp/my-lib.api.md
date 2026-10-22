@@ -5,15 +5,14 @@
 ```ts
 
 import * as i0 from '@angular/core';
-import { InputSignal } from '@angular/core';
 import { Provider } from '@angular/core';
 
 // @public
 export class ApiStatusComponent {
     // (undocumented)
-    endpoint: InputSignal<string>;
+    endpoint: i0.InputSignal<string>;
     // (undocumented)
-    static ɵcmp: i0.ɵɵComponentDeclaration<ApiStatusComponent, "my-lib-api-status", never, { "endpoint": { "alias": "endpoint"; "required": false; "isSignal": true; }; }, {}, never, never, false, never>;
+    static ɵcmp: i0.ɵɵComponentDeclaration<ApiStatusComponent, "my-lib-api-status", never, { "endpoint": { "alias": "endpoint"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
     // (undocumented)
     static ɵfac: i0.ɵɵFactoryDeclaration<ApiStatusComponent, never>;
 }

@@ -4,10 +4,6 @@
 
 ```ts
 
-// @public (undocumented)
-const _default: {};
-export default _default;
-
 // (No @packageDocumentation comment for this package)
 
 ```
