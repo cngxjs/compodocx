@@ -46,3 +46,29 @@ describe('page title', () => {
         expect(html).not.toMatch(/<title[^>]*>Short/);
     });
 });
+
+describe('page title escaping', () => {
+    const hostile = `A</title><h1>BREAK</h1> & "Q" 'S'`;
+    const escaped = 'A&lt;/title>&lt;h1>BREAK&lt;/h1> &amp; &#34;Q&#34; &#39;S&#39;';
+
+    const titleOf = (html: string) => /<title[^>]*>(.*?)<\/title>/s.exec(html)?.[1];
+
+    it('escapes the documentation name', () => {
+        const html = render({ documentationMainName: hostile, context: 'readme' });
+        expect(titleOf(html)).toBe(`${escaped}`);
+        expect(html).not.toContain('</title><h1>');
+    });
+
+    it('escapes displayName and name', () => {
+        const fromDisplay = render({ context: 'component', displayName: hostile });
+        expect(titleOf(fromDisplay)).toBe(`${escaped} - component - Docs`);
+        const fromName = render({ context: 'component', name: hostile });
+        expect(titleOf(fromName)).toBe(`${escaped} - component - Docs`);
+        expect(titleOf(fromName)).not.toContain('</title>');
+    });
+
+    it('leaves a plain title unchanged', () => {
+        const html = render({ context: 'component', name: 'Button' });
+        expect(titleOf(html)).toBe('Button - component - Docs');
+    });
+});

@@ -319,7 +319,7 @@ export const Layout = (props: LayoutProps): string => {
             <head>
                 <meta charset="utf-8" />
                 <meta http-equiv="x-ua-compatible" content="ie=edge" />
-                <title>{pageTitle(data)}</title>
+                <title>{Html.escapeHtml(pageTitle(data)) as string}</title>
                 <meta name="description" content="" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" type={favicon.type} href={r(`${IMAGES_FOLDER}/${favicon.file}`)} />
