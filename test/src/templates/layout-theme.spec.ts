@@ -72,3 +72,13 @@ describe('page title escaping', () => {
         expect(titleOf(html)).toBe('Button - component - Docs');
     });
 });
+
+describe('documentation name in the page chrome', () => {
+    it('escapes the topbar and the sidebar brand', () => {
+        const html = render({ documentationMainName: 'N<script>x</script> & Co' });
+        expect(html).not.toContain('<script>x</script>');
+        expect(html.match(/N&lt;script>x&lt;\/script> &amp; Co/g)?.length).toBeGreaterThanOrEqual(
+            3
+        );
+    });
+});
