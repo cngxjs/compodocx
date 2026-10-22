@@ -1,20 +1,18 @@
 import * as path from 'node:path';
 
 import { err, isErr, type Result } from '../../lib';
-import { detectAiGeneratedMarker } from '../../utils/ai-generated.util';
-import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import MarkdownEngine from '../engines/markdown.engine';
-import type { AdditionalAlias } from '../interfaces/main-data.interface';
-import { pageLocation, pagePath } from '../links/layout';
+import { type PageLocation, pageLocation } from '../links/layout';
 import {
     type LabelMap,
     labelsFileMessage,
     parseLabelMap,
     resolveAdditionalPages
 } from './additional-page-resolver';
+import { buildAdditionalPages } from './additional-page-tree';
 import type { PageWriter } from './page-writer';
 
 export class AdditionalPageGenerator {
@@ -68,62 +66,17 @@ export class AdditionalPageGenerator {
                         reject(resolved.message);
                         return;
                     }
-                    const resolvedPages = resolved.value;
-                    let lastLevelOnePage;
-                    const aliases: AdditionalAlias[] = [];
-
-                    for (const resolvedPage of resolvedPages) {
-                        const location = pageLocation({
-                            type: 'additional',
-                            folder: Configuration.mainData.includesFolder,
-                            slugs: resolvedPage.segments
-                        });
-                        for (const alias of resolvedPage.aliases) {
-                            aliases.push({
-                                from: this.pagePathOf(alias.split('/')),
-                                to: this.pagePathOf(resolvedPage.segments),
-                                title: resolvedPage.title
-                            });
-                        }
-                        const { html: markdownFile, raw: markdownRaw } =
+                    const { pages, aliases } = buildAdditionalPages(
+                        resolved.value,
+                        file =>
                             MarkdownEngine.getTraditionalMarkdownSyncWithRaw(
-                                this.getIncludedPathForFile(resolvedPage.file)
-                            );
-                        const aiGenerated = detectAiGeneratedMarker(markdownRaw);
-                        const _page = {
-                            name: resolvedPage.label,
-                            ...(resolvedPage.title !== resolvedPage.label && {
-                                displayName: resolvedPage.title
-                            }),
-                            ...(resolvedPage.heading && { pageHeading: resolvedPage.title }),
-                            id: resolvedPage.domId,
-                            filename: location.filename,
-                            context: 'additional-page',
-                            path: location.path,
-                            additionalPage: markdownFile,
-                            additionalPageSource: {
-                                slug: resolvedPage.segments.join('/'),
-                                file: resolvedPage.file,
-                                markdown: markdownRaw
-                            },
-                            aiGenerated,
-                            depth: location.depth,
-                            childrenLength: resolvedPage.childrenLength,
-                            children: [],
-                            lastChild: false,
-                            pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
-                        };
-                        if (resolvedPage.depth === 1) {
-                            lastLevelOnePage = _page;
-                        }
-                        if (resolvedPage.depth > 1) {
-                            // store all child pages of the last root level 1 page inside it
-                            lastLevelOnePage.children.push(_page);
-                        } else {
-                            Configuration.addAdditionalPage(_page);
-                        }
+                                this.getIncludedPathForFile(file)
+                            ),
+                        segments => this.locationOf(segments)
+                    );
+                    for (const page of pages) {
+                        Configuration.addAdditionalPage(page);
                     }
-
                     Configuration.mainData.additionalAliases = aliases;
                     resolve(true);
                 },
@@ -141,14 +94,12 @@ export class AdditionalPageGenerator {
         );
     }
 
-    private pagePathOf(slugs: readonly string[]): string {
-        return pagePath(
-            pageLocation({
-                type: 'additional',
-                folder: Configuration.mainData.includesFolder,
-                slugs
-            })
-        );
+    private locationOf(slugs: readonly string[]): PageLocation {
+        return pageLocation({
+            type: 'additional',
+            folder: Configuration.mainData.includesFolder,
+            slugs
+        });
     }
 
     private getIncludedPathForFile(file: string): string {
