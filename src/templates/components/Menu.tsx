@@ -1153,7 +1153,9 @@ export const Menu = (props: MenuProps): string => {
                                                 aria-expanded="false"
                                                 aria-controls={`additional-page-${page.id}`}
                                             >
-                                                <span class="link-name">{page.name}</span>
+                                                <span class="link-name">
+                                                    {Html.escapeHtml(page.name) as string}
+                                                </span>
                                                 {IconChevronRight('cdx-chevron')}
                                             </div>
                                         </a>
@@ -1171,7 +1173,7 @@ export const Menu = (props: MenuProps): string => {
                                                         data-context="sub-entity"
                                                         data-context-id="additional"
                                                     >
-                                                        {child.name}
+                                                        {Html.escapeHtml(child.name) as string}
                                                     </a>
                                                 </li>
                                             ))}
@@ -1186,7 +1188,7 @@ export const Menu = (props: MenuProps): string => {
                                             data-type="entity-link"
                                             data-context-id="additional"
                                         >
-                                            {page.name}
+                                            {Html.escapeHtml(page.name) as string}
                                         </a>
                                     </li>
                                 )

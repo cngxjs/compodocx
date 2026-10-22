@@ -24,6 +24,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ### Fixed
 
+- **Page titles and the documentation name are escaped.** A project name or additional page title containing `<`, `&` or quotes was written raw into the `<title>`, the topbar and sidebar brand, the overview heading and the additional page labels in the sidebar, so `</title><h1>` in a name broke the page. Plain names produce the same output as before.
 - **Nested additional pages are written to the right folder.** A page whose slug is a prefix of an ancestor's slug (a child `guide` below `guide-basics`) was written to a wrong folder.
 - **Malformed `summary.json` entries no longer crash or hang the build.** Entries with a non-string `title` or `file`, children of a node with neither `title` nor `slug`, a non-array `children`, `null` entries, objects under keys other than `children` and pages deeper than five levels with a missing file are skipped.
 - **Repeated token names no longer repeat the row id on the Theming tab.**

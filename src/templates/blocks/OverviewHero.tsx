@@ -29,7 +29,9 @@ export const OverviewHero = (props: OverviewHeroProps): string => {
                     <li aria-current="page">{t('overview')}</li>
                 </ol>
             </nav>
-            <h1 class="cdx-entity-hero-name cdx-overview-hero-name">{props.projectName}</h1>
+            <h1 class="cdx-entity-hero-name cdx-overview-hero-name">
+                {Html.escapeHtml(props.projectName) as string}
+            </h1>
             <div class="cdx-entity-hero-badges">
                 {props.angularVersion && (
                     <span class="cdx-badge cdx-badge--outline">Angular {props.angularVersion}</span>

@@ -196,7 +196,7 @@ const SidebarHeader = (props: {
                     </a>
                 ) : (
                     <a href={INDEX_HREF} data-type="index-link" class="cdx-sidebar-brand">
-                        {props.name}
+                        {Html.escapeHtml(props.name) as string}
                     </a>
                 )}
             </div>
@@ -319,7 +319,7 @@ export const Layout = (props: LayoutProps): string => {
             <head>
                 <meta charset="utf-8" />
                 <meta http-equiv="x-ua-compatible" content="ie=edge" />
-                <title>{pageTitle(data)}</title>
+                <title>{Html.escapeHtml(pageTitle(data)) as string}</title>
                 <meta name="description" content="" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" type={favicon.type} href={r(`${IMAGES_FOLDER}/${favicon.file}`)} />
@@ -359,7 +359,7 @@ export const Layout = (props: LayoutProps): string => {
                 {/* Mobile top bar */}
                 <header class="cdx-topbar">
                     <a href={r('')} class="cdx-topbar-brand">
-                        {data.documentationMainName}
+                        {Html.escapeHtml(data.documentationMainName) as string}
                     </a>
                     <div class="cdx-topbar-actions">
                         {!data.disableSearch && (
