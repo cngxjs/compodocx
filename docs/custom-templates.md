@@ -128,7 +128,7 @@ module.exports = function(data, helpers) {
 
     // JSDoc extraction
     helpers.extractJsdocParams(jsdocTags)      // @param tags as structured objects
-    helpers.extractJsdocCodeExamples(jsdocTags) // @example tags with code fence parsing
+    helpers.exampleComments(jsdocTags)          // @example bodies as rendered HTML (Shiki code blocks)
     helpers.jsdocReturnsComment(jsdocTags)      // @returns comment string
     helpers.hasJsdocParams(jsdocTags)           // boolean: has @param tags?
 

@@ -62,7 +62,8 @@ describe('CLI class-level JSDoc tags on library Components', () => {
     });
 
     it('renders the @example body as a code-fence snippet', () => {
-        expect(apiStatusFile).to.contain('cdx-code-example');
+        expect(apiStatusFile).to.match(/cdx-section-heading">Example[\s\S]*?cdx-code-snippet/);
+        expect(apiStatusFile).not.to.contain('&lt;div class=&quot;cdx-code-snippet');
         expect(apiStatusFile).to.contain('my-lib-api-status');
         expect(apiStatusFile).to.contain('/api/health');
     });

@@ -29,13 +29,28 @@ const formatDiagnosticsHost: ts.FormatDiagnosticsHost = {
     getNewLine
 };
 
+/**
+ * Markdown of an `@example` body: a `<caption>` becomes a bold label, a body
+ * without a code fence becomes an `html` fence (same rule as `parseComment`).
+ */
+export function exampleMarkdown(raw: string): string {
+    const captionMatch = /<caption>([\s\S]*?)<\/caption>/.exec(raw);
+    const caption = captionMatch ? `<b><i>${captionMatch[1].trim()}</i></b>\n\n` : '';
+    const body = (captionMatch ? raw.replace(captionMatch[0], '') : raw).trim();
+    if (body.length === 0 || body.includes('```')) {
+        return caption + body;
+    }
+    return `${caption}\`\`\`html\n${body}\n\`\`\``;
+}
+
 export function markedtags(tags: Array<any>) {
     const jsdocParserUtil = new JsdocParserUtil();
     const mtags = tags;
     mtags.forEach(tag => {
         const rawComment = jsdocParserUtil.parseJSDocNode(tag);
+        const markdown = tag.tagName?.text === 'example' ? exampleMarkdown(rawComment) : rawComment;
         // links stay as written; parseDescription resolves them at render time
-        tag.comment = markedAcl(rawComment);
+        tag.comment = markedAcl(markdown);
     });
     return mtags;
 }

@@ -1,5 +1,4 @@
 import { kindToType } from '../../utils/kind-to-type';
-import { escapeHtmlText } from './escape';
 import { parseDescription } from './parse-description';
 
 export type JsdocTag = {
@@ -65,62 +64,15 @@ export const extractJsdocParams = (jsdocTags: JsdocTagSource[]): JsdocTag[] => {
     return tags;
 };
 
-type CodeBlock = { language: string; code: string };
-
-function parseCodeFences(comment: string): CodeBlock[] {
-    const regex = /```(\w+)?\s*\n([\s\S]*?)```/g;
-    const blocks: CodeBlock[] = [];
-    let match: RegExpExecArray | null;
-    let hasCodeFences = false;
-
-    while ((match = regex.exec(comment)) !== null) {
-        hasCodeFences = true;
-        let lang = (match[1] || 'html').toLowerCase();
-        if (lang === 'js') {
-            lang = 'javascript';
-        }
-        if (lang === 'ts') {
-            lang = 'typescript';
-        }
-        let code = match[2].replaceAll('___COMPODOC_EMPTY_LINE___', '\n').trim();
-        code = code.replaceAll(/```[\s\S]*?```/g, '');
-        if (code.length > 0) {
-            blocks.push({ language: lang, code });
-        }
-    }
-
-    if (!hasCodeFences) {
-        const trimmed = comment.trim();
-        if (trimmed.length > 0) {
-            blocks.push({ language: 'html', code: trimmed });
-        }
-    }
-    return blocks;
-}
-
-/** Extract @example tags with code fence parsing (rendered as <pre><code>). */
-export const extractJsdocCodeExamples = (jsdocTags: JsdocTagSource[]): JsdocTag[] => {
-    const tags: JsdocTag[] = [];
-    for (const jt of jsdocTags) {
-        if (jt.tagName?.text !== 'example' || !jt.comment) {
-            continue;
-        }
-
-        let comment = jt.comment;
-        const captionMatch = comment.match(/<caption>([\s\S]*?)<\/caption>/);
-        if (captionMatch) {
-            tags.push({ comment: `<b><i>${captionMatch[1]}</i></b>` });
-            comment = comment.replace(/<caption>[\s\S]*?<\/caption>/, '').trim();
-        }
-
-        for (const block of parseCodeFences(comment)) {
-            tags.push({
-                comment: `<pre class="cdx-code-example"><code class="language-${block.language}">${escapeHtmlText(block.code)}</code></pre>`
-            });
-        }
-    }
-    return tags;
-};
+/**
+ * Rendered `@example` bodies. `markedtags()` already turned each into HTML
+ * (Shiki code blocks in `<div class="cdx-code-snippet">`), so they are used as is.
+ */
+export const exampleComments = (jsdocTags: readonly JsdocTagSource[]): string[] =>
+    jsdocTags
+        .filter(jt => jt?.tagName?.text === 'example' && typeof jt.comment === 'string')
+        .map(jt => jt.comment)
+        .filter(comment => comment.trim().length > 0);
 
 /** Extract @example tags (simple - caption replacement only). */
 export const extractJsdocExamples = (jsdocTags: JsdocTagSource[]): JsdocTag[] => {

@@ -42,147 +42,85 @@ describe('CLI generation - JSDoc @example language specifications', () => {
         expect(isDirectiveExists).to.be.true;
     });
 
-    describe('JSDoc @example language specifications', () => {
+    describe('Examples section on the Info tab', () => {
         let directiveFile: string;
+        let examplesSection: string;
 
         beforeAll(() => {
             directiveFile = read(`${distFolder}/${pages.of('directive', 'TestClass')}`);
+            // `markedtags()` renders every fenced @example through the
+            // markdown engine, so the section holds the Shiki blocks as is.
+            const start = directiveFile.indexOf('cdx-section-heading">Example');
+            examplesSection = directiveFile.slice(
+                start,
+                directiveFile.indexOf('</section>', start)
+            );
         });
-
-        // Note on the current rendering pipeline (matches actual output of
-        // `extractJsdocCodeExamples` in `src/templates/helpers/jsdoc.ts`
-        // when fed Shiki-rendered HTML by `markedtags()`):
-        //
-        // - Each fenced @example block surfaces twice: once in the
-        //   class-level Examples section as a `<pre class="cdx-code-example">`
-        //   wrapper, once in the source-code panel as Shiki spans.
-        // - The wrapper's `<code class="language-…">` is always
-        //   `language-html`; per-fence language detection (typescript /
-        //   javascript) does not propagate through the current pipeline.
-        // - Identifier text (`testMethod`, `const instance = new …`,
-        //   etc.) reaches both places. The HTML-example fence renders
-        //   `<div>` etc. as `&#x3C;…&gt;` inside the source-code panel
-        //   (Shiki escape) and round-trips through additional escaping
-        //   inside the Examples section wrapper.
 
         it('should contain the directive class documentation', () => {
             expect(directiveFile).to.contain('TestClass');
             expect(directiveFile).to.contain('Test class for JSDoc Example language specification');
         });
 
-        it('should surface the TypeScript example tokens on the page', () => {
-            expect(directiveFile).to.contain('// TypeScript example');
-            expect(directiveFile).to.contain('const instance = new TestClass();');
-            expect(directiveFile).to.contain('instance.testMethod();');
+        it('should render one Shiki snippet per fenced @example', () => {
+            const snippets = examplesSection.match(
+                /<div class="cdx-code-snippet"><pre class="shiki/g
+            );
+            expect(snippets?.length).to.equal(3);
         });
 
-        it('should surface the HTML example tokens on the page', () => {
-            // Source-code panel renders the literal `<div>Hello World</div>`
-            // line with Shiki's hex-entity escape (`&#x3C;`).
-            expect(directiveFile).to.contain('Hello World');
-            expect(directiveFile).to.contain('&#x3C;/');
+        it('should not escape the rendered snippets a second time', () => {
+            expect(directiveFile).not.to.contain('cdx-code-example');
+            expect(directiveFile).not.to.contain('&lt;div class=&quot;cdx-code-snippet');
         });
 
-        it('should surface the JavaScript example tokens on the page', () => {
-            expect(directiveFile).to.contain('// JavaScript example');
-            expect(directiveFile).to.contain('const result = testFunction();');
+        it('should highlight the TypeScript example', () => {
+            const text = examplesSection.replace(/<[^>]+>/g, '');
+            expect(text).to.contain('// TypeScript example');
+            expect(text).to.contain('const instance = new TestClass();');
+            expect(text).to.contain('instance.testMethod();');
+            // Keyword colour of the github-light theme on `const`.
+            expect(examplesSection).to.match(/color:#D73A49[^>]*>const</);
         });
 
-        it('should keep raw markdown fences in the source-code panel only', () => {
-            // The class-level Examples section strips fences.
-            const examplesSection = directiveFile.split('cdx-code-example')[1] ?? '';
-            expect(examplesSection.startsWith('```')).to.be.false;
-            // Triple-backticks survive in the Shiki-rendered source-code
-            // panel (they are part of the literal source file content).
-            expect(directiveFile).to.contain('```');
+        it('should keep empty lines inside a fenced example', () => {
+            const text = examplesSection.replace(/<[^>]+>/g, '');
+            expect(text).to.contain(
+                'const instance = new TestClass();\n\n// Calling the test method'
+            );
         });
 
-        it('should render the cdx-code-example block once per fenced example', () => {
-            const codeBlocks =
-                directiveFile.match(/<pre class="cdx-code-example"><code class="language-/g) ?? [];
-            // Three class-level `@example` fences in the fixture.
-            expect(codeBlocks.length).to.equal(3);
+        it('should render the HTML example as code, not as markup', () => {
+            const text = examplesSection.replace(/<[^>]+>/g, '');
+            expect(text).to.contain('&#x3C;div>Hello World&#x3C;/div>');
+            expect(examplesSection).not.to.contain('<div>Hello World</div>');
         });
 
-        it('should escape HTML markup inside the source-code panel', () => {
-            // Hex-entity escapes for `<` come out of the Shiki-highlighted
-            // source-code panel.
-            expect(directiveFile).to.contain('&#x3C;');
+        it('should highlight the JavaScript example', () => {
+            const text = examplesSection.replace(/<[^>]+>/g, '');
+            expect(text).to.contain('// JavaScript example');
+            expect(text).to.contain('const result = testFunction();');
         });
 
-        describe('Method examples', () => {
-            it('should surface the method example tokens on the page', () => {
-                expect(directiveFile).to.contain('testMethod');
-                expect(directiveFile).to.contain('// Method usage');
-                expect(directiveFile).to.contain('const test = new TestClass();');
-                expect(directiveFile).to.contain('test.testMethod();');
-            });
-
-            it('should keep the method example identifiers alongside the language- chip', () => {
-                const methodSection = directiveFile.substring(directiveFile.indexOf('testMethod'));
-                expect(methodSection).to.contain('language-html');
-                expect(methodSection).to.contain('// Method usage');
-            });
-        });
-
-        it('should still work with legacy @example tags without language specification', () => {
-            // Defaults to `language-html` — currently the only language
-            // class the pipeline emits, so this trivially holds.
-            expect(directiveFile).to.contain('language-html');
+        it('should drop the markdown fences from the section', () => {
+            expect(examplesSection).not.to.contain('```');
         });
     });
 
-    describe('Code block structure', () => {
+    describe('Method examples', () => {
         let directiveFile: string;
 
         beforeAll(() => {
             directiveFile = read(`${distFolder}/${pages.of('directive', 'TestClass')}`);
         });
 
-        it('should use proper HTML structure for code blocks', () => {
-            expect(directiveFile).to.contain('<pre class="cdx-code-example">');
-            // Per the note above, every fenced @example collapses to
-            // `language-html` in the class-level Examples wrapper.
-            expect(directiveFile).to.contain('<code class="language-html">');
-            expect(directiveFile).to.contain('</code></pre>');
-        });
-
-        it('should emit one cdx-code-example block per fenced @example', () => {
-            const preElements = directiveFile.match(/<pre class="cdx-code-example">/g) ?? [];
-            // Three class-level fences in the fixture; method-level
-            // fences nest inside Shiki-highlighted descriptions and do
-            // not get a `cdx-code-example` wrapper of their own.
-            expect(preElements.length).to.equal(3);
-        });
-
-        it('should maintain code indentation and formatting', () => {
-            expect(directiveFile).to.contain('const instance = new TestClass();');
-            expect(directiveFile).to.contain('instance.testMethod();');
-        });
-    });
-
-    describe('Multiple examples handling', () => {
-        let directiveFile: string;
-
-        beforeAll(() => {
-            directiveFile = read(`${distFolder}/${pages.of('directive', 'TestClass')}`);
-        });
-
-        it('should emit a language- chip on every example block', () => {
-            const htmlBlocks = (directiveFile.match(/language-html/g) ?? []).length;
-            // Three fences → three `language-html` chips (the pipeline
-            // currently does not surface `language-typescript` or
-            // `language-javascript` chips on the wrapper).
-            expect(htmlBlocks).to.equal(3);
-        });
-
-        it('should separate each example into distinct code blocks', () => {
-            const codeBlocks =
-                directiveFile.match(
-                    /<pre class="cdx-code-example"><code class="language-[^"]*">/g
-                ) ?? [];
-            // One block per fenced @example.
-            expect(codeBlocks.length).to.equal(3);
+        it('should render the method example as a Shiki snippet', () => {
+            expect(directiveFile).to.match(
+                /cdx-code-snippet"><pre class="shiki(?:(?!<\/pre>)[\s\S])*\/\/ Method usage/
+            );
+            const text = directiveFile.replace(/<[^>]+>/g, '');
+            expect(text).to.contain('const test = new TestClass();');
+            expect(text).to.contain('test.testMethod();');
         });
     });
 });
