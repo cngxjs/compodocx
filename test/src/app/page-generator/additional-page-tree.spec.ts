@@ -13,9 +13,10 @@ import {
 } from '../../../../src/app/page-generator/additional-page-resolver';
 import {
     type AdditionalPageContent,
-    buildAdditionalPages
+    buildAdditionalPages,
+    skippedPageMessage
 } from '../../../../src/app/page-generator/additional-page-tree';
-import { isOk } from '../../../../src/lib';
+import { err, isOk, ok, type Result } from '../../../../src/lib';
 
 const fixture = 'test/fixtures/additional-identity';
 
@@ -29,10 +30,14 @@ const resolvedOf = (summary: unknown, labels?: LabelMap) => {
     return result.value;
 };
 
-const read = (file: string): AdditionalPageContent => ({
-    html: `<p>${file}</p>`,
-    raw: `# ${file}\n`
-});
+const read = (file: string): Result<AdditionalPageContent> =>
+    ok({ html: `<p>${file}</p>`, raw: `# ${file}\n` });
+
+/** A reader for which the `missing` files do not exist. */
+const readWithout =
+    (...missing: string[]) =>
+    (file: string): Result<AdditionalPageContent> =>
+        missing.includes(file) ? err(`${file} not found`) : read(file);
 
 const locate = (segments: readonly string[]) =>
     pageLocation({ type: 'additional', folder: 'additional-documentation', slugs: segments });
@@ -115,5 +120,49 @@ describe('buildAdditionalPages', () => {
             lastChild: false,
             pageType: 'internal'
         });
+    });
+
+    it('skips a page whose file is missing and keeps its siblings', () => {
+        const { pages, skipped } = buildAdditionalPages(
+            resolvedOf([
+                { title: 'A', file: 'a.md' },
+                { title: 'Gone', file: 'gone.md' },
+                { title: 'C', file: 'c.md', children: [{ title: 'Lost', file: 'lost.md' }] }
+            ]),
+            readWithout('gone.md', 'lost.md'),
+            locate
+        );
+
+        expect(outline(pages)).toEqual([
+            { name: 'A', path: 'additional-documentation/a', children: [] },
+            { name: 'C', path: 'additional-documentation/c', children: [] }
+        ]);
+        expect(skipped).toEqual([
+            { nodePath: '[1]', file: 'gone.md' },
+            { nodePath: '[2].children[0]', file: 'lost.md' }
+        ]);
+        expect(skipped.map(skippedPageMessage)).toEqual([
+            'Additional pages: summary.json[1] (gone.md) not found, page skipped',
+            'Additional pages: summary.json[2].children[0] (lost.md) not found, page skipped'
+        ]);
+    });
+
+    it('drops the aliases of a skipped page', () => {
+        const { aliases } = buildAdditionalPages(
+            resolvedOf([
+                { title: 'A', file: 'a.md', aliases: ['old-a'] },
+                { title: 'Gone', file: 'gone.md', aliases: ['old-gone'] }
+            ]),
+            readWithout('gone.md'),
+            locate
+        );
+
+        expect(aliases).toEqual([
+            {
+                from: 'additional-documentation/old-a.html',
+                to: 'additional-documentation/a.html',
+                title: 'A'
+            }
+        ]);
     });
 });

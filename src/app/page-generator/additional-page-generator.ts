@@ -1,6 +1,6 @@
 import * as path from 'node:path';
 
-import { err, isErr, type Result } from '../../lib';
+import { err, isErr, ok, type Result } from '../../lib';
 import { logger } from '../../utils/logger';
 import Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
@@ -12,7 +12,11 @@ import {
     parseLabelMap,
     resolveAdditionalPages
 } from './additional-page-resolver';
-import { buildAdditionalPages } from './additional-page-tree';
+import {
+    type AdditionalPageContent,
+    buildAdditionalPages,
+    skippedPageMessage
+} from './additional-page-tree';
 import type { PageWriter } from './page-writer';
 
 export class AdditionalPageGenerator {
@@ -66,14 +70,14 @@ export class AdditionalPageGenerator {
                         reject(resolved.message);
                         return;
                     }
-                    const { pages, aliases } = buildAdditionalPages(
+                    const { pages, aliases, skipped } = buildAdditionalPages(
                         resolved.value,
-                        file =>
-                            MarkdownEngine.getTraditionalMarkdownSyncWithRaw(
-                                this.getIncludedPathForFile(file)
-                            ),
+                        file => this.readPage(file),
                         segments => this.locationOf(segments)
                     );
+                    for (const page of skipped) {
+                        logger.warn(skippedPageMessage(page));
+                    }
                     for (const page of pages) {
                         Configuration.addAdditionalPage(page);
                     }
@@ -92,6 +96,20 @@ export class AdditionalPageGenerator {
             raw => parseLabelMap(raw, labelsPath),
             () => err(labelsFileMessage(labelsPath, 'unreadable'))
         );
+    }
+
+    /** The content of a page file, `err` when it does not exist. */
+    private readPage(file: string): Result<AdditionalPageContent> {
+        try {
+            return ok(
+                MarkdownEngine.getTraditionalMarkdownSyncWithRaw(this.getIncludedPathForFile(file))
+            );
+        } catch (e) {
+            if ((e as NodeJS.ErrnoException).code === 'ENOENT') {
+                return err(`${file} not found`);
+            }
+            throw e;
+        }
     }
 
     private locationOf(slugs: readonly string[]): PageLocation {
