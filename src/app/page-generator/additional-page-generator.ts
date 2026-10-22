@@ -101,6 +101,11 @@ export class AdditionalPageGenerator {
                             context: 'additional-page',
                             path: location.path,
                             additionalPage: markdownFile,
+                            additionalPageSource: {
+                                slug: resolvedPage.segments.join('/'),
+                                file: resolvedPage.file,
+                                markdown: markdownRaw
+                            },
                             aiGenerated,
                             depth: location.depth,
                             childrenLength: resolvedPage.childrenLength,

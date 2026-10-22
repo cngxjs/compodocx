@@ -40,6 +40,7 @@ import { type SymbolRef, toSymbolKey } from '../links/symbol-id';
 import { type SymbolTable, styleFileName } from '../links/symbol-table';
 import { exportRoutes, type RoutingModel, withRouteFacts } from '../routing';
 import type { StyleModel } from '../styles/model';
+import { exportAdditionalPages } from './export-additional-pages';
 import FileEngine from './file.engine';
 
 const INLINE_STYLE_RE = /^<inline-style-(\d+)>$/;
@@ -503,6 +504,10 @@ export class ExportJsonEngine {
         }
         if (model) {
             exportData.semantic = exportSemantic(model);
+        }
+        const additionalPages = exportAdditionalPages(data.additionalPages);
+        if (additionalPages.length > 0) {
+            exportData.additionalPages = additionalPages;
         }
 
         return FileEngine.write(

@@ -9,6 +9,7 @@ import Configuration from '../configuration';
 
 import { EXPORT_SCHEMA_VERSION, type ExportData } from '../interfaces/export-data.interface';
 import { exportRoutes, type RoutingModel } from '../routing';
+import { exportAdditionalPages } from './export-additional-pages';
 import {
     exportStyleFiles,
     factsJoiner,
@@ -80,11 +81,16 @@ export class ExportLlmMdEngine {
         if (!Configuration.mainData.disableRoutes && routing && routing.count > 0) {
             exportData.routes = exportRoutes(routing, data.symbols);
         }
+        const additionalPages = exportAdditionalPages(data.additionalPages);
+        if (additionalPages.length > 0) {
+            exportData.additionalPages = additionalPages;
+        }
 
         const markdown = renderLlmMd(exportData, {
             projectName:
                 Configuration.mainData.documentationMainName || 'Application documentation',
-            projectDescription: Configuration.mainData.documentationMainDescription
+            projectDescription: Configuration.mainData.documentationMainDescription,
+            additionalPagesName: Configuration.mainData.includesName
         });
 
         if (Configuration.mainData.outputProvided) {

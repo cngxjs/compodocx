@@ -22,6 +22,8 @@ import type {
     ExportTypeAlias,
     ExportVariable
 } from '../app/interfaces/export-data.interface';
+import { COMPODOC_DEFAULTS } from '../utils/defaults';
+import { emitAdditionalPages } from './additional-pages';
 import {
     emitClass,
     emitComponent,
@@ -44,6 +46,8 @@ import type { LlmMdEmitOptions, LlmMdInput, LlmMdSnapshotMeta } from './types';
 
 const sectionHeader = (title: string): string => `## ${title}`;
 
+const ADDITIONAL_PAGES_NAME = COMPODOC_DEFAULTS.additionalEntryName;
+
 /** The design tokens and documented mixins of the style files; '' without any. */
 const designTokensSection = (files: ExportData['styleFiles']): string => {
     const body = emitDesignTokens(files ?? []);
@@ -54,6 +58,15 @@ const designTokensSection = (files: ExportData['styleFiles']): string => {
 const routesSection = (roots: ExportData['routes']): string => {
     const body = emitRoutes(roots ?? []);
     return body ? `${sectionHeader('Routes')}\n\n${body}` : '';
+};
+
+/** The pages from `--includes`; '' without pages. */
+const additionalPagesSection = (
+    pages: ExportData['additionalPages'],
+    name: string | undefined
+): string => {
+    const body = emitAdditionalPages(pages ?? []);
+    return body ? `${sectionHeader(escapeMarkdown(name || ADDITIONAL_PAGES_NAME))}\n\n${body}` : '';
 };
 
 /** Symbols that reach no public entry point are left out of every section. */
@@ -139,6 +152,7 @@ export const emitLlmMd = (input: LlmMdInput): string => {
         ),
         renderListSection<ExportVariable>('Public variables', misc?.variables, emitVariable),
         routesSection(data.routes),
+        additionalPagesSection(data.additionalPages, options.additionalPagesName),
         designTokensSection(data.styleFiles)
     ];
 
