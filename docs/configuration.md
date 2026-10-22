@@ -97,6 +97,8 @@ Classes decorated with Angular's `@Service` (Angular 22, recognised by the impor
 
 Two more optional fields come from the source: `tokens[].factory` holds the source of the `factory` option of `new InjectionToken(...)`, and a `providers` / `viewProviders` entry written as a call (`provideFoo(withMode('wide'))`) carries `call: { callee, args }`, where `args` lists the names of arguments that are calls themselves. `name` and `type` of such an entry are unchanged. Function guards and functional resolvers stay under `miscellaneous` with their `functionalKind`, although the HTML shows them as guards and resolvers.
 
+Pages from [`includes`](#additional-content) are written to the optional top-level `additionalPages` list, in sidebar order, only when there are pages. Each entry has `slug` (the slug path below the includes folder, for example `guides/getting-started`), `title`, `label` (only when the sidebar label differs from the title), `file` (relative to the includes folder), `markdown` (the file as written, not the rendered HTML; relative links stay as they are), `aiGenerated` (only when the page has the `@aiGenerated` marker) and `children`. Page URLs and aliases are not part of the export. The llm-md export adds one section named after `includesName` (after "Routes", before "Design tokens") with every page in tree order under a `###` heading, its own headings moved down to start at `####` (fenced code untouched). Pages are included in full, so the file grows by about the size of the Markdown files.
+
 ## Serving
 
 Compodocx includes a built-in dev server for previewing documentation locally.
@@ -486,7 +488,7 @@ compodocx diff --old snapshots/old/documentation.json --new snapshots/new/docume
 | `--md` | Write a Markdown table to stdout, for changelogs |
 | `--no-warnings` | Console output only: leave out non-breaking changes (breaking changes are still shown) |
 
-Exit codes: `0` no breaking and no additive change, `1` additive changes only, `2` at least one breaking change or a fatal error (unreadable file, missing flag, an export whose `schemaVersion` is not the one this compodocx writes). Both exports must have the current schema; re-export older ones. Routes and `styleFiles` are not compared.
+Exit codes: `0` no breaking and no additive change, `1` additive changes only, `2` at least one breaking change or a fatal error (unreadable file, missing flag, an export whose `schemaVersion` is not the one this compodocx writes). Both exports must have the current schema; re-export older ones. Routes, `styleFiles` and `additionalPages` are not compared.
 
 ### `compodocx migrate jsdoc <dir>`
 

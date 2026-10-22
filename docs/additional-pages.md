@@ -259,6 +259,10 @@ Config-file equivalent:
 
 compodocx logs `Additional documentation: summary.json file found` during generation and then `Process additional pages` once the Markdown files are rendered. If `summary.json` is missing or unreadable the feature is silently skipped; if it parses but references a missing file, that page is skipped with a warning. Entries that are malformed (a non-string `title` or `file`, a non-array `children`, a `null` entry) are skipped as well.
 
+## Exports
+
+With `--exportFormat json` the pages are written to the top-level `additionalPages` list of `documentation.json`: slug path, title, label (when it differs from the title), source file, the Markdown as written and the children. With `--exportFormat llm-md` they form one section named after `includesName`, each page under its title with its own headings moved one level below it. Aliases and page URLs are not exported, and `compodocx diff` does not compare the pages. See [Semantic fields in the JSON export](configuration.md#semantic-fields-in-the-json-export).
+
 ## Errors
 
 These problems stop the build with exit code 1. The message names the position in `summary.json` and the file, `summary.json[1].children[0]` for example.
