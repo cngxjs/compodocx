@@ -624,6 +624,25 @@ export interface ExportData {
      * analysis did not run (no tsconfig, or the tsconfig could not be read).
      */
     semantic?: ExportSemantic;
+    /** Pages from `--includes`, in sidebar order; written only when there are any. */
+    additionalPages?: ExportAdditionalPage[];
+}
+
+/** A page from `--includes` (`summary.json`). */
+export interface ExportAdditionalPage {
+    /** Slug path below the includes folder, forward slashes ("guides/getting-started"). */
+    slug: string;
+    /** Page title (the heading text). */
+    title: string;
+    /** Sidebar label; written only when it differs from the title. */
+    label?: string;
+    /** Source file relative to the includes folder, forward slashes. */
+    file: string;
+    /** Raw Markdown as written, not the rendered HTML. */
+    markdown: string;
+    /** The page carries the `@aiGenerated` marker (its detail text stays in `markdown`). */
+    aiGenerated?: true;
+    children?: ExportAdditionalPage[];
 }
 
 /** A free-standing style file with documented content. */

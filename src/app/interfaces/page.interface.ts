@@ -1,3 +1,13 @@
+/** Where an additional page came from, kept for the exports. */
+export interface AdditionalPageSource {
+    /** Slug path below the includes folder ("guides/getting-started"). */
+    readonly slug: string;
+    /** Source file as named in `summary.json`, relative to the includes folder. */
+    readonly file: string;
+    /** The Markdown as written. */
+    readonly markdown: string;
+}
+
 export interface PageInterface {
     name: string;
     /** Page title when `name` is an internal id. */
@@ -17,6 +27,8 @@ export interface PageInterface {
     injectable?: any;
     service?: any;
     additionalPage?: any;
+    /** Source of an additional page; no template reads it. */
+    additionalPageSource?: AdditionalPageSource;
     files?: any;
     data?: any;
     depth?: number;
