@@ -80,6 +80,23 @@ describe('exportAdditionalPages', () => {
         ).toEqual([]);
     });
 
+    it('writes the pages of a group in its place, without a group entry', () => {
+        const group: PageInterface = {
+            name: 'Group',
+            id: 'group',
+            context: 'additional-group',
+            depth: 1,
+            children: [page('B', 'group/b'), page('C', 'group/c')]
+        };
+        const exported = exportAdditionalPages([
+            page('First', 'first'),
+            group,
+            page('Last', 'last')
+        ]);
+        expect(exported.map(entry => entry.slug)).toEqual(['first', 'group/b', 'group/c', 'last']);
+        expect(exported.every(entry => entry.children === undefined)).toBe(true);
+    });
+
     it('does not mutate the page objects', () => {
         const pages = [page('Guides', 'guides', {}, [page('Child', 'guides/child')])];
         const before = structuredClone(pages);

@@ -37,7 +37,7 @@ additional-doc/
     api-reference.md
 ```
 
-Paths inside `summary.json` are resolved relative to the folder passed to `--includes`.
+The `--includes` folder can be absolute or relative to the working directory. Paths inside `summary.json` are resolved relative to that folder.
 
 ## `summary.json` schema
 
@@ -72,7 +72,19 @@ A node's order in the array is its order in the sidebar. The first level shows u
 
 ### Node fields
 
-All fields are optional, so existing `summary.json` files keep working unchanged. A node without `file` gets no page; its slug still forms the folder of its children.
+All fields are optional, so existing `summary.json` files keep working unchanged. A node without `file` gets no page; its slug still forms the folder of its children. On the first level such a node becomes a group in the sidebar: its label opens and closes the list of the pages below it, without a link. Deeper down it adds no sidebar entry, and its pages are listed under its first-level ancestor.
+
+```json
+[
+    { "title": "Getting Started", "file": "getting-started.md" },
+    {
+        "title": "Guides",
+        "children": [{ "title": "Signals", "file": "guides/signals.md" }]
+    }
+]
+```
+
+Here "Guides" is a group without a page, and the page is written to `additional-documentation/guides/signals.html`.
 
 | Field | Type | Meaning | Default |
 |-|-|-|-|
@@ -257,11 +269,11 @@ Config-file equivalent:
 }
 ```
 
-compodocx logs `Additional documentation: summary.json file found` during generation and then `Process additional pages` once the Markdown files are rendered. If `summary.json` is missing or unreadable the feature is silently skipped; if it parses but references a missing file, that page is skipped with a warning. Entries that are malformed (a non-string `title` or `file`, a non-array `children`, a `null` entry) are skipped as well.
+compodocx logs `Additional documentation: summary.json file found` during generation and then `Process additional pages` once the Markdown files are rendered. If `summary.json` is missing or unreadable the feature is silently skipped. A page whose `file` does not exist is skipped with the warning `Additional pages: summary.json<path> (<file>) not found, page skipped`, together with its aliases, and the build exits with code 0; the pages below it are kept, under a group as for a node without `file` when the skipped page is on the first level. Entries that are malformed (a non-string `title` or `file`, a non-array `children`, a `null` entry) are skipped as well.
 
 ## Exports
 
-With `--exportFormat json` the pages are written to the top-level `additionalPages` list of `documentation.json`: slug path, title, label (when it differs from the title), source file, the Markdown as written and the children. With `--exportFormat llm-md` they form one section named after `includesName`, each page under its title with its own headings moved one level below it. Aliases and page URLs are not exported, and `compodocx diff` does not compare the pages. See [Semantic fields in the JSON export](configuration.md#semantic-fields-in-the-json-export).
+With `--exportFormat json` the pages are written to the top-level `additionalPages` list of `documentation.json`: slug path, title, label (when it differs from the title), source file, the Markdown as written and the children. A sidebar group is not an entry of its own: its pages take its place in the list and keep the group's segment in their slug (`guides/signals`). With `--exportFormat llm-md` they form one section named after `includesName`, each page under its title with its own headings moved one level below it. Aliases and page URLs are not exported, and `compodocx diff` does not compare the pages. See [Semantic fields in the JSON export](configuration.md#semantic-fields-in-the-json-export).
 
 ## Errors
 

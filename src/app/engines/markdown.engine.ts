@@ -102,12 +102,14 @@ export class MarkdownEngine {
             });
     }
 
+    /** Reads `filepath` (absolute, or relative to the cwd) and renders it. */
     public getTraditionalMarkdownSync(filepath: string): string {
-        return this.markedInstance(FileEngine.getSync(process.cwd() + path.sep + filepath));
+        return this.markedInstance(FileEngine.getSync(filepath));
     }
 
+    /** Reads `filepath` (absolute, or relative to the cwd): the HTML and the Markdown as written. */
     public getTraditionalMarkdownSyncWithRaw(filepath: string): { html: string; raw: string } {
-        const raw = FileEngine.getSync(process.cwd() + path.sep + filepath);
+        const raw = FileEngine.getSync(filepath);
         return { html: this.markedInstance(raw), raw };
     }
 
