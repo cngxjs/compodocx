@@ -47,4 +47,57 @@ test.describe('Additional pages', () => {
         await expect(page.locator('.content-data .cdx-readme')).toHaveCount(1);
         await expect(page.locator('.content-data > .content-data')).toHaveCount(0);
     });
+
+    test('a page with children lines up with the plain pages next to it', async ({ page }) => {
+        // On the child page neither `Getting Started` nor `Guides` is the active link.
+        await page.goto('/additional-documentation/guides/signals-&-reactivity.html');
+        await page.waitForLoadState('domcontentloaded');
+
+        const textLeft = (name: string) =>
+            page.evaluate(label => {
+                const links = document.querySelectorAll('#additional-pages > li > a');
+                const link = [...links].find(a => a.textContent?.trim() === label);
+                if (!link) {
+                    return Number.NaN;
+                }
+                const range = document.createRange();
+                range.selectNodeContents(link.querySelector('.link-name') ?? link);
+                return range.getBoundingClientRect().left;
+            }, name);
+
+        const plain = await textLeft('Getting Started');
+        expect(plain).toBeGreaterThan(0);
+        expect(await textLeft('Guides')).toBeCloseTo(plain, 0);
+    });
+
+    test('a page with children toggles through its own button', async ({ page }) => {
+        await page.goto('/additional-documentation/getting-started.html');
+        await page.waitForLoadState('domcontentloaded');
+
+        const toggle = page.getByRole('button', { name: 'Guides', exact: true });
+        const children = page.locator(`#${await toggle.getAttribute('aria-controls')}`);
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+        await expect(children).toBeHidden();
+
+        await toggle.focus();
+        await page.keyboard.press('Enter');
+        await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+        await expect(children).toBeVisible();
+
+        // The open state survives a reload (stored per collapse id).
+        await page.waitForTimeout(300);
+        await page.reload();
+        await expect(children).toBeVisible();
+        await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+
+        await toggle.focus();
+        await page.keyboard.press('Space');
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+        await expect(children).toBeHidden();
+
+        await page
+            .locator('#additional-pages a[data-type="chapter-link"]', { hasText: 'Guides' })
+            .click();
+        await expect(page).toHaveURL(/additional-documentation\/guides\.html$/);
+    });
 });

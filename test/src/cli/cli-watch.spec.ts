@@ -266,3 +266,131 @@ describe('CLI watch mode', () => {
         IT_TIMEOUT
     );
 });
+
+describe('CLI watch mode with paths outside the current folder', () => {
+    let workDir = '';
+    let projectDir = '';
+    let docsDir = '';
+    let child: ChildProcess | undefined;
+    let log = '';
+
+    /** Resolve once `pattern` has appeared `count` times; reject with the log on timeout. */
+    const waitForLog = (pattern: string, count: number, timeoutMs = WAIT_TIMEOUT) =>
+        new Promise<void>((resolve, reject) => {
+            const started = Date.now();
+            const poll = setInterval(() => {
+                if (countMatches(log, pattern) >= count) {
+                    clearInterval(poll);
+                    resolve();
+                } else if (Date.now() - started > timeoutMs) {
+                    clearInterval(poll);
+                    reject(new Error(`Timed out waiting for "${pattern}" x${count}:\n${log}`));
+                }
+            }, 100);
+        });
+
+    /** Re-apply `edit` until `pattern` shows up (chokidar may miss an edit before `ready`). */
+    const editUntilLogged = async (edit: () => void, pattern: string, count: number) => {
+        const deadline = Date.now() + WAIT_TIMEOUT;
+        for (;;) {
+            edit();
+            try {
+                await waitForLog(pattern, count, 8000);
+                return;
+            } catch (error) {
+                if (Date.now() > deadline) {
+                    throw error;
+                }
+            }
+        }
+    };
+
+    beforeAll(async () => {
+        // The project and the includes folder lie outside the cwd of the CLI and
+        // are passed as absolute paths.
+        workDir = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'compodocx-watch-'));
+        projectDir = path.join(workDir, 'ks');
+        docsDir = path.join(workDir, 'docs');
+        const runDir = path.join(workDir, 'run');
+        fs.cpSync(FIXTURE, projectDir, { recursive: true });
+        fs.cpSync(path.join(FIXTURE, 'additional-doc'), docsDir, { recursive: true });
+        fs.mkdirSync(runDir);
+
+        child = spawn(
+            'node',
+            [
+                BIN,
+                '-p',
+                path.join(projectDir, 'tsconfig.json'),
+                '--includes',
+                docsDir,
+                '-d',
+                'out',
+                '-s',
+                '-w',
+                '--port',
+                String(PORT + 1),
+                '--disableSearch',
+                '--no-multiVersion'
+            ],
+            { cwd: runDir }
+        );
+        const collect = (chunk: Buffer) => {
+            log += stripAnsi(chunk.toString());
+        };
+        child.stdout?.on('data', collect);
+        child.stderr?.on('data', collect);
+
+        await waitForLog('Watching sources in', 1);
+    });
+
+    afterAll(() => {
+        child?.kill();
+        if (workDir) {
+            fs.rmSync(workDir, { recursive: true, force: true });
+        }
+    });
+
+    it(
+        'rebuilds after a change in an absolute includes folder',
+        async () => {
+            const file = path.join(docsDir, 'getting-started.md');
+            const marker = 'Watch spec marker line for an absolute includes folder.';
+            const source = fs.readFileSync(file, 'utf8');
+
+            await editUntilLogged(
+                () => fs.writeFileSync(file, `${source}\n${marker}\n`),
+                'Documentation generated in',
+                2
+            );
+
+            const page = path.join(
+                workDir,
+                'run/out/additional-documentation/getting-started.html'
+            );
+            expect(fs.readFileSync(page, 'utf8')).to.contain(marker);
+        },
+        IT_TIMEOUT
+    );
+
+    it(
+        'rebuilds the diff after a .ts change in sources outside the cwd',
+        async () => {
+            const file = path.join(projectDir, COMPONENT_FILE);
+            const source = fs.readFileSync(file, 'utf8');
+            const edited = source.replace(
+                'Dashboard page using signals, resource(), and linkedSignal().',
+                `Dashboard page using signals, resource(), and linkedSignal(). ${TS_MARKER}`
+            );
+            expect(edited).not.to.equal(source);
+
+            await editUntilLogged(
+                () => fs.writeFileSync(file, edited),
+                'Get diff dependencies data',
+                1
+            );
+            await waitForLog('Documentation generated in', 3);
+        },
+        IT_TIMEOUT
+    );
+});

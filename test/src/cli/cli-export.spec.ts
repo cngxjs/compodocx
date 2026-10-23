@@ -33,6 +33,19 @@ describe('CLI Export', () => {
             expect(stdoutString).to.contain('Documentation generated');
         });
 
+        it('names destructured parameter groups by their source position', () => {
+            const file = read(`${distFolder}/documentation.json`, 'utf8');
+            const ids = [...file.matchAll(/"destrucuredGroupId":"([^"]*)"/g)].map(m => m[1]);
+
+            expect(ids.length).to.be.greaterThan(0);
+            expect(new Set(ids)).to.deep.equal(
+                new Set([
+                    'test/fixtures/todomvc-ng2/src/app/shared/miscellaneous/miscellaneous.ts:68:23',
+                    'test/fixtures/todomvc-ng2/src/app/shared/miscellaneous/miscellaneous.ts:72:31'
+                ])
+            );
+        });
+
         it('should display descriptions and raw descriptions', () => {
             const file = read(`${distFolder}/documentation.json`, 'utf8');
 

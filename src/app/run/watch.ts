@@ -2,7 +2,7 @@ import * as path from 'node:path';
 
 import { err, isErr, ok, type Result } from '../../lib';
 import { logger } from '../../utils/logger';
-import { cleanSourcesForWatch, findMainSourceFolder } from '../../utils/utils';
+import { cleanSourcesForWatch, findMainSourceFolder, watchedFilePath } from '../../utils/utils';
 import type { SemanticState } from '../compiler/semantic';
 import MarkdownEngine from '../engines/markdown.engine';
 import { startWebServer } from '../services/serve';
@@ -171,7 +171,7 @@ const startWatch = async (session: Session): Promise<WatchHandle> => {
                         path.extname(file) === '.md' ||
                         path.extname(file) === '.json'
                     ) {
-                        watchChangedFiles.push(path.join(cwd + path.sep + file));
+                        watchChangedFiles.push(watchedFilePath(cwd, file));
                         waiterChange();
                     }
                 })

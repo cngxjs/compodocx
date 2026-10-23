@@ -37,7 +37,7 @@ additional-doc/
     api-reference.md
 ```
 
-The `--includes` folder can be absolute or relative to the working directory. Paths inside `summary.json` are resolved relative to that folder.
+The `--includes` folder can be absolute or relative to the working directory, also when it is set in a config file passed with `-c` from another folder. Paths inside `summary.json` are resolved relative to that folder.
 
 ## `summary.json` schema
 
@@ -270,7 +270,7 @@ Config-file equivalent:
 }
 ```
 
-compodocx logs `Additional documentation: summary.json file found` during generation and then `Process additional pages` once the Markdown files are rendered. If `summary.json` is missing or unreadable the feature is silently skipped. A page whose `file` does not exist is skipped with the warning `Additional pages: summary.json<path> (<file>) not found, page skipped`, together with its aliases, and the build exits with code 0; the pages below it are kept, under a group as for a node without `file` when the skipped page is on the first level. Entries that are malformed (a non-string `title` or `file`, a non-array `children`, a `null` entry) are skipped as well.
+compodocx logs `Additional documentation: summary.json file found` during generation and then `Process additional pages` once the Markdown files are rendered. If `summary.json` is missing or unreadable the feature is silently skipped; if the folder itself does not exist, compodocx warns `Additional pages: includes folder <absolute path> not found, no pages added` and the build exits with code 0. A page whose `file` does not exist is skipped with the warning `Additional pages: summary.json<path> (<file>) not found, page skipped`, together with its aliases, and the build exits with code 0; the pages below it are kept, under a group as for a node without `file` when the skipped page is on the first level. Entries that are malformed (a non-string `title` or `file`, a non-array `children`, a `null` entry) are skipped as well.
 
 ## Exports
 

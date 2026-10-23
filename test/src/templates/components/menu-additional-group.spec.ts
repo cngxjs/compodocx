@@ -95,4 +95,34 @@ describe('Menu additional pages group', () => {
         expect(firstLink).to.be.lessThan(groupStart);
         expect(html).to.not.include('additional-page-first-id');
     });
+
+    it('renders a page with children as a link and a sibling toggle button', () => {
+        const parent = {
+            ...first,
+            name: 'Parent <page>',
+            id: 'parent-id',
+            filename: 'parent',
+            children: [child('Child', 'parent/child')]
+        };
+        const html = Menu({ data: dataWith([parent]) });
+        const entry = entryOf(html, 'additional-page-parent-id');
+
+        expect(entry).to.match(/^<li class="chapter inner cdx-additional-parent"[^>]*><a /);
+        expect(entry).to.match(
+            /<a data-type="chapter-link" href="additional-documentation\/parent.html" data-context-id="additional"[^>]*><span class="link-name" id="additional-page-parent-id-label"[^>]*>Parent &lt;page><\/span><\/a><button /
+        );
+        const button = entry.slice(entry.indexOf('<button'), entry.indexOf('</button>'));
+        expect(button).to.include('class="cdx-additional-toggle"');
+        expect(button).to.include('type="button"');
+        expect(button).to.include('data-cdx-toggle="collapse"');
+        expect(button).to.include('data-cdx-target="#additional-page-parent-id"');
+        expect(button).to.include('aria-expanded="false"');
+        expect(button).to.include('aria-controls="additional-page-parent-id"');
+        expect(button).to.include('aria-labelledby="additional-page-parent-id-label"');
+        expect(button).to.include('cdx-chevron');
+        expect(entry).to.match(/<ul class="links collapse" id="additional-page-parent-id"[^>]*>/);
+        expect(entry).to.include('href="additional-documentation/parent/child.html"');
+        expect(entry).to.not.include('role="button"');
+        expect(entry).to.not.include('menu-toggler');
+    });
 });

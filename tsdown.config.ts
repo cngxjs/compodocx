@@ -41,7 +41,6 @@ export default defineConfig({
             'sirv',
             'ts-morph',
             'typescript',
-            'uuid',
         ],
     },
     dts: false,

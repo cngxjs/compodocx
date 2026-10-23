@@ -189,7 +189,7 @@ Include external documentation, static assets, or supply custom templates.
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
-| includes | `--includes` | string | -- | Path to a folder of external markdown files. Each `.md` file becomes a page in the documentation, accessible via a dedicated sidebar section. Supports nested folders for sub-navigation |
+| includes | `--includes` | string | -- | Path to a folder of external markdown files, absolute or relative to the working directory (also in a config file). A folder that does not exist is reported with a warning. Each `.md` file becomes a page in the documentation, accessible via a dedicated sidebar section. Supports nested folders for sub-navigation |
 | includesName | `--includesName` | string | `'Additional documentation'` | Sidebar label for the external markdown pages section |
 | includesLabels | `--includesLabels` | string | -- | Path to a JSON file keyed by page slug, each entry with an optional `label` (sidebar text) and `title` (page title). Read only when `includes` is set. See [Additional pages](additional-pages.md) |
 | assetsFolder | `-a, --assetsFolder` | string | -- | Path to a folder of static assets (images, files) copied into the output directory. Referenced from markdown or custom templates via relative paths |

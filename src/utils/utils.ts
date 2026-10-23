@@ -170,12 +170,18 @@ export function cleanLifecycleHooksFromMethods(methods: Array<any>): Array<any> 
     return result;
 }
 
+/** The watch sources that exist; absolute or relative to the cwd. */
 export function cleanSourcesForWatch(list) {
     return list.filter(element => {
-        if (fs.existsSync(process.cwd() + path.sep + element)) {
+        if (fs.existsSync(path.resolve(element))) {
             return element;
         }
     });
+}
+
+/** The full path of a file the watcher reports, relative to `cwd` or absolute. */
+export function watchedFilePath(cwd: string, file: string): string {
+    return path.resolve(cwd, file);
 }
 
 export function getNamesCompareFn(name?) {
@@ -265,7 +271,35 @@ if (!Array.prototype.includes) {
     });
 }
 
+/** True when `file` is not below the cwd. */
+const isOutsideCwd = (file: string): boolean => {
+    const relative = path.relative(process.cwd(), path.resolve(file));
+    return relative.startsWith('..') || path.isAbsolute(relative);
+};
+
+/** The deepest folder (absolute) that contains every file. */
+const commonFolder = (files: string[]): string => {
+    const folders = files.map(file => path.dirname(path.resolve(file)).split(path.sep));
+    const first = folders[0];
+    let length = first.length;
+    for (const folder of folders) {
+        let i = 0;
+        while (i < length && folder[i] === first[i]) {
+            i++;
+        }
+        length = i;
+    }
+    return first.slice(0, length).join(path.sep) || path.sep;
+};
+
+/**
+ * The folder to watch: the top folder below the cwd that holds most of the
+ * files, or the common folder of the files when some lie outside the cwd.
+ */
 export function findMainSourceFolder(files: string[]) {
+    if (files.some(isOutsideCwd)) {
+        return commonFolder(files);
+    }
     let mainFolder = '';
     let mainFolderCount = 0;
     let rawFolders = files.map(filepath => {
