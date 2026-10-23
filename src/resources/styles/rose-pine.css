@@ -24,6 +24,8 @@
     --color-cdx-primary: #b4637a;
     --color-cdx-primary-hover: #9e4f66;
     --color-cdx-primary-subtle: #f5e8ec;
+    /* Primary hue, shifted for 4.5:1 on the active tint. */
+    --color-cdx-accent: hsl(343 35% 43%);
 
     /* --- Entity colors (warm rose palette) --- */
     --color-cdx-entity-component: #3a8c7a;
@@ -109,6 +111,7 @@
     --color-cdx-primary: #ea9a97;
     --color-cdx-primary-hover: #f0b0ad;
     --color-cdx-primary-subtle: #3a2833;
+    --color-cdx-accent: var(--color-cdx-primary);
 
     /* --- Entity colors (warm for dark bg) --- */
     --color-cdx-entity-component: #7dd3c0;

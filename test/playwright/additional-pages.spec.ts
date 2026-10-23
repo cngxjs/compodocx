@@ -48,26 +48,47 @@ test.describe('Additional pages', () => {
         await expect(page.locator('.content-data > .content-data')).toHaveCount(0);
     });
 
-    test('a page with children lines up with the plain pages next to it', async ({ page }) => {
+    test('a page with children starts with its chevron where the plain pages start', async ({
+        page
+    }) => {
         // On the child page neither `Getting Started` nor `Guides` is the active link.
         await page.goto('/additional-documentation/guides/signals-&-reactivity.html');
         await page.waitForLoadState('domcontentloaded');
+        await page.addStyleTag({ content: '* { transition: none !important; }' });
 
-        const textLeft = (name: string) =>
+        const startOf = (name: string) =>
             page.evaluate(label => {
                 const links = document.querySelectorAll('#additional-pages > li > a');
                 const link = [...links].find(a => a.textContent?.trim() === label);
                 if (!link) {
                     return Number.NaN;
                 }
+                // A page with children starts with the chevron of its toggle button.
+                const chevron = link.parentElement?.querySelector(
+                    ':scope > .cdx-additional-toggle .cdx-chevron'
+                );
+                if (chevron) {
+                    return chevron.getBoundingClientRect().left;
+                }
                 const range = document.createRange();
-                range.selectNodeContents(link.querySelector('.link-name') ?? link);
+                range.selectNodeContents(link);
                 return range.getBoundingClientRect().left;
             }, name);
 
-        const plain = await textLeft('Getting Started');
+        const plain = await startOf('Getting Started');
         expect(plain).toBeGreaterThan(0);
-        expect(await textLeft('Guides')).toBeCloseTo(plain, 0);
+        expect(await startOf('Guides')).toBeCloseTo(plain, 0);
+    });
+
+    test('opens the list of the active child page on first load', async ({ page }) => {
+        await page.goto('/additional-documentation/guides/signals-&-reactivity.html');
+        const active = page.locator('#additional-pages a.active');
+        await expect(active).toHaveText('Signals & Reactivity');
+        await expect(active).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Guides', exact: true })).toHaveAttribute(
+            'aria-expanded',
+            'true'
+        );
     });
 
     test('a page with children toggles through its own button', async ({ page }) => {

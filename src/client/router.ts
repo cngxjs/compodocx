@@ -330,9 +330,11 @@ const navigate = async (
 };
 
 export const initRouter = () => {
-    // Fix sidebar links and set active link on initial page load
+    // Fix sidebar links and set active link on initial page load. The sidebar
+    // initialised before the active link was known, so open its ancestors now.
     fixMenuLinks();
     updateActiveLink(window.location.href);
+    expandToActive();
 
     // Intercept link clicks
     document.addEventListener('click', e => {

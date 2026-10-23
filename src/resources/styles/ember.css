@@ -22,6 +22,8 @@
     --color-cdx-primary: hsl(18 85% 38%);
     --color-cdx-primary-hover: hsl(18 90% 32%);
     --color-cdx-primary-subtle: hsl(22 70% 95%);
+    /* Primary hue, shifted for 4.5:1 on the active tint. */
+    --color-cdx-accent: hsl(18 85% 36%);
 
     /* --- Entity colors (warm-shifted, WCAG AA compliant) --- */
     --color-cdx-entity-component: #0f766e; /* teal-700 warm */
@@ -108,6 +110,7 @@
     --color-cdx-primary: hsl(22 55% 72%);
     --color-cdx-primary-hover: hsl(22 65% 80%);
     --color-cdx-primary-subtle: hsl(22 35% 18%);
+    --color-cdx-accent: var(--color-cdx-primary);
 
     /* --- Entity colors (warmer, brighter for dark bg) --- */
     --color-cdx-entity-component: #5eead4; /* teal-300 warm */

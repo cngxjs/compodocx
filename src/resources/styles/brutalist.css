@@ -23,6 +23,7 @@
     --color-cdx-primary: hsl(0 0% 0%);
     --color-cdx-primary-hover: hsl(0 0% 22%);
     --color-cdx-primary-subtle: hsl(0 0% 88%);
+    --color-cdx-accent: var(--color-cdx-primary);
 
     /* --- Entity colors (kept — already high contrast 700-level) --- */
     --color-cdx-entity-component: #007a6e;
@@ -124,6 +125,7 @@
     --color-cdx-primary: hsl(0 0% 100%);
     --color-cdx-primary-hover: hsl(0 0% 78%);
     --color-cdx-primary-subtle: hsl(0 0% 18%);
+    --color-cdx-accent: var(--color-cdx-primary);
 
     /* --- Entity colors (300-level — loud on black) --- */
     --color-cdx-entity-component: #5eead4;

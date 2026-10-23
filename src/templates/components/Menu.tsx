@@ -24,6 +24,7 @@ import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { isAdditionalGroup } from '../../app/page-generator/additional-page-tree';
 import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
 import { t } from '../helpers';
+import { type AdditionalTreeNode, additionalTree } from '../helpers/additional-tree';
 import {
     appRootPath,
     type FeatureMenuTiers,
@@ -156,9 +157,9 @@ const GroupedChapter = (props: {
                 aria-expanded={chapterOpen(props.key) ? 'true' : 'false'}
                 aria-controls={listId}
             >
+                {chevron()}
                 {props.icon}
                 <span>{props.label}</span>
-                {chevron()}
             </button>
             <ul class={`links collapse${chapterOpen(props.key) ? ' in' : ''}`} id={listId}>
                 <li class="link">
@@ -179,9 +180,9 @@ const GroupedChapter = (props: {
                                 aria-expanded={startExpanded ? 'true' : 'false'}
                                 aria-controls={id}
                             >
+                                {IconChevronRight('cdx-chevron')}
                                 <span class="link-name">{group.label}</span>
                                 <span class="cdx-badge cdx-badge--count">{group.links.length}</span>
-                                {IconChevronRight('cdx-chevron')}
                             </button>
                             <ul class={`links collapse${startExpanded ? ' in' : ''}`} id={id}>
                                 {group.links.join('')}
@@ -418,13 +419,13 @@ const GroupTree = (props: {
                 aria-expanded={startExpanded ? 'true' : 'false'}
                 aria-controls={id}
             >
+                {IconChevronRight('cdx-chevron')}
                 <span class="link-name">
                     {props.node.name.charAt(0).toUpperCase() + props.node.name.slice(1)}
                 </span>
                 {props.node.items.length > 0 && (
                     <span class="cdx-badge cdx-badge--count">{props.node.items.length}</span>
                 )}
-                {IconChevronRight('cdx-chevron')}
             </button>
             <ul class={`links collapse${startExpanded ? ' in' : ''}`} id={id}>
                 {props.node.children.map(child =>
@@ -546,9 +547,9 @@ const RoleNode = (props: {
                 aria-expanded="false"
                 aria-controls={props.id}
             >
+                {IconChevronRight('cdx-chevron')}
                 <span class="link-name">{t(props.labelKey)}</span>
                 <span class="cdx-badge cdx-badge--count">{props.count}</span>
-                {IconChevronRight('cdx-chevron')}
             </button>
             <ul class="links collapse" id={props.id}>
                 {props.body}
@@ -671,6 +672,7 @@ const FeatureGroupTree = (props: {
                 aria-controls={id}
                 aria-label={`Toggle ${labelText} group`}
             >
+                {IconChevronRight('cdx-chevron cdx-bucket-chevron')}
                 {labelHref ? (
                     <a
                         class="cdx-bucket-link"
@@ -690,7 +692,6 @@ const FeatureGroupTree = (props: {
                         {props.node.items.length}
                     </span>
                 )}
-                {IconChevronRight('cdx-chevron cdx-bucket-chevron')}
             </div>
             <ul class={`links collapse${startExpanded ? ' in' : ''}`} id={id}>
                 {props.node.children.map(child =>
@@ -781,9 +782,9 @@ const FeatureSection = (props: FeatureSectionProps): string => {
                 aria-expanded={chapterOpen(props.chapterKey) ? 'true' : 'false'}
                 aria-controls={id}
             >
+                {chevron()}
                 {IconFolder()}
                 <span>{props.label}</span>
-                {chevron()}
             </button>
             <ul class={`links collapse${chapterOpen(props.chapterKey) ? ' in' : ''}`} id={id}>
                 {props.designTokens ? DesignTokensLink() : ''}
@@ -834,9 +835,9 @@ const EntitySection = (props: {
                 aria-expanded={chapterOpen(props.type) ? 'true' : 'false'}
                 aria-controls={id}
             >
+                {chevron()}
                 {props.iconHtml}
                 <span>{t(props.labelKey)}</span>
-                {chevron()}
             </button>
             <ul class={`links collapse${chapterOpen(props.type) ? ' in' : ''}`} id={id}>
                 {props.leadHtml ?? ''}
@@ -1035,22 +1036,66 @@ const styleMenuItems = (table: SymbolTable | undefined): any[] =>
               .map(entry => ({ name: entry.ref.name, file: entry.ref.file }))
         : [];
 
-/** The pages below a depth-1 additional page or group. */
-const AdditionalChildren = (props: { id: string; children: any[] }): string =>
+/**
+ * A page with children: the toggle button (the chevron) comes first, then the
+ * link that opens the page.
+ */
+const AdditionalParent = (props: {
+    page: any;
+    nested: boolean;
+    children: AdditionalTreeNode<any>[];
+}): string => {
+    const id = `additional-page-${props.page.id}`;
+    return (
+        <li class="chapter inner cdx-additional-parent">
+            <button
+                class="cdx-additional-toggle"
+                type="button"
+                data-cdx-toggle="collapse"
+                data-cdx-target={`#${id}`}
+                aria-expanded="false"
+                aria-controls={id}
+                aria-labelledby={`${id}-label`}
+            >
+                {IconChevronRight('cdx-chevron')}
+            </button>
+            <a
+                data-type={props.nested ? 'entity-link' : 'chapter-link'}
+                href={pageFile(props.page.path, props.page.filename)}
+                data-context={props.nested ? 'sub-entity' : undefined}
+                data-context-id="additional"
+            >
+                <span class="link-name" id={`${id}-label`}>
+                    {Html.escapeHtml(props.page.name) as string}
+                </span>
+            </a>
+            {AdditionalList({ id, nodes: props.children })}
+        </li>
+    ) as string;
+};
+
+/** A page below a top-level additional entry, with its own pages nested below it. */
+const AdditionalNode = (node: AdditionalTreeNode<any>): string =>
+    node.children.length > 0
+        ? AdditionalParent({ page: node.page, nested: true, children: node.children })
+        : ((
+              <li class="link">
+                  <a
+                      href={pageFile(node.page.path, node.page.filename)}
+                      data-type="entity-link"
+                      data-context="sub-entity"
+                      data-context-id="additional"
+                  >
+                      {Html.escapeHtml(node.page.name) as string}
+                  </a>
+              </li>
+          ) as string);
+
+/** The collapsible list of pages below an additional page or group. */
+const AdditionalList = (props: { id: string; nodes: AdditionalTreeNode<any>[] }): string =>
     (
         <ul class="links collapse" id={props.id}>
-            {props.children.map((child: any) => (
-                <li class={`link${child.depth > 1 ? ` for-chapter${child.depth}` : ''}`}>
-                    <a
-                        href={pageFile(child.path, child.filename)}
-                        data-type="entity-link"
-                        data-context="sub-entity"
-                        data-context-id="additional"
-                    >
-                        {Html.escapeHtml(child.name) as string}
-                    </a>
-                </li>
-            ))}
+            {props.nodes.map(AdditionalNode)}
         </ul>
     ) as string;
 
@@ -1068,44 +1113,22 @@ const AdditionalEntry = (page: any): string => {
                     aria-expanded="false"
                     aria-controls={id}
                 >
-                    <span class="link-name">{Html.escapeHtml(page.name) as string}</span>
                     {IconChevronRight('cdx-chevron')}
+                    <span class="link-name">{Html.escapeHtml(page.name) as string}</span>
                 </button>
-                {AdditionalChildren({ id, children: page.children })}
+                {AdditionalList({ id, nodes: additionalTree(page.children) })}
             </li>
         ) as string;
     }
     if (page.children?.length > 0 && page.depth === 1) {
-        // The link opens the page, the sibling button toggles its children.
-        const id = `additional-page-${page.id}`;
-        return (
-            <li class="chapter inner cdx-additional-parent">
-                <a
-                    data-type="chapter-link"
-                    href={pageFile(page.path, page.filename)}
-                    data-context-id="additional"
-                >
-                    <span class="link-name" id={`${id}-label`}>
-                        {Html.escapeHtml(page.name) as string}
-                    </span>
-                </a>
-                <button
-                    class="cdx-additional-toggle"
-                    type="button"
-                    data-cdx-toggle="collapse"
-                    data-cdx-target={`#${id}`}
-                    aria-expanded="false"
-                    aria-controls={id}
-                    aria-labelledby={`${id}-label`}
-                >
-                    {IconChevronRight('cdx-chevron')}
-                </button>
-                {AdditionalChildren({ id, children: page.children })}
-            </li>
-        ) as string;
+        return AdditionalParent({
+            page,
+            nested: false,
+            children: additionalTree(page.children)
+        });
     }
     return (
-        <li class={`link${page.depth > 1 ? ` for-chapter${page.depth}` : ''}`}>
+        <li class="link">
             <a
                 href={pageFile(page.path, page.filename)}
                 data-type="entity-link"
@@ -1210,9 +1233,9 @@ export const Menu = (props: MenuProps): string => {
                             aria-expanded={chapterOpen('additionalPages') ? 'true' : 'false'}
                             aria-controls="additional-pages"
                         >
+                            {chevron()}
                             {IconBook()}
                             <span>{d.includesName}</span>
-                            {chevron()}
                         </button>
                         <ul
                             class={`links collapse${chapterOpen('additionalPages') ? ' in' : ''}`}

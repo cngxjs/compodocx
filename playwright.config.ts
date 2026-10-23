@@ -43,7 +43,7 @@ export default defineConfig({
         {
             name: 'chrome',
             use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts', '**/di-chapter.spec.ts', '**/features.spec.ts', '**/feature-urls.spec.ts', '**/style-files.spec.ts', '**/routes.spec.ts'],
+            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts', '**/di-chapter.spec.ts', '**/features.spec.ts', '**/feature-urls.spec.ts', '**/style-files.spec.ts', '**/routes.spec.ts', '**/sidebar-tree.spec.ts'],
         },
 
         // firefox + webkit run on a nightly cron (.github/workflows/e2e-cross-browser.yml),
@@ -52,13 +52,13 @@ export default defineConfig({
         {
             name: 'firefox',
             use: { ...devices['Desktop Firefox'] },
-            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts', '**/di-chapter.spec.ts', '**/feature-urls.spec.ts', '**/style-files.spec.ts', '**/routes.spec.ts'],
+            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts', '**/di-chapter.spec.ts', '**/feature-urls.spec.ts', '**/style-files.spec.ts', '**/routes.spec.ts', '**/sidebar-tree.spec.ts'],
         },
 
         {
             name: 'webkit',
             use: { ...devices['Desktop Safari'] },
-            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts', '**/di-chapter.spec.ts', '**/feature-urls.spec.ts', '**/style-files.spec.ts', '**/routes.spec.ts'],
+            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts', '**/di-chapter.spec.ts', '**/feature-urls.spec.ts', '**/style-files.spec.ts', '**/routes.spec.ts', '**/sidebar-tree.spec.ts'],
         },
 
         /* todomvc-ng2 fixture tests (empty states, etc.) — uses port 4001 */
@@ -74,7 +74,7 @@ export default defineConfig({
         {
             name: 'standalone',
             use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4002' },
-            testMatch: ['**/standalone-features.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts'],
+            testMatch: ['**/standalone-features.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/sidebar-tree.spec.ts'],
         },
 
         /* multi-version fixture tests (version-switcher) — uses port 4003 */
@@ -88,7 +88,7 @@ export default defineConfig({
         {
             name: 'standalone-feature',
             use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4004' },
-            testMatch: ['**/menu-layout.spec.ts', '**/features.spec.ts'],
+            testMatch: ['**/menu-layout.spec.ts', '**/features.spec.ts', '**/sidebar-tree.spec.ts'],
         },
 
         /* semantic-library fixture with search (DI chapter, feature type pages), uses port 4005 */

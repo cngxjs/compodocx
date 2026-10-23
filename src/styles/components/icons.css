@@ -5,16 +5,15 @@
     margin-right: 0.5rem;
 }
 
+/* The sidebar chevron comes first in its row (before the icon or label);
+   its centre is the x of the guide line of the node's children. */
 .cdx-chevron {
-    margin-right: 0;
-    margin-left: auto;
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%) rotate(0deg);
+    flex: 0 0 16px;
+    margin-right: 6px;
+    transform: rotate(0deg);
     transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .cdx-chevron--open {
-    transform: translateY(-50%) rotate(90deg);
+    transform: rotate(90deg);
 }

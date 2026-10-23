@@ -55,6 +55,13 @@
     --color-cdx-primary-hover: hsl(0 0% 30%);
     --color-cdx-primary-subtle: hsl(0 0% 84%);
 
+    /*  Accent (active sidebar item) and focus ring. The brand orange #ef6706
+     * misses 4.5:1 as text on the tinted row, so light and dark use the
+     * nearest oranges that pass (4.8:1 each on their tint). */
+    --color-cdx-accent: #a63a0b;
+    --color-cdx-accent-subtle: color-mix(in srgb, var(--color-cdx-accent) 10%, var(--color-cdx-bg-alt));
+    --color-cdx-focus-ring: #2563eb;
+
     /*  Entity type accents  */
     --color-cdx-entity-component: #0e8578; /* teal-700 */
     --color-cdx-entity-service: #a56a07; /* amber-800 */
@@ -174,6 +181,10 @@
     --color-cdx-primary: hsl(0 0% 90%);
     --color-cdx-primary-hover: hsl(0 0% 100%);
     --color-cdx-primary-subtle: hsl(0 0% 26%);
+
+    --color-cdx-accent: #f97c2c;
+    --color-cdx-accent-subtle: color-mix(in srgb, var(--color-cdx-accent) 12%, var(--color-cdx-bg-alt));
+    --color-cdx-focus-ring: #60a5fa;
 
     --color-cdx-entity-component: #2dd4bf; /* teal light */
     --color-cdx-entity-service: #fbbf24; /* amber light */

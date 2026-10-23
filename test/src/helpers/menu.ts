@@ -14,3 +14,17 @@ export const menuOf = (siteRoot: string): string => {
     }
     return JSON.parse(literal) as string;
 };
+
+/**
+ * How many lists below the additional pages list the link `href` sits in:
+ * 0 for a top-level page, 1 for its child, and so on; -1 when it is missing.
+ */
+export const additionalDepthOf = (menu: string, href: string): number => {
+    const link = menu.indexOf(`href="${href}"`);
+    const start = menu.indexOf('id="additional-pages"');
+    if (link === -1 || start === -1) {
+        return -1;
+    }
+    const before = menu.slice(start, link);
+    return (before.match(/<ul\b/g) ?? []).length - (before.match(/<\/ul>/g) ?? []).length;
+};
