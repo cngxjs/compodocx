@@ -7,11 +7,11 @@ import type Configuration from '../configuration';
 import FileEngine from '../engines/file.engine';
 import { runPagefindIndex } from '../engines/search-indexer.engine';
 import { updateVersionsManifest } from '../engines/versions-manifest.engine';
-import type { MainDataInterface } from '../interfaces/main-data.interface';
+import type { AdditionalAlias, MainDataInterface } from '../interfaces/main-data.interface';
 import { REDIRECTS_FILE } from '../links/layout';
-import { REDIRECTS_SCHEMA_VERSION, type RedirectsFile } from '../links/redirects';
+import { REDIRECTS_SCHEMA_VERSION, type Redirects, type RedirectsFile } from '../links/redirects';
 import { type Halt, halt } from '../run/halt';
-import { aliasStubFiles } from './alias-stubs';
+import { aliasStubFiles, isAliasStub, staleAliasStubs } from './alias-stubs';
 import { faviconImage, IMAGES_FOLDER, logoImage } from './brand-images';
 
 const cwd = process.cwd();
@@ -151,7 +151,9 @@ export const finalizeOutput = async (ctx: OutputContext): Promise<Result<void, H
     }
 
     // Redirect pages for old additional-page URLs; written after the
-    // indexing so the search never lists them.
+    // indexing so the search never lists them. Stubs of aliases the previous
+    // run wrote and this one dropped go first.
+    pruneAliasStubs(mainData.output, mainData.includesFolder, mainData.additionalAliases);
     for (const { file, content } of aliasStubFiles(mainData.additionalAliases)) {
         FileEngine.writeSync(path.join(mainData.output, file), content);
     }
@@ -190,6 +192,70 @@ export const finalizeOutput = async (ctx: OutputContext): Promise<Result<void, H
             ' theme'
     );
     return ok(undefined);
+};
+
+/** The redirects in `output`'s `redirects.json`; `undefined` when missing, unreadable or foreign. */
+const readPreviousRedirects = (output: string): Redirects | undefined => {
+    const file = path.join(output, REDIRECTS_FILE);
+    try {
+        const parsed: unknown = JSON.parse(fs.readFileSync(file, 'utf8'));
+        const { schemaVersion, redirects } = (parsed ?? {}) as Partial<RedirectsFile>;
+        if (
+            schemaVersion !== REDIRECTS_SCHEMA_VERSION ||
+            !redirects ||
+            typeof redirects !== 'object'
+        ) {
+            logger.debug(`Alias stubs: ${file} has no known schema, nothing removed`);
+            return undefined;
+        }
+        return redirects;
+    } catch {
+        logger.debug(`Alias stubs: no readable ${file}, nothing removed`);
+        return undefined;
+    }
+};
+
+/**
+ * Removes the redirect pages of aliases that the previous run recorded in
+ * `redirects.json` below the additional pages `folder` and this run no longer
+ * has. A file goes only when it lies inside `output` and is byte-identical to
+ * the stub compodocx wrote, so a page or a hand-edited file at that path stays.
+ * Never throws and never removes folders. Returns the removed paths.
+ */
+export const pruneAliasStubs = (
+    output: string,
+    folder: string,
+    aliases: readonly AdditionalAlias[]
+): readonly string[] => {
+    const previous = readPreviousRedirects(output);
+    if (!previous) {
+        return [];
+    }
+    const root = path.resolve(output);
+    const removed: string[] = [];
+    for (const { from, to } of staleAliasStubs(previous, aliases, folder)) {
+        const file = path.resolve(root, ...from.split('/'));
+        if (!file.startsWith(root + path.sep)) {
+            continue;
+        }
+        try {
+            const isFile = fs.statSync(file, { throwIfNoEntry: false })?.isFile() ?? false;
+            if (!isFile || !isAliasStub(fs.readFileSync(file, 'utf8'), from, to)) {
+                continue;
+            }
+            fs.unlinkSync(file);
+            removed.push(from);
+        } catch (error) {
+            logger.warn(`Could not remove the redirect page ${from}: ${(error as Error).message}`);
+        }
+    }
+    if (removed.length > 0) {
+        logger.info(
+            `Additional pages: removed ${removed.length} redirect page(s) of dropped aliases`
+        );
+        logger.debug(`Removed redirect pages: ${removed.join(', ')}`);
+    }
+    return removed;
 };
 
 /** `redirects.json` in the output folder: old page path -> current page path. */
