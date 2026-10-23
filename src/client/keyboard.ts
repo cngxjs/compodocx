@@ -1,9 +1,10 @@
 /**
  * Keyboard-first navigation.
- * Shortcuts: ? (overlay), / (search), j/k (member nav), [/] (entity nav), Escape.
+ * Shortcuts: ? (overlay), / (search), j/k (member nav), n/p (entity nav), Escape.
  */
 
 import { openCommandPalette } from './command-palette';
+import { updateHash } from './hash-router';
 
 const DIALOG_ID = 'cdx-shortcuts-dialog';
 let currentMemberIndex = -1;
@@ -73,14 +74,25 @@ const createDialog = (): HTMLDialogElement => {
     return dialog;
 };
 
-/** j/k member card navigation */
+const MEMBER_SELECTOR = '.cdx-member-card, .cdx-io-member[id]';
+
+const membersOf = (panel: Element | null): HTMLElement[] =>
+    panel ? Array.from(panel.querySelectorAll<HTMLElement>(MEMBER_SELECTOR)) : [];
+
+/** j/k member card navigation; switches to the first tab with members (normally API) */
 const navigateMember = (direction: 1 | -1) => {
-    const selector =
-        '.cdx-tab-panel.active .cdx-member-card, .cdx-tab-panel:first-child .cdx-member-card,' +
-        ' .cdx-tab-panel.active .cdx-io-member[id], .cdx-tab-panel:first-child .cdx-io-member[id]';
-    const cards = document.querySelectorAll<HTMLElement>(selector);
+    let cards = membersOf(document.querySelector('.cdx-tab-panel.active'));
     if (!cards.length) {
-        return;
+        const panel = Array.from(document.querySelectorAll<HTMLElement>('.cdx-tab-panel')).find(
+            p => membersOf(p).length > 0
+        );
+        if (!panel) {
+            return;
+        }
+        // Same path as clicking the tab: ARIA, active panel and URL hash stay in sync
+        updateHash(`#${panel.id}`);
+        cards = membersOf(panel);
+        currentMemberIndex = direction === 1 ? -1 : cards.length;
     }
 
     // Remove previous focus
@@ -145,16 +157,20 @@ const buildPreviewHtml = (link: HTMLAnchorElement): string => {
     return html;
 };
 
-/** [/] entity sidebar navigation with preview */
-const navigateEntity = (direction: 1 | -1) => {
-    const links = Array.from(
+/** Sidebar entity links that are rendered; links inside collapsed nodes are skipped */
+const visibleEntityLinks = (): HTMLAnchorElement[] =>
+    Array.from(
         document.querySelectorAll<HTMLAnchorElement>('.menu a[data-type="entity-link"]')
-    );
+    ).filter(link => link.getClientRects().length > 0);
+
+/** n/p entity sidebar navigation with preview */
+const navigateEntity = (direction: 1 | -1) => {
+    const links = visibleEntityLinks();
     if (!links.length) {
         return;
     }
 
-    // If no preview is active, start from the current active link
+    // If no preview is active, start from the current active link (first/last when it is hidden)
     if (focusedEntityIdx === -1) {
         const activeLink = document.querySelector<HTMLAnchorElement>(
             '.menu a.active[data-type="entity-link"]'
@@ -214,9 +230,7 @@ const navigateEntity = (direction: 1 | -1) => {
 
 /** Navigate to the focused entity (Enter key) */
 const confirmEntityNavigation = () => {
-    const links = Array.from(
-        document.querySelectorAll<HTMLAnchorElement>('.menu a[data-type="entity-link"]')
-    );
+    const links = visibleEntityLinks();
     if (focusedEntityIdx >= 0 && focusedEntityIdx < links.length) {
         const target = links[focusedEntityIdx];
         dismissPreview();
