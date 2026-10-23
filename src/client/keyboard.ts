@@ -4,6 +4,7 @@
  */
 
 import { openCommandPalette } from './command-palette';
+import { updateHash } from './hash-router';
 
 const DIALOG_ID = 'cdx-shortcuts-dialog';
 let currentMemberIndex = -1;
@@ -73,14 +74,25 @@ const createDialog = (): HTMLDialogElement => {
     return dialog;
 };
 
-/** j/k member card navigation */
+const MEMBER_SELECTOR = '.cdx-member-card, .cdx-io-member[id]';
+
+const membersOf = (panel: Element | null): HTMLElement[] =>
+    panel ? Array.from(panel.querySelectorAll<HTMLElement>(MEMBER_SELECTOR)) : [];
+
+/** j/k member card navigation; switches to the first tab with members (normally API) */
 const navigateMember = (direction: 1 | -1) => {
-    const selector =
-        '.cdx-tab-panel.active .cdx-member-card, .cdx-tab-panel:first-child .cdx-member-card,' +
-        ' .cdx-tab-panel.active .cdx-io-member[id], .cdx-tab-panel:first-child .cdx-io-member[id]';
-    const cards = document.querySelectorAll<HTMLElement>(selector);
+    let cards = membersOf(document.querySelector('.cdx-tab-panel.active'));
     if (!cards.length) {
-        return;
+        const panel = Array.from(document.querySelectorAll<HTMLElement>('.cdx-tab-panel')).find(
+            p => membersOf(p).length > 0
+        );
+        if (!panel) {
+            return;
+        }
+        // Same path as clicking the tab: ARIA, active panel and URL hash stay in sync
+        updateHash(`#${panel.id}`);
+        cards = membersOf(panel);
+        currentMemberIndex = direction === 1 ? -1 : cards.length;
     }
 
     // Remove previous focus

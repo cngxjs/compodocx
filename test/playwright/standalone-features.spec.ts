@@ -592,6 +592,32 @@ test.describe('Keyboard navigation', () => {
         await expect(focused).toBeInViewport();
     });
 
+    test('j switches to the API tab when the open tab has no members', async ({ page }) => {
+        await page.goto(pageUrl('injectable', 'UserService'));
+        await expect(page.locator('#info-tab')).toHaveAttribute('aria-selected', 'true');
+        await page.keyboard.press('j');
+        await expect(page.locator('#api-tab')).toHaveAttribute('aria-selected', 'true');
+        await expect(page.locator('#info-tab')).toHaveAttribute('aria-selected', 'false');
+        await expect(page).toHaveURL(/#api$/);
+        const focused = page.locator('.cdx-member-card--focused');
+        await expect(focused).toHaveCount(1);
+        await expect(focused).toBeVisible();
+        const first = await focused.getAttribute('id');
+        await page.keyboard.press('j');
+        await expect(focused).not.toHaveAttribute('id', first ?? '');
+        await page.keyboard.press('k');
+        await expect(focused).toHaveAttribute('id', first ?? '');
+    });
+
+    test('k from a tab without members focuses the last API member', async ({ page }) => {
+        await page.goto(pageUrl('injectable', 'UserService'));
+        await page.keyboard.press('k');
+        await expect(page.locator('#api-tab')).toHaveAttribute('aria-selected', 'true');
+        await expect(page.locator('#api .cdx-io-member[id]').last()).toHaveClass(
+            /cdx-member-card--focused/
+        );
+    });
+
     test('Escape clears member focus', async ({ page }) => {
         await page.goto(pageUrl('injectable', 'UserService'));
         await page.locator('[role="tab"]', { hasText: 'API' }).click();
