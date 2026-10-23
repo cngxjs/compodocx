@@ -1,5 +1,5 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { menuOf } from '../helpers/menu';
+import { additionalDepthOf, menuOf } from '../helpers/menu';
 
 const tmp = temporaryDir();
 
@@ -60,11 +60,20 @@ describe('CLI Additional documentation', () => {
     });
 
     it('should contain up to 5 levels of depth', () => {
-        expect(menu).to.contain('for-chapter2');
-        expect(menu).to.contain('for-chapter3');
-        expect(menu).to.contain('for-chapter4');
-        expect(menu).to.contain('for-chapter5');
-        expect(menu).to.not.contain('for-chapter6');
+        const base = 'additional-documentation/edition';
+        expect(additionalDepthOf(menu, `${base}.html`)).to.equal(0);
+        expect(additionalDepthOf(menu, `${base}/edition-of-a-todo.html`)).to.equal(1);
+        expect(additionalDepthOf(menu, `${base}/edition-of-a-todo/edit-level3.html`)).to.equal(2);
+        expect(
+            additionalDepthOf(menu, `${base}/edition-of-a-todo/edit-level3/edit-level4.html`)
+        ).to.equal(3);
+        expect(
+            additionalDepthOf(
+                menu,
+                `${base}/edition-of-a-todo/edit-level3/edit-level4/edit-level5.html`
+            )
+        ).to.equal(4);
+        expect(menu).to.not.contain('for-chapter');
     });
 
     it('should generate every link containing its parent reference', () => {
@@ -87,13 +96,11 @@ describe('CLI Additional documentation', () => {
     });
 
     it('should have links in correct order', () => {
-        const level3 = menu.indexOf('<li class="link for-chapter3">');
-        const level4 = menu.indexOf('<li class="link for-chapter4">');
+        const base = 'href="additional-documentation/edition/edition-of-a-todo';
+        const level3 = menu.indexOf(`${base}/edit-level3.html"`);
+        const level4 = menu.indexOf(`${base}/edit-level3/edit-level4.html"`);
         expect(level3).to.be.greaterThan(-1);
         expect(level4).to.be.greaterThan(level3);
-        expect(menu.slice(level3, level4)).to.contain(
-            'href="additional-documentation/edition/edition-of-a-todo/edit-level3.html"'
-        );
     });
 });
 

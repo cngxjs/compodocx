@@ -35,6 +35,7 @@ const dataWith = (additionalPages: unknown[]) => ({
 
 const child = (name: string, slug: string, depth = 2) => ({
     name,
+    id: slug.replaceAll('/', '-'),
     path: `additional-documentation/${slug.split('/').slice(0, -1).join('/')}`,
     filename: slug.split('/').at(-1),
     depth,
@@ -81,9 +82,22 @@ describe('Menu additional pages group', () => {
         expect(entry).to.match(/<span class="link-name"[^>]*>Group &lt;label><\/span>/);
         expect(entry).to.match(/<ul class="links collapse" id="additional-group-group"[^>]*>/);
         expect(entry).to.include('href="additional-documentation/group/b.html"');
-        expect(entry).to.include('class="link for-chapter3"');
         expect(entry).to.include('href="additional-documentation/group/inner/deep.html"');
         expect(entry).to.not.include('data-type="chapter-link"');
+        expect(entry).to.not.include('for-chapter');
+    });
+
+    it('nests a deeper page in the list of the page above it', () => {
+        const html = Menu({ data: dataWith([group]) });
+        const b = entryOf(html, 'additional-page-group-b');
+
+        expect(b).to.match(/^<li class="chapter inner cdx-additional-parent"/);
+        expect(b).to.match(
+            /<a data-type="entity-link" href="additional-documentation\/group\/b.html" data-context="sub-entity" data-context-id="additional"[^>]*>/
+        );
+        expect(b).to.include('aria-labelledby="additional-page-group-b-label"');
+        expect(b).to.match(/<ul class="links collapse" id="additional-page-group-b"[^>]*>/);
+        expect(b).to.include('href="additional-documentation/group/inner/deep.html"');
     });
 
     it('keeps a page before the group a plain link without children', () => {

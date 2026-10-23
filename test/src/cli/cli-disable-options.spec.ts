@@ -1,5 +1,5 @@
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
-import { menuOf } from '../helpers/menu';
+import { additionalDepthOf, menuOf } from '../helpers/menu';
 import { pagesIn } from '../helpers/pages';
 import { readKindPages } from './paths';
 
@@ -727,12 +727,14 @@ describe('CLI disable flags', () => {
 
         it('should handle deep nesting levels correctly without overview', () => {
             menuFile = menuOf(additionalTestFolder);
-            // Should contain up to level 5 but not level 6
-            expect(menuFile).to.contain('for-chapter2');
-            expect(menuFile).to.contain('for-chapter3');
-            expect(menuFile).to.contain('for-chapter4');
-            expect(menuFile).to.contain('for-chapter5');
-            expect(menuFile).to.not.contain('for-chapter6');
+            // Nested up to level 5 (four lists below the top level), no level 6
+            const base = 'additional-documentation/edition/edition-of-a-todo';
+            expect(
+                additionalDepthOf(menuFile, `${base}/edit-level3/edit-level4/edit-level5.html`)
+            ).to.equal(4);
+            expect(menuFile).to.not.contain(
+                `${base}/edit-level3/edit-level4/edit-level5/edit-level6`
+            );
         });
 
         it('should generate correct additional documentation links without overview interference', () => {
