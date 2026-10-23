@@ -80,6 +80,17 @@ test.describe('Additional pages', () => {
         expect(await startOf('Guides')).toBeCloseTo(plain, 0);
     });
 
+    test('opens the list of the active child page on first load', async ({ page }) => {
+        await page.goto('/additional-documentation/guides/signals-&-reactivity.html');
+        const active = page.locator('#additional-pages a.active');
+        await expect(active).toHaveText('Signals & Reactivity');
+        await expect(active).toBeVisible();
+        await expect(page.getByRole('button', { name: 'Guides', exact: true })).toHaveAttribute(
+            'aria-expanded',
+            'true'
+        );
+    });
+
     test('a page with children toggles through its own button', async ({ page }) => {
         await page.goto('/additional-documentation/getting-started.html');
         await page.waitForLoadState('domcontentloaded');
