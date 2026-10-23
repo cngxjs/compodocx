@@ -6,7 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
-## [Unreleased]
+## [0.10.0] - 2026-10-23
+
+Upgrading from 0.9: no flag, config key or URL was removed. Custom templates that call `extractJsdocCodeExamples`, custom sidebar CSS, tools that read the `@example` comments in `documentation.json` and `summary.json` files with clashing page paths need a look; [MIGRATION.md](MIGRATION.md) lists each change.
 
 ### Added
 

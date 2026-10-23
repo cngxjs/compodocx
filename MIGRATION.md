@@ -67,6 +67,15 @@ Useful flags:
 
 Re-running `ng add @cngxjs/compodocx` is idempotent (zero diff on the second pass). CI workflow files that invoke `compodoc -p ...` directly are not rewritten - update those manually, or rely on the `compodoc` bin alias the new package still ships. The schematic does not touch your sources, templates or config file: the warnings of the first run still apply.
 
+## Changes in 0.10.0
+
+No flag, config key or URL was removed. What to check when you upgrade from 0.9:
+
+- **Custom templates that call `helpers.extractJsdocCodeExamples`.** The helper is now `helpers.exampleComments(tags)` and returns the rendered HTML of each `@example` body (Shiki code blocks) instead of `<pre class="cdx-code-example">` wrappers. The `cdx-code-example` styles are gone.
+- **Custom CSS for the sidebar.** The sidebar is drawn as a tree with new markup: nested additional pages are real nested lists, and the `for-chapter2` to `for-chapter5` classes are gone. Custom `menu` templates are not affected. Themes can set the new tokens `--color-cdx-accent`, `--color-cdx-accent-subtle` and `--color-cdx-focus-ring`.
+- **Tools that read `documentation.json`.** The schema stays 6. `jsdoctags[].comment` of an `@example` without a code fence is now a code block (`<div class="cdx-code-snippet">...</div>`) instead of a paragraph, and `destrucuredGroupId` is the position of the parameter (`<file>:<line>:<column>`) instead of a random UUID, so the export is the same on every run. The optional top-level `additionalPages` list is new.
+- **`summary.json` of additional pages.** Two pages with the same path, an invalid `slug` and an invalid alias now stop the build with the position in `summary.json`; give one of two clashing pages a `slug`. A sidebar group that gets a `slug` forgets its remembered open/closed state once.
+
 ## Breaking change in 0.9.0: page URLs grouped by entry point and feature
 
 Pages no longer sit in one folder per kind. Each symbol page lives in the folder of its feature: the entry point's import path without a scope all entry points share, then the feature key. Apps use the feature folders below `src/app`.
@@ -572,7 +581,7 @@ Every override receives a `helpers` object as its second argument - the full exp
 | `parseDescription(desc, depth)` | Renders a JSDoc description through the Markdown engine and resolves its `{@link}` targets |
 | `functionSignature(method, depth)` | Code-formatted parameter list for a method |
 | `extractJsdocParams(tags)` / `hasJsdocParams(tags)` | JSDoc helpers |
-| `extractJsdocExamples(tags)` / `extractJsdocCodeExamples(tags)` | JSDoc helpers |
+| `extractJsdocExamples(tags)` / `exampleComments(tags)` | JSDoc helpers; `exampleComments` returns each `@example` body as rendered HTML |
 | `jsdocReturnsComment(tags)` | Pulls the `@returns` comment text |
 | `signalKindLabel(kind)` | Maps signal kinds to human labels |
 | `modifKind(k)` / `modifSlug(k)` / `modifIcon(k)` | TypeScript SyntaxKind modifier mappers |
