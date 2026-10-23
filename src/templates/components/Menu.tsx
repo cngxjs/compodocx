@@ -1076,31 +1076,31 @@ const AdditionalEntry = (page: any): string => {
         ) as string;
     }
     if (page.children?.length > 0 && page.depth === 1) {
+        // The link opens the page, the sibling button toggles its children.
+        const id = `additional-page-${page.id}`;
         return (
-            <li class="chapter inner">
+            <li class="chapter inner cdx-additional-parent">
                 <a
                     data-type="chapter-link"
                     href={pageFile(page.path, page.filename)}
                     data-context-id="additional"
                 >
-                    {/* biome-ignore lint/a11y/useFocusableInteractive: Bootstrap collapse toggle wired to data-cdx-toggle */}
-                    {/* biome-ignore lint/a11y/useSemanticElements: Bootstrap collapse toggle wired to data-cdx-toggle */}
-                    <div
-                        class="menu-toggler linked"
-                        role="button"
-                        data-cdx-toggle="collapse"
-                        data-cdx-target={`#additional-page-${page.id}`}
-                        aria-expanded="false"
-                        aria-controls={`additional-page-${page.id}`}
-                    >
-                        <span class="link-name">{Html.escapeHtml(page.name) as string}</span>
-                        {IconChevronRight('cdx-chevron')}
-                    </div>
+                    <span class="link-name" id={`${id}-label`}>
+                        {Html.escapeHtml(page.name) as string}
+                    </span>
                 </a>
-                {AdditionalChildren({
-                    id: `additional-page-${page.id}`,
-                    children: page.children
-                })}
+                <button
+                    class="cdx-additional-toggle"
+                    type="button"
+                    data-cdx-toggle="collapse"
+                    data-cdx-target={`#${id}`}
+                    aria-expanded="false"
+                    aria-controls={id}
+                    aria-labelledby={`${id}-label`}
+                >
+                    {IconChevronRight('cdx-chevron')}
+                </button>
+                {AdditionalChildren({ id, children: page.children })}
             </li>
         ) as string;
     }

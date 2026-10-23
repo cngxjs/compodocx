@@ -69,4 +69,35 @@ test.describe('Additional pages', () => {
         expect(plain).toBeGreaterThan(0);
         expect(await textLeft('Guides')).toBeCloseTo(plain, 0);
     });
+
+    test('a page with children toggles through its own button', async ({ page }) => {
+        await page.goto('/additional-documentation/getting-started.html');
+        await page.waitForLoadState('domcontentloaded');
+
+        const toggle = page.getByRole('button', { name: 'Guides', exact: true });
+        const children = page.locator(`#${await toggle.getAttribute('aria-controls')}`);
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+        await expect(children).toBeHidden();
+
+        await toggle.focus();
+        await page.keyboard.press('Enter');
+        await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+        await expect(children).toBeVisible();
+
+        // The open state survives a reload (stored per collapse id).
+        await page.waitForTimeout(300);
+        await page.reload();
+        await expect(children).toBeVisible();
+        await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+
+        await toggle.focus();
+        await page.keyboard.press('Space');
+        await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+        await expect(children).toBeHidden();
+
+        await page
+            .locator('#additional-pages a[data-type="chapter-link"]', { hasText: 'Guides' })
+            .click();
+        await expect(page).toHaveURL(/additional-documentation\/guides\.html$/);
+    });
 });

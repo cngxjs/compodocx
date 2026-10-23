@@ -388,8 +388,7 @@
     }
 }
 
-.menu ul.list li.chapter .simple:hover,
-.menu .menu-toggler.linked:hover {
+.menu ul.list li.chapter .simple:hover {
     background: var(--color-cdx-bg-alt);
     transition: background 120ms ease;
 }
@@ -539,6 +538,40 @@
 }
 .menu ul.list li.chapter.additional .chapter.inner > ul.links {
     margin-left: 0;
+}
+/* An additional page with children: the link and its toggle button share
+   one row, the child list wraps below them. The button keeps the chevron
+   where the old in-link toggler had it and paints with the link. */
+.cdx-additional-parent {
+    display: flex;
+    flex-wrap: wrap;
+}
+.menu ul.list li.cdx-additional-parent > a {
+    flex: 1 1 0;
+}
+.cdx-additional-parent > ul.links {
+    flex: 0 0 100%;
+    box-sizing: border-box;
+}
+.cdx-additional-toggle {
+    @apply bg-transparent border-0 p-0 m-0;
+    position: relative;
+    flex: 0 0 36px;
+    color: inherit;
+    cursor: pointer;
+}
+.cdx-additional-toggle:focus-visible {
+    outline: 2px solid var(--color-cdx-primary);
+    outline-offset: -2px;
+    border-radius: var(--radius-cdx-sm);
+}
+.cdx-additional-parent > a:hover + .cdx-additional-toggle,
+.cdx-additional-toggle:hover {
+    background: var(--color-cdx-bg-alt);
+    transition: background 120ms ease;
+}
+.cdx-additional-parent > a.active + .cdx-additional-toggle {
+    background: var(--color-cdx-primary-subtle);
 }
 /* A group of additional pages reads like the pages next to it, not like an
    uppercase folder heading (`.chapter.inner > .menu-toggler .link-name`). */
