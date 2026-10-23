@@ -311,22 +311,18 @@
 }
 
 /* Rows are pills with a gap to the right edge, so hover and the active page
- * paint a pill instead of a full-width bar. Inside a list the pill sits flush
- * on the guide line: square on the left, rounded on the right. A page with
- * children splits its pill between the toggle button and the link. */
+ * paint a pill instead of a full-width bar. The pill sits flush on its left
+ * edge (the guide line, or the sidebar edge for top-level rows): square on
+ * the left, rounded on the right. A page with children splits its pill
+ * between the toggle button and the link. */
 .menu {
     --cdx-sidebar-hover: color-mix(in srgb, var(--color-cdx-text) 6%, transparent);
 }
 .menu ul.list li:not(.copyright) > a,
 .menu ul.list li.chapter > .simple,
 .menu ul.list .cdx-bucket-row {
-    border-radius: var(--radius-cdx-md);
-    margin-right: var(--spacing-cdx-sm);
-}
-.menu ul.list ul.links li > a,
-.menu ul.list ul.links li.chapter > .simple,
-.menu ul.list ul.links .cdx-bucket-row {
     border-radius: 0 var(--radius-cdx-md) var(--radius-cdx-md) 0;
+    margin-right: var(--spacing-cdx-sm);
 }
 /* Toggle buttons and bucket rows are `width: 100%`; leave room for the gap. */
 .menu ul.list li.chapter > .simple,

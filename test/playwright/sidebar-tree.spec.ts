@@ -242,6 +242,18 @@ test.describe('Sidebar tree', () => {
         }
     });
 
+    test('squares the left corners of every row', async ({ page }) => {
+        const corners = await page.evaluate(() =>
+            [
+                ...document.querySelectorAll(
+                    '.menu ul.list li:not(.copyright) > a, .menu ul.list li.chapter > .simple, .menu .cdx-bucket-row'
+                )
+            ].map(row => getComputedStyle(row).borderTopLeftRadius)
+        );
+        expect(corners.length).toBeGreaterThan(3);
+        expect(new Set(corners)).toEqual(new Set(['0px']));
+    });
+
     test('fits the open tree into the sidebar width', async ({ page }) => {
         const width = await page.evaluate(() => {
             const sidebar = document.getElementById('sidebar') as HTMLElement;
