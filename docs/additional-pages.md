@@ -219,6 +219,7 @@ For each alias compodocx:
 - writes a small redirect page at `additional-documentation/errors/e0003-old-name.html` that points to the new page (with a `canonical` link and `noindex`),
 - adds an entry for it to `redirects.json`, which the version switcher reads,
 - rewrites hand-written links to the old path in your Markdown, including relative links from a page inside a redirected folder.
+- removes the redirect page again on the next build into the same output folder once the alias is removed or renamed, but only if the file is still exactly as compodocx wrote it; a page or a hand-edited file at that path is kept.
 
 The redirect page is not in the sidebar and not in the search index.
 
