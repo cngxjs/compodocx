@@ -414,21 +414,13 @@
     padding-left: 14px;
 }
 
-/* Group header: muted uppercase label — two-tier font scale.
- * Feature-mode bucket rows (`.cdx-bucket-row`) get the same treatment
- * as the `.menu-toggler` headers above them so the vertical rhythm
- * and typography stay consistent across both layouts. */
+/* Folder, bucket and role nodes read like the pages below them: sentence
+ * case at the size of the list rows. Only labels that do not toggle (the
+ * role groups under "More") keep the small muted section style. */
 .chapter.inner > .menu-toggler .link-name,
 .chapter.inner > .cdx-bucket-row .link-name {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--color-cdx-text-muted);
-}
-.chapter.inner[style*="--depth: 0"] > .menu-toggler .link-name,
-.chapter.inner[style*="--depth: 0"] > .cdx-bucket-row .link-name {
-    font-size: 12px;
+    font-size: inherit;
+    color: var(--color-cdx-text);
 }
 
 .chapter.inner ul.links li.link a {
@@ -540,15 +532,6 @@
 }
 .cdx-additional-parent:has(> a.active) > .cdx-additional-toggle {
     background: var(--color-cdx-primary-subtle);
-}
-/* A group of additional pages reads like the pages next to it, not like an
-   uppercase folder heading (`.chapter.inner > .menu-toggler .link-name`). */
-.chapter.inner.cdx-additional-group > .menu-toggler .link-name {
-    font-size: inherit;
-    font-weight: inherit;
-    letter-spacing: normal;
-    text-transform: none;
-    color: inherit;
 }
 .menu ul.list li.copyright a .cdx-logo-placeholder {
     font-size: 1.5rem;

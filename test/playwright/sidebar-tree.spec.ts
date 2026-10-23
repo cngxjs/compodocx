@@ -102,6 +102,18 @@ test.describe('Sidebar tree', () => {
         }
     });
 
+    test('writes folder, bucket and role labels in sentence case', async ({ page }) => {
+        const transforms = await page.evaluate(() =>
+            [
+                ...document.querySelectorAll(
+                    '.menu .chapter.inner > .menu-toggler .link-name, .menu .cdx-bucket-row .link-name'
+                )
+            ].map(label => getComputedStyle(label).textTransform)
+        );
+        expect(transforms.length).toBeGreaterThan(0);
+        expect(new Set(transforms)).toEqual(new Set(['none']));
+    });
+
     test('starts the children where the content of their node starts', async ({ page }) => {
         const rows = (await toggleRows(page)).filter(row => row.firstChildLeft !== null);
         expect(rows.length).toBeGreaterThan(3);
