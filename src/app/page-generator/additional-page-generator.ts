@@ -82,6 +82,13 @@ export class AdditionalPageGenerator {
                     resolve(true);
                 },
                 () => {
+                    // A folder without summary.json adds no pages silently; a missing folder is reported.
+                    const folder = path.resolve(Configuration.mainData.includes);
+                    if (!FileEngine.existsSync(folder)) {
+                        logger.warn(
+                            `Additional pages: includes folder ${folder} not found, no pages added`
+                        );
+                    }
                     resolve(true);
                 }
             );

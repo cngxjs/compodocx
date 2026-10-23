@@ -36,3 +36,35 @@ describe('CLI paths outside the current folder', () => {
         expect(exists(`${tsconfigDist}/index.html`)).to.equal(true);
     });
 });
+
+describe('CLI includes folder that does not exist', () => {
+    const dist = `${tmp.name}-missing-includes`;
+    const missing = 'test/fixtures/no-such-includes';
+    let missingRun: ReturnType<typeof run>;
+
+    beforeAll(() => {
+        missingRun = run([
+            '-p',
+            './test/fixtures/standalone-app/src/tsconfig.json',
+            '-d',
+            dist,
+            '--includes',
+            missing
+        ]);
+    });
+
+    afterAll(() => tmp.clean(dist));
+
+    it('warns once and builds without additional pages', () => {
+        expect(missingRun.status).to.equal(0);
+        expect(hasStderrError(missingRun.stderr)).to.equal(false);
+        const warnings = missingRun.stdout
+            .split('\n')
+            .filter(line => line.includes('includes folder'));
+        expect(warnings).to.have.length(1);
+        expect(warnings[0]).to.include(
+            `Additional pages: includes folder ${path.resolve(missing)} not found`
+        );
+        expect(exists(`${dist}/additional-documentation`)).to.equal(false);
+    });
+});
