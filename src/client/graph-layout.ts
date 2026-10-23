@@ -33,6 +33,12 @@ export interface FitTransform {
     readonly k: number;
 }
 
+/**
+ * Height of the graph viewport in pixels for `count` drawn nodes. The page
+ * reserves it before the client draws, so nothing below the graph jumps.
+ */
+export const graphHeight = (count: number): number => Math.max(450, Math.min(700, count * 25));
+
 /** The nodes and edges to draw; external nodes and their edges only when shown. */
 export const visibleGraph = (graph: GraphInput, showExternals: boolean): GraphInput => {
     const nodes = graph.nodes.filter(n => showExternals || n.type !== 'external');

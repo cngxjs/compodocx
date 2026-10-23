@@ -112,6 +112,13 @@
     stroke-opacity: 0.9;
 }
 
+/* The entrance animates opacity itself; a CSS transition on top would lag behind it. */
+.cdx-dep-graph.is-revealing .cdx-graph-link,
+.cdx-dep-graph.is-revealing .cdx-graph-node,
+.cdx-dep-graph.is-revealing .cdx-graph-label {
+    transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .cdx-dep-graph .cdx-graph-link,
     .cdx-dep-graph .cdx-graph-node,

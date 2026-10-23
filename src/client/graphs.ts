@@ -5,7 +5,7 @@
  */
 
 import type { SimulationLinkDatum, SimulationNodeDatum } from 'd3';
-import { degrees, fitTransform, nonOverlapping, visibleGraph } from './graph-layout';
+import { degrees, fitTransform, graphHeight, nonOverlapping, visibleGraph } from './graph-layout';
 
 declare const COMPONENT_TEMPLATE: string;
 declare const COMPONENTS: Array<{ name: string; selector: string }>;
@@ -407,8 +407,6 @@ const initDependencyGraph = async () => {
         return { nodes, links };
     };
 
-    const height = (count: number) => Math.max(450, Math.min(700, count * 25));
-
     const svg = select(container)
         .append('svg')
         .attr('class', 'cdx-dep-graph')
@@ -444,6 +442,7 @@ const initDependencyGraph = async () => {
     let scale = 1;
     let userZoomed = false;
     let revealed = false;
+    let revealRun = 0;
 
     /** The hovered node and the names of it and its neighbours; null without hover. */
     let focus: { readonly node: DepNode; readonly related: ReadonlySet<string> } | null = null;
@@ -535,7 +534,7 @@ const initDependencyGraph = async () => {
         const t = fitTransform(
             bounds,
             container.clientWidth || 800,
-            height(nodes.length),
+            graphHeight(nodes.length),
             FIT_PAD_PX,
             FIT_MAX_SCALE
         );
@@ -547,7 +546,10 @@ const initDependencyGraph = async () => {
         const laidOut = layout();
         nodes = laidOut.nodes;
         g.selectAll('*').remove();
-        svg.style('height', `${height(nodes.length)}px`);
+        svg.style('height', `${graphHeight(nodes.length)}px`);
+        // Nothing shows before `reveal` has fitted the graph; animated parts start transparent.
+        g.attr('visibility', 'hidden');
+        const startOpacity = reducedMotion ? null : 0;
 
         const link = g
             .append('g')
@@ -556,6 +558,7 @@ const initDependencyGraph = async () => {
             .join('line')
             .attr('class', 'dep-link cdx-graph-link')
             .attr('marker-end', 'url(#dep-arrow)')
+            .attr('opacity', startOpacity)
             .each(function (this: SVGLineElement, d) {
                 // End the line at the target's edge so the arrow stays visible.
                 const sx = d.source.x ?? 0;
@@ -577,7 +580,8 @@ const initDependencyGraph = async () => {
             .data(nodes)
             .join('g')
             .attr('class', d => `dep-node cdx-graph-node${d.url ? ' is-link' : ''}`)
-            .attr('transform', d => `translate(${d.x},${d.y})`);
+            .attr('transform', d => `translate(${d.x},${d.y})`)
+            .attr('opacity', startOpacity);
 
         node.append('circle')
             .attr('r', d => d.r)
@@ -596,6 +600,7 @@ const initDependencyGraph = async () => {
             .attr('y', d => (d.y ?? 0) + d.r)
             .attr('dy', '1.1em')
             .attr('text-anchor', 'middle')
+            .attr('opacity', startOpacity)
             .text(d => d.name);
 
         node.on('click', (_event, d) => {
@@ -643,9 +648,12 @@ const initDependencyGraph = async () => {
         computeFit();
         svg.call(zoomBehavior.transform, fit);
         cullLabels();
+        g.attr('visibility', null);
         if (reducedMotion) {
             return;
         }
+        // CSS opacity transitions would lag behind the entrance; they come back after it.
+        svg.classed('is-revealing', true);
         const cx = nodes.reduce((sum, d) => sum + (d.x ?? 0), 0) / nodes.length;
         const cy = nodes.reduce((sum, d) => sum + (d.y ?? 0), 0) / nodes.length;
         const distance = (d: DepNode) => Math.hypot((d.x ?? 0) - cx, (d.y ?? 0) - cy);
@@ -654,8 +662,7 @@ const initDependencyGraph = async () => {
         const start = (d: DepNode) =>
             `translate(${cx + ((d.x ?? 0) - cx) * 0.6},${cy + ((d.y ?? 0) - cy) * 0.6}) scale(0.2)`;
 
-        drawn.node
-            .attr('opacity', 0)
+        const nodesIn = drawn.node
             .attr('transform', start)
             .transition()
             .delay(delay)
@@ -666,8 +673,7 @@ const initDependencyGraph = async () => {
             .on('end', function (this: SVGGElement) {
                 select(this).attr('opacity', null);
             });
-        drawn.label
-            .attr('opacity', 0)
+        const labelsIn = drawn.label
             .transition()
             .delay(d => delay(d) + 350)
             .duration(300)
@@ -675,8 +681,7 @@ const initDependencyGraph = async () => {
             .on('end', function (this: SVGTextElement) {
                 select(this).attr('opacity', null);
             });
-        drawn.link
-            .attr('opacity', 0)
+        const linksIn = drawn.link
             .transition()
             .delay(d => Math.max(delay(d.source), delay(d.target)) + 450)
             .duration(400)
@@ -684,6 +689,13 @@ const initDependencyGraph = async () => {
             .on('end', function (this: SVGLineElement) {
                 select(this).attr('opacity', null);
             });
+        // An interrupted entrance rejects; only the latest entrance removes the class.
+        const run = ++revealRun;
+        Promise.allSettled([nodesIn.end(), labelsIn.end(), linksIn.end()]).then(() => {
+            if (run === revealRun) {
+                svg.classed('is-revealing', false);
+            }
+        });
     };
 
     // Lay out now, animate once the graph scrolls into view (or its tab opens).

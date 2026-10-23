@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
     degrees,
     fitTransform,
+    graphHeight,
     nonOverlapping,
     visibleGraph
 } from '../../../src/client/graph-layout';
@@ -77,5 +78,13 @@ describe('fitTransform', () => {
     it('never scales above the maximum', () => {
         const t = fitTransform({ x: 0, y: 0, width: 10, height: 10 }, 800, 600, 0, 1.5);
         expect(t).toEqual({ x: 392.5, y: 292.5, k: 1.5 });
+    });
+});
+
+describe('graphHeight', () => {
+    it('grows with the node count between 450 and 700 pixels', () => {
+        expect(graphHeight(3)).toBe(450);
+        expect(graphHeight(22)).toBe(550);
+        expect(graphHeight(400)).toBe(700);
     });
 });

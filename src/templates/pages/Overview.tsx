@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { graphHeight, visibleGraph } from '../../client/graph-layout';
 import { dependencyLegendItems, GraphLegend, GraphZoomControls } from '../blocks/GraphControls';
 import { OverviewHero } from '../blocks/OverviewHero';
 import { OverviewStats } from '../blocks/OverviewStats';
@@ -79,8 +80,13 @@ export const Overview = (props: OverviewProps): string => {
                     </ul>
                     <div class="cdx-graph-container cdx-overview-graph">
                         <div class="cdx-graph-viewport">
-                            {/* External imports start hidden; the toggle shows them. */}
-                            <div id="dependency-graph-container" data-cdx-externals="hidden"></div>
+                            {/* External imports start hidden; the toggle shows them. The
+                                reserved height keeps the page from jumping when the graph draws. */}
+                            <div
+                                id="dependency-graph-container"
+                                data-cdx-externals="hidden"
+                                style={`min-height: ${graphHeight(visibleGraph(props.dependencyGraph!, false).nodes.length)}px`}
+                            ></div>
                         </div>
                         {GraphZoomControls({
                             prefix: 'dep-',
