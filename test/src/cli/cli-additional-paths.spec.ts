@@ -170,3 +170,89 @@ describe('CLI Additional documentation - paths, missing files and groups', () =>
         ]);
     });
 });
+
+describe('CLI Additional documentation - rebuild after changing aliases', () => {
+    const firstSrc = `${tmp.name}-additional-aliases-first-src`;
+    const renamedSrc = `${tmp.name}-additional-aliases-renamed-src`;
+    const pageSrc = `${tmp.name}-additional-aliases-page-src`;
+    const renamedDist = `${tmp.name}-additional-aliases-renamed`;
+    const pageDist = `${tmp.name}-additional-aliases-page`;
+    const edit = '<!-- kept by hand -->\n';
+    let editedStub: string;
+    let renamedRun: ReturnType<typeof generate>;
+    let pageRun: ReturnType<typeof generate>;
+
+    beforeAll(() => {
+        writeIncludes(
+            firstSrc,
+            [
+                { title: 'A', file: 'a.md', aliases: ['old-a', 'old-c'] },
+                { title: 'B', file: 'b.md', aliases: ['errors/old-b'] }
+            ],
+            ['a.md', 'b.md']
+        );
+        generate(renamedDist, firstSrc);
+        generate(pageDist, firstSrc);
+
+        // A user file at a path the first build recorded as an alias.
+        editedStub = `${read(`${renamedDist}/${pages}/old-c.html`)}${edit}`;
+        fs.writeFileSync(`${renamedDist}/${pages}/old-c.html`, editedStub);
+
+        writeIncludes(
+            renamedSrc,
+            [
+                { title: 'A', file: 'a.md' },
+                { title: 'B', file: 'b.md', aliases: ['errors/new-b'] }
+            ],
+            ['a.md', 'b.md']
+        );
+        renamedRun = generate(renamedDist, renamedSrc);
+
+        // Drops alias old-a and adds a page at its path in the same rebuild.
+        writeIncludes(
+            pageSrc,
+            [
+                { title: 'A', file: 'a.md', aliases: ['old-c'] },
+                { title: 'Old A', file: 'old-a.md' },
+                { title: 'B', file: 'b.md', aliases: ['errors/old-b'] }
+            ],
+            ['a.md', 'b.md', 'old-a.md']
+        );
+        pageRun = generate(pageDist, pageSrc);
+    }, 300_000);
+
+    afterAll(() => {
+        for (const folder of [firstSrc, renamedSrc, pageSrc, renamedDist, pageDist]) {
+            tmp.clean(folder);
+        }
+    });
+
+    it('removes the redirect pages of dropped and renamed aliases', () => {
+        expect(renamedRun.status).to.equal(0);
+        expect(renamedRun.stdout).to.contain(
+            'Additional pages: removed 2 redirect page(s) of dropped aliases'
+        );
+        expect(exists(`${renamedDist}/${pages}/old-a.html`)).to.equal(false);
+        expect(exists(`${renamedDist}/${pages}/errors/old-b.html`)).to.equal(false);
+        const renamed = read(`${renamedDist}/${pages}/errors/new-b.html`);
+        expect(renamed).to.contain('<meta http-equiv="refresh" content="0; url=../../');
+        expect(renamed).to.contain(`${pages}/b.html">`);
+        expect(Object.keys(JSON.parse(read(`${renamedDist}/redirects.json`)).redirects)).to.include(
+            `${pages}/errors/new-b.html`
+        );
+    });
+
+    it('keeps a hand-edited file at a dropped alias path unchanged', () => {
+        expect(read(`${renamedDist}/${pages}/old-c.html`)).to.equal(editedStub);
+    });
+
+    it('keeps a page written at a dropped alias path in the same rebuild', () => {
+        expect(pageRun.status).to.equal(0);
+        expect(pageRun.stdout).to.not.contain('redirect page(s) of dropped aliases');
+        const page = read(`${pageDist}/${pages}/old-a.html`);
+        expect(page).to.not.contain('http-equiv="refresh"');
+        expect(page).to.contain('old-a.md');
+        expect(exists(`${pageDist}/${pages}/old-c.html`)).to.equal(true);
+        expect(exists(`${pageDist}/${pages}/errors/old-b.html`)).to.equal(true);
+    });
+});
