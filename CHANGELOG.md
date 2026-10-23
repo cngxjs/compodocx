@@ -44,6 +44,8 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **Watch mode watches an absolute `--includes` folder and sources outside the working directory.** Both were left out of the watched paths, so a change there triggered no rebuild.
 - **A missing `--includes` folder is reported.** The build still exits with code 0 but warns `Additional pages: includes folder <path> not found, no pages added` instead of adding no pages silently. Relative `includes` paths, also in a config file, start at the working directory.
 - **The JSON export is the same on every run.** `destrucuredGroupId` of destructured parameters was a random UUID; it is now the position of the parameter in its source file (`<file>:<line>:<column>`). The `uuid` dependency is gone.
+- **`j`/`k` work on pages that open on the Info or README tab.** The keys only looked at the open tab, so they did nothing until the API tab was clicked. When the open tab has no members, `j`/`k` now switch to the API tab (tab bar and URL hash updated as on a click) and focus its first or last member.
+- **`n`/`p` step through the visible sidebar entries only.** They also landed on entries inside collapsed nodes, where the focus marker and the preview could not be seen. Collapsed nodes are skipped and stay closed.
 
 ## [0.9.1] - 2026-10-21
 
