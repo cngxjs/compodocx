@@ -315,22 +315,15 @@
     flex: 0 0 auto;
 }
 
-/* The bucket chevron flows in the flex row instead of using the
- * absolute positioning the global `.cdx-chevron` rule applies (that
- * rule targets chapter headers, which lay out differently). Keep the
- * shared `.cdx-chevron` class so `syncChevrons()` and `toggleCollapse()`
- * still find it — only override what's incompatible with the bucket
- * layout. `margin-left: auto` pushes the chevron to the row's right
- * edge regardless of how wide the inline link is. Rotation is driven
- * by BOTH `aria-expanded="true"` on the row AND the `.cdx-chevron--open`
- * class managed by the toggle handler, so the visual state stays
- * consistent regardless of which path updates first. */
+/* The bucket chevron leads the row like every other chevron; the row's
+ * own gap adds to its margin, so the margin is reduced to keep the label
+ * at the same offset as in the other rows. Keep the shared `.cdx-chevron`
+ * class so `syncChevrons()` and `toggleCollapse()` still find it.
+ * Rotation is driven by BOTH `aria-expanded="true"` on the row AND the
+ * `.cdx-chevron--open` class managed by the toggle handler, so the
+ * visual state stays consistent regardless of which path updates first. */
 .cdx-bucket-row .cdx-chevron {
-    position: static;
-    flex: 0 0 auto;
-    margin-left: auto;
-    transform: rotate(0deg);
-    transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    margin-right: 2px;
     /* Chevron is the canonical toggle UI even though the whole row is
      * the hit zone — give it the link/button hand so the right edge
      * of the row visibly invites the click. */
@@ -360,7 +353,6 @@
 }
 
 .menu ul.list li:not(.copyright) a.active {
-    padding-left: 12px;
     background: var(--color-cdx-primary-subtle);
     font-weight: 500;
     position: relative;
@@ -398,23 +390,28 @@
     box-shadow: inset 3px 0 0 var(--color-cdx-primary-subtle);
 }
 
-/* Hierarchical folder group nesting —
-   Folder labels indent per depth (via margin-left on the <li>).
-   Entity links pull back flush-left to the section edge. */
-.chapter.inner {
-    margin-left: 6px;
+/* Tree: the children of a node hang in the node's own `ul.links`, whose
+   left border is the guide line under the node's chevron (chevron 16px,
+   centre at row padding + 8px). Rows inside a list are padded 14px, so a
+   child label starts where its parent's label starts (chevron 16 + 6):
+   one step is 22px on every level. Top-level rows keep the 16px edge. */
+.menu ul.list > li > ul.links {
+    margin-left: calc(var(--spacing-cdx-lg) + 7px);
 }
-
-/* Separator line above top-level groups */
-.chapter.inner[style*="--depth: 0"] {
-    border-top: 1px solid var(--color-cdx-border);
-    margin-top: var(--spacing-cdx-sm);
-    padding-top: var(--spacing-cdx-xs);
+.menu ul.list ul.links ul.links {
+    margin-left: 21px;
 }
-.chapter.inner[style*="--depth: 0"]:first-child {
-    border-top: none;
-    margin-top: 0;
-    padding-top: 0;
+.menu ul.list ul.links {
+    padding-left: 0;
+    border-left: 1px solid var(--color-cdx-border);
+}
+.menu ul.list ul.links li > a,
+.menu ul.list ul.links .cdx-feature-role-label {
+    padding-left: 14px;
+}
+.menu ul.list ul.links .cdx-bucket-row,
+.menu ul.list ul.links li.chapter > .simple {
+    padding-left: 14px;
 }
 
 /* Group header: muted uppercase label — two-tier font scale.
@@ -434,15 +431,9 @@
     font-size: 12px;
 }
 
-/* Entity links: negative margin pulls back to section left edge.
-   --depth tells us how deep we are, so we undo depth*6px of
-   accumulated margin from parent .chapter.inner elements. */
-.chapter.inner > ul.links {
-    margin-left: calc((var(--depth, 0) + 1) * -6px);
-    padding-left: 20px;
-}
 .chapter.inner ul.links li.link a {
-    padding: var(--spacing-cdx-sm) var(--spacing-cdx-lg);
+    padding-block: var(--spacing-cdx-sm);
+    padding-right: var(--spacing-cdx-lg);
     font-size: 12px;
     min-height: 36px;
 }
@@ -504,9 +495,6 @@
     overflow: hidden;
     background: var(--color-cdx-border);
 }
-.menu ul.list li.chapter ul.links {
-    padding-left: 20px;
-}
 .menu ul.list li.chapter .simple {
     display: flex;
     align-items: center;
@@ -515,36 +503,28 @@
     position: relative;
     min-height: 36px;
 }
-.menu ul.list li.chapter.additional .inner ul.links {
-    padding-left: 20px;
-}
-/* Pages with children and groups sit next to plain pages, so they get no
-   folder-group indent (`.chapter.inner`) and their child list no
-   compensation for it; the labels line up with the plain page links. */
-.menu ul.list li.chapter.additional .chapter.inner {
-    margin-left: 0;
-}
-.menu ul.list li.chapter.additional .chapter.inner > ul.links {
-    margin-left: 0;
-}
-/* An additional page with children: the link and its toggle button share
-   one row, the child list wraps below them. The button keeps the chevron
-   where the old in-link toggler had it and paints with the link. */
+/* An additional page with children: the toggle button (the chevron) and
+   the link share one row, the child list wraps below them. The button
+   takes the row padding, so the chevron sits where every other chevron
+   sits and the link label follows it; both paint together. */
 .cdx-additional-parent {
     display: flex;
     flex-wrap: wrap;
 }
-.menu ul.list li.cdx-additional-parent > a {
+.menu ul.list ul.links li.cdx-additional-parent > a {
     flex: 1 1 0;
+    padding-left: 0;
 }
 .cdx-additional-parent > ul.links {
-    flex: 0 0 100%;
+    flex: 0 0 calc(100% - 21px);
     box-sizing: border-box;
 }
 .cdx-additional-toggle {
-    @apply bg-transparent border-0 p-0 m-0;
-    position: relative;
-    flex: 0 0 36px;
+    @apply bg-transparent border-0 m-0;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 0 0 0 14px;
     color: inherit;
     cursor: pointer;
 }
@@ -553,12 +533,12 @@
     outline-offset: -2px;
     border-radius: var(--radius-cdx-sm);
 }
-.cdx-additional-parent > a:hover + .cdx-additional-toggle,
+.cdx-additional-parent:has(> a:hover) > .cdx-additional-toggle,
 .cdx-additional-toggle:hover {
     background: var(--color-cdx-bg-alt);
     transition: background 120ms ease;
 }
-.cdx-additional-parent > a.active + .cdx-additional-toggle {
+.cdx-additional-parent:has(> a.active) > .cdx-additional-toggle {
     background: var(--color-cdx-primary-subtle);
 }
 /* A group of additional pages reads like the pages next to it, not like an
