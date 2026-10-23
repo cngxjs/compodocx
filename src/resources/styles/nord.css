@@ -27,6 +27,8 @@
     --color-cdx-primary: #5e81ac;
     --color-cdx-primary-hover: #4c6a91;
     --color-cdx-primary-subtle: #e8eef5;
+    /* Primary hue, shifted for 4.5:1 on the active tint. */
+    --color-cdx-accent: hsl(213 32% 39%);
 
     /* --- Entity colors (Nord palette adapted) --- */
     --color-cdx-entity-component: #8fbcbb;
@@ -117,6 +119,8 @@
     --color-cdx-primary: #88c0d0;
     --color-cdx-primary-hover: #8fbcbb;
     --color-cdx-primary-subtle: #3b4555;
+    /* Primary hue, shifted for 4.5:1 on the active tint. */
+    --color-cdx-accent: hsl(193 43% 75%);
 
     /* --- Entity colors (same, Nord is consistent) --- */
     --color-cdx-entity-component: #8fbcbb;

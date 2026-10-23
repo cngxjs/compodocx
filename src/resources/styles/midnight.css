@@ -35,6 +35,9 @@
     --color-cdx-primary: hsl(215 18% 85%);
     --color-cdx-primary-hover: hsl(215 22% 95%);
     --color-cdx-primary-subtle: hsl(225 32% 20%);
+    --color-cdx-accent: var(--color-cdx-primary);
+    /* The sidebar is dark in both modes: the dark focus ring. */
+    --color-cdx-focus-ring: #60a5fa;
 
     /* --- Entity colors (neon-boosted for dark bg contrast) --- */
     --color-cdx-entity-component: #5eead4; /* teal-300 */
@@ -118,6 +121,7 @@
     --color-cdx-primary: hsl(215 22% 92%);
     --color-cdx-primary-hover: hsl(215 30% 100%);
     --color-cdx-primary-subtle: hsl(225 35% 15%);
+    --color-cdx-accent: var(--color-cdx-primary);
 
     /* --- Entity colors (same neon boost — distinct against deeper bg) --- */
     --color-cdx-entity-component: #5eead4;

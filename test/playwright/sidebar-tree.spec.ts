@@ -121,6 +121,98 @@ test.describe('Sidebar tree states', () => {
         expect(rail.shadow).toContain(accent);
     });
 
+    test('keeps the active page and the focus ring readable in every theme', async ({ page }) => {
+        await page.goto('/index.html');
+        const href = await page
+            .locator('.menu ul.links ul.links a[data-type="entity-link"]')
+            .first()
+            .getAttribute('href');
+        await page.goto(`/${href}`);
+        await page.addStyleTag({ content: '* { transition: none !important; }' });
+        await expect(page.locator('.menu a.active').first()).toBeVisible();
+
+        const results = await page.evaluate(async () => {
+            const ctx = document.createElement('canvas').getContext('2d', {
+                willReadFrequently: true
+            }) as CanvasRenderingContext2D;
+            /** Any CSS colour as rgba via the canvas (also `color-mix()` results). */
+            const rgba = (color: string): number[] => {
+                ctx.clearRect(0, 0, 1, 1);
+                ctx.fillStyle = color;
+                ctx.fillRect(0, 0, 1, 1);
+                const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+                return [r, g, b, a / 255];
+            };
+            const luminance = ([r, g, b]: number[]) => {
+                const f = (v: number) => {
+                    const c = v / 255;
+                    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+                };
+                return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
+            };
+            const contrast = (a: number[], b: number[]) => {
+                const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+                return (hi + 0.05) / (lo + 0.05);
+            };
+            const over = (fg: number[], bg: number[]) =>
+                [0, 1, 2].map(i => fg[i] * fg[3] + bg[i] * (1 - fg[3]));
+            const themes = [
+                ...new Set(
+                    [...document.querySelectorAll('[data-cdx-theme]')].map(
+                        item => item.getAttribute('data-cdx-theme') ?? 'default'
+                    )
+                )
+            ];
+            const link = document.getElementById('cdx-theme-link') as HTMLLinkElement;
+            const out: { theme: string; text: number; rail: number; ring: number }[] = [];
+            for (const theme of themes) {
+                if (theme !== 'default') {
+                    await new Promise(resolve => {
+                        link.onload = resolve;
+                        link.href = `${link.getAttribute('data-base')}styles/${theme}.css`;
+                    });
+                } else {
+                    link.removeAttribute('href');
+                }
+                for (const dark of [false, true]) {
+                    document.documentElement.classList.toggle('dark', dark);
+                    document.body.classList.toggle('dark', dark);
+                    const active = document.querySelector('.menu a.active') as HTMLElement;
+                    const sidebar = rgba(
+                        getComputedStyle(document.getElementById('sidebar') as HTMLElement)
+                            .backgroundColor
+                    );
+                    const row = over(rgba(getComputedStyle(active).backgroundColor), sidebar);
+                    const probe = document.createElement('span');
+                    probe.style.color = 'var(--color-cdx-focus-ring)';
+                    document.body.append(probe);
+                    const ring = rgba(getComputedStyle(probe).color);
+                    probe.remove();
+                    out.push({
+                        theme: `${theme} ${dark ? 'dark' : 'light'}`,
+                        text: contrast(rgba(getComputedStyle(active).color), row),
+                        rail: contrast(
+                            rgba(
+                                getComputedStyle(active.closest('ul') as HTMLElement)
+                                    .borderLeftColor
+                            ),
+                            sidebar
+                        ),
+                        ring: contrast(ring, sidebar)
+                    });
+                }
+            }
+            return out;
+        });
+
+        expect(results.length).toBeGreaterThanOrEqual(2);
+        for (const result of results) {
+            expect(result.text, result.theme).toBeGreaterThanOrEqual(4.5);
+            expect(result.rail, result.theme).toBeGreaterThanOrEqual(3);
+            expect(result.ring, result.theme).toBeGreaterThanOrEqual(3);
+        }
+    });
+
     test('outlines a focused toggle with the focus ring colour', async ({ page }) => {
         await page.goto('/index.html');
         const toggle = page.locator('.menu [data-cdx-target]').first();

@@ -27,6 +27,9 @@
     --color-cdx-primary: hsl(180 100% 55%);
     --color-cdx-primary-hover: hsl(180 100% 65%);
     --color-cdx-primary-subtle: hsl(180 50% 18%);
+    --color-cdx-accent: var(--color-cdx-primary);
+    /* The sidebar is dark in both modes: the dark focus ring. */
+    --color-cdx-focus-ring: #60a5fa;
 
     /* --- Entity colors (neon-bright on dim bg) --- */
     --color-cdx-entity-component: #00e6b8;
@@ -121,6 +124,7 @@
     --color-cdx-primary: hsl(180 100% 60%);
     --color-cdx-primary-hover: hsl(180 100% 72%);
     --color-cdx-primary-subtle: hsl(180 50% 15%);
+    --color-cdx-accent: var(--color-cdx-primary);
 
     /* --- Entity colors (neon-bright) --- */
     --color-cdx-entity-component: #00ffcc;
