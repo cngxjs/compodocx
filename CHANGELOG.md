@@ -34,7 +34,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **A first-level `summary.json` node without `file` shows as a sidebar group.** As the first node it crashed the build; after a page its children were listed under that page in the sidebar and in the JSON export. Its pages now sit below a group toggle with its label, and the exports list them in its place.
 - **Repeated token names no longer repeat the row id on the Theming tab.**
 - **A `@cssprop` tag is no longer reported as an unknown tag.**
-- **`@example` blocks on component, directive, class and service pages show highlighted code.** The Examples section showed the highlighter's HTML as escaped text. Each example is now a Shiki code block in its own language, like the code blocks in the README and the additional pages. An example without a code fence is shown as HTML code instead of being written into the page as markup, and a `<caption>` becomes a label above the code on every page.
+- **`@example` blocks on component, directive, class and service pages show highlighted code.** The Examples section showed the highlighter's HTML as escaped text. Each example is now a Shiki code block in its own language, like the code blocks in the README and the additional pages. An example without a code fence is shown as HTML code instead of being written into the page as markup, and a `<caption>` becomes a label above the code on every page. The JSON export carries the same: `jsdoctags[].comment` of an example without a code fence is now a code block (`<div class="cdx-code-snippet">...</div>`) instead of a paragraph (`<p>...</p>`), the form the `description` field already had.
 
 ## [0.9.1] - 2026-10-21
 

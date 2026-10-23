@@ -159,6 +159,9 @@ describe('CLI Export', () => {
         it('should get jsdoctags in component', () => {
             const file = read(`${distFolder}/documentation.json`);
 
+            // The fixture's @example bodies have no code fence, so they are
+            // rendered as code (no highlighter runs for the JSON export).
+
             // Property
             expect(file).to.contain(
                 '"comment":"<div class=\\"cdx-code-snippet\\">component property</div>'
