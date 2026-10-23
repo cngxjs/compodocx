@@ -26,11 +26,19 @@ describe('MarkdownEngine sync readers', () => {
     });
 
     it('reads a cwd-relative path from the cwd', () => {
-        const relative = path.relative(process.cwd(), absolute);
-        expect(path.isAbsolute(relative)).toBe(false);
-        expect(MarkdownEngine.getTraditionalMarkdownSyncWithRaw(relative).raw).toBe(
-            '# Absolute page\n'
+        // A fixture below the repo: the temp folder can be on another drive (Windows).
+        const relative = path.join(
+            'test',
+            'fixtures',
+            'additional-identity',
+            'en',
+            'errors',
+            'index.md'
         );
-        expect(MarkdownEngine.getTraditionalMarkdownSync(relative)).toContain('Absolute page');
+        const expected = fs.readFileSync(path.join(process.cwd(), relative), 'utf8');
+        expect(MarkdownEngine.getTraditionalMarkdownSyncWithRaw(relative).raw).toBe(expected);
+        expect(MarkdownEngine.getTraditionalMarkdownSync(relative)).toContain(
+            'This page lists the error codes (en).'
+        );
     });
 });
