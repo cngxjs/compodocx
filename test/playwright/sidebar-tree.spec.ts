@@ -79,6 +79,60 @@ const toggleRows = (page: Page): Promise<ToggleRow[]> =>
         return rows;
     });
 
+/** The computed colour of a token, in the form `getComputedStyle` reports colours. */
+const tokenColor = (page: Page, token: string) =>
+    page.evaluate(name => {
+        const probe = document.createElement('span');
+        probe.style.color = `var(${name})`;
+        document.body.append(probe);
+        const color = getComputedStyle(probe).color;
+        probe.remove();
+        return color;
+    }, token);
+
+test.describe('Sidebar tree states', () => {
+    test('marks the active page with an accent pill on an accent rail', async ({ page }) => {
+        // A page two levels down: its link sits in a list with a guide line.
+        await page.goto('/index.html');
+        const href = await page
+            .locator('.menu ul.links ul.links a[data-type="entity-link"]')
+            .first()
+            .getAttribute('href');
+        expect(href).toBeTruthy();
+        await page.goto(`/${href}`);
+        const active = page.locator('.menu a.active').first();
+        await expect(active).toBeVisible();
+
+        const accent = await tokenColor(page, '--color-cdx-accent');
+        await expect(active).toHaveCSS('color', accent);
+        // The pill sits flush on the rail: square on the left, rounded on the right.
+        const corners = await active.evaluate(el => ({
+            left: getComputedStyle(el).borderTopLeftRadius,
+            right: getComputedStyle(el).borderTopRightRadius
+        }));
+        expect(corners.left).toBe('0px');
+        expect(corners.right).not.toBe('0px');
+        // The rail is the guide line of the list that holds the active page.
+        const rail = await active.evaluate(el => {
+            const list = getComputedStyle(el.closest('ul') as HTMLElement);
+            return { color: list.borderLeftColor, shadow: list.boxShadow };
+        });
+        expect(rail.color).toBe(accent);
+        expect(rail.shadow).toContain(accent);
+    });
+
+    test('outlines a focused toggle with the focus ring colour', async ({ page }) => {
+        await page.goto('/index.html');
+        const toggle = page.locator('.menu [data-cdx-target]').first();
+        await toggle.focus();
+        await page.keyboard.press('Shift+Tab');
+        await page.keyboard.press('Tab');
+        const ring = await tokenColor(page, '--color-cdx-focus-ring');
+        await expect(toggle).toHaveCSS('outline-color', ring);
+        await expect(toggle).toHaveCSS('outline-style', 'solid');
+    });
+});
+
 test.describe('Sidebar tree', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/index.html');
@@ -94,6 +148,14 @@ test.describe('Sidebar tree', () => {
         for (const row of rows) {
             expect(row.chevronLeft, row.target).toBeLessThan(row.contentLeft);
         }
+    });
+
+    test('fits the open tree into the sidebar width', async ({ page }) => {
+        const width = await page.evaluate(() => {
+            const sidebar = document.getElementById('sidebar') as HTMLElement;
+            return { scroll: sidebar.scrollWidth, client: sidebar.clientWidth };
+        });
+        expect(width.scroll).toBeLessThanOrEqual(width.client);
     });
 
     test('draws a guide line along every list of children', async ({ page }) => {

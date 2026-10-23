@@ -82,7 +82,7 @@
 
 /* [/] entity sidebar focus + preview panel */
 .cdx-sidebar-focused > a {
-    outline: 2px solid var(--color-cdx-primary);
+    outline: 2px solid var(--color-cdx-focus-ring);
     outline-offset: -2px;
     border-radius: var(--radius-cdx-sm);
 }

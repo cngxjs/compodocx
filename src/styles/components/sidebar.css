@@ -171,7 +171,7 @@
  * so the markup is a `<div role="button">` with a sibling anchor —
  * see `FeatureGroupTree` in `Menu.tsx`.
  *
- * Hover, active background, and the primary-subtle left-bar all live
+ * Hover, active background, and the accent segment all live
  * on the row, NOT on the inner anchor — the row owns the visual
  * highlight so it covers the chevron area uniformly. The anchor's
  * native hover/active styles are explicitly suppressed below with a
@@ -201,46 +201,25 @@
 }
 
 .cdx-bucket-row:hover {
-    background: var(--color-cdx-bg-alt);
-    box-shadow: inset 3px 0 0 var(--color-cdx-primary-subtle);
-    transition:
-        background 120ms ease,
-        box-shadow 120ms ease;
+    background: var(--cdx-sidebar-hover);
+    transition: background 120ms ease;
 }
 
 .cdx-bucket-row:focus-visible {
-    outline: 2px solid var(--color-cdx-focus-ring, var(--color-cdx-primary));
+    outline: 2px solid var(--color-cdx-focus-ring);
     outline-offset: -2px;
     border-radius: var(--radius-cdx-sm);
 }
 
-/* Row-level active highlight via `:has()` — covers the entire row,
+/* Row-level active highlight via `:has()` - covers the entire row,
  * including the chevron, so the visual stays consistent with the
- * "whole-row hit zone" mental model. The 4px primary border bar
- * mirrors the chapter `a.active::before` so feature-mode buckets look
- * the same as type-mode chapter entries. Padding-left intentionally
- * stays at the base `var(--spacing-cdx-lg)` (16px) so the label sits
- * at the same x-coordinate as inactive siblings — the bar paints in
- * the row's left padding zone WITHOUT pushing the text. Setting a
- * smaller value (e.g. 12px à la `.menu ul.list li:not(.copyright)
- * a.active`) would shift the active label left and misalign it with
- * its siblings in the same group. */
+ * "whole-row hit zone" mental model. Same look as an active link: accent
+ * text on the accent tint and the accent segment on the guide line
+ * (`--cdx-sidebar-active-segment`). The label keeps its x-coordinate. */
 .cdx-bucket-row:has(.cdx-bucket-link.active) {
-    background: var(--color-cdx-primary-subtle);
+    background: var(--color-cdx-accent-subtle);
+    color: var(--color-cdx-accent);
     font-weight: 500;
-}
-
-.cdx-bucket-row:has(.cdx-bucket-link.active)::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 4px;
-    height: 100%;
-    background: var(--color-cdx-primary);
-    border-radius: 0 2px 2px 0;
-    transform-origin: top;
-    animation: cdx-active-border 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* `.menu ul.list li a` (specificity 0,2,2) is the menu-wide anchor
@@ -307,10 +286,6 @@
     padding-left: 0;
 }
 
-.menu ul.list li:not(.copyright) a.cdx-bucket-link.active::before {
-    display: none;
-}
-
 .cdx-bucket-count {
     flex: 0 0 auto;
 }
@@ -335,12 +310,50 @@
     transform: rotate(90deg);
 }
 
+/* Rows are pills with a gap to the right edge, so hover and the active page
+ * paint a pill instead of a full-width bar. Inside a list the pill sits flush
+ * on the guide line: square on the left, rounded on the right. A page with
+ * children splits its pill between the toggle button and the link. */
+.menu {
+    --cdx-sidebar-hover: color-mix(in srgb, var(--color-cdx-text) 6%, transparent);
+}
+.menu ul.list li:not(.copyright) > a,
+.menu ul.list li.chapter > .simple,
+.menu ul.list .cdx-bucket-row {
+    border-radius: var(--radius-cdx-md);
+    margin-right: var(--spacing-cdx-sm);
+}
+.menu ul.list ul.links li > a,
+.menu ul.list ul.links li.chapter > .simple,
+.menu ul.list ul.links .cdx-bucket-row {
+    border-radius: 0 var(--radius-cdx-md) var(--radius-cdx-md) 0;
+}
+/* Toggle buttons and bucket rows are `width: 100%`; leave room for the gap. */
+.menu ul.list li.chapter > .simple,
+.menu ul.list .cdx-bucket-row {
+    width: calc(100% - var(--spacing-cdx-sm));
+}
+.menu ul.list li.cdx-additional-parent > .cdx-additional-toggle {
+    border-radius: 0;
+}
+
+/* The rail: the guide line of the list that holds the active page turns into
+ * a 2px accent line along the whole list (the extra pixel is a shadow, so
+ * nothing moves). */
+.menu ul.list ul.links:has(> li > a.active, > li > .cdx-bucket-row .cdx-bucket-link.active) {
+    border-left-color: var(--color-cdx-accent);
+    box-shadow: -1px 0 0 0 var(--color-cdx-accent);
+}
+
 .menu ul.list li:not(.copyright) a:hover {
-    background: var(--color-cdx-bg-alt);
-    box-shadow: inset 3px 0 0 var(--color-cdx-primary-subtle);
-    transition:
-        background 120ms ease,
-        box-shadow 120ms ease;
+    background: var(--cdx-sidebar-hover);
+    transition: background 120ms ease;
+}
+
+.menu ul.list a:focus-visible {
+    outline: 2px solid var(--color-cdx-focus-ring);
+    outline-offset: -2px;
+    border-radius: var(--radius-cdx-sm);
 }
 
 /* Bucket-link sits inside `.cdx-bucket-row`, which already paints the
@@ -352,42 +365,26 @@
     box-shadow: none;
 }
 
+/* Active page: accent text on an accent-tinted pill. */
 .menu ul.list li:not(.copyright) a.active {
-    background: var(--color-cdx-primary-subtle);
+    background: var(--color-cdx-accent-subtle);
+    color: var(--color-cdx-accent);
     font-weight: 500;
-    position: relative;
-}
-
-.menu ul.list li:not(.copyright) a.active::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 4px;
-    height: 100%;
-    background: var(--color-cdx-primary);
-    border-radius: 0 2px 2px 0;
-    transform-origin: top;
-    animation: cdx-active-border 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes cdx-active-border {
-    from {
-        transform: scaleY(0);
-    }
-    to {
-        transform: scaleY(1);
-    }
 }
 
 .menu ul.list li.chapter .simple:hover {
-    background: var(--color-cdx-bg-alt);
+    background: var(--cdx-sidebar-hover);
     transition: background 120ms ease;
 }
 
+/* A collapsed node that holds the active page shows its chevron and label
+ * in the accent colour. */
 .chapter.inner > .menu-toggler.cdx-contains-active,
-.chapter.inner > .cdx-bucket-row.cdx-contains-active {
-    box-shadow: inset 3px 0 0 var(--color-cdx-primary-subtle);
+.chapter.inner > .cdx-bucket-row.cdx-contains-active,
+.chapter.inner > .cdx-additional-toggle.cdx-contains-active,
+.chapter.inner > .menu-toggler.cdx-contains-active .link-name,
+.chapter.inner > .cdx-bucket-row.cdx-contains-active .link-name {
+    color: var(--color-cdx-accent);
 }
 
 /* Tree: the children of a node hang in the node's own `ul.links`, whose
@@ -479,7 +476,7 @@
     white-space: nowrap;
 }
 .menu ul.list li a.active {
-    color: var(--color-cdx-primary);
+    color: var(--color-cdx-accent);
 }
 .menu ul.list li.divider {
     height: 1px;
@@ -521,17 +518,19 @@
     cursor: pointer;
 }
 .cdx-additional-toggle:focus-visible {
-    outline: 2px solid var(--color-cdx-primary);
+    outline: 2px solid var(--color-cdx-focus-ring);
     outline-offset: -2px;
     border-radius: var(--radius-cdx-sm);
 }
 .cdx-additional-parent:has(> a:hover) > .cdx-additional-toggle,
 .cdx-additional-toggle:hover {
-    background: var(--color-cdx-bg-alt);
+    background: var(--cdx-sidebar-hover);
     transition: background 120ms ease;
 }
+/* The pill of an active page with children starts with its toggle button. */
 .cdx-additional-parent:has(> a.active) > .cdx-additional-toggle {
-    background: var(--color-cdx-primary-subtle);
+    background: var(--color-cdx-accent-subtle);
+    color: var(--color-cdx-accent);
 }
 .menu ul.list li.copyright a .cdx-logo-placeholder {
     font-size: 1.5rem;
@@ -552,7 +551,7 @@ button.menu-toggler {
     outline: none;
 }
 button.menu-toggler:focus-visible {
-    outline: 2px solid var(--color-cdx-primary);
+    outline: 2px solid var(--color-cdx-focus-ring);
     outline-offset: -2px;
     border-radius: var(--radius-cdx-sm);
 }
@@ -695,7 +694,8 @@ button.menu-toggler:focus-visible {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    min-width: 100%;
+    /* Full row width minus the gap of the pill to the right edge. */
+    min-width: calc(100% - var(--spacing-cdx-sm));
 }
 
 .cdx-feature-kind-icon {

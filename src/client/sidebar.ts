@@ -340,14 +340,15 @@ export const expandToActive = () => {
 
     // Mark collapsed ancestors that contain the active entity
     // (for groups that remain collapsed after state restore).
-    // Feature-bucket rows live under `.cdx-bucket-row` instead of
-    // `.menu-toggler`, so the selector matches either.
+    // Feature-bucket rows live under `.cdx-bucket-row` and additional pages
+    // with children under `.cdx-additional-toggle` instead of
+    // `.menu-toggler`, so the selector matches any of them.
     let ancestor = active.closest('.chapter.inner') as HTMLElement | null;
     while (ancestor) {
         const collapse = ancestor.querySelector(':scope > ul.links.collapse');
         if (collapse && !collapse.classList.contains('in')) {
             const toggler = ancestor.querySelector(
-                ':scope > .menu-toggler, :scope > .cdx-bucket-row'
+                ':scope > .menu-toggler, :scope > .cdx-bucket-row, :scope > .cdx-additional-toggle'
             );
             if (toggler) {
                 toggler.classList.add('cdx-contains-active');
