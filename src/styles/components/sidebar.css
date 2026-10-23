@@ -531,6 +531,15 @@
 .menu ul.list li.chapter.additional .inner ul.links {
     padding-left: 20px;
 }
+/* Pages with children and groups sit next to plain pages, so they get no
+   folder-group indent (`.chapter.inner`) and their child list no
+   compensation for it; the labels line up with the plain page links. */
+.menu ul.list li.chapter.additional .chapter.inner {
+    margin-left: 0;
+}
+.menu ul.list li.chapter.additional .chapter.inner > ul.links {
+    margin-left: 0;
+}
 /* A group of additional pages reads like the pages next to it, not like an
    uppercase folder heading (`.chapter.inner > .menu-toggler .link-name`). */
 .chapter.inner.cdx-additional-group > .menu-toggler .link-name {
