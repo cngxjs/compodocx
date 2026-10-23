@@ -1,11 +1,23 @@
+import * as path from 'node:path';
 import { SyntaxKind, type ts } from 'ts-morph';
-import { v4 as uuidv4 } from 'uuid';
 import type { JsdocParserUtil } from '../../../utils';
 import { IsKindType, kindToType } from '../../../utils/kind-to-type';
 import { markedAcl } from '../../../utils/marked.acl';
 import { markedtags, mergeTagsAndArgs } from '../../../utils/utils';
 import type { ClassHelper } from '../angular/deps/helpers/class-helper';
 import type { JsdocTags } from './jsdoc-tags';
+
+/**
+ * `<file>:<line>:<column>` of `node` (1-based), the file in the form entries
+ * carry it (cwd prefix removed): stable across runs, unique per node.
+ */
+const sourcePosition = (node: ts.Node): string => {
+    const sourceFile = node.getSourceFile();
+    const cwdPrefix = (process.cwd() + path.sep).replace(/\\/g, '/');
+    const file = sourceFile.fileName.replace(cwdPrefix, '');
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+    return `${file}:${line + 1}:${character + 1}`;
+};
 
 export class EntityVisitor {
     constructor(
@@ -34,7 +46,7 @@ export class EntityVisitor {
         if (arg.name && arg.name.kind === SyntaxKind.ObjectBindingPattern) {
             let results = [];
 
-            const destrucuredGroupId = uuidv4();
+            const destrucuredGroupId = sourcePosition(arg.name);
 
             results = arg.name.elements.map(element => this.visitArgument(element));
 
