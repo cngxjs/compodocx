@@ -957,6 +957,20 @@ describe('CLI simple generation - big app', () => {
         );
     });
 
+    it('should highlight the lines after a very long source line', () => {
+        // list-image.service.ts holds base64 lines of up to 825 911 chars.
+        // They are emitted without colours; the next property keeps its
+        // property colour instead of the string colour of a cut-off line.
+        const file = read(`${distFolder}/${pages.of('injectable', 'ListImageService')}`);
+        const line = file.match(
+            /data-cdx-member="ListImageService\.photo64_4"[\s\S]*?<\/span><\/span>/
+        );
+        expect(line?.[0]).to.contain(
+            '<span style="color:#E36209;--shiki-dark:#FFAB70">    photo64_4</span>'
+        );
+        expect(line?.[0]).not.to.contain('color:#032F62');
+    });
+
     it('should support class name includes an interface name', () => {
         const file = read(`${distFolder}/${pages.of('class', 'Container')}`);
         expect(file).to.contain(`href="${pages.href('class', 'AaBb', 1)}" target="_self" >AaBb`);

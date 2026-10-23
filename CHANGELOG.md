@@ -35,6 +35,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **Repeated token names no longer repeat the row id on the Theming tab.**
 - **A `@cssprop` tag is no longer reported as an unknown tag.**
 - **`@example` blocks on component, directive, class and service pages show highlighted code.** The Examples section showed the highlighter's HTML as escaped text. Each example is now a Shiki code block in its own language, like the code blocks in the README and the additional pages. An example without a code fence is shown as HTML code instead of being written into the page as markup, and a `<caption>` becomes a label above the code on every page. The JSON export carries the same: `jsdoctags[].comment` of an example without a code fence is now a code block (`<div class="cdx-code-snippet">...</div>`) instead of a paragraph (`<p>...</p>`), the form the `description` field already had.
+- **Code with very long lines is highlighted the same way on every run.** The highlighter stopped a line after 500 ms of work, so on a busy machine a long string (an inline base64 image, a data blob) was cut at a different point and every line after it was coloured as part of the string. Lines are now tokenized to the end, and a line longer than 2 000 characters is shown without colours. Sources with such lines also generate much faster (the test app with seven base64 lines went from about 50 s to about 1 s).
 
 ## [0.9.1] - 2026-10-21
 

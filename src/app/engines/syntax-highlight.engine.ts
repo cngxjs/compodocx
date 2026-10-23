@@ -39,6 +39,14 @@ const SUPPORTED_LANGUAGES = [
     'markdown'
 ];
 
+/**
+ * Lines longer than this are emitted without colours. Shiki tokenizes the
+ * rest without its wall-clock time limit, so the output depends on the input
+ * only. String literals tokenize in quadratic time: about 0.2 s at 2 000 chars,
+ * 5 s at 10 000 chars.
+ */
+export const SHIKI_MAX_LINE_LENGTH = 2000;
+
 export interface FoldRegion {
     kind: 'imports' | 'decorator';
     label: string;
@@ -131,7 +139,9 @@ export function highlightCode(code: string, optionsOrLang?: HighlightOptions | s
             light: THEME_LIGHT,
             dark: THEME_DARK
         },
-        transformers
+        transformers,
+        tokenizeMaxLineLength: SHIKI_MAX_LINE_LENGTH,
+        tokenizeTimeLimit: 0
     });
 }
 
