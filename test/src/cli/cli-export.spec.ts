@@ -159,23 +159,38 @@ describe('CLI Export', () => {
         it('should get jsdoctags in component', () => {
             const file = read(`${distFolder}/documentation.json`);
 
+            // The fixture's @example bodies have no code fence, so they are
+            // rendered as code (no highlighter runs for the JSON export).
+
             // Property
-            expect(file).to.contain('"comment":"<p>component property</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">component property</div>'
+            );
 
             // Input
-            expect(file).to.contain('"comment":"<p>component input</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">component input</div>'
+            );
 
             // Accessor
-            expect(file).to.contain('"comment":"<p>component accessor</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">component accessor</div>'
+            );
 
             // HostBinding
-            expect(file).to.contain('"comment":"<p>component hostBinding</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">component hostBinding</div>'
+            );
 
             // HostListener
-            expect(file).to.contain('"comment":"<p>component hostListener</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">component hostListener</div>'
+            );
 
             // Output
-            expect(file).to.contain('"comment":"<p>component output</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">component output</div>'
+            );
 
             // Method
             expect(file).to.contain('"comment":"<p>component method param</p>');
@@ -186,22 +201,34 @@ describe('CLI Export', () => {
             const file = read(`${distFolder}/documentation.json`);
 
             // Property
-            expect(file).to.contain('"comment":"<p>directive property</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">directive property</div>'
+            );
 
             // Input
-            expect(file).to.contain('"comment":"<p>directive input</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">directive input</div>'
+            );
 
             // Accessor
-            expect(file).to.contain('"comment":"<p>directive accessor</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">directive accessor</div>'
+            );
 
             // HostBinding
-            expect(file).to.contain('"comment":"<p>directive hostBinding</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">directive hostBinding</div>'
+            );
 
             // HostListener
-            expect(file).to.contain('"comment":"<p>directive hostListener</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">directive hostListener</div>'
+            );
 
             // Output
-            expect(file).to.contain('"comment":"<p>directive output</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">directive output</div>'
+            );
 
             // Method
             expect(file).to.contain('"comment":"<p>directive method param</p>');
@@ -212,7 +239,9 @@ describe('CLI Export', () => {
             const file = read(`${distFolder}/documentation.json`);
 
             // Property
-            expect(file).to.contain('"comment":"<p>pipe property</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">pipe property</div>'
+            );
 
             // Method
             expect(file).to.contain('"comment":"<p>pipe method param</p>');
@@ -223,32 +252,48 @@ describe('CLI Export', () => {
             const file = read(`${distFolder}/documentation.json`);
 
             // Property
-            expect(file).to.contain('"comment":"<p>interface property</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">interface property</div>'
+            );
 
             // Method
-            expect(file).to.contain('"comment":"<p>interface method</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">interface method</div>'
+            );
         });
 
         it('should get jsdoctags in class', () => {
             const file = read(`${distFolder}/documentation.json`);
 
             // Property
-            expect(file).to.contain('"comment":"<p>class property</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">class property</div>'
+            );
 
             // Input
-            expect(file).to.contain('"comment":"<p>class input</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">class input</div>'
+            );
 
             // Accessor
-            expect(file).to.contain('"comment":"<p>class accessor</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">class accessor</div>'
+            );
 
             // HostBinding
-            expect(file).to.contain('"comment":"<p>class hostBinding</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">class hostBinding</div>'
+            );
 
             // HostListener
-            expect(file).to.contain('"comment":"<p>class hostListener</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">class hostListener</div>'
+            );
 
             // Output
-            expect(file).to.contain('"comment":"<p>class output</p>');
+            expect(file).to.contain(
+                '"comment":"<div class=\\"cdx-code-snippet\\">class output</div>'
+            );
 
             // Method
             expect(file).to.contain('"comment":"<p>class method param</p>');
