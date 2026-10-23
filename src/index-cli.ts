@@ -198,11 +198,10 @@ export async function runCli(argv: string[]): Promise<void> {
             /**
              * tsconfig file provided only
              */
-            const testTsConfigPath = Configuration.mainData.tsconfig.indexOf(process.cwd());
-            if (testTsConfigPath !== -1) {
-                Configuration.mainData.tsconfig = Configuration.mainData.tsconfig.replace(
-                    process.cwd() + path.sep,
-                    ''
+            const cwdPrefix = process.cwd() + path.sep;
+            if (Configuration.mainData.tsconfig.startsWith(cwdPrefix)) {
+                Configuration.mainData.tsconfig = Configuration.mainData.tsconfig.slice(
+                    cwdPrefix.length
                 );
             }
 
@@ -211,14 +210,6 @@ export async function runCli(argv: string[]): Promise<void> {
                 /**
                  * tsconfig file provided with source folder in arg
                  */
-                const testTsConfigPath = Configuration.mainData.tsconfig.indexOf(process.cwd());
-                if (testTsConfigPath !== -1) {
-                    Configuration.mainData.tsconfig = Configuration.mainData.tsconfig.replace(
-                        process.cwd() + path.sep,
-                        ''
-                    );
-                }
-
                 sourceFolder = program.args[0];
                 if (!FileEngine.existsSync(sourceFolder)) {
                     logger.error(
@@ -236,10 +227,8 @@ export async function runCli(argv: string[]): Promise<void> {
                 );
                 process.exit(1);
             } else {
-                const _file = path.join(
-                    path.join(process.cwd(), path.dirname(Configuration.mainData.tsconfig)),
-                    path.basename(Configuration.mainData.tsconfig)
-                );
+                // Absolute or relative to the cwd, also outside of it.
+                const _file = path.resolve(Configuration.mainData.tsconfig);
                 // use the current directory of tsconfig.json as a working directory
                 cwd = _file.split(path.sep).slice(0, -1).join(path.sep);
                 logger.info('Using tsconfig file ', _file);
