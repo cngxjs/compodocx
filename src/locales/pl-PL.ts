@@ -207,5 +207,6 @@ export const TRANSLATION_PL_PL = {
     'built-by': 'Tworzone przez',
     'route-outlet': 'Outlet',
     zoomin: 'Przybliż',
-    zoomout: 'Oddal'
+    zoomout: 'Oddal',
+    'graph-external-imports': 'Importy zewnętrzne'
 };

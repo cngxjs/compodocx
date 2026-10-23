@@ -466,13 +466,17 @@ test.describe('Dependency Graph — Overview', () => {
         await expect(page.locator('#dep-zoom-out')).toBeVisible();
     });
 
-    test('entity-color legend present', async ({ page }) => {
+    test('entity-color legend lists the node types the graph contains', async ({ page }) => {
         await page.goto('/overview.html');
         const legend = page.locator('.cdx-graph-legend');
         await expect(legend).toBeVisible();
-        const items = legend.locator('.cdx-graph-legend-item');
-        // component, directive, pipe, injectable
-        expect(await items.count()).toBeGreaterThanOrEqual(4);
+        // The fixture graph has no injectables, so the legend has no entry for them.
+        await expect(legend.locator('.cdx-graph-legend-item')).toHaveText([
+            'Component',
+            'Directive',
+            'Pipe',
+            'External imports'
+        ]);
     });
 
     test('a11y: screen reader text alternative lists dependencies', async ({ page }) => {
@@ -488,6 +492,47 @@ test.describe('Dependency Graph — Overview', () => {
     test('no module graph shown on standalone app overview', async ({ page }) => {
         await page.goto('/overview.html');
         await expect(page.locator('#module-graph-svg')).toHaveCount(0);
+    });
+
+    test('external imports start hidden and the toggle shows them', async ({ page }) => {
+        await page.goto('/overview.html');
+        const toggle = page.locator('#dep-externals');
+        const nodes = page.locator('#dependency-graph-container .dep-node title');
+        const external = nodes.filter({ hasText: '(external)' });
+        await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+        await expect(toggle).toContainText('External imports 1');
+        await expect.poll(() => nodes.count()).toBeGreaterThan(0);
+        await expect(external).toHaveCount(0);
+
+        await toggle.click();
+        await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+        await expect(external).toHaveCount(1);
+    });
+
+    test('shown labels never overlap each other', async ({ page }) => {
+        await page.goto('/overview.html');
+        // The zoom scale is set once the graph is fitted and its labels are culled.
+        await expect(page.locator('#dependency-graph-container svg')).toHaveAttribute(
+            'style',
+            /--cdx-graph-k/
+        );
+        const labels = page.locator('#dependency-graph-container .cdx-graph-label:not(.is-culled)');
+        const boxes = await labels.evaluateAll(els =>
+            els.map(el => {
+                const { left, right, top, bottom } = el.getBoundingClientRect();
+                return { left, right, top, bottom };
+            })
+        );
+        expect(boxes.length).toBeGreaterThan(0);
+        const overlapping = boxes.some((a, i) =>
+            boxes
+                .slice(i + 1)
+                .some(
+                    b =>
+                        a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+                )
+        );
+        expect(overlapping).toBe(false);
     });
 
     test('cursor: grab on graph SVG', async ({ page }) => {

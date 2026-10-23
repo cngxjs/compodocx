@@ -16,7 +16,7 @@ import { BlockTheming } from '../blocks/BlockTheming';
 import { ContentSlotsSection } from '../blocks/ContentSlots';
 import { DependenciesSection } from '../blocks/DependenciesSection';
 import { ExternalLinks } from '../blocks/ExternalLinks';
-import { DEPENDENCY_LEGEND_ITEMS, GraphLegend, GraphZoomControls } from '../blocks/GraphControls';
+import { dependencyLegendItems, GraphLegend, GraphZoomControls } from '../blocks/GraphControls';
 import { HostSection } from '../blocks/HostSection';
 import { ImportStatement } from '../blocks/ImportStatement';
 import { JsdocExamplesBlock } from '../blocks/JsdocExamplesBlock';
@@ -725,7 +725,7 @@ export const ComponentPage = (data: any): string => {
                             </div>
                             {GraphZoomControls({ prefix: 'dep-' })}
                         </div>
-                        {GraphLegend({ items: DEPENDENCY_LEGEND_ITEMS })}
+                        {GraphLegend({ items: dependencyLegendItems(componentDepGraph.nodes) })}
                     </div>
                 )}
 

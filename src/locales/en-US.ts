@@ -208,5 +208,6 @@ export const TRANSLATION_EN_US = {
     'built-by': 'Built by',
     'route-outlet': 'Outlet',
     zoomin: 'Zoom in',
-    zoomout: 'Zoom out'
+    zoomout: 'Zoom out',
+    'graph-external-imports': 'External imports'
 };

@@ -206,5 +206,6 @@ export const TRANSLATION_ZH_TW = {
     'built-by': '建構自',
     'route-outlet': 'Outlet',
     zoomin: '放大',
-    zoomout: '縮小'
+    zoomout: '縮小',
+    'graph-external-imports': '外部匯入'
 };

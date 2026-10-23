@@ -207,5 +207,6 @@ export const TRANSLATION_JA_JP = {
     'built-by': '生成元',
     'route-outlet': 'Outlet',
     zoomin: '拡大',
-    zoomout: '縮小'
+    zoomout: '縮小',
+    'graph-external-imports': '外部インポート'
 };

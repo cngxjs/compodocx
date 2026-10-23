@@ -209,5 +209,6 @@ export const TRANSLATION_RU_RU = {
     'built-by': 'Создано',
     'route-outlet': 'Outlet',
     zoomin: 'Приблизить',
-    zoomout: 'Отдалить'
+    zoomout: 'Отдалить',
+    'graph-external-imports': 'Внешние импорты'
 };

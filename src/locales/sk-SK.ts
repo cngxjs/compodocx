@@ -207,5 +207,6 @@ export const TRANSLATION_SK_SK = {
     'built-by': 'Vytvorené',
     'route-outlet': 'Outlet',
     zoomin: 'Priblížiť',
-    zoomout: 'Oddialiť'
+    zoomout: 'Oddialiť',
+    'graph-external-imports': 'Externé importy'
 };

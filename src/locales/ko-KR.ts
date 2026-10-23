@@ -206,5 +206,6 @@ export const TRANSLATION_KO_KR = {
     'built-by': '생성 함수',
     'route-outlet': 'Outlet',
     zoomin: '확대',
-    zoomout: '축소'
+    zoomout: '축소',
+    'graph-external-imports': '외부 가져오기'
 };

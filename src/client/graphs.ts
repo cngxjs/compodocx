@@ -4,6 +4,9 @@
  * lazy-load-graphs.js, and all associated libs.
  */
 
+import type { SimulationLinkDatum, SimulationNodeDatum } from 'd3';
+import { degrees, fitTransform, nonOverlapping, visibleGraph } from './graph-layout';
+
 declare const COMPONENT_TEMPLATE: string;
 declare const COMPONENTS: Array<{ name: string; selector: string }>;
 declare const DIRECTIVES: Array<{ name: string; selector: string }>;
@@ -279,6 +282,49 @@ const entityColorMap: Record<string, string> = {
     interceptor: 'var(--color-cdx-entity-interceptor, #c026d3)'
 };
 
+/** Label size on screen; the label font is divided by the zoom so it stays this size. */
+const LABEL_FONT_PX = 11;
+const LABEL_LINE_PX = 14;
+/** Space kept around the laid-out graph when it is fitted into the viewport. */
+const FIT_PAD_PX = 28;
+const FIT_MAX_SCALE = 1.5;
+/** The most connected nodes keep their label even over other nodes. */
+const HUB_LABELS = 8;
+const HUB_MIN_DEGREE = 3;
+
+interface DepNode extends SimulationNodeDatum {
+    readonly name: string;
+    readonly type: string;
+    readonly url?: string;
+    readonly r: number;
+    readonly degree: number;
+    readonly labelWidth: number;
+}
+
+interface DepLink extends SimulationLinkDatum<DepNode> {
+    source: DepNode;
+    target: DepNode;
+}
+
+/** Deterministic random source so a graph lays out the same way on every load. */
+const seededRandom = (): (() => number) => {
+    let state = 1;
+    return () => {
+        state = (state * 1664525 + 1013904223) % 4294967296;
+        return state / 4294967296;
+    };
+};
+
+/** Label widths at the label font, measured once per render without layout. */
+const labelMeasurer = (container: HTMLElement): ((text: string) => number) => {
+    const context = document.createElement('canvas').getContext('2d');
+    if (!context) {
+        return text => text.length * LABEL_FONT_PX * 0.6;
+    }
+    context.font = `${LABEL_FONT_PX}px ${getComputedStyle(container).fontFamily}`;
+    return text => context.measureText(text).width;
+};
+
 // Standalone Component Dependency Graph (D3 force-directed)
 const initDependencyGraph = async () => {
     const container = document.getElementById('dependency-graph-container');
@@ -288,50 +334,87 @@ const initDependencyGraph = async () => {
     if (!DEPENDENCY_GRAPH.nodes.length) {
         return;
     }
+    const graph = DEPENDENCY_GRAPH;
 
     const {
         select,
         forceSimulation,
         forceLink,
         forceManyBody,
-        forceCenter,
         forceCollide,
+        forceX,
+        forceY,
         zoom,
         zoomIdentity,
-        scaleSqrt
+        scaleSqrt,
+        easeCubicOut
     } = await loadD3();
 
-    const width = container.clientWidth || 800;
-    const height = Math.max(450, Math.min(700, DEPENDENCY_GRAPH.nodes.length * 25));
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const measure = labelMeasurer(container);
+    const externalsToggle = document.getElementById('dep-externals');
+    let showExternals = container.dataset.cdxExternals !== 'hidden';
 
-    // Build node/edge index
-    const nodeMap = new Map(DEPENDENCY_GRAPH.nodes.map((n, i) => [n.name, i]));
-    const links = DEPENDENCY_GRAPH.edges
-        .filter(e => nodeMap.has(e.source) && nodeMap.has(e.target))
-        .map(e => ({ source: e.source, target: e.target }));
+    /** Lay out the visible graph; positions are final when this returns. */
+    const layout = (): { nodes: DepNode[]; links: DepLink[] } => {
+        const visible = visibleGraph(graph, showExternals);
+        const degreeOf = degrees(visible.edges);
+        const radius = scaleSqrt()
+            .domain([1, Math.max(1, ...degreeOf.values())])
+            .range([6, 18])
+            .clamp(true);
+        const nodes: DepNode[] = visible.nodes.map(n => ({
+            name: n.name,
+            type: n.type,
+            url: n.url,
+            degree: degreeOf.get(n.name) ?? 0,
+            r: radius(degreeOf.get(n.name) ?? 1),
+            labelWidth: measure(n.name)
+        }));
+        const byName = new Map(nodes.map(n => [n.name, n]));
+        const links: DepLink[] = visible.edges.map(e => ({
+            source: byName.get(e.source)!,
+            target: byName.get(e.target)!
+        }));
 
-    // Count connections per node for radius scaling
-    const connectionCount = new Map<string, number>();
-    for (const e of DEPENDENCY_GRAPH.edges) {
-        connectionCount.set(e.source, (connectionCount.get(e.source) ?? 0) + 1);
-        connectionCount.set(e.target, (connectionCount.get(e.target) ?? 0) + 1);
-    }
+        const simulation = forceSimulation<DepNode>(nodes)
+            .randomSource(seededRandom())
+            .force(
+                'link',
+                forceLink<DepNode, DepLink>(links).distance(l => l.source.r + l.target.r + 36)
+            )
+            .force(
+                'charge',
+                forceManyBody<DepNode>()
+                    .strength(d => -60 - d.r * 6)
+                    .distanceMax(500)
+            )
+            .force(
+                'collide',
+                forceCollide<DepNode>()
+                    .radius(d => d.r + 10)
+                    .strength(0.9)
+                    .iterations(2)
+            )
+            // A weak pull to the middle keeps unconnected nodes near the rest.
+            .force('x', forceX<DepNode>(0).strength(0.05))
+            .force('y', forceY<DepNode>(0).strength(0.05))
+            .stop();
+        const ticks = Math.ceil(
+            Math.log(simulation.alphaMin()) / Math.log(1 - simulation.alphaDecay())
+        );
+        simulation.tick(ticks);
+        return { nodes, links };
+    };
 
-    const radiusScale = scaleSqrt()
-        .domain([1, Math.max(1, ...connectionCount.values())])
-        .range([8, 28]);
-
-    const nodes = DEPENDENCY_GRAPH.nodes.map(n => ({
-        ...n,
-        r: radiusScale(connectionCount.get(n.name) ?? 1)
-    }));
+    const height = (count: number) => Math.max(450, Math.min(700, count * 25));
 
     const svg = select(container)
         .append('svg')
+        .attr('class', 'cdx-dep-graph')
         .attr('role', 'img')
         .attr('aria-label', 'Standalone component dependency graph')
         .style('width', '100%')
-        .style('height', `${height}px`)
         .style('border-width', 'var(--color-cdx-graph-border-width, 0)')
         .style('border-style', 'solid')
         .style('border-color', 'var(--color-cdx-graph-border, transparent)')
@@ -339,14 +422,12 @@ const initDependencyGraph = async () => {
         .style('background', 'var(--color-cdx-graph-bg, var(--color-cdx-bg-alt))')
         .style('cursor', 'grab');
 
-    const g = svg.append('g');
-
     // Arrow marker for directed edges (source imports target)
     svg.append('defs')
         .append('marker')
         .attr('id', 'dep-arrow')
         .attr('viewBox', '0 -4 8 8')
-        .attr('refX', 12)
+        .attr('refX', 8)
         .attr('refY', 0)
         .attr('markerWidth', 6)
         .attr('markerHeight', 6)
@@ -354,119 +435,309 @@ const initDependencyGraph = async () => {
         .append('path')
         .attr('d', 'M0,-4L8,0L0,4Z')
         .attr('fill', 'var(--color-cdx-text-muted, #6b7280)')
-        .attr('fill-opacity', 0.6);
+        .attr('fill-opacity', 0.7);
 
-    // Draw links with arrows
-    const link = g
-        .selectAll('.dep-link')
-        .data(links)
-        .enter()
-        .append('line')
-        .attr('class', 'dep-link')
-        .attr('stroke', 'var(--color-cdx-text-muted, #6b7280)')
-        .attr('stroke-opacity', 0.55)
-        .attr('stroke-width', 1.5)
-        .attr('marker-end', 'url(#dep-arrow)');
+    const g = svg.append('g');
 
-    // Draw nodes
-    const node = g
-        .selectAll('.dep-node')
-        .data(nodes)
-        .enter()
-        .append('g')
-        .attr('class', 'dep-node')
-        .style('cursor', (d: any) => (d.url ? 'pointer' : 'default'));
+    let nodes: DepNode[] = [];
+    let fit = zoomIdentity;
+    let scale = 1;
+    let userZoomed = false;
+    let revealed = false;
 
-    node.append('circle')
-        .attr('r', (d: any) => d.r)
-        .attr('fill', (d: any) => entityColorMap[d.type] ?? entityColorMap.external)
-        .attr('stroke', 'var(--color-cdx-bg-elevated, white)')
-        .attr('stroke-width', 2);
+    /** The hovered node and the names of it and its neighbours; null without hover. */
+    let focus: { readonly node: DepNode; readonly related: ReadonlySet<string> } | null = null;
 
-    // Native SVG tooltip
-    node.append('title').text((d: any) => `${d.name} (${d.type})`);
+    /**
+     * Show the labels that fit at the current zoom, most connected first, and
+     * hide the rest. The hubs are placed first and may cover other nodes; every
+     * other label keeps clear of all nodes. While a node is hovered only it and
+     * its neighbours are labelled.
+     */
+    let cullFrame = 0;
+    const cullLabels = () => {
+        cullFrame = 0;
+        const k = scale;
+        const gap = 2 / k;
+        const boxes = nodes.map(d => ({
+            x: (d.x ?? 0) - d.labelWidth / 2 / k,
+            y: (d.y ?? 0) + d.r + 3 / k,
+            width: d.labelWidth / k,
+            height: LABEL_LINE_PX / k
+        }));
+        const circles = nodes.map(d => ({
+            x: (d.x ?? 0) - d.r,
+            y: (d.y ?? 0) - d.r,
+            width: d.r * 2,
+            height: d.r * 2
+        }));
+        const order = nodes
+            .map((_, i) => i)
+            .sort(
+                (a, b) =>
+                    nodes[b].degree - nodes[a].degree || nodes[a].name.localeCompare(nodes[b].name)
+            );
 
-    // Labels
-    node.append('text')
-        .attr('dy', (d: any) => d.r + 14)
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '11px')
-        .attr('fill', 'var(--color-cdx-text, #1a1a2e)')
-        .text((d: any) => d.name);
-
-    // Click to navigate
-    node.on('click', (_event: any, d: any) => {
-        if (d.url) {
-            document.location.href = d.url;
+        let shown: Set<number>;
+        if (focus) {
+            const { node: hovered, related } = focus;
+            const focusOrder = [
+                nodes.indexOf(hovered),
+                ...order.filter(i => nodes[i] !== hovered && related.has(nodes[i].name))
+            ];
+            shown = nonOverlapping(boxes, focusOrder, gap);
+        } else {
+            const hubs = nonOverlapping(
+                boxes,
+                order.slice(0, HUB_LABELS).filter(i => nodes[i].degree >= HUB_MIN_DEGREE),
+                gap
+            );
+            const rest = nonOverlapping(
+                boxes,
+                order.filter(i => !hubs.has(i)),
+                gap,
+                [...circles, ...[...hubs].map(i => boxes[i])]
+            );
+            shown = new Set([...hubs, ...rest]);
         }
-    });
-
-    // Force simulation
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const simulation = forceSimulation(nodes as any)
-        .force(
-            'link',
-            forceLink(links)
-                .id((d: any) => d.name)
-                .distance(80)
-        )
-        .force('charge', forceManyBody().strength(-120))
-        .force('center', forceCenter(width / 2, height / 2))
-        .force(
-            'collide',
-            forceCollide().radius((d: any) => d.r + 4)
+        g.selectAll<SVGTextElement, DepNode>('.cdx-graph-label').classed(
+            'is-culled',
+            (_, i) => !shown.has(i)
         );
-
-    // Shorten link endpoint to stop at target node edge (for arrow visibility)
-    const updateLinks = () => {
-        link.each(function (this: SVGLineElement, d: any) {
-            const dx = d.target.x - d.source.x;
-            const dy = d.target.y - d.source.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            const targetR = d.target.r ?? 8;
-            const offset = targetR + 6; // node radius + arrow marker size
-            this.setAttribute('x1', d.source.x);
-            this.setAttribute('y1', d.source.y);
-            // setAttribute stringifies numbers; the casts keep the bundle unchanged.
-            this.setAttribute('x2', (d.target.x - (dx / dist) * offset) as unknown as string);
-            this.setAttribute('y2', (d.target.y - (dy / dist) * offset) as unknown as string);
-        });
+    };
+    const scheduleCull = () => {
+        if (!cullFrame) {
+            cullFrame = requestAnimationFrame(cullLabels);
+        }
     };
 
-    if (reducedMotion) {
-        simulation.stop();
-        for (let i = 0; i < 300; i++) {
-            simulation.tick();
+    const zoomBehavior = zoom<SVGSVGElement, unknown>().on('zoom', event => {
+        g.attr('transform', event.transform);
+        scale = event.transform.k;
+        svg.style('--cdx-graph-k', String(scale));
+        if (event.sourceEvent) {
+            userZoomed = true;
         }
-        updateLinks();
-        node.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
-    } else {
-        simulation.on('tick', () => {
-            updateLinks();
-            node.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
-        });
-    }
-
-    // Zoom + pan
-    const zoomBehavior = zoom<SVGSVGElement, unknown>()
-        .scaleExtent([0.3, 4])
-        .on('zoom', event => {
-            g.attr('transform', event.transform);
-        });
+        scheduleCull();
+    });
     svg.call(zoomBehavior);
 
-    // Wire zoom buttons if present
+    /** Fit the drawn graph into the viewport, labels included. */
+    const computeFit = () => {
+        const xs = nodes.flatMap(d => [(d.x ?? 0) - d.r - 40, (d.x ?? 0) + d.r + 40]);
+        const ys = nodes.flatMap(d => [(d.y ?? 0) - d.r, (d.y ?? 0) + d.r + 24]);
+        const bounds = {
+            x: Math.min(...xs),
+            y: Math.min(...ys),
+            width: Math.max(...xs) - Math.min(...xs),
+            height: Math.max(...ys) - Math.min(...ys)
+        };
+        const t = fitTransform(
+            bounds,
+            container.clientWidth || 800,
+            height(nodes.length),
+            FIT_PAD_PX,
+            FIT_MAX_SCALE
+        );
+        fit = zoomIdentity.translate(t.x, t.y).scale(t.k);
+        zoomBehavior.scaleExtent([Math.min(0.1, t.k / 2), 4]);
+    };
+
+    const render = () => {
+        const laidOut = layout();
+        nodes = laidOut.nodes;
+        g.selectAll('*').remove();
+        svg.style('height', `${height(nodes.length)}px`);
+
+        const link = g
+            .append('g')
+            .selectAll<SVGLineElement, DepLink>('line')
+            .data(laidOut.links)
+            .join('line')
+            .attr('class', 'dep-link cdx-graph-link')
+            .attr('marker-end', 'url(#dep-arrow)')
+            .each(function (this: SVGLineElement, d) {
+                // End the line at the target's edge so the arrow stays visible.
+                const sx = d.source.x ?? 0;
+                const sy = d.source.y ?? 0;
+                const dx = (d.target.x ?? 0) - sx;
+                const dy = (d.target.y ?? 0) - sy;
+                const dist = Math.hypot(dx, dy) || 1;
+                const end = dist - d.target.r - 3;
+                select(this)
+                    .attr('x1', sx)
+                    .attr('y1', sy)
+                    .attr('x2', sx + (dx / dist) * end)
+                    .attr('y2', sy + (dy / dist) * end);
+            });
+
+        const node = g
+            .append('g')
+            .selectAll<SVGGElement, DepNode>('g')
+            .data(nodes)
+            .join('g')
+            .attr('class', d => `dep-node cdx-graph-node${d.url ? ' is-link' : ''}`)
+            .attr('transform', d => `translate(${d.x},${d.y})`);
+
+        node.append('circle')
+            .attr('r', d => d.r)
+            .attr('fill', d => entityColorMap[d.type] ?? entityColorMap.external);
+
+        node.append('title').text(d => `${d.name} (${d.type})`);
+
+        // Labels sit in their own layer above every node.
+        const label = g
+            .append('g')
+            .selectAll<SVGTextElement, DepNode>('text')
+            .data(nodes)
+            .join('text')
+            .attr('class', 'cdx-graph-label')
+            .attr('x', d => d.x ?? 0)
+            .attr('y', d => (d.y ?? 0) + d.r)
+            .attr('dy', '1.1em')
+            .attr('text-anchor', 'middle')
+            .text(d => d.name);
+
+        node.on('click', (_event, d) => {
+            if (d.url) {
+                document.location.href = d.url;
+            }
+        });
+
+        // Hovering a node keeps it, its neighbours and their edges in focus.
+        node.on('pointerenter', (_event, d) => {
+            const related = new Set([d.name]);
+            for (const l of laidOut.links) {
+                if (l.source === d) {
+                    related.add(l.target.name);
+                }
+                if (l.target === d) {
+                    related.add(l.source.name);
+                }
+            }
+            focus = { node: d, related };
+            svg.classed('is-focusing', true);
+            node.classed('is-related', n => related.has(n.name));
+            label.classed('is-related', n => related.has(n.name));
+            link.classed('is-related', l => l.source === d || l.target === d);
+            cullLabels();
+        });
+        node.on('pointerleave', () => {
+            focus = null;
+            svg.classed('is-focusing', false);
+            node.classed('is-related', false);
+            label.classed('is-related', false);
+            link.classed('is-related', false);
+            cullLabels();
+        });
+
+        return { node, link, label };
+    };
+
+    let drawn = render();
+
+    /** Fit, then grow the nodes outward from the middle and fade the edges in. */
+    const reveal = () => {
+        revealed = true;
+        userZoomed = false;
+        computeFit();
+        svg.call(zoomBehavior.transform, fit);
+        cullLabels();
+        if (reducedMotion) {
+            return;
+        }
+        const cx = nodes.reduce((sum, d) => sum + (d.x ?? 0), 0) / nodes.length;
+        const cy = nodes.reduce((sum, d) => sum + (d.y ?? 0), 0) / nodes.length;
+        const distance = (d: DepNode) => Math.hypot((d.x ?? 0) - cx, (d.y ?? 0) - cy);
+        const farthest = Math.max(1, ...nodes.map(distance));
+        const delay = (d: DepNode) => (distance(d) / farthest) * 500;
+        const start = (d: DepNode) =>
+            `translate(${cx + ((d.x ?? 0) - cx) * 0.6},${cy + ((d.y ?? 0) - cy) * 0.6}) scale(0.2)`;
+
+        drawn.node
+            .attr('opacity', 0)
+            .attr('transform', start)
+            .transition()
+            .delay(delay)
+            .duration(600)
+            .ease(easeCubicOut)
+            .attr('opacity', 1)
+            .attr('transform', d => `translate(${d.x},${d.y})`)
+            .on('end', function (this: SVGGElement) {
+                select(this).attr('opacity', null);
+            });
+        drawn.label
+            .attr('opacity', 0)
+            .transition()
+            .delay(d => delay(d) + 350)
+            .duration(300)
+            .attr('opacity', 1)
+            .on('end', function (this: SVGTextElement) {
+                select(this).attr('opacity', null);
+            });
+        drawn.link
+            .attr('opacity', 0)
+            .transition()
+            .delay(d => Math.max(delay(d.source), delay(d.target)) + 450)
+            .duration(400)
+            .attr('opacity', 1)
+            .on('end', function (this: SVGLineElement) {
+                select(this).attr('opacity', null);
+            });
+    };
+
+    // Lay out now, animate once the graph scrolls into view (or its tab opens).
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver(
+            entries => {
+                if (entries.some(e => e.isIntersecting)) {
+                    observer.disconnect();
+                    reveal();
+                }
+            },
+            { threshold: 0.15 }
+        );
+        observer.observe(container);
+    } else {
+        reveal();
+    }
+
+    // Keep the graph fitted while the reader has not zoomed it themselves.
+    if ('ResizeObserver' in window) {
+        let lastWidth = container.clientWidth;
+        new ResizeObserver(() => {
+            const width = container.clientWidth;
+            if (!revealed || userZoomed || width === lastWidth || width === 0) {
+                return;
+            }
+            lastWidth = width;
+            computeFit();
+            svg.call(zoomBehavior.transform, fit);
+        }).observe(container);
+    }
+
+    externalsToggle?.addEventListener('click', e => {
+        e.preventDefault();
+        showExternals = !showExternals;
+        externalsToggle.setAttribute('aria-pressed', String(showExternals));
+        drawn = render();
+        reveal();
+    });
+
     document.getElementById('dep-zoom-in')?.addEventListener('click', e => {
         e.preventDefault();
+        userZoomed = true;
         svg.transition().duration(300).call(zoomBehavior.scaleBy, 1.3);
     });
     document.getElementById('dep-zoom-out')?.addEventListener('click', e => {
         e.preventDefault();
+        userZoomed = true;
         svg.transition().duration(300).call(zoomBehavior.scaleBy, 0.7);
     });
     document.getElementById('dep-reset')?.addEventListener('click', e => {
         e.preventDefault();
-        svg.transition().duration(300).call(zoomBehavior.transform, zoomIdentity);
+        userZoomed = false;
+        svg.transition().duration(300).call(zoomBehavior.transform, fit);
     });
 };
 

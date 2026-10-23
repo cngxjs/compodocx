@@ -208,5 +208,6 @@ export const TRANSLATION_BG_BG = {
     'built-by': 'Създаден от',
     'route-outlet': 'Outlet',
     zoomin: 'Zoom in',
-    zoomout: 'Zoom out'
+    zoomout: 'Zoom out',
+    'graph-external-imports': 'Външни импорти'
 };

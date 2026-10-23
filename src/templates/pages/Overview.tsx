@@ -1,5 +1,5 @@
 import Html from '@kitajs/html';
-import { DEPENDENCY_LEGEND_ITEMS, GraphLegend, GraphZoomControls } from '../blocks/GraphControls';
+import { dependencyLegendItems, GraphLegend, GraphZoomControls } from '../blocks/GraphControls';
 import { OverviewHero } from '../blocks/OverviewHero';
 import { OverviewStats } from '../blocks/OverviewStats';
 import { EmptyState } from '../components/EmptyState';
@@ -79,11 +79,17 @@ export const Overview = (props: OverviewProps): string => {
                     </ul>
                     <div class="cdx-graph-container cdx-overview-graph">
                         <div class="cdx-graph-viewport">
-                            <div id="dependency-graph-container"></div>
+                            {/* External imports start hidden; the toggle shows them. */}
+                            <div id="dependency-graph-container" data-cdx-externals="hidden"></div>
                         </div>
-                        {GraphZoomControls({ prefix: 'dep-' })}
+                        {GraphZoomControls({
+                            prefix: 'dep-',
+                            externalCount: props.dependencyGraph!.nodes.filter(
+                                (n: any) => n.type === 'external'
+                            ).length
+                        })}
                     </div>
-                    {GraphLegend({ items: DEPENDENCY_LEGEND_ITEMS })}
+                    {GraphLegend({ items: dependencyLegendItems(props.dependencyGraph!.nodes) })}
                 </>
             )}
 

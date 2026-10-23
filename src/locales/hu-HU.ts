@@ -208,5 +208,6 @@ export const TRANSLATION_HU_HU = {
     'built-by': 'Létrehozta',
     'route-outlet': 'Outlet',
     zoomin: 'Nagyítás',
-    zoomout: 'Kicsinyítés'
+    zoomout: 'Kicsinyítés',
+    'graph-external-imports': 'Külső importok'
 };

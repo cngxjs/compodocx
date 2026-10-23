@@ -208,5 +208,6 @@ export const TRANSLATION_PT_BR = {
     'built-by': 'Criado por',
     'route-outlet': 'Outlet',
     zoomin: 'Zoom in',
-    zoomout: 'Zoom out'
+    zoomout: 'Zoom out',
+    'graph-external-imports': 'Importações externas'
 };

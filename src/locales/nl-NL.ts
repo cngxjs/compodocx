@@ -208,5 +208,6 @@ export const TRANSLATION_NL_NL = {
     'built-by': 'Gebouwd door',
     'route-outlet': 'Outlet',
     zoomin: 'Zoom in',
-    zoomout: 'Zoom uit'
+    zoomout: 'Zoom uit',
+    'graph-external-imports': 'Externe imports'
 };

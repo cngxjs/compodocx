@@ -209,5 +209,6 @@ export const TRANSLATION_FR_FR = {
     'built-by': 'Construit par',
     'route-outlet': 'Outlet',
     zoomin: 'Zoom avant',
-    zoomout: 'Zoom arrière'
+    zoomout: 'Zoom arrière',
+    'graph-external-imports': 'Imports externes'
 };

@@ -207,5 +207,6 @@ export const TRANSLATION_KA_GE = {
     'built-by': 'შექმნილია',
     'route-outlet': 'Outlet',
     zoomin: 'მიახლოვება',
-    zoomout: 'მასშტაბირება'
+    zoomout: 'მასშტაბირება',
+    'graph-external-imports': 'გარე იმპორტები'
 };
