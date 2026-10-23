@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { featureUrl, hrefTo, pageUrl } from './pages';
 
 // Runs against the standalone-app fixture rebuilt with menuLayout: 'feature'
@@ -453,5 +453,35 @@ test.describe('menuLayout: "feature" sidebar', () => {
         );
         expect(sectionText).toContain('InjectionToken');
         expect(sectionText).toContain("'root'");
+    });
+});
+
+test.describe('n/p sidebar navigation', () => {
+    const visibleEntityLinks = (page: Page) =>
+        page.evaluate(
+            () =>
+                Array.from(document.querySelectorAll('.menu a[data-type="entity-link"]')).filter(
+                    a => a.getClientRects().length > 0
+                ).length
+        );
+
+    // The previous link in DOM order sits in a collapsed node.
+    test('p skips entries inside collapsed nodes', async ({ page }) => {
+        await page.goto(pageUrl('component', 'AdminPanelComponent'));
+        const before = await visibleEntityLinks(page);
+        await page.keyboard.press('p');
+        await expect(page.locator('.cdx-sidebar-focused')).toBeVisible();
+        await expect(page.locator('.cdx-entity-preview')).toBeVisible();
+        expect(await visibleEntityLinks(page)).toBe(before);
+    });
+
+    // The next link in DOM order sits in a collapsed node.
+    test('n skips entries inside collapsed nodes', async ({ page }) => {
+        await page.goto(pageUrl('component', 'NotFoundComponent'));
+        const before = await visibleEntityLinks(page);
+        await page.keyboard.press('n');
+        await expect(page.locator('.cdx-sidebar-focused')).toBeVisible();
+        await expect(page.locator('.cdx-entity-preview')).toBeVisible();
+        expect(await visibleEntityLinks(page)).toBe(before);
     });
 });

@@ -1,6 +1,6 @@
 /**
  * Keyboard-first navigation.
- * Shortcuts: ? (overlay), / (search), j/k (member nav), [/] (entity nav), Escape.
+ * Shortcuts: ? (overlay), / (search), j/k (member nav), n/p (entity nav), Escape.
  */
 
 import { openCommandPalette } from './command-palette';
@@ -157,16 +157,20 @@ const buildPreviewHtml = (link: HTMLAnchorElement): string => {
     return html;
 };
 
-/** [/] entity sidebar navigation with preview */
-const navigateEntity = (direction: 1 | -1) => {
-    const links = Array.from(
+/** Sidebar entity links that are rendered; links inside collapsed nodes are skipped */
+const visibleEntityLinks = (): HTMLAnchorElement[] =>
+    Array.from(
         document.querySelectorAll<HTMLAnchorElement>('.menu a[data-type="entity-link"]')
-    );
+    ).filter(link => link.getClientRects().length > 0);
+
+/** n/p entity sidebar navigation with preview */
+const navigateEntity = (direction: 1 | -1) => {
+    const links = visibleEntityLinks();
     if (!links.length) {
         return;
     }
 
-    // If no preview is active, start from the current active link
+    // If no preview is active, start from the current active link (first/last when it is hidden)
     if (focusedEntityIdx === -1) {
         const activeLink = document.querySelector<HTMLAnchorElement>(
             '.menu a.active[data-type="entity-link"]'
@@ -226,9 +230,7 @@ const navigateEntity = (direction: 1 | -1) => {
 
 /** Navigate to the focused entity (Enter key) */
 const confirmEntityNavigation = () => {
-    const links = Array.from(
-        document.querySelectorAll<HTMLAnchorElement>('.menu a[data-type="entity-link"]')
-    );
+    const links = visibleEntityLinks();
     if (focusedEntityIdx >= 0 && focusedEntityIdx < links.length) {
         const target = links[focusedEntityIdx];
         dismissPreview();
