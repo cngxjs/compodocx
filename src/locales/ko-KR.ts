@@ -219,5 +219,7 @@ export const TRANSLATION_KO_KR = {
     'graph-building': '기본 요소부터 구성 중: 레벨 {{level}} / {{total}}',
     'graph-impact': '사용처: {{total}} · 직접: {{direct}} · 기능: {{features}}',
     'graph-impact-none': '표시된 항목 중 사용하는 것이 없습니다',
-    'graph-impact-hint': '다시 클릭하거나 배경을 클릭하면 해제됩니다'
+    'graph-impact-hint': '다시 클릭하거나 배경을 클릭하면 해제됩니다',
+    'graph-relations-list': '의존성 그래프의 관계',
+    'graph-no-feature': '기능 없음'
 };

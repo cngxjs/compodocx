@@ -220,5 +220,7 @@ export const TRANSLATION_SK_SK = {
     'graph-building': 'Budovanie od základných prvkov: úroveň {{level}} z {{total}}',
     'graph-impact': 'Používa: {{total}} · Priamo: {{direct}} · Funkcie: {{features}}',
     'graph-impact-none': 'Nič zo zobrazeného ho nepoužíva',
-    'graph-impact-hint': 'Kliknite naň znova alebo na pozadie na zrušenie'
+    'graph-impact-hint': 'Kliknite naň znova alebo na pozadie na zrušenie',
+    'graph-relations-list': 'Vzťahy v grafe závislostí',
+    'graph-no-feature': 'Bez funkcie'
 };

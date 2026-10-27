@@ -221,5 +221,7 @@ export const TRANSLATION_EN_US = {
     'graph-building': 'Building from primitives: level {{level}} of {{total}}',
     'graph-impact': 'Used by: {{total}} · Directly: {{direct}} · Features: {{features}}',
     'graph-impact-none': 'Nothing shown here uses it',
-    'graph-impact-hint': 'Click it again or the background to clear'
+    'graph-impact-hint': 'Click it again or the background to clear',
+    'graph-relations-list': 'Relations in the dependency graph',
+    'graph-no-feature': 'Without a feature'
 };

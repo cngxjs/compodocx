@@ -219,5 +219,7 @@ export const TRANSLATION_ZH_CN = {
     'graph-building': '从基础元素构建：第 {{level}} 层，共 {{total}} 层',
     'graph-impact': '被使用：{{total}} · 直接：{{direct}} · 功能：{{features}}',
     'graph-impact-none': '此处显示的内容均未使用它',
-    'graph-impact-hint': '再次点击它或点击背景以清除'
+    'graph-impact-hint': '再次点击它或点击背景以清除',
+    'graph-relations-list': '依赖关系图中的关系',
+    'graph-no-feature': '无所属功能'
 };

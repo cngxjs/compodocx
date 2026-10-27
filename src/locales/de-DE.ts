@@ -222,5 +222,7 @@ export const TRANSLATION_DE_DE = {
     'graph-building': 'Aufbau von den Grundbausteinen: Ebene {{level}} von {{total}}',
     'graph-impact': 'Genutzt von: {{total}} · Direkt: {{direct}} · Features: {{features}}',
     'graph-impact-none': 'Nichts Angezeigtes nutzt es',
-    'graph-impact-hint': 'Erneut darauf oder auf den Hintergrund klicken zum Zurücksetzen'
+    'graph-impact-hint': 'Erneut darauf oder auf den Hintergrund klicken zum Zurücksetzen',
+    'graph-relations-list': 'Beziehungen im Abhängigkeitsgraphen',
+    'graph-no-feature': 'Ohne Feature'
 };

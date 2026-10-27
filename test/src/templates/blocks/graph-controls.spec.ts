@@ -5,6 +5,7 @@ import {
     GraphKindLegend,
     GraphLegend,
     GraphRelationLegend,
+    GraphRelationList,
     GraphZoomControls
 } from '../../../../src/templates/blocks/GraphControls';
 
@@ -117,5 +118,42 @@ describe('GraphKindLegend', () => {
         expect(html).toContain('cdx-graph-kind--token');
         expect(html).toContain('Tokens');
         expect(GraphKindLegend({ nodes: [] })).toBe('');
+    });
+});
+
+describe('GraphRelationList', () => {
+    const model = {
+        nodes: [
+            { id: 'a', name: 'A', kind: 'component' as const, feature: 'f' },
+            { id: 'b', name: 'B', kind: 'service' as const, feature: 'f' },
+            { id: 'c', name: 'C', kind: 'pipe' as const }
+        ],
+        edges: [
+            { source: 'a', target: 'b', kind: 'injects' as const },
+            { source: 'a', target: 'c', kind: 'imports' as const },
+            { source: 'c', target: 'b', kind: 'injects' as const }
+        ],
+        features: [{ id: 'f', label: 'feature-f' }]
+    };
+
+    it('lists each symbol with its relations, grouped by feature', () => {
+        const html = GraphRelationList({ model });
+        expect(html).toContain('aria-label="Relations in the dependency graph"');
+        expect(html).toMatch(
+            /feature-f\s*<ul[^>]*><li[^>]*>A\. Uses in template: C\. Injects: B\.<\/li>/
+        );
+        expect(html).toMatch(/Without a feature\s*<ul[^>]*><li[^>]*>C\. Injects: B\.<\/li>/);
+    });
+
+    it('lists the symbols directly when the graph has no features', () => {
+        const html = GraphRelationList({
+            model: { ...model, nodes: model.nodes.map(({ feature: _f, ...n }) => n), features: [] }
+        });
+        expect(html).not.toContain('Without a feature');
+        expect(html).toMatch(/<li[^>]*>A\. Uses in template: C\. Injects: B\.<\/li>/);
+    });
+
+    it('renders nothing for a graph without relations', () => {
+        expect(GraphRelationList({ model: { ...model, edges: [] } })).toBe('');
     });
 });

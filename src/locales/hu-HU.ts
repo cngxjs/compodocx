@@ -221,5 +221,7 @@ export const TRANSLATION_HU_HU = {
     'graph-building': 'Felépítés az alapelemekből: {{level}}. szint / {{total}}',
     'graph-impact': 'Használja: {{total}} · Közvetlenül: {{direct}} · Funkciók: {{features}}',
     'graph-impact-none': 'Semmi a megjelenítettek közül nem használja',
-    'graph-impact-hint': 'Kattintson rá újra vagy a háttérre a törléshez'
+    'graph-impact-hint': 'Kattintson rá újra vagy a háttérre a törléshez',
+    'graph-relations-list': 'Kapcsolatok a függőségi gráfban',
+    'graph-no-feature': 'Funkció nélkül'
 };

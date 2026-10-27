@@ -220,5 +220,7 @@ export const TRANSLATION_KA_GE = {
     'graph-building': 'აგება საბაზისო ელემენტებიდან: დონე {{level}} / {{total}}',
     'graph-impact': 'იყენებს: {{total}} · პირდაპირ: {{direct}} · ფუნქციები: {{features}}',
     'graph-impact-none': 'ნაჩვენებთაგან არაფერი იყენებს',
-    'graph-impact-hint': 'გასასუფთავებლად კვლავ დააწკაპუნეთ მასზე ან ფონზე'
+    'graph-impact-hint': 'გასასუფთავებლად კვლავ დააწკაპუნეთ მასზე ან ფონზე',
+    'graph-relations-list': 'კავშირები დამოკიდებულებების გრაფში',
+    'graph-no-feature': 'ფუნქციის გარეშე'
 };

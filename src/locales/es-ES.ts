@@ -222,5 +222,7 @@ export const TRANSLATION_ES_ES = {
     'graph-impact':
         'Usado por: {{total}} · Directamente: {{direct}} · Funcionalidades: {{features}}',
     'graph-impact-none': 'Nada de lo mostrado lo usa',
-    'graph-impact-hint': 'Haz clic de nuevo en él o en el fondo para borrar'
+    'graph-impact-hint': 'Haz clic de nuevo en él o en el fondo para borrar',
+    'graph-relations-list': 'Relaciones en el grafo de dependencias',
+    'graph-no-feature': 'Sin funcionalidad'
 };

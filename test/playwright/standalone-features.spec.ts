@@ -502,14 +502,17 @@ test.describe('Dependency Graph — Overview', () => {
         ]);
     });
 
-    test('a11y: screen reader text alternative lists dependencies', async ({ page }) => {
+    test('a11y: screen reader text alternative lists the relations by feature', async ({
+        page
+    }) => {
         await page.goto('/overview.html');
-        const srList = page.locator('ul.sr-only[aria-label="Component dependency list"]');
+        const srList = page.locator('ul.sr-only[aria-label="Relations in the dependency graph"]');
         await expect(srList).toHaveCount(1);
-        const items = srList.locator('li');
-        expect(await items.count()).toBeGreaterThanOrEqual(2);
-        const text = await srList.textContent();
-        expect(text).toContain('imports');
+        // One item per feature, each with its symbols and every kind of relation.
+        const users = srList.locator(':scope > li', { hasText: /^\s*users/ });
+        await expect(users.locator('li', { hasText: /^UserListComponent\./ })).toHaveText(
+            'UserListComponent. Uses in template: UserCardComponent. Injects: UserService.'
+        );
     });
 
     test('no module graph shown on standalone app overview', async ({ page }) => {
@@ -768,8 +771,9 @@ test.describe('Dependency Graph — Component Tab', () => {
         await page.goto(pageUrl('component', 'UserCardComponent'));
         const srList = page.locator('#dependencies ul.sr-only');
         await expect(srList).toHaveCount(1);
-        const text = await srList.textContent();
-        expect(text).toContain('UserCardComponent imports');
+        await expect(srList.locator('li', { hasText: /^UserCardComponent\./ })).toHaveText(
+            'UserCardComponent. Uses in template: HighlightDirective. Injects: API_BASE_URL.'
+        );
     });
 
     test('per-component legend present', async ({ page }) => {

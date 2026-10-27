@@ -2,7 +2,12 @@ import Html from '@kitajs/html';
 import type { GraphOutput } from '../../app/graph/file';
 import { GRAPH_SCRIPT } from '../../app/page-generator/shared-scripts';
 import { graphHeight } from '../../client/graph-layout';
-import { GraphKindChips, GraphRelationLegend, GraphZoomControls } from '../blocks/GraphControls';
+import {
+    GraphKindChips,
+    GraphRelationLegend,
+    GraphRelationList,
+    GraphZoomControls
+} from '../blocks/GraphControls';
 import { OverviewHero } from '../blocks/OverviewHero';
 import { OverviewStats } from '../blocks/OverviewStats';
 import { EmptyState } from '../components/EmptyState';
@@ -53,7 +58,6 @@ const hasAnyEntities = (props: OverviewProps): boolean =>
 
 export const Overview = (props: OverviewProps): string => {
     const graph = props.disableGraph || !props.graph?.version ? undefined : props.graph;
-    const names = new Map(graph?.model.nodes.map(n => [n.id, n.name]));
 
     return (
         <>
@@ -72,14 +76,7 @@ export const Overview = (props: OverviewProps): string => {
             {graph && (
                 <>
                     {/* A11y: text alternative for screen readers (network graphs are inaccessible) */}
-                    <ul class="sr-only" aria-label="Component dependency list">
-                        {graph.model.edges.map(e => (
-                            <li>
-                                {names.get(e.source) ?? e.source} {e.kind}{' '}
-                                {names.get(e.target) ?? e.target}
-                            </li>
-                        ))}
-                    </ul>
+                    {GraphRelationList({ model: graph.model })}
                     <div class="cdx-graph-container cdx-overview-graph">
                         {GraphKindChips({ nodes: graph.model.nodes })}
                         <div class="cdx-graph-viewport">

@@ -221,5 +221,7 @@ export const TRANSLATION_BG_BG = {
     'graph-building': 'Изграждане от основите: ниво {{level}} от {{total}}',
     'graph-impact': 'Използва се от: {{total}} · Пряко: {{direct}} · Функционалности: {{features}}',
     'graph-impact-none': 'Нищо от показаното не го използва',
-    'graph-impact-hint': 'Щракнете отново върху него или върху фона, за да изчистите'
+    'graph-impact-hint': 'Щракнете отново върху него или върху фона, за да изчистите',
+    'graph-relations-list': 'Връзки в графа на зависимостите',
+    'graph-no-feature': 'Без функционалност'
 };

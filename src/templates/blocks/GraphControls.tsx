@@ -4,8 +4,10 @@ import {
     GRAPH_KINDS,
     GRAPH_KINDS_OFF,
     type GraphEdgeKind,
-    type GraphKind
+    type GraphKind,
+    type GraphModel
 } from '../../app/graph/format';
+import { relationsByFeature, type SymbolRelations } from '../../app/graph/relations';
 import { glyphMarkup, kindClass } from '../../client/graph-draw';
 import { t } from '../helpers';
 
@@ -152,5 +154,40 @@ export function GraphKindLegend(props: {
                 </div>
             ))}
         </div>
+    ) as string;
+}
+
+/** One symbol's relations as one sentence per kind: "Injects: A, B." */
+const relationText = (symbol: SymbolRelations): string =>
+    `${symbol.name}. ${symbol.relations
+        .map(r => `${t(`graph-edge-${r.kind}`)}: ${r.targets.join(', ')}.`)
+        .join(' ')}`;
+
+/**
+ * Text alternative of a dependency graph for screen readers: per feature,
+ * every symbol with what it uses, injects, composes or provides. A graph
+ * without features lists the symbols directly.
+ */
+export function GraphRelationList(props: { readonly model: GraphModel }): string {
+    const groups = relationsByFeature(props.model);
+    if (groups.length === 0) {
+        return '';
+    }
+    const flat = groups.length === 1 && groups[0].feature === undefined;
+    return (
+        <ul class="sr-only cdx-graph-relation-list" aria-label={t('graph-relations-list')}>
+            {flat
+                ? groups[0].symbols.map(symbol => <li>{Html.escapeHtml(relationText(symbol))}</li>)
+                : groups.map(group => (
+                      <li>
+                          {Html.escapeHtml(group.feature ?? t('graph-no-feature'))}
+                          <ul>
+                              {group.symbols.map(symbol => (
+                                  <li>{Html.escapeHtml(relationText(symbol))}</li>
+                              ))}
+                          </ul>
+                      </li>
+                  ))}
+        </ul>
     ) as string;
 }

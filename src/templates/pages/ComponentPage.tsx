@@ -22,6 +22,7 @@ import {
     GraphKindLegend,
     GraphLegend,
     GraphRelationLegend,
+    GraphRelationList,
     GraphZoomControls
 } from '../blocks/GraphControls';
 import { HostSection } from '../blocks/HostSection';
@@ -390,7 +391,6 @@ export const ComponentPage = (data: any): string => {
     const navTabs = data.navTabs;
     const theming = themingFor(c, 'component', Configuration.mainData, depth);
     const localGraph = componentNeighbourhood(c);
-    const graphNames = new Map(localGraph?.nodes.map(n => [n.id, n.name]));
 
     const feature = entityFeature('component', c);
     const axes = entityAxes('component', c);
@@ -702,14 +702,7 @@ export const ComponentPage = (data: any): string => {
                         role="tabpanel"
                         aria-labelledby="dependencies-tab"
                     >
-                        <ul class="sr-only" aria-label="Component dependency list">
-                            {localGraph.edges.map(e => (
-                                <li>
-                                    {graphNames.get(e.source) ?? e.source} {e.kind}{' '}
-                                    {graphNames.get(e.target) ?? e.target}
-                                </li>
-                            ))}
-                        </ul>
+                        {GraphRelationList({ model: localGraph })}
                         <div class="cdx-graph-container">
                             <div class="cdx-graph-viewport">
                                 <div

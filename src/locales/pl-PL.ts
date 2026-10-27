@@ -220,5 +220,7 @@ export const TRANSLATION_PL_PL = {
     'graph-building': 'Budowanie od podstawowych elementów: poziom {{level}} z {{total}}',
     'graph-impact': 'Używane przez: {{total}} · Bezpośrednio: {{direct}} · Funkcje: {{features}}',
     'graph-impact-none': 'Nic z pokazanych elementów go nie używa',
-    'graph-impact-hint': 'Kliknij go ponownie lub tło, aby wyczyścić'
+    'graph-impact-hint': 'Kliknij go ponownie lub tło, aby wyczyścić',
+    'graph-relations-list': 'Relacje w grafie zależności',
+    'graph-no-feature': 'Bez funkcji'
 };
