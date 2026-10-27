@@ -1,20 +1,23 @@
 import { defineConfig } from 'tsdown';
 
 // Browser bundle for the client-side runtime: search, command palette, code
-// blocks, graphs, hash router, sidebar, theme switcher, etc. ESM-only,
-// minified, targets ES2020. Output goes to src/resources/js/; the Tailwind
-// CSS output sits one level up. `clean: false` keeps tsdown from emptying
-// the output folder before a rebuild.
+// blocks, graphs, hash router, sidebar, theme switcher, etc. One classic
+// script (IIFE), minified, targets ES2020. Output goes to src/resources/js/;
+// the Tailwind CSS output sits one level up. `clean: false` keeps tsdown from
+// emptying the output folder before a rebuild.
 //
-// D3 is dynamic-imported from `src/client/graphs.ts` and ends up as a
-// separate chunk under chunks/, lazy-loaded only on pages that render a
-// DOM tree or dependency graph. Pagefind is loaded from a runtime URL in
-// `src/client/command-palette.ts`. Bundlers can't follow runtime-string imports,
-// so Pagefind isn't bundled here at all; it's fetched from the user's
-// deployed site at runtime (Pagefind generates its own bundle during indexing).
+// A classic script, not a module: browsers refuse module scripts on
+// `file://` (Chrome treats the page as an opaque origin), so a site opened
+// from disk would lose every interactive part. For the same reason there are
+// no chunks: the dynamic imports of D3 and the StackBlitz SDK are inlined
+// (`codeSplitting: false`), because a chunk is loaded as a module too.
+// Pagefind is loaded from a runtime URL in `src/client/command-palette.ts`.
+// Bundlers can't follow runtime-string imports, so Pagefind isn't bundled
+// here at all; it's fetched from the user's deployed site at runtime
+// (Pagefind generates its own bundle during indexing).
 export default defineConfig({
     entry: { compodocx: 'src/client/compodocx.ts' },
-    format: ['esm'],
+    format: ['iife'],
     outDir: 'src/resources/js',
     target: 'es2020',
     minify: true,
@@ -23,8 +26,8 @@ export default defineConfig({
     dts: false,
     platform: 'browser',
     outputOptions: {
-        chunkFileNames: 'chunks/[name]-[hash].js',
         entryFileNames: '[name].js',
+        codeSplitting: false,
     },
     // The browser bundle has no node_modules at runtime, so tsdown has to
     // inline every static and dynamic import. Without this override, tsdown

@@ -420,7 +420,10 @@ export const Layout = (props: LayoutProps): string => {
                 )}
             </head>
             <body>
-                <script type="module" src={r('js/compodocx.js')}></script>
+                {/* Classic deferred script, not a module: browsers block module
+                    scripts on file://, and `defer` keeps the module timing
+                    (runs once the document is parsed, in document order). */}
+                <script defer src={r('js/compodocx.js')}></script>
                 {data.entityIndex && entitiesVersion !== undefined && (
                     <script src={`${r(ENTITIES_SCRIPT)}?v=${entitiesVersion}`}></script>
                 )}
