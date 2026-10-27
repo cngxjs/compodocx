@@ -67,6 +67,16 @@ Useful flags:
 
 Re-running `ng add @cngxjs/compodocx` is idempotent (zero diff on the second pass). CI workflow files that invoke `compodoc -p ...` directly are not rewritten - update those manually, or rely on the `compodoc` bin alias the new package still ships. The schematic does not touch your sources, templates or config file: the warnings of the first run still apply.
 
+## Changes in 0.11.0
+
+No flag, config key or URL was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.10:
+
+- **Custom `overview` templates.** The graph data is `data.graph` (`{ model: { nodes, edges, features }, shown, version }`) instead of `data.dependencyGraph`, and the overview no longer inlines it: the page loads `js/graph.js` when the graph scrolls into view.
+- **Scripts that read `window.DEPENDENCY_GRAPH`.** The global is gone; `js/graph.js` sets `window.__CDX_GRAPH__` with the laid-out project graph.
+- **Custom CSS for the graphs.** Edges are drawn as `cdx-graph-edge--<relation>` paths with a short head at the target; the `dep-link` class and the `dep-arrow` marker are gone. Themes can colour the node kinds with the new `--color-cdx-graph-kind-<kind>` tokens (set them in `:root` and `.dark`).
+- **Hosting.** Publish `js/graph.js` along with the pages (it is not written with `--disableGraph`).
+- **A custom logo.** It is no longer fixed at 24px high: a wide logo fills the sidebar header up to `--cdx-sidebar-logo-max-height` (default `40px`), a square one sits next to the project name at `--cdx-sidebar-logo-icon-size` (default `28px`). Set `--cdx-sidebar-logo-max-height: 24px` in a custom theme for the old height of a wordmark, or `logoLayout: 'wordmark'` to keep a square logo without the name.
+
 ## Changes in 0.10.0
 
 No flag, config key or URL was removed. What to check when you upgrade from 0.9:
@@ -332,7 +342,7 @@ Full pattern, deployment recipes, and version-switcher reference: [`docs/version
 | `--includes`, `--includesName` | unchanged ||
 | `--coverageTest`, `--coverageMinimumPerFile`, `--coverageTestThresholdFail`, `--coverageTestShowOnlyFailed`, `--unitTestCoverage`, `--files` | unchanged | In the config file a number is the threshold, `true` uses the default (`70` / `0`) and `coverageTestThresholdFail: false` only warns |
 | `--disableSourceCode`, `--disableDomTree`, `--disableTemplateTab`, `--disableStyleTab`, `--disableGraph`, `--disableCoverage`, `--disablePrivate`, `--disableProtected`, `--disableInternal`, `--disableLifeCycleHooks`, `--disableConstructors`, `--disableFilePath`, `--disableSearch`, `--disableDependencies`, `--disableProperties`, `--disableOverview` | unchanged ||
-| `--disableDependenciesTab` | new | Hides the per-component standalone-import graph independently from `--disableGraph` |
+| `--disableDependenciesTab` | new | Hides the per-component Dependencies tab (the component's neighbourhood in the project graph) independently from `--disableGraph` |
 | `--disablePlaygroundTab`, `--strictPlaygrounds` | new | `@playground` controls |
 | `--disableRoutes` | new | Turns route reading off: no routes page, menu entry, Routed at / Mounted at links or exported routes |
 | `--minimal` | changed | Also sets `--disableRoutes` |
