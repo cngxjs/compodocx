@@ -549,12 +549,47 @@ test.describe('Dependency Graph — Overview', () => {
         await expect(services).toHaveCount(0);
     });
 
+    test('builds up level by level and shows its progress', async ({ page }) => {
+        await page.goto('/overview.html');
+        const status = page.locator('.cdx-graph-status');
+        await expect(status).toHaveText(/^Building from primitives: level \d+ of \d+$/);
+        const svg = page.locator('#dependency-graph-container svg');
+        await expect(svg).toHaveClass(/is-building/);
+        await expect(svg).not.toHaveClass(/is-building/, { timeout: 15_000 });
+        await expect(status).toBeHidden();
+    });
+
+    test('Replay plays the build-up again', async ({ page }) => {
+        await page.goto('/overview.html');
+        const svg = page.locator('#dependency-graph-container svg');
+        await expect(svg).not.toHaveClass(/is-building/, { timeout: 15_000 });
+        await page.locator('#dep-replay').click();
+        await expect(svg).toHaveClass(/is-building/);
+        await expect(page.locator('.cdx-graph-status')).toBeVisible();
+    });
+
+    test('reduced motion shows the final graph at once', async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto('/overview.html');
+        const svg = page.locator('#dependency-graph-container svg');
+        await expect(svg).toBeVisible();
+        await expect(svg).not.toHaveClass(/is-building/);
+        await expect(page.locator('.cdx-graph-status')).toBeHidden();
+        await expect(
+            page.locator('#dependency-graph-container .cdx-graph-label:not(.is-culled)')
+        ).not.toHaveCount(0);
+    });
+
     test('shown labels never overlap each other', async ({ page }) => {
         await page.goto('/overview.html');
-        // The zoom scale is set once the graph is fitted and its labels are culled.
+        // Labels are culled once the build-up has placed every node.
         await expect(page.locator('#dependency-graph-container svg')).toHaveAttribute(
             'style',
             /--cdx-graph-k/
+        );
+        await expect(page.locator('#dependency-graph-container svg')).not.toHaveClass(
+            /is-building/,
+            { timeout: 15_000 }
         );
         const labels = page.locator('#dependency-graph-container .cdx-graph-label:not(.is-culled)');
         const boxes = await labels.evaluateAll(els =>

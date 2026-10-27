@@ -217,5 +217,7 @@ export const TRANSLATION_RU_RU = {
     'graph-edge-composes': 'Составляет (hostDirectives)',
     'graph-edge-injects': 'Внедряет',
     'graph-edge-provides': 'Предоставляет',
-    'graph-show-kinds': 'Показываемые виды'
+    'graph-show-kinds': 'Показываемые виды',
+    'graph-replay': 'Повторить построение',
+    'graph-building': 'Построение от базовых элементов: уровень {{level}} из {{total}}'
 };

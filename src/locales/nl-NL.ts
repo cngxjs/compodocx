@@ -216,5 +216,7 @@ export const TRANSLATION_NL_NL = {
     'graph-edge-composes': 'Stelt samen (hostDirectives)',
     'graph-edge-injects': 'Injecteert',
     'graph-edge-provides': 'Levert',
-    'graph-show-kinds': 'Getoonde soorten'
+    'graph-show-kinds': 'Getoonde soorten',
+    'graph-replay': 'Opbouw herhalen',
+    'graph-building': 'Opbouw vanaf de basisbouwstenen: niveau {{level}} van {{total}}'
 };

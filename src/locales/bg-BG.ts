@@ -216,5 +216,7 @@ export const TRANSLATION_BG_BG = {
     'graph-edge-composes': 'Съставя (hostDirectives)',
     'graph-edge-injects': 'Инжектира',
     'graph-edge-provides': 'Предоставя',
-    'graph-show-kinds': 'Показвани видове'
+    'graph-show-kinds': 'Показвани видове',
+    'graph-replay': 'Повтори изграждането',
+    'graph-building': 'Изграждане от основите: ниво {{level}} от {{total}}'
 };

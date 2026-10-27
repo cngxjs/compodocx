@@ -216,5 +216,7 @@ export const TRANSLATION_IT_IT = {
     'graph-edge-composes': 'Compone (hostDirectives)',
     'graph-edge-injects': 'Inietta',
     'graph-edge-provides': 'Fornisce',
-    'graph-show-kinds': 'Tipi mostrati'
+    'graph-show-kinds': 'Tipi mostrati',
+    'graph-replay': 'Ripeti la costruzione',
+    'graph-building': 'Costruzione dai blocchi di base: livello {{level}} di {{total}}'
 };

@@ -215,5 +215,7 @@ export const TRANSLATION_KA_GE = {
     'graph-edge-composes': 'აერთიანებს (hostDirectives)',
     'graph-edge-injects': 'ახდენს ინექციას',
     'graph-edge-provides': 'უზრუნველყოფს',
-    'graph-show-kinds': 'ნაჩვენები სახეები'
+    'graph-show-kinds': 'ნაჩვენები სახეები',
+    'graph-replay': 'აგების გამეორება',
+    'graph-building': 'აგება საბაზისო ელემენტებიდან: დონე {{level}} / {{total}}'
 };

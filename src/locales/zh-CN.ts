@@ -214,5 +214,7 @@ export const TRANSLATION_ZH_CN = {
     'graph-edge-composes': '组合 (hostDirectives)',
     'graph-edge-injects': '注入',
     'graph-edge-provides': '提供',
-    'graph-show-kinds': '显示的类型'
+    'graph-show-kinds': '显示的类型',
+    'graph-replay': '重放构建过程',
+    'graph-building': '从基础元素构建：第 {{level}} 层，共 {{total}} 层'
 };

@@ -11,10 +11,12 @@ import { t } from '../helpers';
 
 type GraphZoomControlsProps = {
     readonly prefix?: string;
+    /** Adds a button that plays the build-up animation again. */
+    readonly replay?: boolean;
 };
 
 /** Zoom in / reset / zoom out button group for graph containers. */
-export function GraphZoomControls({ prefix = '' }: GraphZoomControlsProps): string {
+export function GraphZoomControls({ prefix = '', replay = false }: GraphZoomControlsProps): string {
     return (
         <div class="cdx-graph-zoom-controls">
             <button type="button" id={`${prefix}zoom-in`} class="cdx-btn cdx-btn--sm">
@@ -26,6 +28,11 @@ export function GraphZoomControls({ prefix = '' }: GraphZoomControlsProps): stri
             <button type="button" id={`${prefix}zoom-out`} class="cdx-btn cdx-btn--sm">
                 {t('zoomout')}
             </button>
+            {replay && (
+                <button type="button" id={`${prefix}replay`} class="cdx-btn cdx-btn--sm">
+                    {t('graph-replay')}
+                </button>
+            )}
         </div>
     ) as string;
 }

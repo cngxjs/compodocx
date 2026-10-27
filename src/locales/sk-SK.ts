@@ -215,5 +215,7 @@ export const TRANSLATION_SK_SK = {
     'graph-edge-composes': 'Skladá (hostDirectives)',
     'graph-edge-injects': 'Vkladá',
     'graph-edge-provides': 'Poskytuje',
-    'graph-show-kinds': 'Zobrazené druhy'
+    'graph-show-kinds': 'Zobrazené druhy',
+    'graph-replay': 'Zopakovať budovanie',
+    'graph-building': 'Budovanie od základných prvkov: úroveň {{level}} z {{total}}'
 };

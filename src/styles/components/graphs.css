@@ -312,6 +312,26 @@
     }
 }
 
+.cdx-graph-status {
+    position: absolute;
+    top: var(--spacing-cdx-sm);
+    right: var(--spacing-cdx-md);
+    font-size: 0.75rem;
+    color: var(--color-cdx-text-muted);
+    font-variant-numeric: tabular-nums;
+    pointer-events: none;
+}
+
+.cdx-graph-status[hidden] {
+    display: none;
+}
+
+/* Labels wait until the build-up has placed every node. */
+.cdx-project-graph.is-building .cdx-graph-label,
+.cdx-project-graph.is-building .cdx-graph-island-label {
+    opacity: 0;
+}
+
 .cdx-graph-legend-title {
     font-weight: 600;
     color: var(--color-cdx-text-muted);

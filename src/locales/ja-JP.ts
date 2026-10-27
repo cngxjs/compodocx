@@ -215,5 +215,7 @@ export const TRANSLATION_JA_JP = {
     'graph-edge-composes': '合成 (hostDirectives)',
     'graph-edge-injects': '注入',
     'graph-edge-provides': '提供',
-    'graph-show-kinds': '表示する種類'
+    'graph-show-kinds': '表示する種類',
+    'graph-replay': '構築を再生',
+    'graph-building': '基本要素から構築中: レベル {{level}} / {{total}}'
 };

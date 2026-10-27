@@ -15,6 +15,7 @@ import {
 import { degreesOf, groupOf, type LayoutNode, layoutSteps, nodeRadius } from '../app/graph/layout';
 import { edgeGeometry, glyphMarkup, hullPoints, islandLabelAnchor, labelOrder } from './graph-draw';
 import { type Box, fitTransform, graphHeight, nonOverlapping } from './graph-layout';
+import { buildSchedule, dependencyLevels, levelAt } from './graph-levels';
 
 declare global {
     interface Window {
@@ -31,6 +32,8 @@ const FIT_PAD_PX = 28;
 const FIT_MAX_SCALE = 2;
 /** Duration of the glide to new positions after the shown kinds change. */
 const GLIDE_MS = 700;
+/** Fade-in of the islands before the first symbols of the build-up appear. */
+const HULL_FADE_MS = 400;
 /** Layout work per animation frame before the next frame is awaited. */
 const FRAME_BUDGET_MS = 10;
 
@@ -231,7 +234,9 @@ export const drawDependencyGraph = async (
         line,
         curveCatmullRomClosed,
         easeCubicOut,
-        easeCubicInOut
+        easeCubicInOut,
+        easeBackOut,
+        timer
     } = d3;
 
     const svg = select(container)
@@ -358,6 +363,10 @@ export const drawDependencyGraph = async (
         }
         frame = requestAnimationFrame(() => {
             frame = 0;
+            // While the build-up grows the edges, they keep their own geometry.
+            if (building) {
+                return;
+            }
             edgeLayer.selectAll<SVGGElement, ViewEdge>('g.cdx-graph-edge-group').each(function (e) {
                 placeEdge(this, e);
             });
@@ -437,20 +446,27 @@ export const drawDependencyGraph = async (
         const ease = easeCubicInOut;
         svg.style('height', `${height()}px`);
 
-        hullLayer
+        // Without a glide every attribute is set at once: a zero-length transition
+        // would run a tick later, after the build-up has already interrupted it.
+        const hulls = hullLayer
             .selectAll<SVGPathElement, Island>('path')
             .data(view.islands, d => d.id)
             .join(enter =>
                 enter
                     .append('path')
                     .attr('class', 'cdx-graph-hull')
-                    .attr('opacity', glide ? 0 : null)
-            )
-            .transition()
-            .duration(duration)
-            .ease(ease)
-            .attr('opacity', 1)
-            .attr('d', d => hullPath(d.members));
+                    .attr('opacity', duration ? 0 : null)
+            );
+        if (duration) {
+            hulls
+                .transition()
+                .duration(duration)
+                .ease(ease)
+                .attr('opacity', 1)
+                .attr('d', d => hullPath(d.members));
+        } else {
+            hulls.attr('opacity', null).attr('d', d => hullPath(d.members));
+        }
 
         edgeLayer
             .selectAll<SVGGElement, ViewEdge>('g.cdx-graph-edge-group')
@@ -464,7 +480,7 @@ export const drawDependencyGraph = async (
                             e =>
                                 `cdx-graph-edge-group cdx-graph-edge--${e.kind}${e.far ? ' is-far' : ''}`
                         )
-                        .attr('opacity', glide ? 0 : null);
+                        .attr('opacity', duration ? 0 : null);
                     g.append('line').attr('class', 'cdx-graph-edge');
                     g.filter(e => e.kind === 'composes')
                         .append('line')
@@ -474,11 +490,13 @@ export const drawDependencyGraph = async (
                 },
                 update => update,
                 exit =>
-                    exit
-                        .transition()
-                        .duration(duration / 3)
-                        .attr('opacity', 0)
-                        .remove()
+                    duration
+                        ? exit
+                              .transition()
+                              .duration(duration / 3)
+                              .attr('opacity', 0)
+                              .remove()
+                        : exit.remove()
             )
             .each(function (e) {
                 if (!duration) {
@@ -505,13 +523,12 @@ export const drawDependencyGraph = async (
                     .attr('y1', geo.hy)
                     .attr('x2', geo.x2)
                     .attr('y2', geo.y2);
-            })
-            .transition()
-            .duration(duration)
-            .ease(ease)
-            .attr('opacity', 1)
-            .on('end', function () {
-                select(this).attr('opacity', null);
+                group
+                    .transition()
+                    .duration(duration)
+                    .ease(ease)
+                    .attr('opacity', 1)
+                    .on('end', () => group.attr('opacity', null));
             });
 
         const nodes = nodeLayer
@@ -524,7 +541,7 @@ export const drawDependencyGraph = async (
                         .attr('class', 'cdx-graph-node')
                         .attr(
                             'transform',
-                            d => `translate(${d.x},${d.y})${glide ? ' scale(0.01)' : ''}`
+                            d => `translate(${d.x},${d.y})${duration ? ' scale(0.01)' : ''}`
                         );
                     g.append('g').attr('class', 'cdx-graph-glyph');
                     g.append('circle').attr('class', 'cdx-graph-hit');
@@ -540,11 +557,13 @@ export const drawDependencyGraph = async (
                 },
                 update => update,
                 exit =>
-                    exit
-                        .transition()
-                        .duration(duration / 3)
-                        .attr('opacity', 0)
-                        .remove()
+                    duration
+                        ? exit
+                              .transition()
+                              .duration(duration / 3)
+                              .attr('opacity', 0)
+                              .remove()
+                        : exit.remove()
             )
             .attr(
                 'class',
@@ -553,35 +572,49 @@ export const drawDependencyGraph = async (
         nodes.select('g.cdx-graph-glyph').html(d => glyphMarkup(d.kind, d.r));
         nodes.select('circle.cdx-graph-hit').attr('r', d => d.r + 2);
         nodes.select('title').text(d => `${d.name} (${d.kind})`);
-        nodes
-            .transition()
-            .duration(duration)
-            .ease(ease)
-            .attr('transform', d => `translate(${d.x},${d.y})`);
+        const at = (d: ViewNode) => `translate(${d.x},${d.y})`;
+        if (duration) {
+            nodes.transition().duration(duration).ease(ease).attr('transform', at);
+        } else {
+            nodes.attr('transform', at);
+        }
 
-        labelLayer
+        const labels = labelLayer
             .selectAll<SVGTextElement, ViewNode>('text')
             .data(view.nodes, d => d.id)
             .join(enter =>
                 enter.append('text').attr('class', 'cdx-graph-label is-culled').attr('dy', '1.1em')
             )
-            .text(d => d.name)
-            .transition()
-            .duration(duration)
-            .ease(ease)
-            .attr('x', d => d.x)
-            .attr('y', d => d.y + d.r);
+            .text(d => d.name);
+        const labelAt = (d: ViewNode) => ({ x: d.x, y: d.y + d.r });
+        if (duration) {
+            labels
+                .transition()
+                .duration(duration)
+                .ease(ease)
+                .attr('x', d => labelAt(d).x)
+                .attr('y', d => labelAt(d).y);
+        } else {
+            labels.attr('x', d => labelAt(d).x).attr('y', d => labelAt(d).y);
+        }
 
-        islandLabelLayer
+        const islandLabels = islandLabelLayer
             .selectAll<SVGTextElement, Island>('text')
             .data(view.islands, d => d.id)
             .join(enter => enter.append('text').attr('class', 'cdx-graph-island-label is-culled'))
-            .text(d => d.label)
-            .transition()
-            .duration(duration)
-            .ease(ease)
-            .attr('x', d => islandLabelAnchor(d.members).x)
-            .attr('y', d => islandLabelAnchor(d.members).y);
+            .text(d => d.label);
+        if (duration) {
+            islandLabels
+                .transition()
+                .duration(duration)
+                .ease(ease)
+                .attr('x', d => islandLabelAnchor(d.members).x)
+                .attr('y', d => islandLabelAnchor(d.members).y);
+        } else {
+            islandLabels
+                .attr('x', d => islandLabelAnchor(d.members).x)
+                .attr('y', d => islandLabelAnchor(d.members).y);
+        }
 
         for (const n of view.nodes) {
             positions.set(n.id, { x: n.x, y: n.y });
@@ -589,62 +622,144 @@ export const drawDependencyGraph = async (
         setTimeout(cullLabels, duration);
     };
 
-    let revealRun = 0;
-    /** Show the fitted graph; the nodes grow outward from the middle. */
-    const reveal = () => {
-        computeFit();
-        svg.call(zoomBehavior.transform, fit);
-        cullLabels();
-        world.attr('visibility', null);
-        if (reducedMotion || view.nodes.length === 0) {
+    const status = container.parentElement?.querySelector<HTMLElement>('.cdx-graph-status');
+    let building = false;
+    let buildTimer: ReturnType<D3['timer']> | null = null;
+
+    /** End a running build-up at once: every part at its final place. */
+    const stopBuild = () => {
+        buildTimer?.stop();
+        buildTimer = null;
+        if (!building) {
             return;
         }
-        // CSS opacity transitions would lag behind the entrance; they come back after it.
-        svg.classed('is-revealing', true);
-        const cx = view.nodes.reduce((sum, n) => sum + n.x, 0) / view.nodes.length;
-        const cy = view.nodes.reduce((sum, n) => sum + n.y, 0) / view.nodes.length;
-        const distance = (n: ViewNode) => Math.hypot(n.x - cx, n.y - cy);
-        const farthest = Math.max(1, ...view.nodes.map(distance));
-        const delay = (n: ViewNode) => (distance(n) / farthest) * 500;
-        const hulls = hullLayer
-            .selectAll('path')
-            .attr('opacity', 0)
-            .transition()
-            .duration(500)
-            .attr('opacity', 1);
-        const nodes = nodeLayer
+        building = false;
+        hullLayer.selectAll('path').interrupt().attr('opacity', null);
+        nodeLayer
             .selectAll<SVGGElement, ViewNode>('g.cdx-graph-node')
+            .interrupt()
+            .attr('transform', n => `translate(${n.x},${n.y})`);
+        edgeLayer.selectAll<SVGGElement, ViewEdge>('g.cdx-graph-edge-group').each(function (e) {
+            select(this).selectAll('line').interrupt().attr('opacity', null);
+            placeEdge(this, e);
+        });
+        svg.classed('is-building', false).classed('is-revealing', false);
+        if (status) {
+            status.hidden = true;
+        }
+        cullLabels();
+    };
+
+    /**
+     * Build the graph up: the islands fade in, then the symbols pop in level by
+     * level, primitives first (level 0 island by island from the middle), and
+     * each edge grows from the user to what it uses once the user is there.
+     */
+    const playBuild = () => {
+        stopBuild();
+        if (reducedMotion || view.nodes.length === 0) {
+            cullLabels();
+            return;
+        }
+        building = true;
+        const level = dependencyLevels(
+            view.nodes.map(n => n.id),
+            view.edges.map(e => ({ source: e.source.id, target: e.target.id }))
+        );
+        const schedule = buildSchedule(
+            view.nodes.map(n => ({
+                id: n.id,
+                group: n.group,
+                x: n.x,
+                y: n.y,
+                level: level.get(n.id) ?? 0
+            }))
+        );
+        const appear = (n: ViewNode) => HULL_FADE_MS + (schedule.at.get(n.id) ?? 0);
+        // CSS opacity transitions would lag behind the build-up; they come back after it.
+        svg.classed('is-revealing', true).classed('is-building', true);
+        hullLayer
+            .selectAll('path')
+            .interrupt()
             .attr('opacity', 0)
-            .attr('transform', n => `translate(${n.x},${n.y}) scale(0.2)`)
             .transition()
-            .delay(delay)
-            .duration(600)
-            .ease(easeCubicOut)
-            .attr('opacity', 1)
-            .attr('transform', n => `translate(${n.x},${n.y})`)
-            .on('end', function () {
-                select(this).attr('opacity', null);
-            });
-        const edges = edgeLayer
+            .duration(HULL_FADE_MS + 200)
+            .attr('opacity', 1);
+        nodeLayer
+            .selectAll<SVGGElement, ViewNode>('g.cdx-graph-node')
+            .interrupt()
+            .attr('opacity', null)
+            .attr('transform', n => `translate(${n.x},${n.y}) scale(0.01)`)
+            .transition()
+            .delay(appear)
+            .duration(450)
+            .ease(easeBackOut.overshoot(1.7))
+            .attr('transform', n => `translate(${n.x},${n.y})`);
+        edgeLayer
             .selectAll<SVGGElement, ViewEdge>('g.cdx-graph-edge-group')
-            .attr('opacity', 0)
-            .transition()
-            .delay(e => Math.max(delay(e.source), delay(e.target)) + 450)
-            .duration(400)
-            .attr('opacity', 1)
-            .on('end', function () {
-                select(this).attr('opacity', null);
+            .interrupt()
+            .attr('opacity', null)
+            .each(function (e) {
+                const geo = edgeGeometry(e.source, e.target, k);
+                const start = appear(e.source) + 160;
+                const group = select(this);
+                group
+                    .selectAll('.cdx-graph-edge, .cdx-graph-edge-inner')
+                    .interrupt()
+                    .attr('x1', geo.x1)
+                    .attr('y1', geo.y1)
+                    .attr('x2', geo.x1)
+                    .attr('y2', geo.y1)
+                    .transition()
+                    .delay(start)
+                    .duration(320)
+                    .ease(easeCubicOut)
+                    .attr('x2', geo.x2)
+                    .attr('y2', geo.y2);
+                group
+                    .select('.cdx-graph-edge-head')
+                    .interrupt()
+                    .attr('opacity', 0)
+                    .attr('x1', geo.hx)
+                    .attr('y1', geo.hy)
+                    .attr('x2', geo.x2)
+                    .attr('y2', geo.y2)
+                    .transition()
+                    .delay(start + 300)
+                    .duration(160)
+                    .attr('opacity', 1);
             });
-        const run = ++revealRun;
-        Promise.allSettled([hulls.end(), nodes.end(), edges.end()]).then(() => {
-            if (run === revealRun) {
-                svg.classed('is-revealing', false);
+        const template = status?.dataset.cdxTemplate ?? '';
+        if (status && template) {
+            status.hidden = false;
+        }
+        const end = HULL_FADE_MS + schedule.endMs + 800;
+        buildTimer = timer(elapsed => {
+            if (status && template) {
+                status.textContent = template
+                    .replace(
+                        '{level}',
+                        String(levelAt(schedule, Math.max(0, elapsed - HULL_FADE_MS)) + 1)
+                    )
+                    .replace('{total}', String(schedule.top + 1));
+            }
+            if (elapsed > end) {
+                stopBuild();
             }
         });
     };
 
+    /** Show the fitted graph and build it up. */
+    const reveal = () => {
+        computeFit();
+        svg.call(zoomBehavior.transform, fit);
+        world.attr('visibility', null);
+        playBuild();
+    };
+
     /** Show the graph for new kinds: lay out what moved, then glide there. */
     const showKinds = async (next: Set<GraphKind>) => {
+        stopBuild();
         kinds = next;
         const { view: nextView } = viewOf();
         setFocus(null);
@@ -697,6 +812,10 @@ export const drawDependencyGraph = async (
         });
     }
 
+    document.getElementById('dep-replay')?.addEventListener('click', e => {
+        e.preventDefault();
+        playBuild();
+    });
     document.getElementById('dep-zoom-in')?.addEventListener('click', e => {
         e.preventDefault();
         userZoomed = true;

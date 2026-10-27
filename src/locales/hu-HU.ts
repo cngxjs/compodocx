@@ -216,5 +216,7 @@ export const TRANSLATION_HU_HU = {
     'graph-edge-composes': 'Összeállítja (hostDirectives)',
     'graph-edge-injects': 'Injektálja',
     'graph-edge-provides': 'Biztosítja',
-    'graph-show-kinds': 'Megjelenített típusok'
+    'graph-show-kinds': 'Megjelenített típusok',
+    'graph-replay': 'Felépítés újrajátszása',
+    'graph-building': 'Felépítés az alapelemekből: {{level}}. szint / {{total}}'
 };

@@ -214,5 +214,7 @@ export const TRANSLATION_KO_KR = {
     'graph-edge-composes': '구성 (hostDirectives)',
     'graph-edge-injects': '주입',
     'graph-edge-provides': '제공',
-    'graph-show-kinds': '표시할 종류'
+    'graph-show-kinds': '표시할 종류',
+    'graph-replay': '구성 다시 재생',
+    'graph-building': '기본 요소부터 구성 중: 레벨 {{level}} / {{total}}'
 };

@@ -92,8 +92,18 @@ export const Overview = (props: OverviewProps): string => {
                                 data-cdx-label={t('graph-label')}
                                 style={`min-height: ${graphHeight(graph.shown)}px`}
                             ></div>
+                            {/* Visual progress of the build-up; the graph itself is one image to assistive tech. */}
+                            <div
+                                class="cdx-graph-status"
+                                aria-hidden="true"
+                                data-cdx-template={t('graph-building', {
+                                    level: '{level}',
+                                    total: '{total}'
+                                })}
+                                hidden
+                            ></div>
                         </div>
-                        {GraphZoomControls({ prefix: 'dep-' })}
+                        {GraphZoomControls({ prefix: 'dep-', replay: true })}
                     </div>
                     {GraphRelationLegend({ edges: graph.model.edges })}
                 </>
