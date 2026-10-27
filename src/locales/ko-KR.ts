@@ -213,5 +213,6 @@ export const TRANSLATION_KO_KR = {
     'graph-edge-imports': '템플릿에서 사용',
     'graph-edge-composes': '구성 (hostDirectives)',
     'graph-edge-injects': '주입',
-    'graph-edge-provides': '제공'
+    'graph-edge-provides': '제공',
+    'graph-show-kinds': '표시할 종류'
 };

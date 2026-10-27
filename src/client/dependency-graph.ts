@@ -130,7 +130,16 @@ export const drawDependencyGraph = async (
             n.x === undefined || n.y === undefined ? [] : [[n.id, { x: n.x, y: n.y }] as const]
         )
     );
-    let kinds = defaultKinds(file.nodes);
+    const chips = [
+        ...(container
+            .closest('.cdx-graph-container')
+            ?.querySelectorAll<HTMLButtonElement>('.cdx-graph-chip[data-cdx-kind]') ?? [])
+    ];
+    const kindOf = (chip: HTMLElement) => chip.dataset.cdxKind as GraphKind;
+    let kinds =
+        chips.length > 0
+            ? new Set(chips.filter(c => c.getAttribute('aria-pressed') === 'true').map(kindOf))
+            : defaultKinds(file.nodes);
 
     /** The shown part of the graph at the current kinds, positioned where known. */
     const viewOf = (): { view: View; unplaced: boolean } => {
@@ -370,6 +379,10 @@ export const drawDependencyGraph = async (
     const height = () => graphHeight(view.nodes.length);
 
     const computeFit = () => {
+        if (view.nodes.length === 0) {
+            fit = zoomIdentity;
+            return;
+        }
         const xs = view.nodes.flatMap(n => [n.x - n.r - 40, n.x + n.r + 40]);
         const ys = view.nodes.flatMap(n => [n.y - n.r - 34, n.y + n.r + 24]);
         const bounds = {
@@ -669,18 +682,20 @@ export const drawDependencyGraph = async (
         }).observe(container);
     }
 
-    const externalsToggle = document.getElementById('dep-externals');
-    externalsToggle?.addEventListener('click', e => {
-        e.preventDefault();
-        const next = new Set(kinds);
-        if (next.has('external')) {
-            next.delete('external');
-        } else {
-            next.add('external');
-        }
-        externalsToggle.setAttribute('aria-pressed', String(next.has('external')));
-        void showKinds(next);
-    });
+    for (const chip of chips) {
+        chip.addEventListener('click', e => {
+            e.preventDefault();
+            const kind = kindOf(chip);
+            const next = new Set(kinds);
+            if (next.has(kind)) {
+                next.delete(kind);
+            } else {
+                next.add(kind);
+            }
+            chip.setAttribute('aria-pressed', String(next.has(kind)));
+            void showKinds(next);
+        });
+    }
 
     document.getElementById('dep-zoom-in')?.addEventListener('click', e => {
         e.preventDefault();

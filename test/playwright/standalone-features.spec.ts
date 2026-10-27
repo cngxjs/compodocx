@@ -511,19 +511,42 @@ test.describe('Dependency Graph — Overview', () => {
         await expect(page.locator('#module-graph-svg')).toHaveCount(0);
     });
 
-    test('external imports start hidden and the toggle shows them', async ({ page }) => {
+    test('kind chips list the kinds present; tokens, providers and externals start off', async ({
+        page
+    }) => {
         await page.goto('/overview.html');
-        const toggle = page.locator('#dep-externals');
+        const chips = page.locator('.cdx-graph-chips .cdx-graph-chip');
+        await expect(chips).toHaveText([
+            /^Components\s*27$/,
+            /^Directives\s*3$/,
+            /^Pipes\s*3$/,
+            /^Services\s*4$/,
+            /^Tokens\s*2$/,
+            /^Providers\s*2$/,
+            /^External imports\s*1$/
+        ]);
+        const pressed = await chips.evaluateAll(els =>
+            els.map(el => el.getAttribute('aria-pressed'))
+        );
+        expect(pressed).toEqual(['true', 'true', 'true', 'true', 'false', 'false', 'false']);
+    });
+
+    test('a kind chip shows and hides its nodes', async ({ page }) => {
+        await page.goto('/overview.html');
+        const chip = page.locator('.cdx-graph-chip[data-cdx-kind="external"]');
         const nodes = page.locator('#dependency-graph-container .dep-node title');
         const external = nodes.filter({ hasText: '(external)' });
-        await expect(toggle).toHaveAttribute('aria-pressed', 'false');
-        await expect(toggle).toContainText('External imports 1');
         await expect.poll(() => nodes.count()).toBeGreaterThan(0);
         await expect(external).toHaveCount(0);
 
-        await toggle.click();
-        await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+        await chip.click();
+        await expect(chip).toHaveAttribute('aria-pressed', 'true');
         await expect(external).toHaveCount(1);
+
+        const services = page.locator('#dependency-graph-container .cdx-graph-node--service');
+        await expect.poll(() => services.count()).toBeGreaterThan(0);
+        await page.locator('.cdx-graph-chip[data-cdx-kind="service"]').click();
+        await expect(services).toHaveCount(0);
     });
 
     test('shown labels never overlap each other', async ({ page }) => {

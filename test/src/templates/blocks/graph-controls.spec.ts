@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import {
     dependencyLegendItems,
+    GraphKindChips,
     GraphLegend,
     GraphRelationLegend,
     GraphZoomControls
@@ -39,14 +40,56 @@ describe('dependencyLegendItems', () => {
 });
 
 describe('GraphZoomControls', () => {
-    it('renders the external imports toggle only when there are external nodes', () => {
-        expect(GraphZoomControls({ prefix: 'dep-' })).not.toContain('dep-externals');
-        const html = GraphZoomControls({ prefix: 'dep-', externalCount: 4 });
-        expect(html).toContain('id="dep-externals"');
-        expect(html).toContain('aria-pressed="false"');
-        expect(html).toMatch(
-            /External imports <span class="cdx-graph-toggle-count"[^>]*>4<\/span>/
+    it('renders the zoom buttons with the prefix', () => {
+        const html = GraphZoomControls({ prefix: 'dep-' });
+        expect(html).toContain('id="dep-zoom-in"');
+        expect(html).toContain('id="dep-reset"');
+        expect(html).toContain('id="dep-zoom-out"');
+    });
+});
+
+describe('GraphKindChips', () => {
+    const chipsOf = (html: string) =>
+        [...html.matchAll(/data-cdx-kind="(\w+)" aria-pressed="(\w+)"/g)].map(m => [m[1], m[2]]);
+
+    it('renders a chip per kind present, in kind order, with its count', () => {
+        const html = GraphKindChips({
+            nodes: [
+                { kind: 'external' },
+                { kind: 'service' },
+                { kind: 'component' },
+                { kind: 'component' }
+            ]
+        });
+        expect(chipsOf(html)).toEqual([
+            ['component', 'true'],
+            ['service', 'true'],
+            ['external', 'false']
+        ]);
+        expect(html).toMatch(/Components<\/span><span class="cdx-graph-chip-count"[^>]*>2</);
+        expect(html).toContain('External imports');
+        expect(html).toMatch(/<legend class="sr-only"[^>]*>Shown kinds<\/legend>/);
+    });
+
+    it('starts tokens, providers and externals unpressed', () => {
+        const html = GraphKindChips({
+            nodes: [{ kind: 'token' }, { kind: 'provider' }, { kind: 'pipe' }]
+        });
+        expect(chipsOf(html)).toEqual([
+            ['pipe', 'true'],
+            ['token', 'false'],
+            ['provider', 'false']
+        ]);
+    });
+
+    it('shows each kind with its glyph', () => {
+        expect(GraphKindChips({ nodes: [{ kind: 'directive' }] })).toContain(
+            'stroke="var(--color-cdx-graph-kind-directive)"'
         );
+    });
+
+    it('renders nothing for an empty graph', () => {
+        expect(GraphKindChips({ nodes: [] })).toBe('');
     });
 });
 

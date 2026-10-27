@@ -213,5 +213,6 @@ export const TRANSLATION_ZH_TW = {
     'graph-edge-imports': '在範本中使用',
     'graph-edge-composes': '組合 (hostDirectives)',
     'graph-edge-injects': '注入',
-    'graph-edge-provides': '提供'
+    'graph-edge-provides': '提供',
+    'graph-show-kinds': '顯示的類型'
 };

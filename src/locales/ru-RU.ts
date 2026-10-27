@@ -216,5 +216,6 @@ export const TRANSLATION_RU_RU = {
     'graph-edge-imports': 'Использует в шаблоне',
     'graph-edge-composes': 'Составляет (hostDirectives)',
     'graph-edge-injects': 'Внедряет',
-    'graph-edge-provides': 'Предоставляет'
+    'graph-edge-provides': 'Предоставляет',
+    'graph-show-kinds': 'Показываемые виды'
 };

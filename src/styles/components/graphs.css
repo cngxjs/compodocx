@@ -38,17 +38,35 @@
     justify-content: center;
 }
 
-.cdx-graph-toggle {
+.cdx-graph-chips {
+    @apply flex flex-wrap;
+    gap: var(--spacing-cdx-xs);
+    margin: 0 0 var(--spacing-cdx-sm);
+    padding: 0;
+    border: 0;
+    min-inline-size: 0;
+}
+
+.cdx-graph-chip {
     @apply inline-flex items-center;
     gap: var(--spacing-cdx-xs);
 }
 
-.cdx-graph-toggle[aria-pressed='true'] {
+.cdx-graph-chip[aria-pressed='true'] {
     border-color: var(--color-cdx-primary);
     color: var(--color-cdx-primary);
 }
 
-.cdx-graph-toggle-count {
+/* An unpressed chip keeps its text readable (WCAG AA); only the glyph fades. */
+.cdx-graph-chip[aria-pressed='false'] .cdx-graph-chip-glyph {
+    opacity: 0.55;
+}
+
+.cdx-graph-chip-glyph {
+    flex: none;
+}
+
+.cdx-graph-chip-count {
     font-variant-numeric: tabular-nums;
     color: var(--color-cdx-text-muted);
 }

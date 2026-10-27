@@ -214,5 +214,6 @@ export const TRANSLATION_SK_SK = {
     'graph-edge-imports': 'Používa v šablóne',
     'graph-edge-composes': 'Skladá (hostDirectives)',
     'graph-edge-injects': 'Vkladá',
-    'graph-edge-provides': 'Poskytuje'
+    'graph-edge-provides': 'Poskytuje',
+    'graph-show-kinds': 'Zobrazené druhy'
 };

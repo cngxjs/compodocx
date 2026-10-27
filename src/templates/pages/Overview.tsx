@@ -2,7 +2,7 @@ import Html from '@kitajs/html';
 import type { GraphOutput } from '../../app/graph/file';
 import { GRAPH_SCRIPT } from '../../app/page-generator/shared-scripts';
 import { graphHeight } from '../../client/graph-layout';
-import { GraphRelationLegend, GraphZoomControls } from '../blocks/GraphControls';
+import { GraphKindChips, GraphRelationLegend, GraphZoomControls } from '../blocks/GraphControls';
 import { OverviewHero } from '../blocks/OverviewHero';
 import { OverviewStats } from '../blocks/OverviewStats';
 import { EmptyState } from '../components/EmptyState';
@@ -81,6 +81,7 @@ export const Overview = (props: OverviewProps): string => {
                         ))}
                     </ul>
                     <div class="cdx-graph-container cdx-overview-graph">
+                        {GraphKindChips({ nodes: graph.model.nodes })}
                         <div class="cdx-graph-viewport">
                             {/* The graph loads when it scrolls into view. The reserved height
                                 keeps the page from jumping when the graph draws. */}
@@ -92,11 +93,7 @@ export const Overview = (props: OverviewProps): string => {
                                 style={`min-height: ${graphHeight(graph.shown)}px`}
                             ></div>
                         </div>
-                        {GraphZoomControls({
-                            prefix: 'dep-',
-                            externalCount: graph.model.nodes.filter(n => n.kind === 'external')
-                                .length
-                        })}
+                        {GraphZoomControls({ prefix: 'dep-' })}
                     </div>
                     {GraphRelationLegend({ edges: graph.model.edges })}
                 </>

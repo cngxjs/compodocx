@@ -215,5 +215,6 @@ export const TRANSLATION_BG_BG = {
     'graph-edge-imports': 'Използва в шаблона',
     'graph-edge-composes': 'Съставя (hostDirectives)',
     'graph-edge-injects': 'Инжектира',
-    'graph-edge-provides': 'Предоставя'
+    'graph-edge-provides': 'Предоставя',
+    'graph-show-kinds': 'Показвани видове'
 };

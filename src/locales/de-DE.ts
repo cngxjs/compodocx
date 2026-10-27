@@ -216,5 +216,6 @@ export const TRANSLATION_DE_DE = {
     'graph-edge-imports': 'Nutzt im Template',
     'graph-edge-composes': 'Setzt zusammen (hostDirectives)',
     'graph-edge-injects': 'Injiziert',
-    'graph-edge-provides': 'Stellt bereit'
+    'graph-edge-provides': 'Stellt bereit',
+    'graph-show-kinds': 'Angezeigte Arten'
 };

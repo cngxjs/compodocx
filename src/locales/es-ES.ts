@@ -215,5 +215,6 @@ export const TRANSLATION_ES_ES = {
     'graph-edge-imports': 'Usa en la plantilla',
     'graph-edge-composes': 'Compone (hostDirectives)',
     'graph-edge-injects': 'Inyecta',
-    'graph-edge-provides': 'Provee'
+    'graph-edge-provides': 'Provee',
+    'graph-show-kinds': 'Tipos mostrados'
 };

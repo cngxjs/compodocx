@@ -215,5 +215,6 @@ export const TRANSLATION_HU_HU = {
     'graph-edge-imports': 'Sablonban használja',
     'graph-edge-composes': 'Összeállítja (hostDirectives)',
     'graph-edge-injects': 'Injektálja',
-    'graph-edge-provides': 'Biztosítja'
+    'graph-edge-provides': 'Biztosítja',
+    'graph-show-kinds': 'Megjelenített típusok'
 };

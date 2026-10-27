@@ -214,5 +214,6 @@ export const TRANSLATION_JA_JP = {
     'graph-edge-imports': 'テンプレートで使用',
     'graph-edge-composes': '合成 (hostDirectives)',
     'graph-edge-injects': '注入',
-    'graph-edge-provides': '提供'
+    'graph-edge-provides': '提供',
+    'graph-show-kinds': '表示する種類'
 };

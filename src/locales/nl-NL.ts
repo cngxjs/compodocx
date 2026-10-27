@@ -215,5 +215,6 @@ export const TRANSLATION_NL_NL = {
     'graph-edge-imports': 'Gebruikt in template',
     'graph-edge-composes': 'Stelt samen (hostDirectives)',
     'graph-edge-injects': 'Injecteert',
-    'graph-edge-provides': 'Levert'
+    'graph-edge-provides': 'Levert',
+    'graph-show-kinds': 'Getoonde soorten'
 };

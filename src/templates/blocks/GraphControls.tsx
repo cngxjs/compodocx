@@ -1,18 +1,20 @@
 import Html from '@kitajs/html';
-import { GRAPH_EDGE_KINDS, type GraphEdgeKind } from '../../app/graph/format';
+import {
+    GRAPH_EDGE_KINDS,
+    GRAPH_KINDS,
+    GRAPH_KINDS_OFF,
+    type GraphEdgeKind,
+    type GraphKind
+} from '../../app/graph/format';
+import { glyphMarkup } from '../../client/graph-draw';
 import { t } from '../helpers';
 
 type GraphZoomControlsProps = {
     readonly prefix?: string;
-    /** Number of external nodes; a toggle for them is rendered when above 0. */
-    readonly externalCount?: number;
 };
 
 /** Zoom in / reset / zoom out button group for graph containers. */
-export function GraphZoomControls({
-    prefix = '',
-    externalCount = 0
-}: GraphZoomControlsProps): string {
+export function GraphZoomControls({ prefix = '' }: GraphZoomControlsProps): string {
     return (
         <div class="cdx-graph-zoom-controls">
             <button type="button" id={`${prefix}zoom-in`} class="cdx-btn cdx-btn--sm">
@@ -24,17 +26,6 @@ export function GraphZoomControls({
             <button type="button" id={`${prefix}zoom-out`} class="cdx-btn cdx-btn--sm">
                 {t('zoomout')}
             </button>
-            {externalCount > 0 && (
-                <button
-                    type="button"
-                    id={`${prefix}externals`}
-                    class="cdx-btn cdx-btn--sm cdx-graph-toggle"
-                    aria-pressed="false"
-                >
-                    {t('graph-external-imports')}{' '}
-                    <span class="cdx-graph-toggle-count">{String(externalCount)}</span>
-                </button>
-            )}
         </div>
     ) as string;
 }
@@ -130,5 +121,43 @@ export function GraphRelationLegend(props: {
                 </div>
             ))}
         </div>
+    ) as string;
+}
+
+/** Translation key of a kind's chip label: the plural kind, externals by their own name. */
+const kindLabelKey = (kind: GraphKind): string =>
+    kind === 'external' ? 'graph-external-imports' : `${kind}s`;
+
+/**
+ * One filter chip per node kind the graph contains, with its glyph and
+ * count. Tokens, providers and externals start unpressed.
+ */
+export function GraphKindChips(props: {
+    readonly nodes: readonly { readonly kind: GraphKind }[];
+}): string {
+    const counts = new Map<GraphKind, number>();
+    for (const n of props.nodes) {
+        counts.set(n.kind, (counts.get(n.kind) ?? 0) + 1);
+    }
+    const kinds = GRAPH_KINDS.filter(kind => counts.has(kind));
+    if (kinds.length === 0) {
+        return '';
+    }
+    return (
+        <fieldset class="cdx-graph-chips">
+            <legend class="sr-only">{t('graph-show-kinds')}</legend>
+            {kinds.map(kind => (
+                <button
+                    type="button"
+                    class="cdx-btn cdx-btn--sm cdx-graph-chip"
+                    data-cdx-kind={kind}
+                    aria-pressed={String(!GRAPH_KINDS_OFF.has(kind))}
+                >
+                    {`<svg class="cdx-graph-chip-glyph" width="14" height="14" viewBox="-7 -7 14 14" aria-hidden="true">${glyphMarkup(kind, 5.5, 'none')}</svg>`}
+                    <span>{t(kindLabelKey(kind))}</span>
+                    <span class="cdx-graph-chip-count">{String(counts.get(kind))}</span>
+                </button>
+            ))}
+        </fieldset>
     ) as string;
 }

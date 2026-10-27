@@ -214,5 +214,6 @@ export const TRANSLATION_KA_GE = {
     'graph-edge-imports': 'იყენებს შაბლონში',
     'graph-edge-composes': 'აერთიანებს (hostDirectives)',
     'graph-edge-injects': 'ახდენს ინექციას',
-    'graph-edge-provides': 'უზრუნველყოფს'
+    'graph-edge-provides': 'უზრუნველყოფს',
+    'graph-show-kinds': 'ნაჩვენები სახეები'
 };

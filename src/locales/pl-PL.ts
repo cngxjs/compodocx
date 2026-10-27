@@ -214,5 +214,6 @@ export const TRANSLATION_PL_PL = {
     'graph-edge-imports': 'Używa w szablonie',
     'graph-edge-composes': 'Składa (hostDirectives)',
     'graph-edge-injects': 'Wstrzykuje',
-    'graph-edge-provides': 'Dostarcza'
+    'graph-edge-provides': 'Dostarcza',
+    'graph-show-kinds': 'Pokazywane rodzaje'
 };

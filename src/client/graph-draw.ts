@@ -21,14 +21,15 @@ const BG = 'var(--color-cdx-graph-bg, var(--color-cdx-bg-alt))';
  * tells the kinds apart, so they stay distinct where a theme colours two
  * kinds alike: component filled, directive a ring, pipe a half-filled ring,
  * service a ring with a core, token a small dot, provider a ring with an
- * inner ring, external a dashed ring.
+ * inner ring, external a dashed ring. A ring is filled with `background`, so
+ * edges under it stay hidden.
  */
-export const glyphMarkup = (kind: GraphKind, r: number): string => {
+export const glyphMarkup = (kind: GraphKind, r: number, background = BG): string => {
     const c = kindColor(kind);
     const w = Math.max(1.4, r * 0.32);
     const inner = r - w / 2;
     const ring = (extra = '') =>
-        `<circle r="${inner}" fill="${BG}" stroke="${c}" stroke-width="${w}"${extra}/>`;
+        `<circle r="${inner}" fill="${background}" stroke="${c}" stroke-width="${w}"${extra}/>`;
     switch (kind) {
         case 'component':
             return `<circle r="${r}" fill="${c}"/>`;
