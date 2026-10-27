@@ -236,6 +236,10 @@ Note: Certain tabs will only be shown if applicable to a given dependency`
             expect(runHelp.stdout.toString()).to.contain('Use a custom logo');
         });
 
+        it(`--logoLayout`, () => {
+            expect(runHelp.stdout.toString()).to.contain('--logoLayout [layout]');
+        });
+
         it(`--templates`, () => {
             expect(runHelp.stdout.toString()).to.contain('--templates [folder]');
             expect(runHelp.stdout.toString()).to.contain(

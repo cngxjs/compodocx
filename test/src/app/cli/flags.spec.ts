@@ -91,6 +91,7 @@ describe('defineFlags', () => {
             '--minimal',
             '--customFavicon',
             '--customLogo',
+            '--logoLayout',
             '--gaID',
             '--publicApiOnly',
             '--maxSearchResults'

@@ -76,6 +76,7 @@ const makeMainData = (): MainDataInterface => {
         showEffects: false,
         customFavicon: '',
         customLogo: '',
+        logoLayout: 'auto',
         gaID: '',
         publicApiOnly: '',
         maxSearchResults: 15,
@@ -130,6 +131,7 @@ const makeProgram = (argv: readonly string[] = []): Command => {
         .option('--maxVersionsShown <n>', '', '10')
         .option('--maxSearchResults <n>', '', '15')
         .option('--gaID [id]')
+        .option('--logoLayout [layout]')
         .option('--coverageTest [threshold]')
         .option('--coverageMinimumPerFile [minimum]')
         .option('--coverageTestThresholdFail [true|false]', '', true)
@@ -335,6 +337,36 @@ describe('applyConfigToMainData', () => {
         const program = makeProgram(['--port', '9000']);
         applyConfigToMainData(mainData, { port: 7777 }, program, { cwd: '/tmp/test' });
         expect(mainData.port).toBe('9000');
+    });
+
+    it('logoLayout: config value applies, the CLI flag wins', () => {
+        const fromConfig = makeMainData();
+        applyConfigToMainData(fromConfig, { logoLayout: 'icon' }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(fromConfig.logoLayout).toBe('icon');
+
+        const fromCli = makeMainData();
+        applyConfigToMainData(
+            fromCli,
+            { logoLayout: 'icon' },
+            makeProgram(['--logoLayout', 'wordmark']),
+            { cwd: '/tmp/test' }
+        );
+        expect(fromCli.logoLayout).toBe('wordmark');
+    });
+
+    it('logoLayout: an unknown value keeps auto, with a warning', () => {
+        const mainData = makeMainData();
+        const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
+        applyConfigToMainData(mainData, { logoLayout: 'square' }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(mainData.logoLayout).toBe('auto');
+        expect(warn).toHaveBeenCalledWith(
+            'logoLayout: expected one of auto, icon, wordmark, got "square"; ignored'
+        );
+        warn.mockRestore();
     });
 
     it('menuLayout: "feature" propagates from config', () => {

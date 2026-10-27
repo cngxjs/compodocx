@@ -78,6 +78,29 @@
     object-fit: contain;
     object-position: left center;
 }
+/* An icon logo sits next to the project name, sized like the brand text line. */
+.cdx-sidebar-logo--icon {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-cdx-sm);
+    text-decoration: none;
+}
+.cdx-sidebar-logo--icon img {
+    width: auto;
+    height: var(--cdx-sidebar-logo-icon-size);
+    max-height: none;
+    flex-shrink: 0;
+}
+.cdx-sidebar-logo-name {
+    min-width: 0;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--color-cdx-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 .cdx-sidebar-actions {
     display: flex;

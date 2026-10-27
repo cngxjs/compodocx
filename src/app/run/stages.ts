@@ -5,6 +5,7 @@ import type { DependenciesData } from '../services/dependencies';
 import { hasStylePage, unlinkedTokenFiles } from '../styles';
 import type { RunContext } from './context';
 import { type Halt, halt } from './halt';
+import { resolveLogoLayout } from './logo';
 
 /**
  * How many symbols of each kind the prepare phase works on: the whole
@@ -209,6 +210,15 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
         key: 'playgroundValidator',
         when: always,
         run: step(ctx => ctx.generators.playgroundValidator.resolve())
+    },
+    // The sidebar header reads the resolved logo layout on every page.
+    {
+        key: 'logo',
+        when: ctx => Boolean(ctx.config.mainData.customLogo),
+        run: step(async ctx => {
+            const { mainData } = ctx.config;
+            mainData.logoLayoutResolved = await resolveLogoLayout(mainData);
+        })
     }
 ];
 

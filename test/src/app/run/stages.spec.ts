@@ -67,7 +67,8 @@ const ALL_KEYS = [
     'externalIncludes',
     'playgroundFiles',
     'playgroundVendor',
-    'playgroundValidator'
+    'playgroundValidator',
+    'logo'
 ];
 
 const context = (mode: RunMode, mainData: Record<string, unknown> = {}): RunContext =>
@@ -119,10 +120,11 @@ describe('prepare stage table', () => {
         ]);
     });
 
-    it('selects all 27 stages in table order for a full run with every kind', () => {
+    it('selects all 28 stages in table order for a full run with every kind', () => {
         const ctx = context('full', {
             unitTestCoverage: 'coverage.json',
             includes: 'docs',
+            customLogo: 'brand/logo.svg',
             di: { clusters: [{}], plainProviders: [], tokens: [] },
             styles: {
                 files: [
@@ -178,6 +180,7 @@ describe('prepare stage table', () => {
         const ctx = context('diff', {
             unitTestCoverage: 'coverage.json',
             includes: 'docs',
+            customLogo: 'brand/logo.svg',
             di: { clusters: [{}], plainProviders: [], tokens: [] },
             styles: {
                 files: [
@@ -196,6 +199,13 @@ describe('prepare stage table', () => {
         expect(selected).not.toContain('unitTestCoverage');
         expect(selected).not.toContain('externalIncludes');
         expect(selected).toHaveLength(ALL_KEYS.length - 2);
+    });
+
+    it('selects the logo stage only with a custom logo, in every mode', () => {
+        expect(keys(context('full'), EMPTY)).not.toContain('logo');
+        expect(keys(context('full', { customLogo: '' }), EMPTY)).not.toContain('logo');
+        expect(keys(context('full', { customLogo: 'logo.svg' }), EMPTY)).toContain('logo');
+        expect(keys(context('diff', { customLogo: 'logo.svg' }), EMPTY)).toContain('logo');
     });
 
     it('selects the component stage in diff mode only for changed components', () => {

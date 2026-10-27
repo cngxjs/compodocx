@@ -1,6 +1,11 @@
 import Html from '@kitajs/html';
 import { hrefFor, hrefText, pageFile, ROOT_DEPTH } from '../app/links/layout';
-import { faviconImage, IMAGES_FOLDER, logoImage } from '../app/page-generator/brand-images';
+import {
+    faviconImage,
+    IMAGES_FOLDER,
+    type LogoLayout,
+    logoImage
+} from '../app/page-generator/brand-images';
 import { ENTITIES_SCRIPT, MENU_SCRIPT } from '../app/page-generator/shared-scripts';
 import { VersionSwitcher } from './blocks/VersionSwitcher';
 import { IconMoon, IconPalette, IconSearch, IconSun } from './components/Icons';
@@ -16,6 +21,8 @@ export type PageData = {
     readonly filename?: string;
     readonly theme?: string;
     readonly customLogo?: string;
+    /** Layout of `customLogo`, resolved by the `logo` prepare stage. */
+    readonly logoLayoutResolved?: LogoLayout;
     readonly customFavicon?: string;
     readonly disableSearch?: boolean;
     readonly disableDependencies?: boolean;
@@ -178,9 +185,40 @@ const BUILTIN_THEMES: ReadonlyArray<{
     { id: 'rose-pine', name: 'Rose Pine', swatch: '#d7827e' }
 ];
 
+/**
+ * The custom logo: a wordmark alone (alt text = project name), an icon next
+ * to the project name (decorative image, the name is the text).
+ */
+const SidebarLogo = (props: {
+    name: string;
+    logo: string;
+    layout: LogoLayout;
+    r: (path: string) => string;
+}): string => {
+    const src = props.r(`${IMAGES_FOLDER}/${logoImage(props.logo)}`);
+    if (props.layout === 'icon') {
+        return (
+            <a
+                href={INDEX_HREF}
+                data-type="index-link"
+                class="cdx-sidebar-logo cdx-sidebar-logo--icon"
+            >
+                <img src={src} alt="" />
+                <span class="cdx-sidebar-logo-name">{Html.escapeHtml(props.name) as string}</span>
+            </a>
+        ) as string;
+    }
+    return (
+        <a href={INDEX_HREF} data-type="index-link" class="cdx-sidebar-logo">
+            <img src={src} alt={props.name} />
+        </a>
+    ) as string;
+};
+
 const SidebarHeader = (props: {
     name: string;
     logo?: string;
+    logoLayout?: LogoLayout;
     disableSearch?: boolean;
     r: (path: string) => string;
 }): string => {
@@ -188,12 +226,12 @@ const SidebarHeader = (props: {
         <div class="cdx-sidebar-header">
             <div class="cdx-sidebar-header-row">
                 {props.logo ? (
-                    <a href={INDEX_HREF} data-type="index-link" class="cdx-sidebar-logo">
-                        <img
-                            src={props.r(`${IMAGES_FOLDER}/${logoImage(props.logo)}`)}
-                            alt={props.name}
-                        />
-                    </a>
+                    SidebarLogo({
+                        name: props.name,
+                        logo: props.logo,
+                        layout: props.logoLayout ?? 'wordmark',
+                        r: props.r
+                    })
                 ) : (
                     <a href={INDEX_HREF} data-type="index-link" class="cdx-sidebar-brand">
                         {Html.escapeHtml(props.name) as string}
@@ -469,6 +507,7 @@ export const Layout = (props: LayoutProps): string => {
                     {SidebarHeader({
                         name: data.documentationMainName,
                         logo: data.customLogo,
+                        logoLayout: data.logoLayoutResolved,
                         disableSearch: data.disableSearch,
                         r
                     })}

@@ -243,6 +243,10 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
         )
         .option('--customFavicon [path]', 'Use a custom favicon')
         .option('--customLogo [path]', 'Use a custom logo')
+        .option(
+            '--logoLayout [layout]',
+            "How the sidebar shows the custom logo: 'auto' (from its aspect ratio), 'icon' (next to the project name) or 'wordmark' (logo only)"
+        )
         .option('--gaID [id]', 'Google Analytics tracking ID')
         .option(
             '--publicApiOnly [path]',

@@ -42,6 +42,13 @@ describe('CLI custom logo', () => {
             const index = read(`${distFolder}/index.html`);
             expect(index).to.contain('<img src="./images/logo.png"');
         });
+
+        it('should show a square logo as an icon next to the project name', () => {
+            const index = read(`${distFolder}/index.html`);
+            expect(index).to.contain('class="cdx-sidebar-logo cdx-sidebar-logo--icon"');
+            expect(index).to.contain('<img src="./images/logo.png" alt=""/>');
+            expect(index).to.contain('class="cdx-sidebar-logo-name"');
+        });
     });
 
     describe('when specifying a custom logo svg image', () => {
@@ -55,7 +62,9 @@ describe('CLI custom logo', () => {
                 '-d',
                 distFolder,
                 '--customLogo',
-                './test/fixtures/todomvc-ng2/logo.svg'
+                './test/fixtures/todomvc-ng2/logo.svg',
+                '--logoLayout',
+                'wordmark'
             ]);
 
             if (hasStderrError(ls.stderr.toString())) {
@@ -76,6 +85,42 @@ describe('CLI custom logo', () => {
         it('should link the copied customLogo in the sidebar', () => {
             const index = read(`${distFolder}/index.html`);
             expect(index).to.contain('<img src="./images/logo.svg"');
+        });
+
+        it('should show the logo alone when --logoLayout is wordmark', () => {
+            const index = read(`${distFolder}/index.html`);
+            expect(index).to.contain(
+                '<a href="index.html" data-type="index-link" class="cdx-sidebar-logo">'
+            );
+            expect(index).to.not.contain('cdx-sidebar-logo-name');
+        });
+    });
+
+    describe('when specifying a wide custom logo', () => {
+        beforeAll(() => {
+            tmp.create(distFolder);
+            const ls = shell('node', [
+                './bin/index-cli.js',
+                '--no-multiVersion',
+                '-p',
+                './test/fixtures/todomvc-ng2/src/tsconfig.json',
+                '-d',
+                distFolder,
+                '--customLogo',
+                './test/fixtures/todomvc-ng2/logo-wide.svg'
+            ]);
+
+            if (hasStderrError(ls.stderr.toString())) {
+                console.error(`shell error: ${ls.stderr.toString()}`);
+                throw new Error('error');
+            }
+        });
+        afterAll(() => tmp.clean(distFolder));
+
+        it('should show a wide logo alone, named by the project', () => {
+            const index = read(`${distFolder}/index.html`);
+            expect(index).to.contain('<img src="./images/logo-wide.svg" alt="');
+            expect(index).to.not.contain('cdx-sidebar-logo--icon');
         });
     });
 
