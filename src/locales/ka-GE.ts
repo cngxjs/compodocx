@@ -208,5 +208,11 @@ export const TRANSLATION_KA_GE = {
     'route-outlet': 'Outlet',
     zoomin: 'მიახლოვება',
     zoomout: 'მასშტაბირება',
-    'graph-external-imports': 'გარე იმპორტები'
+    'graph-external-imports': 'გარე იმპორტები',
+    'graph-label': 'დამოკიდებულებების გრაფი',
+    'graph-relations': 'კავშირები',
+    'graph-edge-imports': 'იყენებს შაბლონში',
+    'graph-edge-composes': 'აერთიანებს (hostDirectives)',
+    'graph-edge-injects': 'ახდენს ინექციას',
+    'graph-edge-provides': 'უზრუნველყოფს'
 };

@@ -208,5 +208,11 @@ export const TRANSLATION_SK_SK = {
     'route-outlet': 'Outlet',
     zoomin: 'Priblížiť',
     zoomout: 'Oddialiť',
-    'graph-external-imports': 'Externé importy'
+    'graph-external-imports': 'Externé importy',
+    'graph-label': 'Graf závislostí',
+    'graph-relations': 'Vzťahy',
+    'graph-edge-imports': 'Používa v šablóne',
+    'graph-edge-composes': 'Skladá (hostDirectives)',
+    'graph-edge-injects': 'Vkladá',
+    'graph-edge-provides': 'Poskytuje'
 };

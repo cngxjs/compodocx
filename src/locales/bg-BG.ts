@@ -209,5 +209,11 @@ export const TRANSLATION_BG_BG = {
     'route-outlet': 'Outlet',
     zoomin: 'Zoom in',
     zoomout: 'Zoom out',
-    'graph-external-imports': 'Външни импорти'
+    'graph-external-imports': 'Външни импорти',
+    'graph-label': 'Граф на зависимостите',
+    'graph-relations': 'Връзки',
+    'graph-edge-imports': 'Използва в шаблона',
+    'graph-edge-composes': 'Съставя (hostDirectives)',
+    'graph-edge-injects': 'Инжектира',
+    'graph-edge-provides': 'Предоставя'
 };

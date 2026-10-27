@@ -127,6 +127,191 @@
     }
 }
 
+/* Project graph on the overview. The client sets `--cdx-graph-k` to the zoom
+   scale, so labels and strokes keep their screen size at every zoom level.
+   Glyph strokes are attributes; no rule here may target the glyph circles. */
+.cdx-project-graph {
+    --cdx-graph-k: 1;
+}
+
+.cdx-project-graph .cdx-graph-hull {
+    fill: color-mix(in srgb, var(--color-cdx-text) 4%, transparent);
+    stroke: color-mix(in srgb, var(--color-cdx-text) 14%, transparent);
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
+    transition:
+        fill 150ms ease-out,
+        opacity 150ms ease-out;
+}
+
+.cdx-project-graph .cdx-graph-hull.is-related {
+    fill: color-mix(in srgb, var(--color-cdx-text) 8%, transparent);
+    stroke: color-mix(in srgb, var(--color-cdx-text) 30%, transparent);
+}
+
+.cdx-project-graph .cdx-graph-label,
+.cdx-project-graph .cdx-graph-island-label {
+    font-size: calc(11px / var(--cdx-graph-k));
+    fill: var(--color-cdx-text, #1a1a2e);
+    /* A halo in the graph background keeps labels readable over edges. */
+    stroke: var(--color-cdx-graph-bg, var(--color-cdx-bg-alt));
+    stroke-width: calc(3px / var(--cdx-graph-k));
+    stroke-linejoin: round;
+    paint-order: stroke;
+    text-anchor: middle;
+    pointer-events: none;
+    transition: opacity 150ms ease-out;
+}
+
+.cdx-project-graph .cdx-graph-island-label {
+    fill: var(--color-cdx-text-muted);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.cdx-project-graph .cdx-graph-label.is-culled,
+.cdx-project-graph .cdx-graph-island-label.is-culled {
+    opacity: 0;
+}
+
+.cdx-project-graph .cdx-graph-node {
+    transition: opacity 150ms ease-out;
+}
+
+.cdx-project-graph .cdx-graph-node.is-link {
+    cursor: pointer;
+}
+
+.cdx-project-graph .cdx-graph-hit {
+    fill: transparent;
+}
+
+/* Edge kinds: imports solid, composes double, injects dashed, provides dotted. A short
+   bright head at the target end shows the direction. Shared with the legend samples. */
+.cdx-graph-edge--imports {
+    --cdx-graph-edge-color: var(--color-cdx-text-muted);
+}
+
+.cdx-graph-edge--composes {
+    --cdx-graph-edge-color: var(--color-cdx-graph-kind-directive);
+}
+
+.cdx-graph-edge--injects {
+    --cdx-graph-edge-color: var(--color-cdx-graph-kind-service);
+}
+
+.cdx-graph-edge--provides {
+    --cdx-graph-edge-color: var(--color-cdx-graph-kind-provider);
+}
+
+.cdx-graph-edge {
+    fill: none;
+    stroke: var(--cdx-graph-edge-color);
+    stroke-opacity: 0.45;
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
+    transition: stroke-opacity 150ms ease-out;
+}
+
+.cdx-graph-edge--composes .cdx-graph-edge {
+    stroke-width: 3px;
+}
+
+.cdx-graph-edge-inner {
+    fill: none;
+    stroke: var(--color-cdx-graph-bg, var(--color-cdx-bg-alt));
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
+}
+
+.cdx-graph-edge--injects .cdx-graph-edge {
+    stroke-dasharray: 5 3;
+}
+
+.cdx-graph-edge--provides .cdx-graph-edge {
+    stroke-dasharray: 1 3;
+    stroke-linecap: round;
+    stroke-width: 1.5px;
+}
+
+.cdx-graph-edge-head {
+    fill: none;
+    stroke: var(--cdx-graph-edge-color);
+    stroke-opacity: 0.85;
+    stroke-width: 3px;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.cdx-project-graph .cdx-graph-edge-group {
+    transition: opacity 150ms ease-out;
+}
+
+/* Edges between islands stay faint until one end is hovered. */
+.cdx-project-graph .cdx-graph-edge-group.is-far .cdx-graph-edge,
+.cdx-project-graph .cdx-graph-edge-group.is-far .cdx-graph-edge-head {
+    stroke-opacity: 0.12;
+}
+
+.cdx-project-graph.is-focusing .cdx-graph-node:not(.is-related) {
+    opacity: 0.12;
+}
+
+.cdx-project-graph.is-focusing .cdx-graph-edge-group:not(.is-related) {
+    opacity: 0.05;
+}
+
+.cdx-project-graph.is-focusing .cdx-graph-edge-group.is-related .cdx-graph-edge,
+.cdx-project-graph.is-focusing .cdx-graph-edge-group.is-related .cdx-graph-edge-head {
+    stroke-opacity: 0.95;
+}
+
+.cdx-project-graph.is-focusing .cdx-graph-label:not(.is-related) {
+    opacity: 0;
+}
+
+.cdx-project-graph.is-focusing .cdx-graph-hull:not(.is-related) {
+    opacity: 0.4;
+}
+
+/* The entrance animates opacity itself; a CSS transition on top would lag behind it. */
+.cdx-project-graph.is-revealing .cdx-graph-hull,
+.cdx-project-graph.is-revealing .cdx-graph-edge-group,
+.cdx-project-graph.is-revealing .cdx-graph-node,
+.cdx-project-graph.is-revealing .cdx-graph-label,
+.cdx-project-graph.is-revealing .cdx-graph-island-label {
+    transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cdx-project-graph .cdx-graph-hull,
+    .cdx-project-graph .cdx-graph-edge-group,
+    .cdx-project-graph .cdx-graph-edge,
+    .cdx-project-graph .cdx-graph-node,
+    .cdx-project-graph .cdx-graph-label,
+    .cdx-project-graph .cdx-graph-island-label {
+        transition: none;
+    }
+}
+
+.cdx-graph-legend-title {
+    font-weight: 600;
+    color: var(--color-cdx-text-muted);
+}
+
+.cdx-graph-legend-edge {
+    flex: none;
+}
+
+.cdx-graph-legend-edge .cdx-graph-edge,
+.cdx-graph-legend-edge .cdx-graph-edge-head {
+    stroke-opacity: 0.95;
+}
+
+.cdx-graph-legend-edge .cdx-graph-edge-inner {
+    stroke: var(--color-cdx-bg-elevated);
+}
+
 .cdx-graph-legend {
     @apply flex flex-wrap gap-3 text-sm;
     background: var(--color-cdx-bg-elevated);

@@ -208,5 +208,11 @@ export const TRANSLATION_JA_JP = {
     'route-outlet': 'Outlet',
     zoomin: '拡大',
     zoomout: '縮小',
-    'graph-external-imports': '外部インポート'
+    'graph-external-imports': '外部インポート',
+    'graph-label': '依存関係グラフ',
+    'graph-relations': '関係',
+    'graph-edge-imports': 'テンプレートで使用',
+    'graph-edge-composes': '合成 (hostDirectives)',
+    'graph-edge-injects': '注入',
+    'graph-edge-provides': '提供'
 };

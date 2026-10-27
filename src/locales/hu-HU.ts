@@ -209,5 +209,11 @@ export const TRANSLATION_HU_HU = {
     'route-outlet': 'Outlet',
     zoomin: 'Nagyítás',
     zoomout: 'Kicsinyítés',
-    'graph-external-imports': 'Külső importok'
+    'graph-external-imports': 'Külső importok',
+    'graph-label': 'Függőségi gráf',
+    'graph-relations': 'Kapcsolatok',
+    'graph-edge-imports': 'Sablonban használja',
+    'graph-edge-composes': 'Összeállítja (hostDirectives)',
+    'graph-edge-injects': 'Injektálja',
+    'graph-edge-provides': 'Biztosítja'
 };

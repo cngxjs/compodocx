@@ -14,6 +14,15 @@ import {
     runLayout
 } from './layout';
 
+/** The written graph as the pages see it. */
+export interface GraphOutput {
+    readonly model: GraphModel;
+    /** Cache key of the graph script (`?v=`). */
+    readonly version: string;
+    /** Nodes the graph shows first; the page reserves their height. */
+    readonly shown: number;
+}
+
 /** One decimal is below a pixel at every zoom the graph offers and keeps the file small. */
 const round = (value: number): number => Math.round(value * 10) / 10;
 

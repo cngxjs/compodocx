@@ -443,7 +443,15 @@ test.describe('Dependency Graph — Overview', () => {
         const svg = page.locator('#dependency-graph-container svg');
         await expect(svg).toBeVisible();
         await expect(svg).toHaveAttribute('role', 'img');
-        await expect(svg).toHaveAttribute('aria-label', 'Standalone component dependency graph');
+        await expect(svg).toHaveAttribute('aria-label', 'Dependency graph');
+    });
+
+    test('graph data loads from js/graph.js, not inline', async ({ page }) => {
+        const graphScript = page.waitForRequest(/\/js\/graph\.js\?v=[0-9a-f]{8}$/);
+        await page.goto('/overview.html');
+        await graphScript;
+        expect(await page.content()).not.toContain('DEPENDENCY_GRAPH');
+        await expect(page.locator('#dependency-graph-container svg')).toBeVisible();
     });
 
     test('graph has entity-colored nodes', async ({ page }) => {
@@ -453,10 +461,20 @@ test.describe('Dependency Graph — Overview', () => {
         await expect.poll(() => circles.count()).toBeGreaterThanOrEqual(3);
     });
 
-    test('graph has arrow markers on edges', async ({ page }) => {
+    test('edges show their direction with a head at the target', async ({ page }) => {
         await page.goto('/overview.html');
-        const marker = page.locator('#dependency-graph-container marker#dep-arrow');
-        await expect(marker).toHaveCount(1);
+        const heads = page.locator('#dependency-graph-container .cdx-graph-edge-head');
+        await expect.poll(() => heads.count()).toBeGreaterThan(0);
+        await expect(page.locator('#dependency-graph-container marker')).toHaveCount(0);
+    });
+
+    test('injected services are part of the graph', async ({ page }) => {
+        await page.goto('/overview.html');
+        const services = page.locator('#dependency-graph-container .cdx-graph-node--service');
+        await expect.poll(() => services.count()).toBeGreaterThan(0);
+        await expect(
+            page.locator('#dependency-graph-container .cdx-graph-edge--injects')
+        ).not.toHaveCount(0);
     });
 
     test('zoom buttons present', async ({ page }) => {
@@ -466,16 +484,15 @@ test.describe('Dependency Graph — Overview', () => {
         await expect(page.locator('#dep-zoom-out')).toBeVisible();
     });
 
-    test('entity-color legend lists the node types the graph contains', async ({ page }) => {
+    test('legend lists the relations the graph contains', async ({ page }) => {
         await page.goto('/overview.html');
         const legend = page.locator('.cdx-graph-legend');
         await expect(legend).toBeVisible();
-        // The fixture graph has no injectables, so the legend has no entry for them.
+        await expect(legend.locator('.cdx-graph-legend-title')).toHaveText('Relations');
+        // The fixture has no hostDirectives and no provider that provides a token.
         await expect(legend.locator('.cdx-graph-legend-item')).toHaveText([
-            'Component',
-            'Directive',
-            'Pipe',
-            'External imports'
+            'Uses in template',
+            'Injects'
         ]);
     });
 

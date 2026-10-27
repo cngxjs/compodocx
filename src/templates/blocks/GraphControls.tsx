@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { GRAPH_EDGE_KINDS, type GraphEdgeKind } from '../../app/graph/format';
 import { t } from '../helpers';
 
 type GraphZoomControlsProps = {
@@ -97,3 +98,37 @@ export const dependencyLegendItems = (
         ({ colorVar, labelKey }) => ({ colorVar, labelKey })
     );
 };
+
+/** A short sample of an edge kind's stroke, drawn like the graph draws it. */
+const relationSample = (kind: GraphEdgeKind): string =>
+    `<svg class="cdx-graph-legend-edge cdx-graph-edge--${kind}" width="28" height="10" aria-hidden="true">` +
+    `<line class="cdx-graph-edge" x1="2" y1="5" x2="26" y2="5"/>` +
+    (kind === 'composes'
+        ? `<line class="cdx-graph-edge-inner" x1="2" y1="5" x2="26" y2="5"/>`
+        : '') +
+    `<line class="cdx-graph-edge-head" x1="19" y1="5" x2="26" y2="5"/></svg>`;
+
+/**
+ * Legend of the project graph: the relation kinds it contains. The kind
+ * filter chips explain the node kinds.
+ */
+export function GraphRelationLegend(props: {
+    readonly edges: readonly { readonly kind: GraphEdgeKind }[];
+}): string {
+    const present = new Set(props.edges.map(e => e.kind));
+    const kinds = GRAPH_EDGE_KINDS.filter(kind => present.has(kind));
+    if (kinds.length === 0) {
+        return '';
+    }
+    return (
+        <div class="cdx-graph-legend cdx-graph-legend--relations">
+            <span class="cdx-graph-legend-title">{t('graph-relations')}</span>
+            {kinds.map(kind => (
+                <div class="cdx-graph-legend-item" data-cdx-edge={kind}>
+                    {relationSample(kind)}
+                    <span>{t(`graph-edge-${kind}`)}</span>
+                </div>
+            ))}
+        </div>
+    ) as string;
+}

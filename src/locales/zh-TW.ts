@@ -207,5 +207,11 @@ export const TRANSLATION_ZH_TW = {
     'route-outlet': 'Outlet',
     zoomin: '放大',
     zoomout: '縮小',
-    'graph-external-imports': '外部匯入'
+    'graph-external-imports': '外部匯入',
+    'graph-label': '相依關係圖',
+    'graph-relations': '關係',
+    'graph-edge-imports': '在範本中使用',
+    'graph-edge-composes': '組合 (hostDirectives)',
+    'graph-edge-injects': '注入',
+    'graph-edge-provides': '提供'
 };

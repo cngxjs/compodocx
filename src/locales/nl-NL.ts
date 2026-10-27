@@ -209,5 +209,11 @@ export const TRANSLATION_NL_NL = {
     'route-outlet': 'Outlet',
     zoomin: 'Zoom in',
     zoomout: 'Zoom uit',
-    'graph-external-imports': 'Externe imports'
+    'graph-external-imports': 'Externe imports',
+    'graph-label': 'Afhankelijkheidsgraaf',
+    'graph-relations': 'Relaties',
+    'graph-edge-imports': 'Gebruikt in template',
+    'graph-edge-composes': 'Stelt samen (hostDirectives)',
+    'graph-edge-injects': 'Injecteert',
+    'graph-edge-provides': 'Levert'
 };

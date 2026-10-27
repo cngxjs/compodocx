@@ -210,5 +210,11 @@ export const TRANSLATION_RU_RU = {
     'route-outlet': 'Outlet',
     zoomin: 'Приблизить',
     zoomout: 'Отдалить',
-    'graph-external-imports': 'Внешние импорты'
+    'graph-external-imports': 'Внешние импорты',
+    'graph-label': 'Граф зависимостей',
+    'graph-relations': 'Связи',
+    'graph-edge-imports': 'Использует в шаблоне',
+    'graph-edge-composes': 'Составляет (hostDirectives)',
+    'graph-edge-injects': 'Внедряет',
+    'graph-edge-provides': 'Предоставляет'
 };

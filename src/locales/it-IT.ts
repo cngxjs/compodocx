@@ -209,5 +209,11 @@ export const TRANSLATION_IT_IT = {
     'route-outlet': 'Outlet',
     zoomin: 'Ingrandisci',
     zoomout: 'Rimpocciolisci',
-    'graph-external-imports': 'Import esterni'
+    'graph-external-imports': 'Import esterni',
+    'graph-label': 'Grafo delle dipendenze',
+    'graph-relations': 'Relazioni',
+    'graph-edge-imports': 'Usa nel template',
+    'graph-edge-composes': 'Compone (hostDirectives)',
+    'graph-edge-injects': 'Inietta',
+    'graph-edge-provides': 'Fornisce'
 };

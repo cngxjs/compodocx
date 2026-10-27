@@ -207,5 +207,11 @@ export const TRANSLATION_KO_KR = {
     'route-outlet': 'Outlet',
     zoomin: '확대',
     zoomout: '축소',
-    'graph-external-imports': '외부 가져오기'
+    'graph-external-imports': '외부 가져오기',
+    'graph-label': '의존성 그래프',
+    'graph-relations': '관계',
+    'graph-edge-imports': '템플릿에서 사용',
+    'graph-edge-composes': '구성 (hostDirectives)',
+    'graph-edge-injects': '주입',
+    'graph-edge-provides': '제공'
 };

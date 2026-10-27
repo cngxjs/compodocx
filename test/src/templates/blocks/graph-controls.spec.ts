@@ -3,6 +3,7 @@ import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import {
     dependencyLegendItems,
     GraphLegend,
+    GraphRelationLegend,
     GraphZoomControls
 } from '../../../../src/templates/blocks/GraphControls';
 
@@ -46,5 +47,32 @@ describe('GraphZoomControls', () => {
         expect(html).toMatch(
             /External imports <span class="cdx-graph-toggle-count"[^>]*>4<\/span>/
         );
+    });
+});
+
+describe('GraphRelationLegend', () => {
+    it('lists only the relation kinds the graph contains, in a fixed order', () => {
+        const html = GraphRelationLegend({
+            edges: [{ kind: 'provides' }, { kind: 'imports' }, { kind: 'imports' }]
+        });
+        expect([...html.matchAll(/data-cdx-edge="(\w+)"/g)].map(m => m[1])).toEqual([
+            'imports',
+            'provides'
+        ]);
+        expect(html).toContain('Relations');
+        expect(html).toContain('Uses in template');
+        expect(html).toContain('Provides');
+    });
+
+    it('draws composes as a double line', () => {
+        const html = GraphRelationLegend({ edges: [{ kind: 'composes' }] });
+        expect(html).toContain('cdx-graph-edge-inner');
+        expect(GraphRelationLegend({ edges: [{ kind: 'injects' }] })).not.toContain(
+            'cdx-graph-edge-inner'
+        );
+    });
+
+    it('renders nothing for a graph without edges', () => {
+        expect(GraphRelationLegend({ edges: [] })).toBe('');
     });
 });

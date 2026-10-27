@@ -208,5 +208,11 @@ export const TRANSLATION_PL_PL = {
     'route-outlet': 'Outlet',
     zoomin: 'Przybliż',
     zoomout: 'Oddal',
-    'graph-external-imports': 'Importy zewnętrzne'
+    'graph-external-imports': 'Importy zewnętrzne',
+    'graph-label': 'Graf zależności',
+    'graph-relations': 'Relacje',
+    'graph-edge-imports': 'Używa w szablonie',
+    'graph-edge-composes': 'Składa (hostDirectives)',
+    'graph-edge-injects': 'Wstrzykuje',
+    'graph-edge-provides': 'Dostarcza'
 };

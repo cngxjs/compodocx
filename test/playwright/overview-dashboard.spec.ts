@@ -247,10 +247,7 @@ test.describe('Overview Dashboard', () => {
             const svg = page.locator('#dependency-graph-container svg');
             await expect(svg).toBeVisible();
             await expect(svg).toHaveAttribute('role', 'img');
-            await expect(svg).toHaveAttribute(
-                'aria-label',
-                'Standalone component dependency graph'
-            );
+            await expect(svg).toHaveAttribute('aria-label', 'Dependency graph');
         });
 
         test('zoom buttons are present', async ({ page }) => {

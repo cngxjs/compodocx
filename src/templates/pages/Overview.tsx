@@ -1,6 +1,8 @@
 import Html from '@kitajs/html';
-import { graphHeight, visibleGraph } from '../../client/graph-layout';
-import { dependencyLegendItems, GraphLegend, GraphZoomControls } from '../blocks/GraphControls';
+import type { GraphOutput } from '../../app/graph/file';
+import { GRAPH_SCRIPT } from '../../app/page-generator/shared-scripts';
+import { graphHeight } from '../../client/graph-layout';
+import { GraphRelationLegend, GraphZoomControls } from '../blocks/GraphControls';
 import { OverviewHero } from '../blocks/OverviewHero';
 import { OverviewStats } from '../blocks/OverviewStats';
 import { EmptyState } from '../components/EmptyState';
@@ -26,7 +28,7 @@ type OverviewProps = {
     readonly angularVersion?: string;
     readonly generatedAt?: string;
     readonly documentationMainName?: string;
-    readonly dependencyGraph?: { nodes: any[]; edges: any[] };
+    readonly graph?: GraphOutput;
 };
 
 /** Routes of the route model; none when routes are disabled. */
@@ -50,8 +52,8 @@ const hasAnyEntities = (props: OverviewProps): boolean =>
     );
 
 export const Overview = (props: OverviewProps): string => {
-    const hasDepGraph = (props.dependencyGraph?.nodes?.length ?? 0) > 0;
-    const showDepGraph = !props.disableGraph && hasDepGraph;
+    const graph = props.disableGraph ? undefined : props.graph;
+    const names = new Map(graph?.model.nodes.map(n => [n.id, n.name]));
 
     return (
         <>
@@ -67,35 +69,36 @@ export const Overview = (props: OverviewProps): string => {
             })}
 
             {/* 2. Dependency Graph */}
-            {showDepGraph && (
+            {graph && (
                 <>
-                    <script>{`window.DEPENDENCY_GRAPH = ${JSON.stringify(props.dependencyGraph)};`}</script>
                     {/* A11y: text alternative for screen readers (network graphs are inaccessible) */}
                     <ul class="sr-only" aria-label="Component dependency list">
-                        {props.dependencyGraph!.edges.map((e: any) => (
+                        {graph.model.edges.map(e => (
                             <li>
-                                {e.source} imports {e.target}
+                                {names.get(e.source) ?? e.source} {e.kind}{' '}
+                                {names.get(e.target) ?? e.target}
                             </li>
                         ))}
                     </ul>
                     <div class="cdx-graph-container cdx-overview-graph">
                         <div class="cdx-graph-viewport">
-                            {/* External imports start hidden; the toggle shows them. The
-                                reserved height keeps the page from jumping when the graph draws. */}
+                            {/* The graph loads when it scrolls into view. The reserved height
+                                keeps the page from jumping when the graph draws. */}
                             <div
                                 id="dependency-graph-container"
-                                data-cdx-externals="hidden"
-                                style={`min-height: ${graphHeight(visibleGraph(props.dependencyGraph!, false).nodes.length)}px`}
+                                data-cdx-graph-src={`${GRAPH_SCRIPT}?v=${graph.version}`}
+                                data-cdx-root=""
+                                data-cdx-label={t('graph-label')}
+                                style={`min-height: ${graphHeight(graph.shown)}px`}
                             ></div>
                         </div>
                         {GraphZoomControls({
                             prefix: 'dep-',
-                            externalCount: props.dependencyGraph!.nodes.filter(
-                                (n: any) => n.type === 'external'
-                            ).length
+                            externalCount: graph.model.nodes.filter(n => n.kind === 'external')
+                                .length
                         })}
                     </div>
-                    {GraphLegend({ items: dependencyLegendItems(props.dependencyGraph!.nodes) })}
+                    {GraphRelationLegend({ edges: graph.model.edges })}
                 </>
             )}
 

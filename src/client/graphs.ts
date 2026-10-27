@@ -5,6 +5,7 @@
  */
 
 import type { SimulationLinkDatum, SimulationNodeDatum } from 'd3';
+import { initProjectGraph } from './dependency-graph';
 import { degrees, fitTransform, graphHeight, nonOverlapping, visibleGraph } from './graph-layout';
 
 declare const COMPONENT_TEMPLATE: string;
@@ -329,6 +330,10 @@ const labelMeasurer = (container: HTMLElement): ((text: string) => number) => {
 const initDependencyGraph = async () => {
     const container = document.getElementById('dependency-graph-container');
     if (!container || typeof DEPENDENCY_GRAPH === 'undefined') {
+        return;
+    }
+    // The overview loads the project graph on its own.
+    if (container.dataset.cdxGraphSrc) {
         return;
     }
     if (!DEPENDENCY_GRAPH.nodes.length) {
@@ -757,4 +762,8 @@ export const initGraphs = () => {
     // Async graph initialization
     initDomTree().catch(e => console.error('DOM tree init failed:', e));
     initDependencyGraph().catch(e => console.error('Dependency graph init failed:', e));
+    const projectGraph = document.getElementById('dependency-graph-container');
+    if (projectGraph?.dataset.cdxGraphSrc) {
+        initProjectGraph(projectGraph, loadD3);
+    }
 };
