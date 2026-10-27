@@ -78,6 +78,14 @@
     object-fit: contain;
     object-position: left center;
 }
+/* With a dark variant (customLogoDark) the dark mode toggle picks the image. */
+.cdx-sidebar-logo .cdx-sidebar-logo-img--dark,
+.dark .cdx-sidebar-logo .cdx-sidebar-logo-img--light {
+    display: none;
+}
+.dark .cdx-sidebar-logo .cdx-sidebar-logo-img--dark {
+    display: block;
+}
 /* An icon logo sits next to the project name, sized like the brand text line. */
 .cdx-sidebar-logo--icon {
     display: flex;

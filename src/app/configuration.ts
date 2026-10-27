@@ -128,6 +128,7 @@ export class Configuration implements ConfigurationInterface {
         coverageData: {} as CoverageData,
         customFavicon: '',
         customLogo: '',
+        customLogoDark: '',
         logoLayout: 'auto',
         packageDependencies: [],
         packagePeerDependencies: [],

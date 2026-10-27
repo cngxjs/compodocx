@@ -94,6 +94,18 @@ const copyLogo = (mainData: MainDataInterface, finalOutput: string): Promise<voi
     );
 };
 
+const copyLogoDark = (mainData: MainDataInterface, finalOutput: string): Promise<void> => {
+    if (mainData.customLogoDark === '') {
+        return Promise.resolve();
+    }
+    return copyOrReject(
+        path.resolve(cwd + path.sep + mainData.customLogoDark),
+        path.resolve(finalOutput, IMAGES_FOLDER, logoImage(mainData.customLogoDark)),
+        'External custom dark logo copy succeeded',
+        'Error during resources copy of dark logo'
+    );
+};
+
 /** Copy the user's `--assetsFolder` into the output folder. */
 export const copyAssetsFolder = async (ctx: OutputContext): Promise<void> => {
     const { mainData } = ctx.config;
@@ -133,7 +145,8 @@ export const copyResources = async (ctx: OutputContext): Promise<Result<void, Ha
     await Promise.all([
         copyTheme(mainData, finalOutput),
         copyFavicon(mainData, finalOutput),
-        copyLogo(mainData, finalOutput)
+        copyLogo(mainData, finalOutput),
+        copyLogoDark(mainData, finalOutput)
     ]);
     return ok(undefined);
 };

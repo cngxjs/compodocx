@@ -45,4 +45,30 @@ describe('sidebar logo', () => {
         expect(row).toMatch(/<img src="\.\/images\/icon\.png" alt=""/);
         expect(row).toMatch(/<span class="cdx-sidebar-logo-name"[^>]*>Acme &lt;UI/);
     });
+
+    it('renders both images with a dark variant, in either layout', () => {
+        for (const layout of ['wordmark', 'icon']) {
+            const row = header(
+                render({
+                    customLogo: 'brand/logo.svg',
+                    customLogoDark: 'brand/logo-dark.svg',
+                    logoLayoutResolved: layout
+                })
+            );
+            expect(row).toMatch(
+                /<img class="cdx-sidebar-logo-img cdx-sidebar-logo-img--light" src="\.\/images\/logo\.svg"/
+            );
+            expect(row).toMatch(
+                /<img class="cdx-sidebar-logo-img cdx-sidebar-logo-img--dark" src="\.\/images\/logo-dark\.svg"/
+            );
+        }
+    });
+
+    it('renders one plain image without a dark variant', () => {
+        const row = header(
+            render({ customLogo: 'brand/logo.svg', logoLayoutResolved: 'wordmark' })
+        );
+        expect(row).not.toContain('cdx-sidebar-logo-img');
+        expect(row.match(/<img /g)).toHaveLength(1);
+    });
 });

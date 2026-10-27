@@ -21,6 +21,7 @@ export type PageData = {
     readonly filename?: string;
     readonly theme?: string;
     readonly customLogo?: string;
+    readonly customLogoDark?: string;
     /** Layout of `customLogo`, resolved by the `logo` prepare stage. */
     readonly logoLayoutResolved?: LogoLayout;
     readonly customFavicon?: string;
@@ -186,16 +187,46 @@ const BUILTIN_THEMES: ReadonlyArray<{
 ];
 
 /**
+ * The logo image, or with a dark variant both images; the stylesheet shows
+ * the one that matches the dark mode toggle.
+ */
+const LogoImages = (props: {
+    logo: string;
+    logoDark?: string;
+    alt: string;
+    r: (path: string) => string;
+}): string => {
+    const src = (file: string) => props.r(`${IMAGES_FOLDER}/${logoImage(file)}`);
+    if (!props.logoDark) {
+        return (<img src={src(props.logo)} alt={props.alt} />) as string;
+    }
+    return (
+        <>
+            <img
+                class="cdx-sidebar-logo-img cdx-sidebar-logo-img--light"
+                src={src(props.logo)}
+                alt={props.alt}
+            />
+            <img
+                class="cdx-sidebar-logo-img cdx-sidebar-logo-img--dark"
+                src={src(props.logoDark)}
+                alt={props.alt}
+            />
+        </>
+    ) as string;
+};
+
+/**
  * The custom logo: a wordmark alone (alt text = project name), an icon next
  * to the project name (decorative image, the name is the text).
  */
 const SidebarLogo = (props: {
     name: string;
     logo: string;
+    logoDark?: string;
     layout: LogoLayout;
     r: (path: string) => string;
 }): string => {
-    const src = props.r(`${IMAGES_FOLDER}/${logoImage(props.logo)}`);
     if (props.layout === 'icon') {
         return (
             <a
@@ -203,14 +234,19 @@ const SidebarLogo = (props: {
                 data-type="index-link"
                 class="cdx-sidebar-logo cdx-sidebar-logo--icon"
             >
-                <img src={src} alt="" />
+                {LogoImages({ logo: props.logo, logoDark: props.logoDark, alt: '', r: props.r })}
                 <span class="cdx-sidebar-logo-name">{Html.escapeHtml(props.name) as string}</span>
             </a>
         ) as string;
     }
     return (
         <a href={INDEX_HREF} data-type="index-link" class="cdx-sidebar-logo">
-            <img src={src} alt={props.name} />
+            {LogoImages({
+                logo: props.logo,
+                logoDark: props.logoDark,
+                alt: props.name,
+                r: props.r
+            })}
         </a>
     ) as string;
 };
@@ -218,6 +254,7 @@ const SidebarLogo = (props: {
 const SidebarHeader = (props: {
     name: string;
     logo?: string;
+    logoDark?: string;
     logoLayout?: LogoLayout;
     disableSearch?: boolean;
     r: (path: string) => string;
@@ -229,6 +266,7 @@ const SidebarHeader = (props: {
                     SidebarLogo({
                         name: props.name,
                         logo: props.logo,
+                        logoDark: props.logoDark,
                         layout: props.logoLayout ?? 'wordmark',
                         r: props.r
                     })
@@ -507,6 +545,7 @@ export const Layout = (props: LayoutProps): string => {
                     {SidebarHeader({
                         name: data.documentationMainName,
                         logo: data.customLogo,
+                        logoDark: data.customLogoDark,
                         logoLayout: data.logoLayoutResolved,
                         disableSearch: data.disableSearch,
                         r

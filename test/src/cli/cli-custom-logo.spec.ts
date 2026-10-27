@@ -107,7 +107,9 @@ describe('CLI custom logo', () => {
                 '-d',
                 distFolder,
                 '--customLogo',
-                './test/fixtures/todomvc-ng2/logo-wide.svg'
+                './test/fixtures/todomvc-ng2/logo-wide.svg',
+                '--customLogoDark',
+                './test/fixtures/todomvc-ng2/logo-wide-dark.svg'
             ]);
 
             if (hasStderrError(ls.stderr.toString())) {
@@ -119,8 +121,18 @@ describe('CLI custom logo', () => {
 
         it('should show a wide logo alone, named by the project', () => {
             const index = read(`${distFolder}/index.html`);
-            expect(index).to.contain('<img src="./images/logo-wide.svg" alt="');
+            expect(index).to.contain(
+                '<img class="cdx-sidebar-logo-img cdx-sidebar-logo-img--light" src="./images/logo-wide.svg" alt="'
+            );
             expect(index).to.not.contain('cdx-sidebar-logo--icon');
+        });
+
+        it('should copy and link the dark variant next to the light one', () => {
+            expect(exists(`${distFolder}/images/logo-wide-dark.svg`)).to.be.true;
+            const index = read(`${distFolder}/index.html`);
+            expect(index).to.contain(
+                '<img class="cdx-sidebar-logo-img cdx-sidebar-logo-img--dark" src="./images/logo-wide-dark.svg" alt="'
+            );
         });
     });
 

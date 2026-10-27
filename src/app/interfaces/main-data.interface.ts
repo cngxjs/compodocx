@@ -143,6 +143,8 @@ export interface MainDataInterface {
     coverageData: CoverageData;
     customFavicon: string;
     customLogo: string;
+    /** Logo shown instead of `customLogo` in dark mode; empty for none. */
+    customLogoDark: string;
     /** How the sidebar shows `customLogo`; `auto` decides from the file's aspect ratio. */
     logoLayout: LogoLayoutSetting;
     /** The layout `logoLayout` resolved to, set by the `logo` prepare stage. */

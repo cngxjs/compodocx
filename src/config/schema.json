@@ -453,6 +453,13 @@
             "default": "",
             "examples": [""]
         },
+        "customLogoDark": {
+            "$id": "/properties/customLogoDark",
+            "type": "string",
+            "title": "Use a custom logo in dark mode, shown instead of customLogo while the dark theme is on (needs customLogo; a different file name)",
+            "default": "",
+            "examples": [""]
+        },
         "logoLayout": {
             "$id": "/properties/logoLayout",
             "type": "string",

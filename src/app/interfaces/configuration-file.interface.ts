@@ -54,6 +54,7 @@ export interface ConfigurationFileInterface {
     minimal: boolean;
     customFavicon: string;
     customLogo: string;
+    customLogoDark: string;
     logoLayout: string;
     gaID: string;
     tsconfig: string;
