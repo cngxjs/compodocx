@@ -225,11 +225,15 @@
     width: 100%;
     min-width: 0;
     gap: var(--spacing-cdx-xs);
-    /* Padding + min-height match `.menu ul.list li.chapter .simple`
-     * (chapter `<button>` headers) so feature-mode buckets sit at the
-     * same vertical rhythm as the regular chapter rows above them. */
+    /* Padding, min-height and font size match `.menu ul.list li.chapter
+     * .simple` (chapter `<button>` headers) so feature-mode buckets sit at
+     * the same vertical rhythm as the regular chapter rows above them.
+     * The font size is load-bearing: the label inherits it, and a bucket
+     * without a landing page renders its label as a `<span>`, which no
+     * menu anchor rule reaches. */
     padding: var(--spacing-cdx-sm) var(--spacing-cdx-lg);
     min-height: 36px;
+    font-size: 13px;
     /* Row body uses the default arrow — the toggle action is implied
      * by the chevron at the row's right edge (which gets
      * `cursor: pointer`). The anchor child keeps the classic link

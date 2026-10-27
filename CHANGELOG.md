@@ -17,6 +17,10 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 - **A custom logo is no longer fixed at 24 px high.** A wide logo fills the sidebar header width up to `--cdx-sidebar-logo-max-height` (default `40px`), an icon is `--cdx-sidebar-logo-icon-size` high (default `28px`); the image keeps its proportions. Set `--cdx-sidebar-logo-max-height: 24px` in a custom theme for the old size of a wordmark.
 
+### Fixed
+
+- **Sidebar group labels without a page.** In the feature layout, a group whose folder has no page of its own (a folder that only holds nested entry points) showed its label at 16px instead of the 13px of every other row.
+
 ## [0.10.0] - 2026-10-23
 
 Upgrading from 0.9: no flag, config key or URL was removed. Custom templates that call `extractJsdocCodeExamples`, custom sidebar CSS, tools that read the `@example` comments in `documentation.json` and `summary.json` files with clashing page paths need a look; [MIGRATION.md](MIGRATION.md) lists each change.
