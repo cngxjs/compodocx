@@ -170,6 +170,10 @@
   /* ── Transitions ─────────────────────────────────────── */
   /* --cdx-transition-fast: 120ms ease; */
   /* --cdx-transition-base: 200ms ease; */
+
+  /* ── Sidebar logo (customLogo) ───────────────────────── */
+  /* --cdx-sidebar-logo-max-height: 40px; */
+  /* --cdx-sidebar-logo-icon-size:  28px; */
 }
 
 .dark {

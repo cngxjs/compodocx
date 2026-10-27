@@ -60,12 +60,23 @@
     white-space: nowrap;
 }
 
+/*
+ * The logo's size follows its aspect ratio: a wide logo fills the header
+ * width up to the max height, a square one gets the max height. Never
+ * distorted, left aligned.
+ */
 .cdx-sidebar-logo {
     flex: 1;
+    min-width: 0;
+    display: block;
 }
 .cdx-sidebar-logo img {
-    height: 24px;
-    width: auto;
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: var(--cdx-sidebar-logo-max-height);
+    object-fit: contain;
+    object-position: left center;
 }
 
 .cdx-sidebar-actions {
