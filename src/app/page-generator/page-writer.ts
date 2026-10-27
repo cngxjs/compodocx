@@ -3,6 +3,7 @@ import { logger } from '../../utils/logger';
 import Configuration, { pageOutputPath } from '../configuration';
 import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
+import { buildGraphModel, graphFile } from '../graph';
 import type { PageInterface } from '../interfaces/page.interface';
 import { featureSegments } from '../links/feature-paths';
 import { hrefFor, hrefText, pageLocation, pagePath, ROOT_DEPTH } from '../links/layout';
@@ -20,6 +21,8 @@ import {
     contentVersion,
     ENTITIES_SCRIPT,
     entitiesScript,
+    GRAPH_SCRIPT,
+    graphScript,
     MENU_SCRIPT,
     menuScript
 } from './shared-scripts';
@@ -89,6 +92,7 @@ export class PageWriter {
     public async processPages(): Promise<void> {
         this.legacy = undefined;
         this.buildDependencyGraph();
+        await this.writeGraph();
         this.buildEntityIndex();
         Configuration.mainData.generatedAt = new Date().toISOString();
         this.writeMenu();
@@ -158,6 +162,24 @@ export class PageWriter {
         });
 
         Configuration.mainData.dependencyGraph = { nodes, edges };
+    }
+
+    /**
+     * Lay the project's dependency graph out and write it as the script the
+     * overview loads once the graph scrolls into view. Nothing without symbols
+     * or with the graph disabled.
+     */
+    private async writeGraph(): Promise<void> {
+        const { mainData } = Configuration;
+        if (mainData.disableGraph || !mainData.symbols) {
+            return;
+        }
+        const model = buildGraphModel(mainData.symbols, mainData.semantic, mainData.di);
+        if (model.nodes.length === 0) {
+            return;
+        }
+        const force = await import('d3');
+        FileEngine.writeSync(outputPath(GRAPH_SCRIPT), graphScript(graphFile(force, model)));
     }
 
     /** Build the entity index and write it as the shared script every page loads. */

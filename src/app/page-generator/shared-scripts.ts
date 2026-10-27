@@ -20,3 +20,10 @@ export const menuScript = (menuHtml: string): string =>
 /** The shared entity index script the command palette reads (`window.__CDX_ENTITIES__`). */
 export const entitiesScript = (index: unknown): string =>
     `window.__CDX_ENTITIES__=${JSON.stringify(index)};`;
+
+/** Output path (from the site root) of the dependency graph data, loaded when the graph shows. */
+export const GRAPH_SCRIPT = 'js/graph.js';
+
+/** The dependency graph data script (`window.__CDX_GRAPH__`). */
+export const graphScript = (graph: unknown): string =>
+    `window.__CDX_GRAPH__=${JSON.stringify(graph)};\n`;

@@ -65,3 +65,36 @@ export interface GraphModel {
     /** Only the features a node belongs to. */
     readonly features: readonly GraphFeature[];
 }
+
+/** A node as written: the layout position and radius for the default filter state. */
+export interface GraphFileNode extends GraphNode {
+    /** Absent for a node of a kind the graph starts without. */
+    readonly x?: number;
+    readonly y?: number;
+    readonly r?: number;
+}
+
+/** The graph data a page loads (`js/graph.js`, `window.__CDX_GRAPH__`). */
+export interface GraphFile {
+    readonly schemaVersion: typeof GRAPH_SCHEMA_VERSION;
+    readonly nodes: readonly GraphFileNode[];
+    readonly edges: readonly GraphEdge[];
+    readonly features: readonly GraphFeature[];
+}
+
+/** The nodes and edges of the kinds in `kinds`; edges need both ends shown. */
+export const visibleGraph = <N extends GraphNode, E extends GraphEdge>(
+    graph: { readonly nodes: readonly N[]; readonly edges: readonly E[] },
+    kinds: ReadonlySet<GraphKind>
+): { nodes: N[]; edges: E[] } => {
+    const nodes = graph.nodes.filter(n => kinds.has(n.kind));
+    const ids = new Set(nodes.map(n => n.id));
+    const edges = graph.edges.filter(
+        e => e.source !== e.target && ids.has(e.source) && ids.has(e.target)
+    );
+    return { nodes, edges };
+};
+
+/** The kinds a graph shows first: every kind it has, without the ones that start off. */
+export const defaultKinds = (nodes: readonly Pick<GraphNode, 'kind'>[]): Set<GraphKind> =>
+    new Set(nodes.map(n => n.kind).filter(kind => !GRAPH_KINDS_OFF.has(kind)));
