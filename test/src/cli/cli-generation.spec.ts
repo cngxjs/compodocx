@@ -935,6 +935,7 @@ describe('CLI simple generation', () => {
 
         it('should not generate any graph data', () => {
             expect(stdoutString).not.to.contain('Process main graph');
+            expect(exists(`${distFolder}/js/graph.js`)).to.be.false;
         });
 
         it('should not include the standalone dependency graph on the overview page', () => {

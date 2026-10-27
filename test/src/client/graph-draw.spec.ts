@@ -7,7 +7,7 @@ import {
     HULL_PAD,
     hullPoints,
     islandLabelAnchor,
-    kindColor,
+    kindClass,
     labelOrder
 } from '../../../src/client/graph-draw';
 
@@ -16,29 +16,23 @@ describe('graph glyphs', () => {
         for (const kind of GRAPH_KINDS) {
             const shapes = [...glyphMarkup(kind, 8).matchAll(/<(\w+)/g)].map(m => m[1]);
             expect(shapes.every(s => s === 'circle' || s === 'path')).toBe(true);
-            expect(glyphMarkup(kind, 8)).toContain(kindColor(kind));
+            expect(glyphMarkup(kind, 8)).toContain('currentColor');
         }
     });
 
     it('tells the kinds apart without colour', () => {
-        const shapes = GRAPH_KINDS.map(kind =>
-            glyphMarkup(kind, 8).replaceAll(kindColor(kind), 'C')
-        );
+        const shapes = GRAPH_KINDS.map(kind => glyphMarkup(kind, 8));
         expect(new Set(shapes).size).toBe(GRAPH_KINDS.length);
     });
 
     it('fills components and rings directives', () => {
-        expect(glyphMarkup('component', 8)).toBe(
-            '<circle r="8" fill="var(--color-cdx-graph-kind-component)"/>'
-        );
-        expect(glyphMarkup('directive', 8)).toContain(
-            'stroke="var(--color-cdx-graph-kind-directive)"'
-        );
+        expect(glyphMarkup('component', 8)).toBe('<circle r="8" fill="currentColor"/>');
+        expect(glyphMarkup('directive', 8)).toContain('stroke="currentColor"');
         expect(glyphMarkup('external', 8)).toContain('stroke-dasharray');
     });
 
-    it('reads one colour token per kind', () => {
-        expect(kindColor('provider')).toBe('var(--color-cdx-graph-kind-provider)');
+    it('colours a glyph through one class per kind', () => {
+        expect(kindClass('provider')).toBe('cdx-graph-kind--provider');
     });
 });
 

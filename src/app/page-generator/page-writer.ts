@@ -1,3 +1,4 @@
+import AngularApiUtil from '../../utils/angular-api.util';
 import { buildEntityIndex } from '../../utils/entity-index.util';
 import { logger } from '../../utils/logger';
 import Configuration, { pageOutputPath } from '../configuration';
@@ -99,28 +100,32 @@ export class PageWriter {
     }
 
     /**
-     * Lay the project's dependency graph out and write it as the script the
-     * overview loads once the graph scrolls into view. Nothing without symbols
-     * or with the graph disabled.
+     * Build the project's dependency graph for the overview and the
+     * component pages. With the overview graph on, lay it out and write it
+     * as the script the overview loads once the graph scrolls into view.
      */
     private async writeGraph(): Promise<void> {
         const { mainData } = Configuration;
         mainData.graph = undefined;
-        if (mainData.disableGraph || !mainData.symbols) {
+        if (!mainData.symbols) {
             return;
         }
-        const model = buildGraphModel(mainData.symbols, mainData.semantic, mainData.di);
+        const model = buildGraphModel(mainData.symbols, mainData.semantic, mainData.di, name => {
+            const api = AngularApiUtil.findApi(name).data;
+            return api ? `https://angular.dev/${api.path}` : undefined;
+        });
         if (model.nodes.length === 0) {
+            return;
+        }
+        const shown = visibleGraph(model, defaultKinds(model.nodes)).nodes.length;
+        if (mainData.disableGraph) {
+            mainData.graph = { model, shown };
             return;
         }
         const force = await import('d3');
         const script = graphScript(graphFile(force, model));
         FileEngine.writeSync(outputPath(GRAPH_SCRIPT), script);
-        mainData.graph = {
-            model,
-            version: contentVersion(script),
-            shown: visibleGraph(model, defaultKinds(model.nodes)).nodes.length
-        };
+        mainData.graph = { model, shown, version: contentVersion(script) };
     }
 
     /** Build the entity index and write it as the shared script every page loads. */

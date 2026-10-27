@@ -1,50 +1,46 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-    degrees,
-    fitTransform,
-    graphHeight,
-    nonOverlapping,
-    visibleGraph
-} from '../../../src/client/graph-layout';
+import { degreesOf, type GraphKind, visibleGraph } from '../../../src/app/graph';
+import { fitTransform, graphHeight, nonOverlapping } from '../../../src/client/graph-layout';
 
 const graph = {
     nodes: [
-        { name: 'A', type: 'component' },
-        { name: 'B', type: 'directive' },
-        { name: 'NgTemplateOutlet', type: 'external' }
+        { id: 'A', name: 'A', kind: 'component' as const },
+        { id: 'B', name: 'B', kind: 'directive' as const },
+        { id: 'external:NgTemplateOutlet', name: 'NgTemplateOutlet', kind: 'external' as const }
     ],
     edges: [
-        { source: 'A', target: 'B' },
-        { source: 'A', target: 'NgTemplateOutlet' },
-        { source: 'B', target: 'NgTemplateOutlet' },
-        { source: 'A', target: 'A' },
-        { source: 'A', target: 'Missing' }
+        { source: 'A', target: 'B', kind: 'composes' as const },
+        { source: 'A', target: 'external:NgTemplateOutlet', kind: 'imports' as const },
+        { source: 'B', target: 'external:NgTemplateOutlet', kind: 'imports' as const },
+        { source: 'A', target: 'A', kind: 'imports' as const },
+        { source: 'A', target: 'Missing', kind: 'imports' as const }
     ]
 };
+const kinds = (...list: GraphKind[]) => new Set(list);
 
 describe('visibleGraph', () => {
-    it('drops external nodes and their edges when externals are hidden', () => {
-        expect(visibleGraph(graph, false)).toEqual({
+    it('drops the nodes of hidden kinds and their edges', () => {
+        expect(visibleGraph(graph, kinds('component', 'directive'))).toEqual({
             nodes: [graph.nodes[0], graph.nodes[1]],
-            edges: [{ source: 'A', target: 'B' }]
+            edges: [graph.edges[0]]
         });
     });
 
-    it('keeps external nodes when shown, but never self or dangling edges', () => {
-        const visible = visibleGraph(graph, true);
+    it('keeps the nodes of shown kinds, but never self or dangling edges', () => {
+        const visible = visibleGraph(graph, kinds('component', 'directive', 'external'));
         expect(visible.nodes).toHaveLength(3);
         expect(visible.edges).toEqual(graph.edges.slice(0, 3));
     });
 });
 
-describe('degrees', () => {
+describe('degreesOf', () => {
     it('counts edges in both directions', () => {
-        expect(degrees(graph.edges.slice(0, 3))).toEqual(
+        expect(degreesOf(graph.edges.slice(0, 3))).toEqual(
             new Map([
                 ['A', 2],
                 ['B', 2],
-                ['NgTemplateOutlet', 2]
+                ['external:NgTemplateOutlet', 2]
             ])
         );
     });

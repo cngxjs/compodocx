@@ -42,7 +42,10 @@ export interface GraphNode {
     readonly kind: GraphKind;
     /** Feature id; absent for externals and symbols without a feature. */
     readonly feature?: string;
-    /** Page of the symbol, relative to the site root; absent for externals. */
+    /**
+     * Page of the symbol, relative to the site root; for an external an
+     * absolute URL (its Angular API page) or absent.
+     */
     readonly url?: string;
 }
 

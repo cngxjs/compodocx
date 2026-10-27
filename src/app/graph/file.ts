@@ -17,8 +17,8 @@ import {
 /** The written graph as the pages see it. */
 export interface GraphOutput {
     readonly model: GraphModel;
-    /** Cache key of the graph script (`?v=`). */
-    readonly version: string;
+    /** Cache key of the graph script (`?v=`); absent when the overview graph is off. */
+    readonly version?: string;
     /** Nodes the graph shows first; the page reserves their height. */
     readonly shown: number;
 }

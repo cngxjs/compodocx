@@ -645,8 +645,7 @@ test.describe('Dependency Graph — Overview', () => {
         const opened = context.waitForEvent('page');
         await graphNode(page, 'UserService').click({ modifiers: ['ControlOrMeta'] });
         const tab = await opened;
-        await tab.waitForLoadState();
-        expect(tab.url()).toMatch(/UserService\.html$/);
+        await tab.waitForURL(/UserService\.html$/);
         await expect(page.locator('#dependency-graph-container svg')).not.toHaveClass(
             /is-rippling/
         );
@@ -715,8 +714,54 @@ test.describe('Dependency Graph — Component Tab', () => {
     test('per-component graph has clickable nodes', async ({ page }) => {
         await page.goto(pageUrl('component', 'UserCardComponent'));
         await page.getByRole('tab', { name: 'Dependencies' }).click();
-        const nodes = page.locator('#dependency-graph-container .dep-node');
-        expect(await nodes.count()).toBeGreaterThanOrEqual(2);
+        // The graph draws once the tab shows it; every node is a link to its page.
+        const links = page.locator('#dependency-graph-container .dep-node a[href]');
+        await expect.poll(() => links.count()).toBeGreaterThanOrEqual(2);
+    });
+
+    test('the neighbourhood shows what uses the component and what it uses', async ({ page }) => {
+        await page.goto(pageUrl('component', 'UserCardComponent'));
+        await page.getByRole('tab', { name: 'Dependencies' }).click();
+        const node = (name: string) =>
+            page.locator('#dependency-graph-container .cdx-graph-node', {
+                has: page.locator('title', { hasText: new RegExp(`^${name} \\(`) })
+            });
+        // UserListComponent uses it; it uses HighlightDirective and injects API_BASE_URL.
+        await expect(page.locator('#dependency-graph-container .cdx-graph-node')).toHaveCount(4);
+        const x = async (name: string) => (await node(name).boundingBox())?.x ?? 0;
+        // Users on the left, what it uses on the right.
+        expect(await x('UserListComponent')).toBeLessThan(await x('UserCardComponent'));
+        expect(await x('HighlightDirective')).toBeGreaterThan(await x('UserCardComponent'));
+        expect(await x('API_BASE_URL')).toBeGreaterThan(await x('UserCardComponent'));
+        // Kinds first, then relations.
+        await expect(page.locator('#dependencies .cdx-graph-legend-item')).toHaveText([
+            'Components',
+            'Directives',
+            'Tokens',
+            'Uses in template',
+            'Injects'
+        ]);
+    });
+
+    test('a component that is only used gets the Dependencies tab', async ({ page }) => {
+        await page.goto(pageUrl('component', 'LoadingSpinnerComponent'));
+        await page.getByRole('tab', { name: 'Dependencies' }).click();
+        await expect(
+            page.locator('#dependency-graph-container .cdx-graph-node', {
+                has: page.locator('title', { hasText: /^SpinnerTogglePlayground \(/ })
+            })
+        ).toHaveCount(1);
+    });
+
+    test('clicking a neighbour opens its page', async ({ page }) => {
+        await page.goto(pageUrl('component', 'UserCardComponent'));
+        await page.getByRole('tab', { name: 'Dependencies' }).click();
+        await page
+            .locator('#dependency-graph-container .cdx-graph-node', {
+                has: page.locator('title', { hasText: /^HighlightDirective \(/ })
+            })
+            .click();
+        await expect(page).toHaveURL(/HighlightDirective\.html$/);
     });
 
     test('per-component a11y text alternative', async ({ page }) => {
@@ -730,8 +775,8 @@ test.describe('Dependency Graph — Component Tab', () => {
     test('per-component legend present', async ({ page }) => {
         await page.goto(pageUrl('component', 'UserCardComponent'));
         await page.getByRole('tab', { name: 'Dependencies' }).click();
-        const legend = page.locator('#dependencies .cdx-graph-legend');
-        await expect(legend).toBeVisible();
+        await expect(page.locator('#dependencies .cdx-graph-legend--kinds')).toBeVisible();
+        await expect(page.locator('#dependencies .cdx-graph-legend--relations')).toBeVisible();
     });
 
     test('per-component zoom buttons present', async ({ page }) => {

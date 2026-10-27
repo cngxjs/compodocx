@@ -52,7 +52,7 @@ const hasAnyEntities = (props: OverviewProps): boolean =>
     );
 
 export const Overview = (props: OverviewProps): string => {
-    const graph = props.disableGraph ? undefined : props.graph;
+    const graph = props.disableGraph || !props.graph?.version ? undefined : props.graph;
     const names = new Map(graph?.model.nodes.map(n => [n.id, n.name]));
 
     return (

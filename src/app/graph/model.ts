@@ -59,13 +59,15 @@ interface Member {
  * The project-wide dependency graph: components, directives, pipes,
  * services, tokens and provider functions that an entry point exports, with
  * four kinds of relations. Template imports that are no project symbol
- * become external nodes; they are only ever edge targets. Pure; sorted by
- * id so the output is byte-stable.
+ * become external nodes; they are only ever edge targets and link to
+ * `externalUrl` when it knows them. Pure; sorted by id so the output is
+ * byte-stable.
  */
 export const buildGraphModel = (
     symbols: SymbolTable,
     semantic: SemanticModel | undefined,
-    di: DiView | undefined
+    di: DiView | undefined,
+    externalUrl: (name: string) => string | undefined = () => undefined
 ): GraphModel => {
     const features = semantic?.features;
     const members: Member[] = [];
@@ -120,7 +122,13 @@ export const buildGraphModel = (
         if (known) {
             return known;
         }
-        const external: GraphNode = { id: `external:${name}`, name, kind: 'external' };
+        const url = externalUrl(name);
+        const external: GraphNode = {
+            id: `external:${name}`,
+            name,
+            kind: 'external',
+            ...(url ? { url } : {})
+        };
         externals.set(name, external);
         return external;
     };

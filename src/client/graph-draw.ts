@@ -11,13 +11,18 @@ export interface Placed {
     readonly r: number;
 }
 
-/** Colour of a node kind; themes override each kind separately. */
-export const kindColor = (kind: GraphKind): string => `var(--color-cdx-graph-kind-${kind})`;
+/**
+ * Class that colours a glyph: it sets `color` to the kind's token
+ * (`--color-cdx-graph-kind-<kind>`), which themes override per kind. A CSS
+ * rule has to read each token, or the build drops it.
+ */
+export const kindClass = (kind: GraphKind): string => `cdx-graph-kind--${kind}`;
 
 const BG = 'var(--color-cdx-graph-bg, var(--color-cdx-bg-alt))';
 
 /**
- * SVG markup of a node glyph centred on 0,0. Every kind is a circle; the fill
+ * SVG markup of a node glyph centred on 0,0, in `currentColor` (see
+ * `kindClass`). Every kind is a circle; the fill
  * tells the kinds apart, so they stay distinct where a theme colours two
  * kinds alike: component filled, directive a ring, pipe a half-filled ring,
  * service a ring with a core, token a small dot, provider a ring with an
@@ -25,7 +30,7 @@ const BG = 'var(--color-cdx-graph-bg, var(--color-cdx-bg-alt))';
  * edges under it stay hidden.
  */
 export const glyphMarkup = (kind: GraphKind, r: number, background = BG): string => {
-    const c = kindColor(kind);
+    const c = 'currentColor';
     const w = Math.max(1.4, r * 0.32);
     const inner = r - w / 2;
     const ring = (extra = '') =>

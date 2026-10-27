@@ -5,7 +5,6 @@
  */
 
 import {
-    defaultKinds,
     GRAPH_SCHEMA_VERSION,
     type GraphEdgeKind,
     type GraphFile,
@@ -13,13 +12,21 @@ import {
     visibleGraph
 } from '../app/graph/format';
 import { degreesOf, groupOf, type LayoutNode, layoutSteps, nodeRadius } from '../app/graph/layout';
-import { edgeGeometry, glyphMarkup, hullPoints, islandLabelAnchor, labelOrder } from './graph-draw';
+import {
+    edgeGeometry,
+    glyphMarkup,
+    hullPoints,
+    islandLabelAnchor,
+    kindClass,
+    labelOrder
+} from './graph-draw';
 import { type Box, fitTransform, graphHeight, nonOverlapping } from './graph-layout';
 import { buildSchedule, dependencyLevels, levelAt } from './graph-levels';
 
 declare global {
     interface Window {
         __CDX_GRAPH__?: GraphFile;
+        __CDX_LOCAL_GRAPH__?: GraphFile;
     }
 }
 
@@ -121,13 +128,26 @@ const overlapsAny = (box: Box, others: readonly Box[]): boolean =>
             o.y < box.y + box.height
     );
 
-/** Draw the overview graph into `container`; resolves once it is shown. */
+export interface GraphViewOptions {
+    /** Build the graph up on reveal (the project graph) or show it at once. */
+    readonly buildUp: boolean;
+    /** A plain click opens the symbol page (a neighbourhood) instead of the impact wave. */
+    readonly clickOpens: boolean;
+}
+
+const PROJECT_VIEW: GraphViewOptions = { buildUp: true, clickOpens: false };
+const LOCAL_VIEW: GraphViewOptions = { buildUp: false, clickOpens: true };
+
+/** Draw a graph into `container`; resolves once it is shown. */
 export const drawDependencyGraph = async (
     container: HTMLElement,
     file: GraphFile,
-    d3: D3
+    d3: D3,
+    options: GraphViewOptions = PROJECT_VIEW
 ): Promise<void> => {
     const root = container.dataset.cdxRoot ?? '';
+    /** Project pages are relative to the site root; Angular API pages are absolute. */
+    const hrefOf = (url: string) => (/^https?:/.test(url) ? url : `${root}${url}`);
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const measure = textMeasurer(container, '400');
     const measureIsland = textMeasurer(container, '600');
@@ -146,7 +166,7 @@ export const drawDependencyGraph = async (
     let kinds =
         chips.length > 0
             ? new Set(chips.filter(c => c.getAttribute('aria-pressed') === 'true').map(kindOf))
-            : defaultKinds(file.nodes);
+            : new Set(file.nodes.map(n => n.kind));
 
     /** The shown part of the graph at the current kinds, positioned where known. */
     const viewOf = (): { view: View; unplaced: boolean } => {
@@ -622,8 +642,15 @@ export const drawDependencyGraph = async (
                     g.on('pointerleave', () => setFocus(null));
                     g.on('click', (event: MouseEvent, d) => {
                         const opensLink =
-                            event.ctrlKey || event.metaKey || event.shiftKey || event.altKey;
+                            options.clickOpens ||
+                            event.ctrlKey ||
+                            event.metaKey ||
+                            event.shiftKey ||
+                            event.altKey;
                         if (opensLink && d.url) {
+                            return;
+                        }
+                        if (options.clickOpens) {
                             return;
                         }
                         event.preventDefault();
@@ -646,8 +673,11 @@ export const drawDependencyGraph = async (
                 'class',
                 d => `dep-node cdx-graph-node cdx-graph-node--${d.kind}${d.url ? ' is-link' : ''}`
             );
-        nodes.select('a').attr('href', d => (d.url ? `${root}${d.url}` : null));
-        nodes.select('g.cdx-graph-glyph').html(d => glyphMarkup(d.kind, d.r));
+        nodes.select('a').attr('href', d => (d.url ? hrefOf(d.url) : null));
+        nodes
+            .select('g.cdx-graph-glyph')
+            .attr('class', d => `cdx-graph-glyph ${kindClass(d.kind)}`)
+            .html(d => glyphMarkup(d.kind, d.r));
         nodes.select('circle.cdx-graph-hit').attr('r', d => d.r + 2);
         nodes.select('title').text(d => `${d.name} (${d.kind})`);
         const at = (d: ViewNode) => `translate(${d.x},${d.y})`;
@@ -729,7 +759,7 @@ export const drawDependencyGraph = async (
         name.className = 'cdx-graph-impact-name';
         name.textContent = node.name;
         if (node.url && name instanceof HTMLAnchorElement) {
-            name.href = `${root}${node.url}`;
+            name.href = hrefOf(node.url);
         }
         const impact = document.createElement('span');
         impact.className = 'cdx-graph-impact-text';
@@ -973,7 +1003,11 @@ export const drawDependencyGraph = async (
         computeFit();
         svg.call(zoomBehavior.transform, fit);
         world.attr('visibility', null);
-        playBuild();
+        if (options.buildUp) {
+            playBuild();
+        } else {
+            cullLabels();
+        }
     };
 
     /** Show the graph for new kinds: lay out what moved, then glide there. */
@@ -1054,30 +1088,52 @@ export const drawDependencyGraph = async (
     });
 };
 
-/** Load and draw the overview graph once its container scrolls into view. */
-export const initProjectGraph = (container: HTMLElement, loadD3: () => Promise<D3>): void => {
-    const src = container.dataset.cdxGraphSrc;
-    if (!src) {
-        return;
-    }
-    const start = async () => {
-        const [file, d3] = await Promise.all([loadGraphFile(src), loadD3()]);
-        if (file && container.isConnected) {
-            await drawDependencyGraph(container, file, d3);
-        }
-    };
+/** Run `start` once `container` scrolls into view (or its tab opens). */
+const whenVisible = (container: HTMLElement, start: () => Promise<void>): void => {
+    const run = () => start().catch(e => console.error('Dependency graph init failed:', e));
     if (!('IntersectionObserver' in window)) {
-        void start();
+        run();
         return;
     }
     const observer = new IntersectionObserver(
         entries => {
             if (entries.some(e => e.isIntersecting)) {
                 observer.disconnect();
-                start().catch(e => console.error('Dependency graph init failed:', e));
+                run();
             }
         },
         { rootMargin: '200px' }
     );
     observer.observe(container);
+};
+
+/** Load and draw the overview graph once its container scrolls into view. */
+export const initProjectGraph = (container: HTMLElement, loadD3: () => Promise<D3>): void => {
+    const src = container.dataset.cdxGraphSrc;
+    if (!src) {
+        return;
+    }
+    whenVisible(container, async () => {
+        const [file, d3] = await Promise.all([loadGraphFile(src), loadD3()]);
+        if (file && container.isConnected) {
+            await drawDependencyGraph(container, file, d3, PROJECT_VIEW);
+        }
+    });
+};
+
+/** Draw a component's neighbourhood (inline in its page) once its tab shows it. */
+export const initLocalGraph = (container: HTMLElement, loadD3: () => Promise<D3>): void => {
+    const file = window.__CDX_LOCAL_GRAPH__;
+    if (
+        container.dataset.cdxGraphLocal === undefined ||
+        file?.schemaVersion !== GRAPH_SCHEMA_VERSION
+    ) {
+        return;
+    }
+    whenVisible(container, async () => {
+        const d3 = await loadD3();
+        if (container.isConnected) {
+            await drawDependencyGraph(container, file, d3, LOCAL_VIEW);
+        }
+    });
 };

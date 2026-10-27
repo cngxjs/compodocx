@@ -1,6 +1,8 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
-import AngularApiUtil from '../../utils/angular-api.util';
+import { type GraphFile, neighbourhood } from '../../app/graph';
+import { entryInFile } from '../../app/links/symbol-table';
+import { graphHeight } from '../../client/graph-layout';
 import { BlockAccessors } from '../blocks/BlockAccessors';
 import { BlockDerivedState } from '../blocks/BlockDerivedState';
 import { BlockHostBindings } from '../blocks/BlockHostBindings';
@@ -16,7 +18,12 @@ import { BlockTheming } from '../blocks/BlockTheming';
 import { ContentSlotsSection } from '../blocks/ContentSlots';
 import { DependenciesSection } from '../blocks/DependenciesSection';
 import { ExternalLinks } from '../blocks/ExternalLinks';
-import { dependencyLegendItems, GraphLegend, GraphZoomControls } from '../blocks/GraphControls';
+import {
+    GraphKindLegend,
+    GraphLegend,
+    GraphRelationLegend,
+    GraphZoomControls
+} from '../blocks/GraphControls';
 import { HostSection } from '../blocks/HostSection';
 import { ImportStatement } from '../blocks/ImportStatement';
 import { JsdocExamplesBlock } from '../blocks/JsdocExamplesBlock';
@@ -360,24 +367,21 @@ const ApiContent = (data: any): string => {
     ) as string;
 };
 
-const DECLARABLE_KINDS = new Set(['component', 'directive', 'pipe']);
-
 /**
- * Graph node for one standalone import: a documented component, directive or
- * pipe links to its page, an Angular API symbol to angular.dev, anything else
- * stays unlinked.
+ * The component's direct neighbourhood in the project graph: every relation
+ * in both directions, one hop. Undefined without relations or with the
+ * Dependencies tab off.
  */
-const importGraphNode = (
-    name: string,
-    base: string
-): { name: string; type: string; url: string | undefined } => {
-    const entry = Configuration.mainData.entityIndex?.[name];
-    if (entry && DECLARABLE_KINDS.has(entry.kind)) {
-        return { name, type: entry.kind, url: `${base}${entry.href}` };
-    }
-    const api = AngularApiUtil.findApi(name).data;
-    return { name, type: 'external', url: api ? `https://angular.dev/${api.path}` : undefined };
+const componentNeighbourhood = (c: { name: string; file?: string }): GraphFile | undefined => {
+    const { symbols, graph, disableDependenciesTab } = Configuration.mainData;
+    const entry = symbols && entryInFile(symbols, 'component', c.name, c.file);
+    return disableDependenciesTab || !entry || !graph
+        ? undefined
+        : neighbourhood(graph.model, entry.id);
 };
+
+/** The graph data as a script literal; `<` escaped so no name can end the script. */
+const scriptJson = (value: unknown): string => JSON.stringify(value).replaceAll('<', '\\u003c');
 
 export const ComponentPage = (data: any): string => {
     const c = data.component;
@@ -385,22 +389,8 @@ export const ComponentPage = (data: any): string => {
     const base = relativeUrl(depth);
     const navTabs = data.navTabs;
     const theming = themingFor(c, 'component', Configuration.mainData, depth);
-    const hasStandaloneImports =
-        c.standalone && c.imports?.length > 0 && !Configuration.mainData.disableDependenciesTab;
-
-    const componentDepGraph = hasStandaloneImports
-        ? (() => {
-              const names: string[] = c.imports.map((imp: any) =>
-                  typeof imp === 'string' ? imp : imp.name
-              );
-              const nodes = [
-                  { name: c.name, type: 'component', url: undefined },
-                  ...names.map(name => importGraphNode(name, base))
-              ];
-              const edges = names.map(target => ({ source: c.name, target }));
-              return { nodes, edges };
-          })()
-        : null;
+    const localGraph = componentNeighbourhood(c);
+    const graphNames = new Map(localGraph?.nodes.map(n => [n.id, n.name]));
 
     const feature = entityFeature('component', c);
     const axes = entityAxes('component', c);
@@ -517,7 +507,7 @@ export const ComponentPage = (data: any): string => {
                         </a>
                     </li>
                 ))}
-                {hasStandaloneImports && (
+                {localGraph && (
                     <li role="presentation">
                         <a
                             href="#dependencies"
@@ -705,7 +695,7 @@ export const ComponentPage = (data: any): string => {
                     </div>
                 )}
 
-                {hasStandaloneImports && (
+                {localGraph && (
                     <div
                         class={`cdx-tab-panel`}
                         id="dependencies"
@@ -713,19 +703,27 @@ export const ComponentPage = (data: any): string => {
                         aria-labelledby="dependencies-tab"
                     >
                         <ul class="sr-only" aria-label="Component dependency list">
-                            {c.imports.map((imp: any) => (
+                            {localGraph.edges.map(e => (
                                 <li>
-                                    {c.name} imports {typeof imp === 'string' ? imp : imp.name}
+                                    {graphNames.get(e.source) ?? e.source} {e.kind}{' '}
+                                    {graphNames.get(e.target) ?? e.target}
                                 </li>
                             ))}
                         </ul>
                         <div class="cdx-graph-container">
                             <div class="cdx-graph-viewport">
-                                <div id="dependency-graph-container"></div>
+                                <div
+                                    id="dependency-graph-container"
+                                    data-cdx-graph-local=""
+                                    data-cdx-root={base}
+                                    data-cdx-label={t('graph-label')}
+                                    style={`min-height: ${graphHeight(localGraph.nodes.length)}px`}
+                                ></div>
                             </div>
                             {GraphZoomControls({ prefix: 'dep-' })}
                         </div>
-                        {GraphLegend({ items: dependencyLegendItems(componentDepGraph.nodes) })}
+                        {GraphKindLegend({ nodes: localGraph.nodes })}
+                        {GraphRelationLegend({ edges: localGraph.edges })}
                     </div>
                 )}
 
@@ -791,7 +789,7 @@ export const ComponentPage = (data: any): string => {
     window.COMPONENTS = [${(data.components ?? []).map((comp: any) => `{'name': '${comp.name}', 'selector': '${comp.selector}'}`).join(',')}];
     window.DIRECTIVES = [${(data.directives ?? []).map((dir: any) => `{'name': '${dir.name}', 'selector': '${dir.selector}'}`).join(',')}];
     window.ACTUAL_COMPONENT = {'name': '${data.name}'};
-    ${componentDepGraph ? `window.DEPENDENCY_GRAPH = ${JSON.stringify(componentDepGraph)};` : ''}
+    ${localGraph ? `window.__CDX_LOCAL_GRAPH__ = ${scriptJson(localGraph)};` : ''}
 `}</script>
         </>
     ) as string;

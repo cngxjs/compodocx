@@ -1,8 +1,8 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import {
-    dependencyLegendItems,
     GraphKindChips,
+    GraphKindLegend,
     GraphLegend,
     GraphRelationLegend,
     GraphZoomControls
@@ -10,33 +10,6 @@ import {
 
 beforeAll(() => {
     I18nEngine.init('en-US');
-});
-
-describe('dependencyLegendItems', () => {
-    it('lists only the node types the graph contains, in legend order', () => {
-        const items = dependencyLegendItems([
-            { type: 'external' },
-            { type: 'component' },
-            { type: 'component' },
-            { type: 'directive' }
-        ]);
-        expect(items.map(i => i.labelKey)).toEqual([
-            'component',
-            'directive',
-            'graph-external-imports'
-        ]);
-    });
-
-    it('shows one injectable entry for injectables and services', () => {
-        const items = dependencyLegendItems([{ type: 'service' }, { type: 'injectable' }]);
-        expect(items).toEqual([
-            { colorVar: 'var(--color-cdx-entity-service)', labelKey: 'injectable' }
-        ]);
-    });
-
-    it('renders no legend for a graph without known types', () => {
-        expect(GraphLegend({ items: dependencyLegendItems([{ type: 'unknown' }]) })).toBe('');
-    });
 });
 
 describe('GraphZoomControls', () => {
@@ -83,9 +56,9 @@ describe('GraphKindChips', () => {
     });
 
     it('shows each kind with its glyph', () => {
-        expect(GraphKindChips({ nodes: [{ kind: 'directive' }] })).toContain(
-            'stroke="var(--color-cdx-graph-kind-directive)"'
-        );
+        const html = GraphKindChips({ nodes: [{ kind: 'directive' }] });
+        expect(html).toContain('cdx-graph-kind--directive');
+        expect(html).toContain('stroke="currentColor"');
     });
 
     it('renders nothing for an empty graph', () => {
@@ -117,5 +90,32 @@ describe('GraphRelationLegend', () => {
 
     it('renders nothing for a graph without edges', () => {
         expect(GraphRelationLegend({ edges: [] })).toBe('');
+    });
+});
+
+describe('GraphLegend', () => {
+    it('renders a dot per item and nothing without items', () => {
+        const html = GraphLegend({
+            items: [{ colorVar: 'var(--color-cdx-entity-component)', labelKey: 'component' }]
+        });
+        expect(html).toContain('background: var(--color-cdx-entity-component)');
+        expect(html).toContain('Component');
+        expect(GraphLegend({ items: [] })).toBe('');
+    });
+});
+
+describe('GraphKindLegend', () => {
+    it('lists the kinds present with their glyphs, in kind order', () => {
+        const html = GraphKindLegend({
+            nodes: [{ kind: 'external' }, { kind: 'token' }, { kind: 'component' }]
+        });
+        expect([...html.matchAll(/data-cdx-kind="(\w+)"/g)].map(m => m[1])).toEqual([
+            'component',
+            'token',
+            'external'
+        ]);
+        expect(html).toContain('cdx-graph-kind--token');
+        expect(html).toContain('Tokens');
+        expect(GraphKindLegend({ nodes: [] })).toBe('');
     });
 });

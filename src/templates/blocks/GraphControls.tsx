@@ -6,7 +6,7 @@ import {
     type GraphEdgeKind,
     type GraphKind
 } from '../../app/graph/format';
-import { glyphMarkup } from '../../client/graph-draw';
+import { glyphMarkup, kindClass } from '../../client/graph-draw';
 import { t } from '../helpers';
 
 type GraphZoomControlsProps = {
@@ -61,41 +61,6 @@ export function GraphLegend(props: { readonly items: LegendItem[] }): string {
         </div>
     ) as string;
 }
-
-/** Legend entries of the dependency graph, keyed by the node types they stand for. */
-const DEPENDENCY_LEGEND: ReadonlyArray<LegendItem & { readonly types: readonly string[] }> = [
-    {
-        colorVar: 'var(--color-cdx-entity-component)',
-        labelKey: 'component',
-        types: ['component']
-    },
-    {
-        colorVar: 'var(--color-cdx-entity-directive)',
-        labelKey: 'directive',
-        types: ['directive']
-    },
-    { colorVar: 'var(--color-cdx-entity-pipe)', labelKey: 'pipe', types: ['pipe'] },
-    {
-        colorVar: 'var(--color-cdx-entity-service)',
-        labelKey: 'injectable',
-        types: ['injectable', 'service']
-    },
-    {
-        colorVar: 'var(--color-cdx-text-muted)',
-        labelKey: 'graph-external-imports',
-        types: ['external']
-    }
-];
-
-/** The legend entries for the node types a dependency graph actually contains. */
-export const dependencyLegendItems = (
-    nodes: ReadonlyArray<{ readonly type: string }>
-): LegendItem[] => {
-    const present = new Set(nodes.map(n => n.type));
-    return DEPENDENCY_LEGEND.filter(item => item.types.some(type => present.has(type))).map(
-        ({ colorVar, labelKey }) => ({ colorVar, labelKey })
-    );
-};
 
 /** A short sample of an edge kind's stroke, drawn like the graph draws it. */
 const relationSample = (kind: GraphEdgeKind): string =>
@@ -160,11 +125,32 @@ export function GraphKindChips(props: {
                     data-cdx-kind={kind}
                     aria-pressed={String(!GRAPH_KINDS_OFF.has(kind))}
                 >
-                    {`<svg class="cdx-graph-chip-glyph" width="14" height="14" viewBox="-7 -7 14 14" aria-hidden="true">${glyphMarkup(kind, 5.5, 'none')}</svg>`}
+                    {`<svg class="cdx-graph-chip-glyph ${kindClass(kind)}" width="14" height="14" viewBox="-7 -7 14 14" aria-hidden="true">${glyphMarkup(kind, 5.5, 'none')}</svg>`}
                     <span>{t(kindLabelKey(kind))}</span>
                     <span class="cdx-graph-chip-count">{String(counts.get(kind))}</span>
                 </button>
             ))}
         </fieldset>
+    ) as string;
+}
+
+/** Legend of the node kinds a graph without filter chips contains, with their glyphs. */
+export function GraphKindLegend(props: {
+    readonly nodes: readonly { readonly kind: GraphKind }[];
+}): string {
+    const present = new Set(props.nodes.map(n => n.kind));
+    const kinds = GRAPH_KINDS.filter(kind => present.has(kind));
+    if (kinds.length === 0) {
+        return '';
+    }
+    return (
+        <div class="cdx-graph-legend cdx-graph-legend--kinds">
+            {kinds.map(kind => (
+                <div class="cdx-graph-legend-item" data-cdx-kind={kind}>
+                    {`<svg class="cdx-graph-chip-glyph ${kindClass(kind)}" width="14" height="14" viewBox="-7 -7 14 14" aria-hidden="true">${glyphMarkup(kind, 5.5, 'none')}</svg>`}
+                    <span>{t(kindLabelKey(kind))}</span>
+                </div>
+            ))}
+        </div>
     ) as string;
 }

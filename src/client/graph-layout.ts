@@ -1,24 +1,8 @@
 /**
- * Pure helpers for the dependency graph: which nodes to draw, which labels
- * fit without overlapping, and the zoom transform that fits the layout.
- * No DOM and no D3, so they run in unit tests.
+ * Pure helpers for the dependency graph: which labels fit without
+ * overlapping, the zoom transform that fits the layout and the height the
+ * page reserves. No DOM and no D3, so they run in unit tests.
  */
-
-export interface GraphInputNode {
-    readonly name: string;
-    readonly type: string;
-    readonly url?: string;
-}
-
-export interface GraphInputEdge {
-    readonly source: string;
-    readonly target: string;
-}
-
-export interface GraphInput {
-    readonly nodes: readonly GraphInputNode[];
-    readonly edges: readonly GraphInputEdge[];
-}
 
 export interface Box {
     readonly x: number;
@@ -38,26 +22,6 @@ export interface FitTransform {
  * reserves it before the client draws, so nothing below the graph jumps.
  */
 export const graphHeight = (count: number): number => Math.max(450, Math.min(700, count * 25));
-
-/** The nodes and edges to draw; external nodes and their edges only when shown. */
-export const visibleGraph = (graph: GraphInput, showExternals: boolean): GraphInput => {
-    const nodes = graph.nodes.filter(n => showExternals || n.type !== 'external');
-    const names = new Set(nodes.map(n => n.name));
-    const edges = graph.edges.filter(
-        e => e.source !== e.target && names.has(e.source) && names.has(e.target)
-    );
-    return { nodes, edges };
-};
-
-/** Edge count per node name, both directions. */
-export const degrees = (edges: readonly GraphInputEdge[]): Map<string, number> => {
-    const count = new Map<string, number>();
-    for (const e of edges) {
-        count.set(e.source, (count.get(e.source) ?? 0) + 1);
-        count.set(e.target, (count.get(e.target) ?? 0) + 1);
-    }
-    return count;
-};
 
 const overlaps = (a: Box, b: Box, gap: number): boolean =>
     a.x < b.x + b.width + gap &&

@@ -200,6 +200,15 @@ describe('buildGraphModel', () => {
         expect(nodeOf('external:NgClass')?.url).toBeUndefined();
     });
 
+    it('links an external to the URL the resolver knows for it', () => {
+        const linked = buildGraphModel(table, semantic, buildDiView(table, semantic), name =>
+            name === 'NgClass' ? 'https://angular.dev/api/common/NgClass' : undefined
+        );
+        expect(linked.nodes.find(n => n.id === 'external:NgClass')?.url).toBe(
+            'https://angular.dev/api/common/NgClass'
+        );
+    });
+
     it('builds without semantic facts: no DI edges, no providers, no features', () => {
         const plain = buildSymbolTable(ENGINE, { cwd: '/' });
         const model = buildGraphModel(plain, undefined, undefined);
