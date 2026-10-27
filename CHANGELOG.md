@@ -26,6 +26,7 @@ Upgrading from 0.10: no flag, config key or URL was removed. Custom `overview` t
 
 ### Fixed
 
+- **A site opened from disk keeps its interactive parts.** The client script was a module script, which Chrome and Edge refuse to run from `file://`, so a site opened without a server lost the dependency graph, the tabs, the command palette and every other interactive part. `js/compodocx.js` is now one classic script with D3 and the StackBlitz SDK inlined, so the `js/chunks/` folder is gone (the script is 384 KB, 126 KB gzipped). Search still needs a server, because Pagefind fetches its index.
 - **Sidebar group labels without a page.** In the feature layout, a group whose folder has no page of its own (a folder that only holds nested entry points) showed its label at 16px instead of the 13px of every other row.
 
 ## [0.10.0] - 2026-10-23
