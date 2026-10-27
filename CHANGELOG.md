@@ -6,6 +6,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Added
+
+- **Logo layout.** A custom logo is now shown according to its format: a wide logo (2:1 and wider) alone, a square or tall one as an icon next to the project name. `auto` reads the aspect ratio of an SVG or PNG; the new `logoLayout` key and `--logoLayout` flag (`auto`, `icon`, `wordmark`) set it explicitly.
+- **Dark variant of the logo.** The new `customLogoDark` key and `--customLogoDark` flag name a second logo that the sidebar shows while the dark mode is on, following the dark mode toggle.
+
+### Changed
+
+- **A custom logo is no longer fixed at 24 px high.** A wide logo fills the sidebar header width up to `--cdx-sidebar-logo-max-height` (default `40px`), an icon is `--cdx-sidebar-logo-icon-size` high (default `28px`); the image keeps its proportions. Set `--cdx-sidebar-logo-max-height: 24px` in a custom theme for the old size of a wordmark.
+
 ## [0.10.0] - 2026-10-23
 
 Upgrading from 0.9: no flag, config key or URL was removed. Custom templates that call `extractJsdocCodeExamples`, custom sidebar CSS, tools that read the `@example` comments in `documentation.json` and `summary.json` files with clashing page paths need a look; [MIGRATION.md](MIGRATION.md) lists each change.
