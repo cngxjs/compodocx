@@ -125,6 +125,20 @@ Compodocx ships with multiple built-in themes and supports custom CSS. All theme
 | hideGenerator | `--hideGenerator` | boolean | `false` | Remove the "Built with compodocx" link in the page footer |
 | hideDarkModeToggle | `--hideDarkModeToggle` | boolean | `false` | Remove the light/dark mode toggle button from the top-right header area |
 
+The [dependency graph](#dependency-graph) colours each node kind with its own token, so a theme can recolour one kind without touching the entity badges:
+
+| Token | Default |
+|-|-|
+| `--color-cdx-graph-kind-component` | `--color-cdx-entity-component` |
+| `--color-cdx-graph-kind-directive` | `--color-cdx-entity-directive` |
+| `--color-cdx-graph-kind-pipe` | `--color-cdx-entity-pipe` |
+| `--color-cdx-graph-kind-service` | `--color-cdx-entity-service` (also the colour of the impact wave) |
+| `--color-cdx-graph-kind-token` | `--color-cdx-entity-token`; slate `#94a3b8` in dark mode |
+| `--color-cdx-graph-kind-provider` | `--color-cdx-entity-function` |
+| `--color-cdx-graph-kind-external` | `--color-cdx-text-muted` |
+
+Set them in `:root` and `.dark`. The relation strokes reuse three of them: composes the directive colour, injects the service colour, provides the provider colour; uses in template is drawn in the muted text colour. The glyphs keep kinds apart where two kinds share a colour.
+
 ## Visibility Filters
 
 These flags control which class members and entity details appear in the documentation. They filter at the member level -- the entity page still exists, but specific sections are hidden.
@@ -152,14 +166,40 @@ These flags disable entire features, tabs, or pages. Unlike visibility filters w
 | disableDomTree | `--disableDomTree` | boolean | `false` | Remove the DOM Tree tab from component pages |
 | disableTemplateTab | `--disableTemplateTab` | boolean | `false` | Remove the Template tab from component pages |
 | disableStyleTab | `--disableStyleTab` | boolean | `false` | Remove the Style tab from component pages |
-| disableGraph | `--disableGraph` | boolean | `false` | Remove all dependency graphs -- both the overview page graph and per-component dependency tabs |
-| disableDependenciesTab | `--disableDependenciesTab` | boolean | `false` | Remove the per-component Dependencies tab that shows the standalone import graph. The overview graph and other graphs are not affected |
+| disableGraph | `--disableGraph` | boolean | `false` | Remove the dependency graph from the overview page; `js/graph.js` is not written. The per-component Dependencies tab is controlled by `disableDependenciesTab`. See [Dependency graph](#dependency-graph) |
+| disableDependenciesTab | `--disableDependenciesTab` | boolean | `false` | Remove the per-component Dependencies tab that shows the component's neighbourhood in the dependency graph. The overview graph and other graphs are not affected |
 | disablePlaygroundTab | `--disablePlaygroundTab` | boolean | `false` | Remove the per-component Playground tab even when `@playground` JSDoc blocks are present in the source |
 | disableRoutes | `--disableRoutes` | boolean | `false` | Do not read routes: no routes page, no menu entry, no Routed at / Mounted at links, no route entries in the command palette and no `routes` in the exports. See [Routes](#routes). The removed `--disableRoutesGraph` / `disableRoutesGraph` are ignored with a warning |
 | disableSearch | `--disableSearch` | boolean | `false` | Remove the Pagefind search functionality. Disables the command palette (Ctrl+K), the search input, and skips Pagefind index generation at build time |
 | disableCoverage | `--disableCoverage` | boolean | `false` | Remove the documentation coverage report page. Coverage measures how many public members have JSDoc descriptions |
 | disableOverview | `--disableOverview` | boolean | `false` | Remove the overview/dashboard page that shows project-level statistics and the main dependency graph |
 | minimal | `--minimal` | boolean | `false` | Shorthand that disables search, all graphs, routes and the coverage report in one flag. Equivalent to `--disableSearch --disableGraph --disableRoutes --disableCoverage` |
+
+## Dependency graph
+
+The overview page draws the project as one graph: every component, directive, pipe, service (`@Injectable` and Angular 22 `@Service`), injection token and provider function that an entry point exports, plus the external imports components use in their templates. Interfaces, classes, type aliases and variables are not part of it.
+
+| Relation | Read from | Drawn as |
+|-|-|-|
+| Uses in template | a component's `imports` | solid line |
+| Composes | `hostDirectives` of a component or directive | double line |
+| Injects | `inject()` of a token or service (one call level deep) | dashed line |
+| Provides | a provider function's provided tokens | dotted line |
+
+A short bright head at the target end shows the direction. Directives and pipes a template uses without importing them are not known to compodocx and draw no edge.
+
+- **Islands.** Symbols sit in a rounded island per feature (see [Features](#features)), labelled with the feature name. Edges inside an island are drawn clearly, edges between islands stay faint until one end is hovered.
+- **Kinds.** Every kind is a circle that the fill tells apart (component filled, directive a ring, pipe a half-filled ring, service a ring with a core, token a small dot, provider a ring with an inner ring, external a dashed ring), so kinds stay distinct without colour. Filter chips above the graph show and hide each kind and give its count; tokens, providers and external imports start off. A change lays the graph out again from the current positions, so the nodes glide to their new places.
+- **Layout.** The layout is computed during the build with a fixed seed, so it is the same on every build, and written for the default chips to `js/graph.js` in the version root. The overview loads that script when the graph scrolls into view; it works from `file://` too.
+- **Build-up.** On first view the islands fade in, then the symbols appear level by level, primitives first: a symbol sits one level above the highest level of what it uses, a cycle shares one level. The Replay button plays it again.
+- **Hover and click.** Hovering a symbol highlights its neighbourhood and sends particles along its relations in import direction. Clicking it shows everything that uses it, directly or through others, hop by hop; a badge names the symbol, links to its page and counts the symbols that use it, how many directly and across how many features. Click it again or the background to clear. A modifier or middle click on a symbol opens its page like any link.
+- **Labels** keep their size at every zoom level and never overlap each other or a node; more appear when zooming in.
+- **Motion.** Under `prefers-reduced-motion` the graph shows its final state at once, without build-up, particles or pulses.
+- **Screen readers** get a list of the relations grouped by feature (symbol: what it uses, composes, injects and provides).
+
+The **Dependencies** tab of a component page shows the component's direct neighbourhood from the same graph: every relation in both directions and of every kind, what uses the component on the left and what it uses on the right. A click on a neighbour opens its page; external imports link to their page on angular.dev. The tab appears whenever the component has a relation.
+
+The colours of the node kinds come from theme tokens, see [Theming](#theming).
 
 ## Navigation
 

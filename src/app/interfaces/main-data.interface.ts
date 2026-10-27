@@ -3,6 +3,7 @@ import type { AxisConfig } from '../compiler/semantic/axes';
 import type { SemanticModel } from '../compiler/semantic/model';
 import type { DiView } from '../di/model';
 import type { FileRefBundle, VendorPackage } from '../engines/stackblitz';
+import type { GraphOutput } from '../graph/file';
 import type { SymbolTable } from '../links/symbol-table';
 import type { RoutingModel } from '../routing/model';
 import type { StyleModel } from '../styles/model';
@@ -100,10 +101,8 @@ export interface MainDataInterface {
     disableOverview: boolean;
     showEffects: boolean;
     watch: boolean;
-    dependencyGraph: {
-        nodes: Array<{ name: string; type: string; url?: string }>;
-        edges: Array<{ source: string; target: string }>;
-    };
+    /** The written dependency graph; absent without one (disabled or no symbols). */
+    graph?: GraphOutput;
     entityIndex: Record<string, { href: string; kind: string }>;
     /** Old page paths of earlier layouts and where they moved; set when the pages are written. */
     redirects?: Readonly<Record<string, string>>;

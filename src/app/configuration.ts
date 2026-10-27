@@ -107,7 +107,6 @@ export class Configuration implements ConfigurationInterface {
         disableOverview: COMPODOC_DEFAULTS.disableOverview,
         showEffects: COMPODOC_DEFAULTS.showEffects,
         watch: false,
-        dependencyGraph: { nodes: [], edges: [] },
         entityIndex: {},
         coverageTest: false,
         coverageTestThreshold: COMPODOC_DEFAULTS.defaultCoverageThreshold,

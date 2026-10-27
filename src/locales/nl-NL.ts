@@ -208,5 +208,20 @@ export const TRANSLATION_NL_NL = {
     'built-by': 'Gebouwd door',
     'route-outlet': 'Outlet',
     zoomin: 'Zoom in',
-    zoomout: 'Zoom uit'
+    zoomout: 'Zoom uit',
+    'graph-external-imports': 'Externe imports',
+    'graph-label': 'Afhankelijkheidsgraaf',
+    'graph-relations': 'Relaties',
+    'graph-edge-imports': 'Gebruikt in template',
+    'graph-edge-composes': 'Stelt samen (hostDirectives)',
+    'graph-edge-injects': 'Injecteert',
+    'graph-edge-provides': 'Levert',
+    'graph-show-kinds': 'Getoonde soorten',
+    'graph-replay': 'Opbouw herhalen',
+    'graph-building': 'Opbouw vanaf de basisbouwstenen: niveau {{level}} van {{total}}',
+    'graph-impact': 'Gebruikt door: {{total}} · Direct: {{direct}} · Features: {{features}}',
+    'graph-impact-none': 'Niets van wat getoond wordt gebruikt het',
+    'graph-impact-hint': 'Klik er opnieuw op of op de achtergrond om te wissen',
+    'graph-relations-list': 'Relaties in de afhankelijkheidsgraaf',
+    'graph-no-feature': 'Zonder feature'
 };

@@ -206,5 +206,20 @@ export const TRANSLATION_KO_KR = {
     'built-by': '생성 함수',
     'route-outlet': 'Outlet',
     zoomin: '확대',
-    zoomout: '축소'
+    zoomout: '축소',
+    'graph-external-imports': '외부 가져오기',
+    'graph-label': '의존성 그래프',
+    'graph-relations': '관계',
+    'graph-edge-imports': '템플릿에서 사용',
+    'graph-edge-composes': '구성 (hostDirectives)',
+    'graph-edge-injects': '주입',
+    'graph-edge-provides': '제공',
+    'graph-show-kinds': '표시할 종류',
+    'graph-replay': '구성 다시 재생',
+    'graph-building': '기본 요소부터 구성 중: 레벨 {{level}} / {{total}}',
+    'graph-impact': '사용처: {{total}} · 직접: {{direct}} · 기능: {{features}}',
+    'graph-impact-none': '표시된 항목 중 사용하는 것이 없습니다',
+    'graph-impact-hint': '다시 클릭하거나 배경을 클릭하면 해제됩니다',
+    'graph-relations-list': '의존성 그래프의 관계',
+    'graph-no-feature': '기능 없음'
 };

@@ -206,5 +206,20 @@ export const TRANSLATION_ZH_CN = {
     'built-by': '构建自',
     'route-outlet': 'Outlet',
     zoomin: '放大',
-    zoomout: '缩小'
+    zoomout: '缩小',
+    'graph-external-imports': '外部导入',
+    'graph-label': '依赖关系图',
+    'graph-relations': '关系',
+    'graph-edge-imports': '在模板中使用',
+    'graph-edge-composes': '组合 (hostDirectives)',
+    'graph-edge-injects': '注入',
+    'graph-edge-provides': '提供',
+    'graph-show-kinds': '显示的类型',
+    'graph-replay': '重放构建过程',
+    'graph-building': '从基础元素构建：第 {{level}} 层，共 {{total}} 层',
+    'graph-impact': '被使用：{{total}} · 直接：{{direct}} · 功能：{{features}}',
+    'graph-impact-none': '此处显示的内容均未使用它',
+    'graph-impact-hint': '再次点击它或点击背景以清除',
+    'graph-relations-list': '依赖关系图中的关系',
+    'graph-no-feature': '无所属功能'
 };

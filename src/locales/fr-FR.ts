@@ -209,5 +209,21 @@ export const TRANSLATION_FR_FR = {
     'built-by': 'Construit par',
     'route-outlet': 'Outlet',
     zoomin: 'Zoom avant',
-    zoomout: 'Zoom arrière'
+    zoomout: 'Zoom arrière',
+    'graph-external-imports': 'Imports externes',
+    'graph-label': 'Graphe des dépendances',
+    'graph-relations': 'Relations',
+    'graph-edge-imports': 'Utilise dans le template',
+    'graph-edge-composes': 'Compose (hostDirectives)',
+    'graph-edge-injects': 'Injecte',
+    'graph-edge-provides': 'Fournit',
+    'graph-show-kinds': 'Types affichés',
+    'graph-replay': 'Rejouer la construction',
+    'graph-building': 'Construction à partir des briques de base : niveau {{level}} sur {{total}}',
+    'graph-impact':
+        'Utilisé par : {{total}} · Directement : {{direct}} · Fonctionnalités : {{features}}',
+    'graph-impact-none': "Rien de ce qui est affiché ne l'utilise",
+    'graph-impact-hint': 'Cliquez à nouveau dessus ou sur le fond pour effacer',
+    'graph-relations-list': 'Relations du graphe des dépendances',
+    'graph-no-feature': 'Sans fonctionnalité'
 };

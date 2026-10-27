@@ -207,5 +207,20 @@ export const TRANSLATION_JA_JP = {
     'built-by': '生成元',
     'route-outlet': 'Outlet',
     zoomin: '拡大',
-    zoomout: '縮小'
+    zoomout: '縮小',
+    'graph-external-imports': '外部インポート',
+    'graph-label': '依存関係グラフ',
+    'graph-relations': '関係',
+    'graph-edge-imports': 'テンプレートで使用',
+    'graph-edge-composes': '合成 (hostDirectives)',
+    'graph-edge-injects': '注入',
+    'graph-edge-provides': '提供',
+    'graph-show-kinds': '表示する種類',
+    'graph-replay': '構築を再生',
+    'graph-building': '基本要素から構築中: レベル {{level}} / {{total}}',
+    'graph-impact': '利用元: {{total}} · 直接: {{direct}} · 機能: {{features}}',
+    'graph-impact-none': '表示中の要素からは使用されていません',
+    'graph-impact-hint': 'もう一度クリックするか背景をクリックして解除',
+    'graph-relations-list': '依存関係グラフ内の関係',
+    'graph-no-feature': '機能なし'
 };

@@ -208,5 +208,20 @@ export const TRANSLATION_BG_BG = {
     'built-by': 'Създаден от',
     'route-outlet': 'Outlet',
     zoomin: 'Zoom in',
-    zoomout: 'Zoom out'
+    zoomout: 'Zoom out',
+    'graph-external-imports': 'Външни импорти',
+    'graph-label': 'Граф на зависимостите',
+    'graph-relations': 'Връзки',
+    'graph-edge-imports': 'Използва в шаблона',
+    'graph-edge-composes': 'Съставя (hostDirectives)',
+    'graph-edge-injects': 'Инжектира',
+    'graph-edge-provides': 'Предоставя',
+    'graph-show-kinds': 'Показвани видове',
+    'graph-replay': 'Повтори изграждането',
+    'graph-building': 'Изграждане от основите: ниво {{level}} от {{total}}',
+    'graph-impact': 'Използва се от: {{total}} · Пряко: {{direct}} · Функционалности: {{features}}',
+    'graph-impact-none': 'Нищо от показаното не го използва',
+    'graph-impact-hint': 'Щракнете отново върху него или върху фона, за да изчистите',
+    'graph-relations-list': 'Връзки в графа на зависимостите',
+    'graph-no-feature': 'Без функционалност'
 };

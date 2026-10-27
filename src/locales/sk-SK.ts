@@ -207,5 +207,20 @@ export const TRANSLATION_SK_SK = {
     'built-by': 'Vytvorené',
     'route-outlet': 'Outlet',
     zoomin: 'Priblížiť',
-    zoomout: 'Oddialiť'
+    zoomout: 'Oddialiť',
+    'graph-external-imports': 'Externé importy',
+    'graph-label': 'Graf závislostí',
+    'graph-relations': 'Vzťahy',
+    'graph-edge-imports': 'Používa v šablóne',
+    'graph-edge-composes': 'Skladá (hostDirectives)',
+    'graph-edge-injects': 'Vkladá',
+    'graph-edge-provides': 'Poskytuje',
+    'graph-show-kinds': 'Zobrazené druhy',
+    'graph-replay': 'Zopakovať budovanie',
+    'graph-building': 'Budovanie od základných prvkov: úroveň {{level}} z {{total}}',
+    'graph-impact': 'Používa: {{total}} · Priamo: {{direct}} · Funkcie: {{features}}',
+    'graph-impact-none': 'Nič zo zobrazeného ho nepoužíva',
+    'graph-impact-hint': 'Kliknite naň znova alebo na pozadie na zrušenie',
+    'graph-relations-list': 'Vzťahy v grafe závislostí',
+    'graph-no-feature': 'Bez funkcie'
 };

@@ -1,25 +1,26 @@
+import AngularApiUtil from '../../utils/angular-api.util';
 import { buildEntityIndex } from '../../utils/entity-index.util';
 import { logger } from '../../utils/logger';
 import Configuration, { pageOutputPath } from '../configuration';
 import FileEngine from '../engines/file.engine';
 import HtmlEngine from '../engines/html.engine';
+import { buildGraphModel, defaultKinds, graphFile, visibleGraph } from '../graph';
 import type { PageInterface } from '../interfaces/page.interface';
 import { featureSegments } from '../links/feature-paths';
-import { hrefFor, hrefText, pageLocation, pagePath, ROOT_DEPTH } from '../links/layout';
+import { pageLocation, pagePath, ROOT_DEPTH } from '../links/layout';
 import {
     buildRedirects,
     type Redirects,
     rewriteLegacyLinks,
     withAliases
 } from '../links/redirects';
-import { placedLink } from '../links/resolve';
-import type { TableKind } from '../links/symbol-id';
-import { entryInFile } from '../links/symbol-table';
 import { isAdditionalGroup } from './additional-page-tree';
 import {
     contentVersion,
     ENTITIES_SCRIPT,
     entitiesScript,
+    GRAPH_SCRIPT,
+    graphScript,
     MENU_SCRIPT,
     menuScript
 } from './shared-scripts';
@@ -88,7 +89,7 @@ export class PageWriter {
 
     public async processPages(): Promise<void> {
         this.legacy = undefined;
-        this.buildDependencyGraph();
+        await this.writeGraph();
         this.buildEntityIndex();
         Configuration.mainData.generatedAt = new Date().toISOString();
         this.writeMenu();
@@ -99,65 +100,32 @@ export class PageWriter {
     }
 
     /**
-     * Build the standalone component dependency graph from all components
-     * that have standalone: true and imports.
+     * Build the project's dependency graph for the overview and the
+     * component pages. With the overview graph on, lay it out and write it
+     * as the script the overview loads once the graph scrolls into view.
      */
-    private buildDependencyGraph() {
-        const components = (Configuration.mainData.components as any[]) ?? [];
-        const directives = (Configuration.mainData.directives as any[]) ?? [];
-        const pipes = (Configuration.mainData.pipes as any[]) ?? [];
-        const injectables = (Configuration.mainData.injectables as any[]) ?? [];
-        const services = (Configuration.mainData.services as any[]) ?? [];
-
-        // Build a name→type+url lookup for all known entities
-        const { symbols, di } = Configuration.mainData;
-        const urlOf = (kind: TableKind, item: any): string | undefined => {
-            const entry = symbols && entryInFile(symbols, kind, item.name, item.file);
-            const link = entry && placedLink(symbols, entry, di);
-            return link && hrefText(hrefFor(link.target, ROOT_DEPTH, link.anchor));
-        };
-        const entityMap = new Map<string, { type: string; url?: string }>();
-        const graphKinds = [
-            ['component', components],
-            ['directive', directives],
-            ['pipe', pipes],
-            ['injectable', injectables],
-            ['service', services]
-        ] as const;
-        for (const [kind, list] of graphKinds) {
-            for (const item of list) {
-                entityMap.set(item.name, { type: kind, url: urlOf(kind, item) });
-            }
+    private async writeGraph(): Promise<void> {
+        const { mainData } = Configuration;
+        mainData.graph = undefined;
+        if (!mainData.symbols) {
+            return;
         }
-
-        const nodeSet = new Set<string>();
-        const edges: Array<{ source: string; target: string }> = [];
-
-        for (const comp of components) {
-            if (!comp.standalone || !comp.imports?.length) {
-                continue;
-            }
-            nodeSet.add(comp.name);
-            for (const imp of comp.imports) {
-                const impName = typeof imp === 'string' ? imp : imp.name;
-                if (!impName) {
-                    continue;
-                }
-                nodeSet.add(impName);
-                edges.push({ source: comp.name, target: impName });
-            }
-        }
-
-        const nodes = Array.from(nodeSet).map(name => {
-            const info = entityMap.get(name);
-            return {
-                name,
-                type: info?.type ?? 'external',
-                url: info?.url
-            };
+        const model = buildGraphModel(mainData.symbols, mainData.semantic, mainData.di, name => {
+            const api = AngularApiUtil.findApi(name).data;
+            return api ? `https://angular.dev/${api.path}` : undefined;
         });
-
-        Configuration.mainData.dependencyGraph = { nodes, edges };
+        if (model.nodes.length === 0) {
+            return;
+        }
+        const shown = visibleGraph(model, defaultKinds(model.nodes)).nodes.length;
+        if (mainData.disableGraph) {
+            mainData.graph = { model, shown };
+            return;
+        }
+        const force = await import('d3');
+        const script = graphScript(graphFile(force, model));
+        FileEngine.writeSync(outputPath(GRAPH_SCRIPT), script);
+        mainData.graph = { model, shown, version: contentVersion(script) };
     }
 
     /** Build the entity index and write it as the shared script every page loads. */

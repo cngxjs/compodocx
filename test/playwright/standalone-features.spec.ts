@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { pageUrl, rootUrl } from './pages';
 
 // ─── Sidebar ─────────────────────────────────────────────
@@ -431,6 +431,12 @@ test.describe('App Configuration', () => {
 
 // ─── Dependency Graph ───────────────────────────────────
 
+/** The overview graph node of the symbol `name`. */
+const graphNode = (page: Page, name: string) =>
+    page.locator('#dependency-graph-container .cdx-graph-node', {
+        has: page.locator('title', { hasText: new RegExp(`^${name} \\(`) })
+    });
+
 test.describe('Dependency Graph — Overview', () => {
     test('dependency graph container present (standalone app, no modules)', async ({ page }) => {
         await page.goto('/overview.html');
@@ -443,7 +449,15 @@ test.describe('Dependency Graph — Overview', () => {
         const svg = page.locator('#dependency-graph-container svg');
         await expect(svg).toBeVisible();
         await expect(svg).toHaveAttribute('role', 'img');
-        await expect(svg).toHaveAttribute('aria-label', 'Standalone component dependency graph');
+        await expect(svg).toHaveAttribute('aria-label', 'Dependency graph');
+    });
+
+    test('graph data loads from js/graph.js, not inline', async ({ page }) => {
+        const graphScript = page.waitForRequest(/\/js\/graph\.js\?v=[0-9a-f]{8}$/);
+        await page.goto('/overview.html');
+        await graphScript;
+        expect(await page.content()).not.toContain('DEPENDENCY_GRAPH');
+        await expect(page.locator('#dependency-graph-container svg')).toBeVisible();
     });
 
     test('graph has entity-colored nodes', async ({ page }) => {
@@ -453,10 +467,20 @@ test.describe('Dependency Graph — Overview', () => {
         await expect.poll(() => circles.count()).toBeGreaterThanOrEqual(3);
     });
 
-    test('graph has arrow markers on edges', async ({ page }) => {
+    test('edges show their direction with a head at the target', async ({ page }) => {
         await page.goto('/overview.html');
-        const marker = page.locator('#dependency-graph-container marker#dep-arrow');
-        await expect(marker).toHaveCount(1);
+        const heads = page.locator('#dependency-graph-container .cdx-graph-edge-head');
+        await expect.poll(() => heads.count()).toBeGreaterThan(0);
+        await expect(page.locator('#dependency-graph-container marker')).toHaveCount(0);
+    });
+
+    test('injected services are part of the graph', async ({ page }) => {
+        await page.goto('/overview.html');
+        const services = page.locator('#dependency-graph-container .cdx-graph-node--service');
+        await expect.poll(() => services.count()).toBeGreaterThan(0);
+        await expect(
+            page.locator('#dependency-graph-container .cdx-graph-edge--injects')
+        ).not.toHaveCount(0);
     });
 
     test('zoom buttons present', async ({ page }) => {
@@ -466,28 +490,199 @@ test.describe('Dependency Graph — Overview', () => {
         await expect(page.locator('#dep-zoom-out')).toBeVisible();
     });
 
-    test('entity-color legend present', async ({ page }) => {
+    test('legend lists the relations the graph contains', async ({ page }) => {
         await page.goto('/overview.html');
         const legend = page.locator('.cdx-graph-legend');
         await expect(legend).toBeVisible();
-        const items = legend.locator('.cdx-graph-legend-item');
-        // component, directive, pipe, injectable
-        expect(await items.count()).toBeGreaterThanOrEqual(4);
+        await expect(legend.locator('.cdx-graph-legend-title')).toHaveText('Relations');
+        // The fixture has no hostDirectives and no provider that provides a token.
+        await expect(legend.locator('.cdx-graph-legend-item')).toHaveText([
+            'Uses in template',
+            'Injects'
+        ]);
     });
 
-    test('a11y: screen reader text alternative lists dependencies', async ({ page }) => {
+    test('a11y: screen reader text alternative lists the relations by feature', async ({
+        page
+    }) => {
         await page.goto('/overview.html');
-        const srList = page.locator('ul.sr-only[aria-label="Component dependency list"]');
+        const srList = page.locator('ul.sr-only[aria-label="Relations in the dependency graph"]');
         await expect(srList).toHaveCount(1);
-        const items = srList.locator('li');
-        expect(await items.count()).toBeGreaterThanOrEqual(2);
-        const text = await srList.textContent();
-        expect(text).toContain('imports');
+        // One item per feature, each with its symbols and every kind of relation.
+        const users = srList.locator(':scope > li', { hasText: /^\s*users/ });
+        await expect(users.locator('li', { hasText: /^UserListComponent\./ })).toHaveText(
+            'UserListComponent. Uses in template: UserCardComponent. Injects: UserService.'
+        );
     });
 
     test('no module graph shown on standalone app overview', async ({ page }) => {
         await page.goto('/overview.html');
         await expect(page.locator('#module-graph-svg')).toHaveCount(0);
+    });
+
+    test('kind chips list the kinds present; tokens, providers and externals start off', async ({
+        page
+    }) => {
+        await page.goto('/overview.html');
+        const chips = page.locator('.cdx-graph-chips .cdx-graph-chip');
+        await expect(chips).toHaveText([
+            /^Components\s*27$/,
+            /^Directives\s*3$/,
+            /^Pipes\s*3$/,
+            /^Services\s*4$/,
+            /^Tokens\s*2$/,
+            /^Providers\s*2$/,
+            /^External imports\s*1$/
+        ]);
+        const pressed = await chips.evaluateAll(els =>
+            els.map(el => el.getAttribute('aria-pressed'))
+        );
+        expect(pressed).toEqual(['true', 'true', 'true', 'true', 'false', 'false', 'false']);
+    });
+
+    test('a kind chip shows and hides its nodes', async ({ page }) => {
+        await page.goto('/overview.html');
+        const chip = page.locator('.cdx-graph-chip[data-cdx-kind="external"]');
+        const nodes = page.locator('#dependency-graph-container .dep-node title');
+        const external = nodes.filter({ hasText: '(external)' });
+        await expect.poll(() => nodes.count()).toBeGreaterThan(0);
+        await expect(external).toHaveCount(0);
+
+        await chip.click();
+        await expect(chip).toHaveAttribute('aria-pressed', 'true');
+        await expect(external).toHaveCount(1);
+
+        const services = page.locator('#dependency-graph-container .cdx-graph-node--service');
+        await expect.poll(() => services.count()).toBeGreaterThan(0);
+        await page.locator('.cdx-graph-chip[data-cdx-kind="service"]').click();
+        await expect(services).toHaveCount(0);
+    });
+
+    test('builds up level by level and shows its progress', async ({ page }) => {
+        await page.goto('/overview.html');
+        const status = page.locator('.cdx-graph-status');
+        await expect(status).toHaveText(/^Building from primitives: level \d+ of \d+$/);
+        const svg = page.locator('#dependency-graph-container svg');
+        await expect(svg).toHaveClass(/is-building/);
+        await expect(svg).not.toHaveClass(/is-building/, { timeout: 15_000 });
+        await expect(status).toBeHidden();
+    });
+
+    test('Replay plays the build-up again', async ({ page }) => {
+        await page.goto('/overview.html');
+        const svg = page.locator('#dependency-graph-container svg');
+        await expect(svg).not.toHaveClass(/is-building/, { timeout: 15_000 });
+        await page.locator('#dep-replay').click();
+        await expect(svg).toHaveClass(/is-building/);
+        await expect(page.locator('.cdx-graph-status')).toBeVisible();
+    });
+
+    test('reduced motion shows the final graph at once', async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto('/overview.html');
+        const svg = page.locator('#dependency-graph-container svg');
+        await expect(svg).toBeVisible();
+        await expect(svg).not.toHaveClass(/is-building/);
+        await expect(page.locator('.cdx-graph-status')).toBeHidden();
+        await expect(
+            page.locator('#dependency-graph-container .cdx-graph-label:not(.is-culled)')
+        ).not.toHaveCount(0);
+    });
+
+    test('hovering a symbol sends flow particles along its relations', async ({ page }) => {
+        await page.goto('/overview.html');
+        const svg = page.locator('#dependency-graph-container svg');
+        await expect(svg).not.toHaveClass(/is-building/, { timeout: 15_000 });
+        await graphNode(page, 'UserService').hover();
+        // Two particles per relation; UserService has two users.
+        await expect(page.locator('#dependency-graph-container .cdx-graph-particle')).toHaveCount(
+            4
+        );
+        await page.mouse.move(0, 0);
+        await expect(page.locator('#dependency-graph-container .cdx-graph-particle')).toHaveCount(
+            0
+        );
+    });
+
+    test('clicking a symbol shows what uses it, hop by hop', async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto('/overview.html');
+        const svg = page.locator('#dependency-graph-container svg');
+        await graphNode(page, 'HighlightDirective').click();
+        await expect(svg).toHaveClass(/is-rippling/);
+        // UserCardComponent imports it, UserListComponent imports UserCardComponent.
+        await expect(
+            page.locator('#dependency-graph-container .cdx-graph-node.is-hit')
+        ).toHaveCount(3);
+        const badge = page.locator('.cdx-graph-impact');
+        await expect(badge).toBeVisible();
+        await expect(badge.locator('.cdx-graph-impact-name')).toHaveText('HighlightDirective');
+        await expect(badge.locator('.cdx-graph-impact-name')).toHaveAttribute(
+            'href',
+            /HighlightDirective\.html$/
+        );
+        await expect(badge.locator('.cdx-graph-impact-text')).toHaveText(
+            /^Used by: 2 · Directly: 1 · Features: \d+$/
+        );
+        expect(page.url()).toMatch(/overview\.html$/);
+
+        await graphNode(page, 'HighlightDirective').click();
+        await expect(svg).not.toHaveClass(/is-rippling/);
+        await expect(badge).toBeHidden();
+    });
+
+    test('a click on the background clears the impact wave', async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto('/overview.html');
+        const svg = page.locator('#dependency-graph-container svg');
+        await graphNode(page, 'UserService').click();
+        await expect(svg).toHaveClass(/is-rippling/);
+        await svg.click({ position: { x: 4, y: 4 } });
+        await expect(svg).not.toHaveClass(/is-rippling/);
+        await expect(page.locator('.cdx-graph-impact')).toBeHidden();
+    });
+
+    test('a modifier click opens the symbol page like a link', async ({ page, context }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto('/overview.html');
+        const opened = context.waitForEvent('page');
+        await graphNode(page, 'UserService').click({ modifiers: ['ControlOrMeta'] });
+        const tab = await opened;
+        await tab.waitForURL(/UserService\.html$/);
+        await expect(page.locator('#dependency-graph-container svg')).not.toHaveClass(
+            /is-rippling/
+        );
+        await tab.close();
+    });
+
+    test('shown labels never overlap each other', async ({ page }) => {
+        await page.goto('/overview.html');
+        // Labels are culled once the build-up has placed every node.
+        await expect(page.locator('#dependency-graph-container svg')).toHaveAttribute(
+            'style',
+            /--cdx-graph-k/
+        );
+        await expect(page.locator('#dependency-graph-container svg')).not.toHaveClass(
+            /is-building/,
+            { timeout: 15_000 }
+        );
+        const labels = page.locator('#dependency-graph-container .cdx-graph-label:not(.is-culled)');
+        const boxes = await labels.evaluateAll(els =>
+            els.map(el => {
+                const { left, right, top, bottom } = el.getBoundingClientRect();
+                return { left, right, top, bottom };
+            })
+        );
+        expect(boxes.length).toBeGreaterThan(0);
+        const overlapping = boxes.some((a, i) =>
+            boxes
+                .slice(i + 1)
+                .some(
+                    b =>
+                        a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+                )
+        );
+        expect(overlapping).toBe(false);
     });
 
     test('cursor: grab on graph SVG', async ({ page }) => {
@@ -522,23 +717,70 @@ test.describe('Dependency Graph — Component Tab', () => {
     test('per-component graph has clickable nodes', async ({ page }) => {
         await page.goto(pageUrl('component', 'UserCardComponent'));
         await page.getByRole('tab', { name: 'Dependencies' }).click();
-        const nodes = page.locator('#dependency-graph-container .dep-node');
-        expect(await nodes.count()).toBeGreaterThanOrEqual(2);
+        // The graph draws once the tab shows it; every node is a link to its page.
+        const links = page.locator('#dependency-graph-container .dep-node a[href]');
+        await expect.poll(() => links.count()).toBeGreaterThanOrEqual(2);
+    });
+
+    test('the neighbourhood shows what uses the component and what it uses', async ({ page }) => {
+        await page.goto(pageUrl('component', 'UserCardComponent'));
+        await page.getByRole('tab', { name: 'Dependencies' }).click();
+        const node = (name: string) =>
+            page.locator('#dependency-graph-container .cdx-graph-node', {
+                has: page.locator('title', { hasText: new RegExp(`^${name} \\(`) })
+            });
+        // UserListComponent uses it; it uses HighlightDirective and injects API_BASE_URL.
+        await expect(page.locator('#dependency-graph-container .cdx-graph-node')).toHaveCount(4);
+        const x = async (name: string) => (await node(name).boundingBox())?.x ?? 0;
+        // Users on the left, what it uses on the right.
+        expect(await x('UserListComponent')).toBeLessThan(await x('UserCardComponent'));
+        expect(await x('HighlightDirective')).toBeGreaterThan(await x('UserCardComponent'));
+        expect(await x('API_BASE_URL')).toBeGreaterThan(await x('UserCardComponent'));
+        // Kinds first, then relations.
+        await expect(page.locator('#dependencies .cdx-graph-legend-item')).toHaveText([
+            'Components',
+            'Directives',
+            'Tokens',
+            'Uses in template',
+            'Injects'
+        ]);
+    });
+
+    test('a component that is only used gets the Dependencies tab', async ({ page }) => {
+        await page.goto(pageUrl('component', 'LoadingSpinnerComponent'));
+        await page.getByRole('tab', { name: 'Dependencies' }).click();
+        await expect(
+            page.locator('#dependency-graph-container .cdx-graph-node', {
+                has: page.locator('title', { hasText: /^SpinnerTogglePlayground \(/ })
+            })
+        ).toHaveCount(1);
+    });
+
+    test('clicking a neighbour opens its page', async ({ page }) => {
+        await page.goto(pageUrl('component', 'UserCardComponent'));
+        await page.getByRole('tab', { name: 'Dependencies' }).click();
+        await page
+            .locator('#dependency-graph-container .cdx-graph-node', {
+                has: page.locator('title', { hasText: /^HighlightDirective \(/ })
+            })
+            .click();
+        await expect(page).toHaveURL(/HighlightDirective\.html$/);
     });
 
     test('per-component a11y text alternative', async ({ page }) => {
         await page.goto(pageUrl('component', 'UserCardComponent'));
         const srList = page.locator('#dependencies ul.sr-only');
         await expect(srList).toHaveCount(1);
-        const text = await srList.textContent();
-        expect(text).toContain('UserCardComponent imports');
+        await expect(srList.locator('li', { hasText: /^UserCardComponent\./ })).toHaveText(
+            'UserCardComponent. Uses in template: HighlightDirective. Injects: API_BASE_URL.'
+        );
     });
 
     test('per-component legend present', async ({ page }) => {
         await page.goto(pageUrl('component', 'UserCardComponent'));
         await page.getByRole('tab', { name: 'Dependencies' }).click();
-        const legend = page.locator('#dependencies .cdx-graph-legend');
-        await expect(legend).toBeVisible();
+        await expect(page.locator('#dependencies .cdx-graph-legend--kinds')).toBeVisible();
+        await expect(page.locator('#dependencies .cdx-graph-legend--relations')).toBeVisible();
     });
 
     test('per-component zoom buttons present', async ({ page }) => {

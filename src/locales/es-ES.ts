@@ -208,5 +208,21 @@ export const TRANSLATION_ES_ES = {
     'built-by': 'Creado por',
     'route-outlet': 'Outlet',
     zoomin: 'Ampliar',
-    zoomout: 'Alejar'
+    zoomout: 'Alejar',
+    'graph-external-imports': 'Importaciones externas',
+    'graph-label': 'Grafo de dependencias',
+    'graph-relations': 'Relaciones',
+    'graph-edge-imports': 'Usa en la plantilla',
+    'graph-edge-composes': 'Compone (hostDirectives)',
+    'graph-edge-injects': 'Inyecta',
+    'graph-edge-provides': 'Provee',
+    'graph-show-kinds': 'Tipos mostrados',
+    'graph-replay': 'Repetir construcción',
+    'graph-building': 'Construyendo desde los elementos básicos: nivel {{level}} de {{total}}',
+    'graph-impact':
+        'Usado por: {{total}} · Directamente: {{direct}} · Funcionalidades: {{features}}',
+    'graph-impact-none': 'Nada de lo mostrado lo usa',
+    'graph-impact-hint': 'Haz clic de nuevo en él o en el fondo para borrar',
+    'graph-relations-list': 'Relaciones en el grafo de dependencias',
+    'graph-no-feature': 'Sin funcionalidad'
 };

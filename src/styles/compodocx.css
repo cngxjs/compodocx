@@ -159,6 +159,14 @@
     --color-cdx-graph-border: transparent;
     --color-cdx-graph-border-width: 0;
     --color-cdx-graph-radius: var(--radius-cdx-md);
+    /* Node kinds of the project graph; default to the entity colours, themes override each. */
+    --color-cdx-graph-kind-component: var(--color-cdx-entity-component);
+    --color-cdx-graph-kind-directive: var(--color-cdx-entity-directive);
+    --color-cdx-graph-kind-pipe: var(--color-cdx-entity-pipe);
+    --color-cdx-graph-kind-service: var(--color-cdx-entity-service);
+    --color-cdx-graph-kind-token: var(--color-cdx-entity-token);
+    --color-cdx-graph-kind-provider: var(--color-cdx-entity-function);
+    --color-cdx-graph-kind-external: var(--color-cdx-text-muted);
 
     /*  Transitions  */
     --cdx-transition-fast: 120ms ease;
@@ -200,6 +208,8 @@
     --color-cdx-entity-variable: #94a3b8; /* slate light */
     --color-cdx-entity-typealias: #818cf8; /* indigo light */
     --color-cdx-entity-enum: #fb923c; /* orange light */
+    /* The token entity colour has no dark variant; the graph needs one on the dark background. */
+    --color-cdx-graph-kind-token: #94a3b8; /* slate light */
 
     --color-cdx-deprecated: hsl(38 80% 65%);
     --color-cdx-danger: hsl(0 65% 65%);

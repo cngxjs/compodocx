@@ -1,5 +1,13 @@
 import Html from '@kitajs/html';
-import { DEPENDENCY_LEGEND_ITEMS, GraphLegend, GraphZoomControls } from '../blocks/GraphControls';
+import type { GraphOutput } from '../../app/graph/file';
+import { GRAPH_SCRIPT } from '../../app/page-generator/shared-scripts';
+import { graphHeight } from '../../client/graph-layout';
+import {
+    GraphKindChips,
+    GraphRelationLegend,
+    GraphRelationList,
+    GraphZoomControls
+} from '../blocks/GraphControls';
 import { OverviewHero } from '../blocks/OverviewHero';
 import { OverviewStats } from '../blocks/OverviewStats';
 import { EmptyState } from '../components/EmptyState';
@@ -25,7 +33,7 @@ type OverviewProps = {
     readonly angularVersion?: string;
     readonly generatedAt?: string;
     readonly documentationMainName?: string;
-    readonly dependencyGraph?: { nodes: any[]; edges: any[] };
+    readonly graph?: GraphOutput;
 };
 
 /** Routes of the route model; none when routes are disabled. */
@@ -49,8 +57,7 @@ const hasAnyEntities = (props: OverviewProps): boolean =>
     );
 
 export const Overview = (props: OverviewProps): string => {
-    const hasDepGraph = (props.dependencyGraph?.nodes?.length ?? 0) > 0;
-    const showDepGraph = !props.disableGraph && hasDepGraph;
+    const graph = props.disableGraph || !props.graph?.version ? undefined : props.graph;
 
     return (
         <>
@@ -66,24 +73,49 @@ export const Overview = (props: OverviewProps): string => {
             })}
 
             {/* 2. Dependency Graph */}
-            {showDepGraph && (
+            {graph && (
                 <>
-                    <script>{`window.DEPENDENCY_GRAPH = ${JSON.stringify(props.dependencyGraph)};`}</script>
                     {/* A11y: text alternative for screen readers (network graphs are inaccessible) */}
-                    <ul class="sr-only" aria-label="Component dependency list">
-                        {props.dependencyGraph!.edges.map((e: any) => (
-                            <li>
-                                {e.source} imports {e.target}
-                            </li>
-                        ))}
-                    </ul>
+                    {GraphRelationList({ model: graph.model })}
                     <div class="cdx-graph-container cdx-overview-graph">
+                        {GraphKindChips({ nodes: graph.model.nodes })}
                         <div class="cdx-graph-viewport">
-                            <div id="dependency-graph-container"></div>
+                            {/* The graph loads when it scrolls into view. The reserved height
+                                keeps the page from jumping when the graph draws. */}
+                            <div
+                                id="dependency-graph-container"
+                                data-cdx-graph-src={`${GRAPH_SCRIPT}?v=${graph.version}`}
+                                data-cdx-root=""
+                                data-cdx-label={t('graph-label')}
+                                style={`min-height: ${graphHeight(graph.shown)}px`}
+                            ></div>
+                            {/* Visual progress of the build-up; the graph itself is one image to assistive tech. */}
+                            <div
+                                class="cdx-graph-status"
+                                aria-hidden="true"
+                                data-cdx-template={t('graph-building', {
+                                    level: '{level}',
+                                    total: '{total}'
+                                })}
+                                hidden
+                            ></div>
+                            {/* Filled by the client when a symbol is clicked: who uses it, hop by hop. */}
+                            <div
+                                class="cdx-graph-impact"
+                                aria-live="polite"
+                                data-cdx-template={t('graph-impact', {
+                                    total: '{total}',
+                                    direct: '{direct}',
+                                    features: '{features}'
+                                })}
+                                data-cdx-none={t('graph-impact-none')}
+                                data-cdx-hint={t('graph-impact-hint')}
+                                hidden
+                            ></div>
                         </div>
-                        {GraphZoomControls({ prefix: 'dep-' })}
+                        {GraphZoomControls({ prefix: 'dep-', replay: true })}
                     </div>
-                    {GraphLegend({ items: DEPENDENCY_LEGEND_ITEMS })}
+                    {GraphRelationLegend({ edges: graph.model.edges })}
                 </>
             )}
 

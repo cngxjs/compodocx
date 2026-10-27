@@ -208,5 +208,20 @@ export const TRANSLATION_IT_IT = {
     'built-by': 'Creato da',
     'route-outlet': 'Outlet',
     zoomin: 'Ingrandisci',
-    zoomout: 'Rimpocciolisci'
+    zoomout: 'Rimpocciolisci',
+    'graph-external-imports': 'Import esterni',
+    'graph-label': 'Grafo delle dipendenze',
+    'graph-relations': 'Relazioni',
+    'graph-edge-imports': 'Usa nel template',
+    'graph-edge-composes': 'Compone (hostDirectives)',
+    'graph-edge-injects': 'Inietta',
+    'graph-edge-provides': 'Fornisce',
+    'graph-show-kinds': 'Tipi mostrati',
+    'graph-replay': 'Ripeti la costruzione',
+    'graph-building': 'Costruzione dai blocchi di base: livello {{level}} di {{total}}',
+    'graph-impact': 'Usato da: {{total}} · Direttamente: {{direct}} · Funzionalità: {{features}}',
+    'graph-impact-none': 'Nulla di ciò che è mostrato lo usa',
+    'graph-impact-hint': 'Fai di nuovo clic su di esso o sullo sfondo per cancellare',
+    'graph-relations-list': 'Relazioni nel grafo delle dipendenze',
+    'graph-no-feature': 'Senza funzionalità'
 };

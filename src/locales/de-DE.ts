@@ -209,5 +209,20 @@ export const TRANSLATION_DE_DE = {
     'built-by': 'Erzeugt von',
     'route-outlet': 'Outlet',
     zoomin: 'Vergrößern',
-    zoomout: 'Verkleinern'
+    zoomout: 'Verkleinern',
+    'graph-external-imports': 'Externe Importe',
+    'graph-label': 'Abhängigkeitsgraph',
+    'graph-relations': 'Beziehungen',
+    'graph-edge-imports': 'Nutzt im Template',
+    'graph-edge-composes': 'Setzt zusammen (hostDirectives)',
+    'graph-edge-injects': 'Injiziert',
+    'graph-edge-provides': 'Stellt bereit',
+    'graph-show-kinds': 'Angezeigte Arten',
+    'graph-replay': 'Aufbau wiederholen',
+    'graph-building': 'Aufbau von den Grundbausteinen: Ebene {{level}} von {{total}}',
+    'graph-impact': 'Genutzt von: {{total}} · Direkt: {{direct}} · Features: {{features}}',
+    'graph-impact-none': 'Nichts Angezeigtes nutzt es',
+    'graph-impact-hint': 'Erneut darauf oder auf den Hintergrund klicken zum Zurücksetzen',
+    'graph-relations-list': 'Beziehungen im Abhängigkeitsgraphen',
+    'graph-no-feature': 'Ohne Feature'
 };

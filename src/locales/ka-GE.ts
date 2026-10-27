@@ -207,5 +207,20 @@ export const TRANSLATION_KA_GE = {
     'built-by': 'შექმნილია',
     'route-outlet': 'Outlet',
     zoomin: 'მიახლოვება',
-    zoomout: 'მასშტაბირება'
+    zoomout: 'მასშტაბირება',
+    'graph-external-imports': 'გარე იმპორტები',
+    'graph-label': 'დამოკიდებულებების გრაფი',
+    'graph-relations': 'კავშირები',
+    'graph-edge-imports': 'იყენებს შაბლონში',
+    'graph-edge-composes': 'აერთიანებს (hostDirectives)',
+    'graph-edge-injects': 'ახდენს ინექციას',
+    'graph-edge-provides': 'უზრუნველყოფს',
+    'graph-show-kinds': 'ნაჩვენები სახეები',
+    'graph-replay': 'აგების გამეორება',
+    'graph-building': 'აგება საბაზისო ელემენტებიდან: დონე {{level}} / {{total}}',
+    'graph-impact': 'იყენებს: {{total}} · პირდაპირ: {{direct}} · ფუნქციები: {{features}}',
+    'graph-impact-none': 'ნაჩვენებთაგან არაფერი იყენებს',
+    'graph-impact-hint': 'გასასუფთავებლად კვლავ დააწკაპუნეთ მასზე ან ფონზე',
+    'graph-relations-list': 'კავშირები დამოკიდებულებების გრაფში',
+    'graph-no-feature': 'ფუნქციის გარეშე'
 };

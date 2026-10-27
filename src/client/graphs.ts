@@ -1,19 +1,16 @@
 /**
- * Graph rendering with D3 v7 (lazy-loaded): the DOM tree and the dependency graph.
+ * Graph rendering with D3 v7 (lazy-loaded): the DOM tree here, the dependency
+ * graphs in `dependency-graph.ts`.
  * Replaces: tree.js (vis-network), svg-pan-zoom.controls.js,
  * lazy-load-graphs.js, and all associated libs.
  */
+
+import { initLocalGraph, initProjectGraph } from './dependency-graph';
 
 declare const COMPONENT_TEMPLATE: string;
 declare const COMPONENTS: Array<{ name: string; selector: string }>;
 declare const DIRECTIVES: Array<{ name: string; selector: string }>;
 declare const ACTUAL_COMPONENT: { name: string };
-declare const DEPENDENCY_GRAPH:
-    | {
-          nodes: Array<{ name: string; type: string; url?: string }>;
-          edges: Array<{ source: string; target: string }>;
-      }
-    | undefined;
 
 type D3Module = typeof import('d3');
 
@@ -267,211 +264,12 @@ const initDomTree = async () => {
     });
 };
 
-// Entity color map for dependency graph nodes
-const entityColorMap: Record<string, string> = {
-    component: 'var(--color-cdx-entity-component, #14b8a6)',
-    directive: 'var(--color-cdx-entity-directive, #7c3aed)',
-    pipe: 'var(--color-cdx-entity-pipe, #ec4899)',
-    external: 'var(--color-cdx-text-muted, #888)',
-    injectable: 'var(--color-cdx-entity-service, #f59e0b)',
-    service: 'var(--color-cdx-entity-service, #f59e0b)',
-    guard: 'var(--color-cdx-entity-guard, #ef4444)',
-    interceptor: 'var(--color-cdx-entity-interceptor, #c026d3)'
-};
-
-// Standalone Component Dependency Graph (D3 force-directed)
-const initDependencyGraph = async () => {
-    const container = document.getElementById('dependency-graph-container');
-    if (!container || typeof DEPENDENCY_GRAPH === 'undefined') {
-        return;
-    }
-    if (!DEPENDENCY_GRAPH.nodes.length) {
-        return;
-    }
-
-    const {
-        select,
-        forceSimulation,
-        forceLink,
-        forceManyBody,
-        forceCenter,
-        forceCollide,
-        zoom,
-        zoomIdentity,
-        scaleSqrt
-    } = await loadD3();
-
-    const width = container.clientWidth || 800;
-    const height = Math.max(450, Math.min(700, DEPENDENCY_GRAPH.nodes.length * 25));
-
-    // Build node/edge index
-    const nodeMap = new Map(DEPENDENCY_GRAPH.nodes.map((n, i) => [n.name, i]));
-    const links = DEPENDENCY_GRAPH.edges
-        .filter(e => nodeMap.has(e.source) && nodeMap.has(e.target))
-        .map(e => ({ source: e.source, target: e.target }));
-
-    // Count connections per node for radius scaling
-    const connectionCount = new Map<string, number>();
-    for (const e of DEPENDENCY_GRAPH.edges) {
-        connectionCount.set(e.source, (connectionCount.get(e.source) ?? 0) + 1);
-        connectionCount.set(e.target, (connectionCount.get(e.target) ?? 0) + 1);
-    }
-
-    const radiusScale = scaleSqrt()
-        .domain([1, Math.max(1, ...connectionCount.values())])
-        .range([8, 28]);
-
-    const nodes = DEPENDENCY_GRAPH.nodes.map(n => ({
-        ...n,
-        r: radiusScale(connectionCount.get(n.name) ?? 1)
-    }));
-
-    const svg = select(container)
-        .append('svg')
-        .attr('role', 'img')
-        .attr('aria-label', 'Standalone component dependency graph')
-        .style('width', '100%')
-        .style('height', `${height}px`)
-        .style('border-width', 'var(--color-cdx-graph-border-width, 0)')
-        .style('border-style', 'solid')
-        .style('border-color', 'var(--color-cdx-graph-border, transparent)')
-        .style('border-radius', 'var(--color-cdx-graph-radius, var(--radius-cdx-lg, 12px))')
-        .style('background', 'var(--color-cdx-graph-bg, var(--color-cdx-bg-alt))')
-        .style('cursor', 'grab');
-
-    const g = svg.append('g');
-
-    // Arrow marker for directed edges (source imports target)
-    svg.append('defs')
-        .append('marker')
-        .attr('id', 'dep-arrow')
-        .attr('viewBox', '0 -4 8 8')
-        .attr('refX', 12)
-        .attr('refY', 0)
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
-        .attr('orient', 'auto')
-        .append('path')
-        .attr('d', 'M0,-4L8,0L0,4Z')
-        .attr('fill', 'var(--color-cdx-text-muted, #6b7280)')
-        .attr('fill-opacity', 0.6);
-
-    // Draw links with arrows
-    const link = g
-        .selectAll('.dep-link')
-        .data(links)
-        .enter()
-        .append('line')
-        .attr('class', 'dep-link')
-        .attr('stroke', 'var(--color-cdx-text-muted, #6b7280)')
-        .attr('stroke-opacity', 0.55)
-        .attr('stroke-width', 1.5)
-        .attr('marker-end', 'url(#dep-arrow)');
-
-    // Draw nodes
-    const node = g
-        .selectAll('.dep-node')
-        .data(nodes)
-        .enter()
-        .append('g')
-        .attr('class', 'dep-node')
-        .style('cursor', (d: any) => (d.url ? 'pointer' : 'default'));
-
-    node.append('circle')
-        .attr('r', (d: any) => d.r)
-        .attr('fill', (d: any) => entityColorMap[d.type] ?? entityColorMap.external)
-        .attr('stroke', 'var(--color-cdx-bg-elevated, white)')
-        .attr('stroke-width', 2);
-
-    // Native SVG tooltip
-    node.append('title').text((d: any) => `${d.name} (${d.type})`);
-
-    // Labels
-    node.append('text')
-        .attr('dy', (d: any) => d.r + 14)
-        .attr('text-anchor', 'middle')
-        .attr('font-size', '11px')
-        .attr('fill', 'var(--color-cdx-text, #1a1a2e)')
-        .text((d: any) => d.name);
-
-    // Click to navigate
-    node.on('click', (_event: any, d: any) => {
-        if (d.url) {
-            document.location.href = d.url;
-        }
-    });
-
-    // Force simulation
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const simulation = forceSimulation(nodes as any)
-        .force(
-            'link',
-            forceLink(links)
-                .id((d: any) => d.name)
-                .distance(80)
-        )
-        .force('charge', forceManyBody().strength(-120))
-        .force('center', forceCenter(width / 2, height / 2))
-        .force(
-            'collide',
-            forceCollide().radius((d: any) => d.r + 4)
-        );
-
-    // Shorten link endpoint to stop at target node edge (for arrow visibility)
-    const updateLinks = () => {
-        link.each(function (this: SVGLineElement, d: any) {
-            const dx = d.target.x - d.source.x;
-            const dy = d.target.y - d.source.y;
-            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-            const targetR = d.target.r ?? 8;
-            const offset = targetR + 6; // node radius + arrow marker size
-            this.setAttribute('x1', d.source.x);
-            this.setAttribute('y1', d.source.y);
-            // setAttribute stringifies numbers; the casts keep the bundle unchanged.
-            this.setAttribute('x2', (d.target.x - (dx / dist) * offset) as unknown as string);
-            this.setAttribute('y2', (d.target.y - (dy / dist) * offset) as unknown as string);
-        });
-    };
-
-    if (reducedMotion) {
-        simulation.stop();
-        for (let i = 0; i < 300; i++) {
-            simulation.tick();
-        }
-        updateLinks();
-        node.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
-    } else {
-        simulation.on('tick', () => {
-            updateLinks();
-            node.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
-        });
-    }
-
-    // Zoom + pan
-    const zoomBehavior = zoom<SVGSVGElement, unknown>()
-        .scaleExtent([0.3, 4])
-        .on('zoom', event => {
-            g.attr('transform', event.transform);
-        });
-    svg.call(zoomBehavior);
-
-    // Wire zoom buttons if present
-    document.getElementById('dep-zoom-in')?.addEventListener('click', e => {
-        e.preventDefault();
-        svg.transition().duration(300).call(zoomBehavior.scaleBy, 1.3);
-    });
-    document.getElementById('dep-zoom-out')?.addEventListener('click', e => {
-        e.preventDefault();
-        svg.transition().duration(300).call(zoomBehavior.scaleBy, 0.7);
-    });
-    document.getElementById('dep-reset')?.addEventListener('click', e => {
-        e.preventDefault();
-        svg.transition().duration(300).call(zoomBehavior.transform, zoomIdentity);
-    });
-};
-
 export const initGraphs = () => {
     // Async graph initialization
     initDomTree().catch(e => console.error('DOM tree init failed:', e));
-    initDependencyGraph().catch(e => console.error('Dependency graph init failed:', e));
+    const dependencyGraph = document.getElementById('dependency-graph-container');
+    if (dependencyGraph) {
+        initProjectGraph(dependencyGraph, loadD3);
+        initLocalGraph(dependencyGraph, loadD3);
+    }
 };

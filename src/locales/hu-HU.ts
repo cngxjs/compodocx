@@ -208,5 +208,20 @@ export const TRANSLATION_HU_HU = {
     'built-by': 'Létrehozta',
     'route-outlet': 'Outlet',
     zoomin: 'Nagyítás',
-    zoomout: 'Kicsinyítés'
+    zoomout: 'Kicsinyítés',
+    'graph-external-imports': 'Külső importok',
+    'graph-label': 'Függőségi gráf',
+    'graph-relations': 'Kapcsolatok',
+    'graph-edge-imports': 'Sablonban használja',
+    'graph-edge-composes': 'Összeállítja (hostDirectives)',
+    'graph-edge-injects': 'Injektálja',
+    'graph-edge-provides': 'Biztosítja',
+    'graph-show-kinds': 'Megjelenített típusok',
+    'graph-replay': 'Felépítés újrajátszása',
+    'graph-building': 'Felépítés az alapelemekből: {{level}}. szint / {{total}}',
+    'graph-impact': 'Használja: {{total}} · Közvetlenül: {{direct}} · Funkciók: {{features}}',
+    'graph-impact-none': 'Semmi a megjelenítettek közül nem használja',
+    'graph-impact-hint': 'Kattintson rá újra vagy a háttérre a törléshez',
+    'graph-relations-list': 'Kapcsolatok a függőségi gráfban',
+    'graph-no-feature': 'Funkció nélkül'
 };
