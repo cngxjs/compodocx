@@ -17,6 +17,7 @@ import { STACKBLITZ_POST_LIMIT } from '../engines/stackblitz/constants';
 import type { ConfigurationFileInterface } from '../interfaces/configuration-file.interface';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
 import { isTableKind } from '../links/symbol-id';
+import { isLogoLayoutSetting, LOGO_LAYOUTS, logoImage } from '../page-generator/brand-images';
 
 /** Config names in search order: `.compodocxrc*` / `compodocx` key first, then the `compodoc` ones. */
 const COSMICONFIG_MODULE_NAMES: readonly string[] = ['compodocx', 'compodoc'];
@@ -859,6 +860,37 @@ export function applyConfigToMainData(
     }
     if (programOptions.customLogo) {
         mainData.customLogo = programOptions.customLogo;
+    }
+
+    if (configFile.customLogoDark) {
+        mainData.customLogoDark = configFile.customLogoDark;
+    }
+    if (programOptions.customLogoDark) {
+        mainData.customLogoDark = programOptions.customLogoDark;
+    }
+    if (mainData.customLogoDark && !mainData.customLogo) {
+        logger.warn('customLogoDark: needs customLogo; ignored');
+        mainData.customLogoDark = '';
+    }
+    if (
+        mainData.customLogoDark &&
+        logoImage(mainData.customLogoDark) === logoImage(mainData.customLogo)
+    ) {
+        logger.warn(
+            `customLogoDark: "${logoImage(mainData.customLogoDark)}" has the file name of customLogo; ignored`
+        );
+        mainData.customLogoDark = '';
+    }
+
+    const logoLayout = programOptions.logoLayout ?? configFile.logoLayout;
+    if (logoLayout !== undefined) {
+        if (isLogoLayoutSetting(logoLayout)) {
+            mainData.logoLayout = logoLayout;
+        } else {
+            logger.warn(
+                `logoLayout: expected one of ${LOGO_LAYOUTS.join(', ')}, got "${logoLayout}"; ignored`
+            );
+        }
     }
 
     if (configFile.gaID) {

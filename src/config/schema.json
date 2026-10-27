@@ -453,6 +453,21 @@
             "default": "",
             "examples": [""]
         },
+        "customLogoDark": {
+            "$id": "/properties/customLogoDark",
+            "type": "string",
+            "title": "Use a custom logo in dark mode, shown instead of customLogo while the dark theme is on (needs customLogo; a different file name)",
+            "default": "",
+            "examples": [""]
+        },
+        "logoLayout": {
+            "$id": "/properties/logoLayout",
+            "type": "string",
+            "enum": ["auto", "icon", "wordmark"],
+            "title": "How the sidebar shows the custom logo: 'auto' (default) reads the aspect ratio of an SVG or PNG (2:1 and wider = wordmark), 'icon' shows it next to the project name, 'wordmark' shows the logo only",
+            "default": "auto",
+            "examples": ["auto", "icon", "wordmark"]
+        },
         "gaID": {
             "$id": "/properties/gaID",
             "type": "string",

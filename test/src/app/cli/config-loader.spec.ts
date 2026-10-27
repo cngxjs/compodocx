@@ -76,6 +76,8 @@ const makeMainData = (): MainDataInterface => {
         showEffects: false,
         customFavicon: '',
         customLogo: '',
+        customLogoDark: '',
+        logoLayout: 'auto',
         gaID: '',
         publicApiOnly: '',
         maxSearchResults: 15,
@@ -130,6 +132,9 @@ const makeProgram = (argv: readonly string[] = []): Command => {
         .option('--maxVersionsShown <n>', '', '10')
         .option('--maxSearchResults <n>', '', '15')
         .option('--gaID [id]')
+        .option('--logoLayout [layout]')
+        .option('--customLogo [path]')
+        .option('--customLogoDark [path]')
         .option('--coverageTest [threshold]')
         .option('--coverageMinimumPerFile [minimum]')
         .option('--coverageTestThresholdFail [true|false]', '', true)
@@ -335,6 +340,79 @@ describe('applyConfigToMainData', () => {
         const program = makeProgram(['--port', '9000']);
         applyConfigToMainData(mainData, { port: 7777 }, program, { cwd: '/tmp/test' });
         expect(mainData.port).toBe('9000');
+    });
+
+    it('customLogoDark: config value applies, the CLI flag wins', () => {
+        const fromConfig = makeMainData();
+        applyConfigToMainData(
+            fromConfig,
+            { customLogo: 'brand/logo.svg', customLogoDark: 'brand/logo-dark.svg' },
+            makeProgram(),
+            { cwd: '/tmp/test' }
+        );
+        expect(fromConfig.customLogoDark).toBe('brand/logo-dark.svg');
+
+        const fromCli = makeMainData();
+        applyConfigToMainData(
+            fromCli,
+            { customLogo: 'brand/logo.svg', customLogoDark: 'brand/logo-dark.svg' },
+            makeProgram(['--customLogoDark', 'cli/night.svg']),
+            { cwd: '/tmp/test' }
+        );
+        expect(fromCli.customLogoDark).toBe('cli/night.svg');
+    });
+
+    it('customLogoDark: ignored without customLogo or with the same file name, with a warning', () => {
+        const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
+        const alone = makeMainData();
+        applyConfigToMainData(alone, { customLogoDark: 'brand/logo-dark.svg' }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(alone.customLogoDark).toBe('');
+        expect(warn).toHaveBeenCalledWith('customLogoDark: needs customLogo; ignored');
+
+        const clash = makeMainData();
+        applyConfigToMainData(
+            clash,
+            { customLogo: 'light/logo.svg', customLogoDark: 'dark/logo.svg' },
+            makeProgram(),
+            { cwd: '/tmp/test' }
+        );
+        expect(clash.customLogoDark).toBe('');
+        expect(warn).toHaveBeenCalledWith(
+            'customLogoDark: "logo.svg" has the file name of customLogo; ignored'
+        );
+        warn.mockRestore();
+    });
+
+    it('logoLayout: config value applies, the CLI flag wins', () => {
+        const fromConfig = makeMainData();
+        applyConfigToMainData(fromConfig, { logoLayout: 'icon' }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(fromConfig.logoLayout).toBe('icon');
+
+        const fromCli = makeMainData();
+        applyConfigToMainData(
+            fromCli,
+            { logoLayout: 'icon' },
+            makeProgram(['--logoLayout', 'wordmark']),
+            { cwd: '/tmp/test' }
+        );
+        expect(fromCli.logoLayout).toBe('wordmark');
+    });
+
+    it('logoLayout: an unknown value keeps auto, with a warning', () => {
+        const mainData = makeMainData();
+        const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
+        applyConfigToMainData(mainData, { logoLayout: 'square' }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(mainData.logoLayout).toBe('auto');
+        expect(warn).toHaveBeenCalledWith(
+            'logoLayout: expected one of auto, icon, wordmark, got "square"; ignored'
+        );
+        warn.mockRestore();
     });
 
     it('menuLayout: "feature" propagates from config', () => {

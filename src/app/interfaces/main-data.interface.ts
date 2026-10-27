@@ -5,6 +5,7 @@ import type { DiView } from '../di/model';
 import type { FileRefBundle, VendorPackage } from '../engines/stackblitz';
 import type { GraphOutput } from '../graph/file';
 import type { SymbolTable } from '../links/symbol-table';
+import type { LogoLayout, LogoLayoutSetting } from '../page-generator/brand-images';
 import type { RoutingModel } from '../routing/model';
 import type { StyleModel } from '../styles/model';
 import type { CoverageData } from './coverageData.interface';
@@ -142,6 +143,12 @@ export interface MainDataInterface {
     coverageData: CoverageData;
     customFavicon: string;
     customLogo: string;
+    /** Logo shown instead of `customLogo` in dark mode; empty for none. */
+    customLogoDark: string;
+    /** How the sidebar shows `customLogo`; `auto` decides from the file's aspect ratio. */
+    logoLayout: LogoLayoutSetting;
+    /** The layout `logoLayout` resolved to, set by the `logo` prepare stage. */
+    logoLayoutResolved?: LogoLayout;
     packageDependencies: Object[];
     packagePeerDependencies: Object[];
     packageProperties: any;
