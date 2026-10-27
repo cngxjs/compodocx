@@ -102,6 +102,19 @@ export const Overview = (props: OverviewProps): string => {
                                 })}
                                 hidden
                             ></div>
+                            {/* Filled by the client when a symbol is clicked: who uses it, hop by hop. */}
+                            <div
+                                class="cdx-graph-impact"
+                                aria-live="polite"
+                                data-cdx-template={t('graph-impact', {
+                                    total: '{total}',
+                                    direct: '{direct}',
+                                    features: '{features}'
+                                })}
+                                data-cdx-none={t('graph-impact-none')}
+                                data-cdx-hint={t('graph-impact-hint')}
+                                hidden
+                            ></div>
                         </div>
                         {GraphZoomControls({ prefix: 'dep-', replay: true })}
                     </div>

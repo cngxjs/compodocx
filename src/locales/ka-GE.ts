@@ -217,5 +217,8 @@ export const TRANSLATION_KA_GE = {
     'graph-edge-provides': 'უზრუნველყოფს',
     'graph-show-kinds': 'ნაჩვენები სახეები',
     'graph-replay': 'აგების გამეორება',
-    'graph-building': 'აგება საბაზისო ელემენტებიდან: დონე {{level}} / {{total}}'
+    'graph-building': 'აგება საბაზისო ელემენტებიდან: დონე {{level}} / {{total}}',
+    'graph-impact': 'იყენებს: {{total}} · პირდაპირ: {{direct}} · ფუნქციები: {{features}}',
+    'graph-impact-none': 'ნაჩვენებთაგან არაფერი იყენებს',
+    'graph-impact-hint': 'გასასუფთავებლად კვლავ დააწკაპუნეთ მასზე ან ფონზე'
 };

@@ -217,5 +217,8 @@ export const TRANSLATION_PL_PL = {
     'graph-edge-provides': 'Dostarcza',
     'graph-show-kinds': 'Pokazywane rodzaje',
     'graph-replay': 'Powtórz budowanie',
-    'graph-building': 'Budowanie od podstawowych elementów: poziom {{level}} z {{total}}'
+    'graph-building': 'Budowanie od podstawowych elementów: poziom {{level}} z {{total}}',
+    'graph-impact': 'Używane przez: {{total}} · Bezpośrednio: {{direct}} · Funkcje: {{features}}',
+    'graph-impact-none': 'Nic z pokazanych elementów go nie używa',
+    'graph-impact-hint': 'Kliknij go ponownie lub tło, aby wyczyścić'
 };

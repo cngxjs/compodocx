@@ -219,5 +219,8 @@ export const TRANSLATION_DE_DE = {
     'graph-edge-provides': 'Stellt bereit',
     'graph-show-kinds': 'Angezeigte Arten',
     'graph-replay': 'Aufbau wiederholen',
-    'graph-building': 'Aufbau von den Grundbausteinen: Ebene {{level}} von {{total}}'
+    'graph-building': 'Aufbau von den Grundbausteinen: Ebene {{level}} von {{total}}',
+    'graph-impact': 'Genutzt von: {{total}} · Direkt: {{direct}} · Features: {{features}}',
+    'graph-impact-none': 'Nichts Angezeigtes nutzt es',
+    'graph-impact-hint': 'Erneut darauf oder auf den Hintergrund klicken zum Zurücksetzen'
 };

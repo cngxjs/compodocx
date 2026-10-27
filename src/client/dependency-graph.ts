@@ -32,6 +32,10 @@ const FIT_PAD_PX = 28;
 const FIT_MAX_SCALE = 2;
 /** Duration of the glide to new positions after the shown kinds change. */
 const GLIDE_MS = 700;
+/** Time between two hops of the impact wave. */
+const HOP_MS = 280;
+/** Speed of the flow particles on screen. */
+const PARTICLE_PX_PER_S = 110;
 /** Fade-in of the islands before the first symbols of the build-up appear. */
 const HULL_FADE_MS = 400;
 /** Layout work per animation frame before the next frame is awaited. */
@@ -249,8 +253,8 @@ export const drawDependencyGraph = async (
     const layer = (name: string) => world.append('g').attr('class', `cdx-graph-layer-${name}`);
     const hullLayer = layer('hulls');
     const edgeLayer = layer('edges');
-    layer('particles');
-    layer('rings');
+    const particleLayer = layer('particles');
+    const ringLayer = layer('rings');
     const nodeLayer = layer('nodes');
     const labelLayer = layer('labels');
     const islandLabelLayer = layer('island-labels');
@@ -260,6 +264,14 @@ export const drawDependencyGraph = async (
     let fit = zoomIdentity;
     let userZoomed = false;
     let focus: { readonly node: ViewNode; readonly related: ReadonlySet<string> } | null = null;
+    /** The clicked symbol and what its impact wave has reached so far. */
+    let ripple: {
+        readonly node: ViewNode;
+        readonly hit: Set<string>;
+        readonly run: number;
+    } | null = null;
+    /** The hovered or clicked symbol whose neighbourhood keeps its labels. */
+    const emphasis = () => (ripple ? { node: ripple.node, related: ripple.hit } : focus);
 
     const hullPath = (members: readonly ViewNode[]): string => {
         const hull = polygonHull(hullPoints(members));
@@ -290,6 +302,7 @@ export const drawDependencyGraph = async (
      * neighbours are labelled.
      */
     const cullLabels = () => {
+        const focus = emphasis();
         const gap = 2 / k;
         const circles: Box[] = view.nodes.map(n => ({
             x: n.x - n.r,
@@ -384,6 +397,8 @@ export const drawDependencyGraph = async (
         scheduleFrame();
     });
     svg.call(zoomBehavior).on('dblclick.zoom', null);
+    // A click on the background clears the impact wave.
+    svg.on('click', () => stopRipple());
 
     const height = () => graphHeight(view.nodes.length);
 
@@ -411,7 +426,57 @@ export const drawDependencyGraph = async (
         zoomBehavior.scaleExtent([Math.min(0.1, t.k / 2), 6]);
     };
 
+    let particleFrame = 0;
+    const stopParticles = () => {
+        cancelAnimationFrame(particleFrame);
+        particleFrame = 0;
+        particleLayer.selectAll('*').remove();
+    };
+
+    /** Two particles per relation of `node` travel along it in import direction. */
+    const startParticles = (node: ViewNode) => {
+        stopParticles();
+        if (reducedMotion) {
+            return;
+        }
+        const items = view.edges
+            .filter(e => e.source === node || e.target === node)
+            .flatMap(e => {
+                const geo = edgeGeometry(e.source, e.target, k);
+                const length = Math.max(1, Math.hypot(geo.x2 - geo.x1, geo.y2 - geo.y1));
+                return [0, 0.5].map(offset => ({ geo, length, offset, kind: e.kind }));
+            });
+        const dots = particleLayer
+            .selectAll<SVGCircleElement, (typeof items)[number]>('circle')
+            .data(items)
+            .join('circle')
+            .attr('class', d => `cdx-graph-particle cdx-graph-edge--${d.kind}`)
+            .attr('r', 2.4 / k);
+        const start = performance.now();
+        const tick = (now: number) => {
+            // Constant speed on screen, whatever the zoom.
+            const travelled = ((now - start) / 1000) * (PARTICLE_PX_PER_S / k);
+            dots.each(function (d) {
+                const t = (travelled / d.length + d.offset) % 1;
+                this.setAttribute('cx', String(d.geo.x1 + (d.geo.x2 - d.geo.x1) * t));
+                this.setAttribute('cy', String(d.geo.y1 + (d.geo.y2 - d.geo.y1) * t));
+                this.setAttribute('opacity', String(Math.min(1, t * 6, (1 - t) * 6)));
+            });
+            particleFrame = requestAnimationFrame(tick);
+        };
+        particleFrame = requestAnimationFrame(tick);
+    };
+
     const setFocus = (node: ViewNode | null) => {
+        if (node) {
+            startParticles(node);
+        } else {
+            stopParticles();
+        }
+        // During an impact wave the wave keeps the highlight.
+        if (ripple) {
+            return;
+        }
         const related = new Set<string>(node ? [node.id] : []);
         if (node) {
             for (const e of view.edges) {
@@ -543,15 +608,27 @@ export const drawDependencyGraph = async (
                             'transform',
                             d => `translate(${d.x},${d.y})${duration ? ' scale(0.01)' : ''}`
                         );
-                    g.append('g').attr('class', 'cdx-graph-glyph');
-                    g.append('circle').attr('class', 'cdx-graph-hit');
-                    g.append('title');
+                    // A real link, so a modifier or middle click opens the page like any
+                    // link; a plain click starts the impact wave instead. Not in the tab
+                    // order: the page lists every symbol for keyboard and screen readers.
+                    const link = g
+                        .append('a')
+                        .attr('class', 'cdx-graph-node-link')
+                        .attr('tabindex', '-1');
+                    link.append('g').attr('class', 'cdx-graph-glyph');
+                    link.append('circle').attr('class', 'cdx-graph-hit');
+                    link.append('title');
                     g.on('pointerenter', (_event, d) => setFocus(d));
                     g.on('pointerleave', () => setFocus(null));
-                    g.on('click', (_event, d) => {
-                        if (d.url) {
-                            document.location.href = `${root}${d.url}`;
+                    g.on('click', (event: MouseEvent, d) => {
+                        const opensLink =
+                            event.ctrlKey || event.metaKey || event.shiftKey || event.altKey;
+                        if (opensLink && d.url) {
+                            return;
                         }
+                        event.preventDefault();
+                        event.stopPropagation();
+                        playRipple(d);
                     });
                     return g;
                 },
@@ -569,6 +646,7 @@ export const drawDependencyGraph = async (
                 'class',
                 d => `dep-node cdx-graph-node cdx-graph-node--${d.kind}${d.url ? ' is-link' : ''}`
             );
+        nodes.select('a').attr('href', d => (d.url ? `${root}${d.url}` : null));
         nodes.select('g.cdx-graph-glyph').html(d => glyphMarkup(d.kind, d.r));
         nodes.select('circle.cdx-graph-hit').attr('r', d => d.r + 2);
         nodes.select('title').text(d => `${d.name} (${d.kind})`);
@@ -622,6 +700,146 @@ export const drawDependencyGraph = async (
         setTimeout(cullLabels, duration);
     };
 
+    const badge = container.parentElement?.querySelector<HTMLElement>('.cdx-graph-impact');
+    let rippleRun = 0;
+
+    const stopRipple = () => {
+        rippleRun++;
+        if (!ripple) {
+            return;
+        }
+        ripple = null;
+        svg.classed('is-rippling', false);
+        nodeLayer.selectAll('g.cdx-graph-node').classed('is-hit', false);
+        edgeLayer.selectAll('g.cdx-graph-edge-group').classed('is-wave', false);
+        ringLayer.selectAll('*').interrupt().remove();
+        if (badge) {
+            badge.hidden = true;
+            badge.replaceChildren();
+        }
+        cullLabels();
+    };
+
+    /** The badge of an impact wave: the symbol (a link to its page) and who uses it. */
+    const showBadge = (node: ViewNode, total: number, direct: number, features: number) => {
+        if (!badge) {
+            return;
+        }
+        const name = document.createElement(node.url ? 'a' : 'strong');
+        name.className = 'cdx-graph-impact-name';
+        name.textContent = node.name;
+        if (node.url && name instanceof HTMLAnchorElement) {
+            name.href = `${root}${node.url}`;
+        }
+        const impact = document.createElement('span');
+        impact.className = 'cdx-graph-impact-text';
+        impact.textContent =
+            total > 0
+                ? (badge.dataset.cdxTemplate ?? '')
+                      .replace('{total}', String(total))
+                      .replace('{direct}', String(direct))
+                      .replace('{features}', String(features))
+                : (badge.dataset.cdxNone ?? '');
+        const hint = document.createElement('small');
+        hint.className = 'cdx-graph-impact-hint';
+        hint.textContent = badge.dataset.cdxHint ?? '';
+        badge.replaceChildren(name, impact, hint);
+        badge.hidden = false;
+    };
+
+    /**
+     * The impact wave: everything that uses `node`, directly or through others,
+     * lights up hop by hop with a pulse; the rest dims. Clicking it again clears.
+     */
+    const playRipple = (node: ViewNode) => {
+        if (ripple?.node === node) {
+            stopRipple();
+            return;
+        }
+        stopRipple();
+        stopBuild();
+        const users = new Map<string, ViewEdge[]>();
+        for (const e of view.edges) {
+            users.set(e.target.id, [...(users.get(e.target.id) ?? []), e]);
+        }
+        const hops = new Map<string, number>([[node.id, 0]]);
+        const wave = new Set<ViewEdge>();
+        const queue = [node.id];
+        for (let head = 0; head < queue.length; head++) {
+            const v = queue[head];
+            const hop = hops.get(v) ?? 0;
+            for (const e of users.get(v) ?? []) {
+                if (!hops.has(e.source.id)) {
+                    hops.set(e.source.id, hop + 1);
+                    queue.push(e.source.id);
+                }
+                if (hops.get(e.source.id) === hop + 1) {
+                    wave.add(e);
+                }
+            }
+        }
+        const run = ++rippleRun;
+        ripple = { node, hit: new Set(), run };
+        setFocus(null);
+        focus = null;
+        svg.classed('is-focusing', false).classed('is-rippling', true);
+        const byHop = new Map<number, ViewNode[]>();
+        for (const n of view.nodes) {
+            const hop = hops.get(n.id);
+            if (hop !== undefined) {
+                byHop.set(hop, [...(byHop.get(hop) ?? []), n]);
+            }
+        }
+        const at = (hop: number) => (reducedMotion ? 0 : hop * HOP_MS);
+        for (const [hop, reached] of byHop) {
+            setTimeout(() => {
+                if (ripple?.run !== run) {
+                    return;
+                }
+                const ids = new Set(reached.map(n => n.id));
+                for (const id of ids) {
+                    ripple.hit.add(id);
+                }
+                nodeLayer
+                    .selectAll<SVGGElement, ViewNode>('g.cdx-graph-node')
+                    .filter(d => ids.has(d.id))
+                    .classed('is-hit', true);
+                edgeLayer
+                    .selectAll<SVGGElement, ViewEdge>('g.cdx-graph-edge-group')
+                    .filter(e => wave.has(e) && ids.has(e.source.id))
+                    .classed('is-wave', true);
+                if (!reducedMotion) {
+                    for (const n of reached) {
+                        ringLayer
+                            .append('circle')
+                            .attr('class', 'cdx-graph-pulse')
+                            .attr('cx', n.x)
+                            .attr('cy', n.y)
+                            .attr('r', n.r)
+                            .transition()
+                            .duration(900)
+                            .ease(easeCubicOut)
+                            .attr('r', n.r + 30 / k)
+                            .style('opacity', 0)
+                            .remove();
+                    }
+                }
+                cullLabels();
+            }, at(hop));
+        }
+        const reachedIds = [...hops.keys()].filter(id => id !== node.id);
+        const groupOfId = new Map(view.nodes.map(n => [n.id, n.group]));
+        const features = new Set(
+            reachedIds.map(id => groupOfId.get(id) ?? '').filter(group => !group.startsWith('~'))
+        );
+        showBadge(
+            node,
+            reachedIds.length,
+            [...hops.values()].filter(hop => hop === 1).length,
+            features.size
+        );
+    };
+
     const status = container.parentElement?.querySelector<HTMLElement>('.cdx-graph-status');
     let building = false;
     let buildTimer: ReturnType<D3['timer']> | null = null;
@@ -657,6 +875,7 @@ export const drawDependencyGraph = async (
      */
     const playBuild = () => {
         stopBuild();
+        stopRipple();
         if (reducedMotion || view.nodes.length === 0) {
             cullLabels();
             return;
@@ -760,6 +979,7 @@ export const drawDependencyGraph = async (
     /** Show the graph for new kinds: lay out what moved, then glide there. */
     const showKinds = async (next: Set<GraphKind>) => {
         stopBuild();
+        stopRipple();
         kinds = next;
         const { view: nextView } = viewOf();
         setFocus(null);

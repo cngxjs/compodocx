@@ -218,5 +218,8 @@ export const TRANSLATION_BG_BG = {
     'graph-edge-provides': 'Предоставя',
     'graph-show-kinds': 'Показвани видове',
     'graph-replay': 'Повтори изграждането',
-    'graph-building': 'Изграждане от основите: ниво {{level}} от {{total}}'
+    'graph-building': 'Изграждане от основите: ниво {{level}} от {{total}}',
+    'graph-impact': 'Използва се от: {{total}} · Пряко: {{direct}} · Функционалности: {{features}}',
+    'graph-impact-none': 'Нищо от показаното не го използва',
+    'graph-impact-hint': 'Щракнете отново върху него или върху фона, за да изчистите'
 };

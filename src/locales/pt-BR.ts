@@ -218,5 +218,9 @@ export const TRANSLATION_PT_BR = {
     'graph-edge-provides': 'Fornece',
     'graph-show-kinds': 'Tipos exibidos',
     'graph-replay': 'Repetir construção',
-    'graph-building': 'Construindo a partir dos elementos básicos: nível {{level}} de {{total}}'
+    'graph-building': 'Construindo a partir dos elementos básicos: nível {{level}} de {{total}}',
+    'graph-impact':
+        'Usado por: {{total}} · Diretamente: {{direct}} · Funcionalidades: {{features}}',
+    'graph-impact-none': 'Nada do que é exibido o usa',
+    'graph-impact-hint': 'Clique nele novamente ou no fundo para limpar'
 };

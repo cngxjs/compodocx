@@ -217,5 +217,8 @@ export const TRANSLATION_JA_JP = {
     'graph-edge-provides': '提供',
     'graph-show-kinds': '表示する種類',
     'graph-replay': '構築を再生',
-    'graph-building': '基本要素から構築中: レベル {{level}} / {{total}}'
+    'graph-building': '基本要素から構築中: レベル {{level}} / {{total}}',
+    'graph-impact': '利用元: {{total}} · 直接: {{direct}} · 機能: {{features}}',
+    'graph-impact-none': '表示中の要素からは使用されていません',
+    'graph-impact-hint': 'もう一度クリックするか背景をクリックして解除'
 };

@@ -219,5 +219,8 @@ export const TRANSLATION_RU_RU = {
     'graph-edge-provides': 'Предоставляет',
     'graph-show-kinds': 'Показываемые виды',
     'graph-replay': 'Повторить построение',
-    'graph-building': 'Построение от базовых элементов: уровень {{level}} из {{total}}'
+    'graph-building': 'Построение от базовых элементов: уровень {{level}} из {{total}}',
+    'graph-impact': 'Используется в: {{total}} · Напрямую: {{direct}} · Функции: {{features}}',
+    'graph-impact-none': 'Ничто из показанного его не использует',
+    'graph-impact-hint': 'Щёлкните по нему ещё раз или по фону, чтобы сбросить'
 };

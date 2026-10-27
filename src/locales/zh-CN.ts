@@ -216,5 +216,8 @@ export const TRANSLATION_ZH_CN = {
     'graph-edge-provides': '提供',
     'graph-show-kinds': '显示的类型',
     'graph-replay': '重放构建过程',
-    'graph-building': '从基础元素构建：第 {{level}} 层，共 {{total}} 层'
+    'graph-building': '从基础元素构建：第 {{level}} 层，共 {{total}} 层',
+    'graph-impact': '被使用：{{total}} · 直接：{{direct}} · 功能：{{features}}',
+    'graph-impact-none': '此处显示的内容均未使用它',
+    'graph-impact-hint': '再次点击它或点击背景以清除'
 };

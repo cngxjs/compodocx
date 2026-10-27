@@ -218,5 +218,8 @@ export const TRANSLATION_NL_NL = {
     'graph-edge-provides': 'Levert',
     'graph-show-kinds': 'Getoonde soorten',
     'graph-replay': 'Opbouw herhalen',
-    'graph-building': 'Opbouw vanaf de basisbouwstenen: niveau {{level}} van {{total}}'
+    'graph-building': 'Opbouw vanaf de basisbouwstenen: niveau {{level}} van {{total}}',
+    'graph-impact': 'Gebruikt door: {{total}} · Direct: {{direct}} · Features: {{features}}',
+    'graph-impact-none': 'Niets van wat getoond wordt gebruikt het',
+    'graph-impact-hint': 'Klik er opnieuw op of op de achtergrond om te wissen'
 };

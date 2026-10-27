@@ -219,5 +219,9 @@ export const TRANSLATION_FR_FR = {
     'graph-edge-provides': 'Fournit',
     'graph-show-kinds': 'Types affichés',
     'graph-replay': 'Rejouer la construction',
-    'graph-building': 'Construction à partir des briques de base : niveau {{level}} sur {{total}}'
+    'graph-building': 'Construction à partir des briques de base : niveau {{level}} sur {{total}}',
+    'graph-impact':
+        'Utilisé par : {{total}} · Directement : {{direct}} · Fonctionnalités : {{features}}',
+    'graph-impact-none': "Rien de ce qui est affiché ne l'utilise",
+    'graph-impact-hint': 'Cliquez à nouveau dessus ou sur le fond pour effacer'
 };

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { pageUrl, rootUrl } from './pages';
 
 // ─── Sidebar ─────────────────────────────────────────────
@@ -431,6 +431,12 @@ test.describe('App Configuration', () => {
 
 // ─── Dependency Graph ───────────────────────────────────
 
+/** The overview graph node of the symbol `name`. */
+const graphNode = (page: Page, name: string) =>
+    page.locator('#dependency-graph-container .cdx-graph-node', {
+        has: page.locator('title', { hasText: new RegExp(`^${name} \\(`) })
+    });
+
 test.describe('Dependency Graph — Overview', () => {
     test('dependency graph container present (standalone app, no modules)', async ({ page }) => {
         await page.goto('/overview.html');
@@ -578,6 +584,73 @@ test.describe('Dependency Graph — Overview', () => {
         await expect(
             page.locator('#dependency-graph-container .cdx-graph-label:not(.is-culled)')
         ).not.toHaveCount(0);
+    });
+
+    test('hovering a symbol sends flow particles along its relations', async ({ page }) => {
+        await page.goto('/overview.html');
+        const svg = page.locator('#dependency-graph-container svg');
+        await expect(svg).not.toHaveClass(/is-building/, { timeout: 15_000 });
+        await graphNode(page, 'UserService').hover();
+        // Two particles per relation; UserService has two users.
+        await expect(page.locator('#dependency-graph-container .cdx-graph-particle')).toHaveCount(
+            4
+        );
+        await page.mouse.move(0, 0);
+        await expect(page.locator('#dependency-graph-container .cdx-graph-particle')).toHaveCount(
+            0
+        );
+    });
+
+    test('clicking a symbol shows what uses it, hop by hop', async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto('/overview.html');
+        const svg = page.locator('#dependency-graph-container svg');
+        await graphNode(page, 'HighlightDirective').click();
+        await expect(svg).toHaveClass(/is-rippling/);
+        // UserCardComponent imports it, UserListComponent imports UserCardComponent.
+        await expect(
+            page.locator('#dependency-graph-container .cdx-graph-node.is-hit')
+        ).toHaveCount(3);
+        const badge = page.locator('.cdx-graph-impact');
+        await expect(badge).toBeVisible();
+        await expect(badge.locator('.cdx-graph-impact-name')).toHaveText('HighlightDirective');
+        await expect(badge.locator('.cdx-graph-impact-name')).toHaveAttribute(
+            'href',
+            /HighlightDirective\.html$/
+        );
+        await expect(badge.locator('.cdx-graph-impact-text')).toHaveText(
+            /^Used by: 2 · Directly: 1 · Features: \d+$/
+        );
+        expect(page.url()).toMatch(/overview\.html$/);
+
+        await graphNode(page, 'HighlightDirective').click();
+        await expect(svg).not.toHaveClass(/is-rippling/);
+        await expect(badge).toBeHidden();
+    });
+
+    test('a click on the background clears the impact wave', async ({ page }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto('/overview.html');
+        const svg = page.locator('#dependency-graph-container svg');
+        await graphNode(page, 'UserService').click();
+        await expect(svg).toHaveClass(/is-rippling/);
+        await svg.click({ position: { x: 4, y: 4 } });
+        await expect(svg).not.toHaveClass(/is-rippling/);
+        await expect(page.locator('.cdx-graph-impact')).toBeHidden();
+    });
+
+    test('a modifier click opens the symbol page like a link', async ({ page, context }) => {
+        await page.emulateMedia({ reducedMotion: 'reduce' });
+        await page.goto('/overview.html');
+        const opened = context.waitForEvent('page');
+        await graphNode(page, 'UserService').click({ modifiers: ['ControlOrMeta'] });
+        const tab = await opened;
+        await tab.waitForLoadState();
+        expect(tab.url()).toMatch(/UserService\.html$/);
+        await expect(page.locator('#dependency-graph-container svg')).not.toHaveClass(
+            /is-rippling/
+        );
+        await tab.close();
     });
 
     test('shown labels never overlap each other', async ({ page }) => {

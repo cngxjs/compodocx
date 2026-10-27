@@ -196,7 +196,8 @@
     transition: opacity 150ms ease-out;
 }
 
-.cdx-project-graph .cdx-graph-node.is-link {
+/* Every symbol starts an impact wave on click; a linked one also opens with a modifier click. */
+.cdx-project-graph .cdx-graph-node {
     cursor: pointer;
 }
 
@@ -330,6 +331,69 @@
 .cdx-project-graph.is-building .cdx-graph-label,
 .cdx-project-graph.is-building .cdx-graph-island-label {
     opacity: 0;
+}
+
+.cdx-graph-impact {
+    position: absolute;
+    top: var(--spacing-cdx-sm);
+    left: var(--spacing-cdx-sm);
+    display: grid;
+    gap: 2px;
+    max-width: min(360px, calc(100% - 2 * var(--spacing-cdx-sm)));
+    padding: var(--spacing-cdx-sm) var(--spacing-cdx-md);
+    font-size: 0.8125rem;
+    background: var(--color-cdx-bg-elevated);
+    border: 1px solid var(--color-cdx-graph-kind-service);
+    border-radius: var(--radius-cdx-md);
+    box-shadow: var(--shadow-cdx-md);
+}
+
+.cdx-graph-impact[hidden] {
+    display: none;
+}
+
+.cdx-graph-impact-name {
+    font-weight: 600;
+}
+
+.cdx-graph-impact-hint {
+    color: var(--color-cdx-text-muted);
+    font-size: 0.75rem;
+}
+
+.cdx-project-graph .cdx-graph-particle {
+    fill: var(--cdx-graph-edge-color);
+    pointer-events: none;
+}
+
+.cdx-project-graph .cdx-graph-pulse {
+    fill: none;
+    stroke: var(--color-cdx-graph-kind-service);
+    stroke-width: 2px;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+}
+
+/* Impact wave: what uses the clicked symbol lights up hop by hop, the rest dims. */
+.cdx-project-graph.is-rippling .cdx-graph-node:not(.is-hit) {
+    opacity: 0.1;
+}
+
+.cdx-project-graph.is-rippling .cdx-graph-edge-group:not(.is-wave) {
+    opacity: 0.04;
+}
+
+.cdx-project-graph.is-rippling .cdx-graph-edge-group.is-wave {
+    --cdx-graph-edge-color: var(--color-cdx-graph-kind-service);
+}
+
+.cdx-project-graph.is-rippling .cdx-graph-edge-group.is-wave .cdx-graph-edge,
+.cdx-project-graph.is-rippling .cdx-graph-edge-group.is-wave .cdx-graph-edge-head {
+    stroke-opacity: 0.95;
+}
+
+.cdx-project-graph.is-rippling .cdx-graph-hull {
+    opacity: 0.35;
 }
 
 .cdx-graph-legend-title {

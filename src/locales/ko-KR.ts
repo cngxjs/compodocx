@@ -216,5 +216,8 @@ export const TRANSLATION_KO_KR = {
     'graph-edge-provides': '제공',
     'graph-show-kinds': '표시할 종류',
     'graph-replay': '구성 다시 재생',
-    'graph-building': '기본 요소부터 구성 중: 레벨 {{level}} / {{total}}'
+    'graph-building': '기본 요소부터 구성 중: 레벨 {{level}} / {{total}}',
+    'graph-impact': '사용처: {{total}} · 직접: {{direct}} · 기능: {{features}}',
+    'graph-impact-none': '표시된 항목 중 사용하는 것이 없습니다',
+    'graph-impact-hint': '다시 클릭하거나 배경을 클릭하면 해제됩니다'
 };
