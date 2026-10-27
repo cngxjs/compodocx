@@ -6,7 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
-## [Unreleased]
+## [0.11.0] - 2026-10-27
+
+Upgrading from 0.10: no flag, config key or URL was removed. Custom `overview` templates, scripts and CSS written for the old dependency graph (`data.dependencyGraph`, `window.DEPENDENCY_GRAPH`, the edge markup), hosting that serves only selected files (the overview now loads `js/graph.js`) and sites with a custom logo need a look; [MIGRATION.md](MIGRATION.md) lists each change.
 
 ### Added
 
