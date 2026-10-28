@@ -48,4 +48,12 @@ describe('CLI export: example URLs per class', () => {
         }
         expect(urls(components, 'CngxAsyncContainer')).to.be.undefined;
     });
+
+    it('keeps the tags out of the comments of other JSDoc tags', () => {
+        // In the fixture the tag sits below `@example`, so it was the comment of that tag.
+        const tagged = [...directives, ...components].filter(entry =>
+            JSON.stringify(entry.jsdoctags ?? []).includes('example-url')
+        );
+        expect(tagged.map(entry => entry.name)).to.deep.equal([]);
+    });
 });

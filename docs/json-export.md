@@ -84,7 +84,7 @@ Added (optional): the semantic facts on every symbol entry (`entryPoint`, `expor
 - Deprecated: `signal` on components and directives (see [Deprecated fields](#deprecated-fields)).
 - `signal` on components and directives is `true` when the entry has an `input()`, `output()` or `model()` member or the class tag `@signal`; it was `true` only with the tag.
 - `exampleUrls` holds the `<example-url>` tags of the entry's own JSDoc; it held every tag of the entry's file, so all classes of a file shared them.
-- `description` and `rawdescription` of classes no longer contain `<example-url>` tags; the URLs are in `exampleUrls` only.
+- `description`, `rawdescription` and the `jsdoctags` comments of classes no longer contain `<example-url>` tags; the URLs are in `exampleUrls` only.
 - With the new `exampleUrlBase` option, relative URLs in `exampleUrls` are written with the base in front.
 - Declarations that their file does not export (functions, variables, interfaces, type aliases, enums, injection tokens) have no entry any more.
 
