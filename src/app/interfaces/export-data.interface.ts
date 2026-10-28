@@ -102,6 +102,38 @@ export const EXPORT_SCHEMA_VERSION = 6 as const;
 
 export type ExportSchemaVersion = typeof EXPORT_SCHEMA_VERSION;
 
+/** A field that is still written but goes with a later schema version. */
+export interface DeprecatedExportField {
+    /** Where the field sits, `<top-level list>[].<field>`. */
+    readonly path: string;
+    /** compodocx release that deprecated it. */
+    readonly since: string;
+    /** Schema version that no longer has it. */
+    readonly removedWithSchema: number;
+    /** What to read instead. */
+    readonly replacement: string;
+}
+
+/**
+ * Deprecated fields of the export. Each one is listed in `docs/json-export.md`
+ * (`test/src/utils/json-export-doc.spec.ts`) and carries `@deprecated` on its
+ * interface property.
+ */
+export const DEPRECATED_EXPORT_FIELDS: readonly DeprecatedExportField[] = [
+    {
+        path: 'components[].signal',
+        since: '0.12.0',
+        removedWithSchema: 7,
+        replacement: '`signalKind` on the members'
+    },
+    {
+        path: 'directives[].signal',
+        since: '0.12.0',
+        removedWithSchema: 7,
+        replacement: '`signalKind` on the members'
+    }
+];
+
 /**
  * Header fields on `ExportData` that change on every run even when the source
  * code is unchanged. Byte-equal comparators (notably the upcoming sprint-3
@@ -326,6 +358,7 @@ export interface ExportEntityCommon extends ExportSemanticFacts {
 export interface ExportComponent extends ExportEntityCommon {
     selector?: string;
     standalone?: boolean;
+    /** @deprecated Since 0.12.0, removed with schema 7. Read `signalKind` on the members. */
     signal?: boolean;
     zoneless?: boolean;
     changeDetection?: string;
@@ -376,6 +409,7 @@ export interface ExportDirective extends ExportEntityCommon {
     themeOverview?: string;
     selector?: string;
     standalone?: boolean;
+    /** @deprecated Since 0.12.0, removed with schema 7. Read `signalKind` on the members. */
     signal?: boolean;
     zoneless?: boolean;
     inputsClass?: ExportProperty[];

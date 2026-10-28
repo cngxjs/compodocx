@@ -11,6 +11,13 @@
 - Every change is listed on this page and in [MIGRATION.md](../MIGRATION.md).
 - `compodocx diff` reads the current schema only; re-export stored baselines after an upgrade that changes it.
 
+## Deprecated fields
+
+| Field | Deprecated since | Removed with schema | Read instead |
+|-|-|-|-|
+| `components[].signal` | 0.12.0 | 7 | `signalKind` on the members |
+| `directives[].signal` | 0.12.0 | 7 | `signalKind` on the members |
+
 ## Versions
 
 | `schemaVersion` | Written by |
@@ -59,6 +66,7 @@ Added (optional): the semantic facts on every symbol entry (`entryPoint`, `expor
 
 ### Changed in 0.12.0
 
+- Deprecated: `signal` on components and directives (see [Deprecated fields](#deprecated-fields)).
 - Declarations that their file does not export (functions, variables, interfaces, type aliases, enums, injection tokens) have no entry any more.
 
 ## Schema 2

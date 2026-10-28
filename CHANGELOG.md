@@ -14,6 +14,10 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **`disableMarkdownPages` skips root Markdown pages.** The new config key and `--disableMarkdownPages` flag take a list of `changelog`, `contributing`, `license` and `todo`; the matching files in the working directory then get no page, no sidebar link and no search entry. Before, every such file that existed was built.
 - **Visible text for `@aiGenerated`.** Pages and symbols marked `@aiGenerated` now show a sentence next to the "AI generated" chip, "Drafted with AI assistance." or, with a marker value, "Drafted with AI assistance (value).", translated in all 17 locales. Before, the marker value only appeared in the chip's tooltip. The new config key `aiGeneratedNote` sets the sentence, `{value}` standing for the marker value. The tooltip no longer carries the value.
 
+### Deprecated
+
+- **`signal` on components and directives in the JSON export.** The field is still written and goes with schema 7; read `signalKind` on the members instead. `docs/json-export.md` lists every deprecated field with the release that deprecated it and the schema that removes it.
+
 ### Fixed
 
 - **A site opened from disk in Firefox keeps its interactive parts.** Firefox reports the origin of a `file://` page as `null`, and the sidebar code built a URL against it, so the script stopped before the graphs, the DOM tree, the command palette, the examples and the other interactive parts started. Clicking a component in the DOM tree on such a site also led nowhere.

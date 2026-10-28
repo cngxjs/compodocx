@@ -72,6 +72,7 @@ Re-running `ng add @cngxjs/compodocx` is idempotent (zero diff on the second pas
 No flag or config key was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.11.0:
 
 - **File-local declarations are no longer documented.** A function, variable, interface, type alias, enum or injection token that its file does not export has no page, no sidebar entry, no coverage row and no entry in `documentation.json` or `llm-context.md` any more. Links to such pages and tools that looked those entries up need a look; export the declaration if it belongs to the documented API. Coverage percentages change, because these declarations no longer count, so revisit `--coverageTest` and `--coverageMinimumPerFile` thresholds.
+- **`signal` on components and directives in `documentation.json` is deprecated.** It is still written and goes with schema 7; read `signalKind` on the members instead. The deprecated fields are listed in [`docs/json-export.md`](https://github.com/cngxjs/compodocx/blob/develop/docs/json-export.md#deprecated-fields).
 
 ## Changes in 0.11.0
 
