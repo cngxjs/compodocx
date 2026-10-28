@@ -5,6 +5,16 @@ import { type IParseDeepIdentifierResult, type ProviderEntry, SymbolHelper } fro
 
 export type { ProviderEntry };
 
+/** Text of the JSDoc blocks of a declaration, not of the rest of its file. */
+export const jsDocTextOf = (node: ts.Node | undefined): string =>
+    node
+        ? ts
+              .getJSDocCommentsAndTags(node)
+              .filter(ts.isJSDoc)
+              .map(doc => doc.getText())
+              .join('\n')
+        : '';
+
 const INPUT_SIGNAL_KINDS: ReadonlySet<string> = new Set(['input-signal', 'model']);
 const OUTPUT_SIGNAL_KINDS: ReadonlySet<string> = new Set(['output-signal', 'model']);
 
@@ -551,6 +561,11 @@ export class ComponentHelper {
         srcFile: ts.SourceFile
     ): Array<string> {
         return this.symbolHelper.getSymbolDeps(props, 'templateUrl', srcFile);
+    }
+
+    /** `<example-url>` tags of the declaration's own JSDoc. */
+    public getExampleUrlsOf(node: ts.Node | undefined): Array<string> | undefined {
+        return this.getComponentExampleUrls(jsDocTextOf(node));
     }
 
     public getComponentExampleUrls(text: string): Array<string> | undefined {

@@ -1,4 +1,5 @@
 import * as crypto from 'node:crypto';
+import type { ts } from 'ts-morph';
 import type { ComponentPlaygroundBlock } from '../../../../templates/helpers/jsdoc';
 import { cleanLifecycleHooksFromMethods } from '../../../../utils';
 import Configuration from '../../../configuration';
@@ -10,7 +11,14 @@ import type { ProviderEntry } from './helpers/symbol-helper';
 export class DirectiveDepFactory {
     constructor(private helper: ComponentHelper) {}
 
-    public create(file: any, srcFile: any, name: any, props: any, IO: any): IDirectiveDep {
+    public create(
+        file: any,
+        srcFile: any,
+        name: any,
+        props: any,
+        IO: any,
+        node?: ts.Node
+    ): IDirectiveDep {
         const sourceCode = srcFile.getText();
         const hash = crypto.createHash('sha512').update(sourceCode).digest('hex');
         const directiveDeps: IDirectiveDep = {
@@ -56,7 +64,7 @@ export class DirectiveDepFactory {
             methodsClass: IO.methods,
             playgrounds: IO.playgrounds || [],
             slots: IO.slots || [],
-            exampleUrls: this.helper.getComponentExampleUrls(srcFile.getText()),
+            exampleUrls: this.helper.getExampleUrlsOf(node),
             ...(IO.wcagLevel && { wcagLevel: IO.wcagLevel }),
             ...(IO.a11yNote && { a11yNote: IO.a11yNote }),
             ...(IO.taggedSelector && { taggedSelector: IO.taggedSelector }),
