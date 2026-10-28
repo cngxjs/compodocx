@@ -77,7 +77,7 @@ With `-e json`, every symbol entry (components, directives, classes, injectables
 |-|-|-|
 | `entryPoint` | string | Import path of the nearest entry point that exports the symbol |
 | `exportedBy` | string[] | Import paths of every entry point that exports the symbol, sorted |
-| `notExported` | `true` | Exported from its file, inside an entry point, but reachable from no entry point. Symbols tagged `@internal` are never flagged |
+| `notExported` | `true` | Exported from its file, inside an entry point, but reachable from no entry point. Symbols tagged `@internal` are never flagged. Such an entry has no `entryPoint`, `exportedBy` or `feature` |
 | `usedBy` | `{ name, file }[]` | Top-level declarations of the same project that reference the symbol |
 | `di.role` | `'provider'` \| `'feature'` | Provider: annotated return type `Provider`, `EnvironmentProviders`, an array or a union of them. Feature: returns the type a provider accepts as its rest parameter (`...features: T[]`), matched by name. Set only for functions their file exports; a function without any DI fact has no `di` field |
 | `di.featureType` | `{ name, file }` | The feature type of a provider or feature function; providers sharing it belong together |
@@ -90,6 +90,8 @@ With `-e json`, every symbol entry (components, directives, classes, injectables
 | `routedAt` | string[] | Components: full paths of the routes rendering the component |
 | `mountedAt` | string[] | Route array variables: full paths of the places a router mounts the array at |
 | `axes` | `Record<string, string>` | Values on the declared classification axes, by axis name. `semantic.axes` lists each axis with `label`, `values` (`{ value, count }`), `classified` and `unclassified` |
+
+Entries with `notExported` stay in the JSON export; the HTML output gives them no page and the llm-md export leaves them out. They belong to no feature and no entry point. To read only the public API of a library, keep the entries whose `entryPoint` is set (in an application without entry points no entry has one).
 
 Entry points are the `ng-package.json` entry files below the workspace, plus tsconfig `paths` targets without a wildcard that re-export from other files (`export ... from`). The top-level `semantic` object lists them (`importPath`, `file`, `source`) with the counts of the analysis, which the build log also prints as one `Semantic analysis:` line. Every `file` is relative to the working directory. `schemaVersion` is `6`.
 
