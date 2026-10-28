@@ -234,9 +234,13 @@ const compareClassLike = (
     newEntity: ExportClass | ExportInjectable | ExportInterceptor | ExportGuard | ExportInterface
 ): FieldChange[] => [
     ...compareEntityCommon(oldEntity, newEntity),
-    ...compareMemberList('properties', oldEntity.properties, newEntity.properties, [
-        ...PROPERTY_FIELDS
-    ] as ReadonlyArray<keyof ExportProperty>),
+    // Interface call signatures are compared as nameless properties, as before.
+    ...compareMemberList(
+        'properties',
+        oldEntity.properties as ExportProperty[] | undefined,
+        newEntity.properties as ExportProperty[] | undefined,
+        [...PROPERTY_FIELDS] as ReadonlyArray<keyof ExportProperty>
+    ),
     ...compareMemberList('methods', oldEntity.methods, newEntity.methods, [
         ...METHOD_FIELDS
     ] as ReadonlyArray<keyof ExportMethod>)

@@ -239,7 +239,7 @@ describe('llm-md/emit — emitPipe', () => {
             file: 'src/app/capitalize.pipe.ts',
             ngname: 'capitalize',
             standalone: false,
-            pure: 'true',
+            pure: true,
             description: 'Capitalizes the first letter'
         };
         const out = emitPipe(pipe);

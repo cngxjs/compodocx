@@ -3,7 +3,6 @@ import type {
     HostDirectiveEntry,
     ProviderEntry
 } from '../compiler/angular/deps/helpers/component-helper';
-import type { JsdocTagInterface } from './jsdoc-tag.interface';
 
 /**
  * A guard, resolver, title or redirect function, matcher, provider or router
@@ -147,6 +146,30 @@ export const VOLATILE_EXPORT_FIELDS = ['generatedAt', 'compodocxVersion'] as con
 
 export type VolatileExportField = (typeof VOLATILE_EXPORT_FIELDS)[number];
 
+/** Name node of a JSDoc tag or parameter: `text` or `escapedText` holds the name. */
+export interface ExportJsdocName {
+    text?: string;
+    escapedText?: string;
+}
+
+/**
+ * A JSDoc tag of a class, member or parameter as the crawler writes it. Most
+ * entries are the TypeScript JSDoc node itself, so node fields (`pos`, `end`,
+ * `kind`, `flags`, ...) can appear next to the fields listed here.
+ */
+export interface ExportJsdocTag {
+    tagName?: ExportJsdocName;
+    /** Rendered comment of the tag. */
+    comment?: string;
+    /** Parameter name, as text or as the name node. */
+    name?: string | ExportJsdocName;
+    type?: string;
+    defaultValue?: string;
+    optional?: boolean;
+    deprecated?: boolean;
+    deprecationMessage?: string;
+}
+
 export interface ExportArg {
     name: string;
     type?: string;
@@ -172,7 +195,7 @@ export interface ExportProperty {
     decorators?: ReadonlyArray<unknown>;
     kind?: string;
     signalDeps?: string[];
-    jsdoctags?: JsdocTagInterface[];
+    jsdoctags?: ExportJsdocTag[];
     /** Signal primitive of the initializer (`input-signal`, `output-signal`, `model`, `computed`, ...). */
     signalKind?: string;
     /** Signal inputs, outputs and models: whether the member is `.required`. */
@@ -193,7 +216,7 @@ export interface ExportMethod {
     description?: string;
     rawdescription?: string;
     modifierKind?: number[];
-    jsdoctags?: JsdocTagInterface[];
+    jsdoctags?: ExportJsdocTag[];
 }
 
 export interface ExportAccessor {
@@ -392,13 +415,14 @@ export interface ExportComponent extends ExportEntityCommon {
     /** Keys into the top-level `styleSources` map, in collection order. */
     themeStyleSources?: string[];
     themeOverview?: string;
-    jsdoctags?: JsdocTagInterface[];
+    jsdoctags?: ExportJsdocTag[];
     route?: string;
     group?: string;
     order?: number;
     since?: string;
     beta?: boolean;
-    breaking?: boolean;
+    /** Text of the `@breaking` tag; `''` without one. */
+    breaking?: string;
 }
 
 export interface ExportDirective extends ExportEntityCommon {
@@ -421,11 +445,12 @@ export interface ExportDirective extends ExportEntityCommon {
     hostStructured?: ReadonlyArray<unknown>;
     hostDirectives?: HostDirectiveEntry[];
     providers?: ProviderEntry[];
-    jsdoctags?: JsdocTagInterface[];
+    jsdoctags?: ExportJsdocTag[];
     group?: string;
     since?: string;
     beta?: boolean;
-    breaking?: boolean;
+    /** Text of the `@breaking` tag; `''` without one. */
+    breaking?: string;
 }
 
 export interface ExportInjectable extends ExportEntityCommon {
@@ -440,7 +465,7 @@ export interface ExportInjectable extends ExportEntityCommon {
     providedIn?: string;
     /** Source text of the `factory` option of an `InjectionToken` or a `@Service`; absent without one. */
     factory?: string;
-    jsdoctags?: JsdocTagInterface[];
+    jsdoctags?: ExportJsdocTag[];
 }
 
 /** A class decorated with Angular's `@Service` (Angular 22). */
@@ -454,7 +479,7 @@ export interface ExportInterceptor extends ExportEntityCommon {
     methods?: ExportMethod[];
     accessors?: Record<string, ExportAccessor>;
     constructorObj?: unknown;
-    jsdoctags?: JsdocTagInterface[];
+    jsdoctags?: ExportJsdocTag[];
 }
 
 export interface ExportGuard extends ExportEntityCommon {
@@ -462,7 +487,7 @@ export interface ExportGuard extends ExportEntityCommon {
     methods?: ExportMethod[];
     accessors?: Record<string, ExportAccessor>;
     constructorObj?: unknown;
-    jsdoctags?: JsdocTagInterface[];
+    jsdoctags?: ExportJsdocTag[];
     implements?: string[];
     indexSignatures?: ExportIndexSignature[];
     inputsClass?: ExportProperty[];
@@ -473,12 +498,12 @@ export interface ExportGuard extends ExportEntityCommon {
 
 export interface ExportPipe extends ExportEntityCommon {
     standalone?: boolean;
-    pure?: string;
+    pure?: boolean;
     ngname?: string;
     methods?: ExportMethod[];
     properties?: ExportProperty[];
     readme?: string;
-    jsdoctags?: JsdocTagInterface[];
+    jsdoctags?: ExportJsdocTag[];
 }
 
 export interface ExportClass extends ExportEntityCommon {
@@ -491,15 +516,28 @@ export interface ExportClass extends ExportEntityCommon {
     outputsClass?: ExportProperty[];
     hostBindings?: ExportHostBinding[];
     hostListeners?: ExportHostListener[];
-    jsdoctags?: JsdocTagInterface[];
+    jsdoctags?: ExportJsdocTag[];
+}
+
+/** A call signature of an interface (`(value: T): number`), listed with its properties. */
+export interface ExportCallSignature {
+    id: string;
+    args?: ExportArg[];
+    returnType?: string;
+    line?: number;
+    deprecated?: boolean;
+    deprecationMessage?: string;
+    description?: string;
+    rawdescription?: string;
+    jsdoctags?: ExportJsdocTag[];
 }
 
 export interface ExportInterface extends ExportEntityCommon {
-    properties?: ExportProperty[];
+    properties?: (ExportProperty | ExportCallSignature)[];
     methods?: ExportMethod[];
     indexSignatures?: ExportIndexSignature[];
     kind?: number;
-    jsdoctags?: JsdocTagInterface[];
+    jsdoctags?: ExportJsdocTag[];
 }
 
 export interface ExportFunction extends ExportSemanticFacts {
@@ -512,12 +550,12 @@ export interface ExportFunction extends ExportSemanticFacts {
     description?: string;
     returnType?: string;
     args?: ExportArg[];
-    jsdoctags?: JsdocTagInterface[];
+    jsdoctags?: ExportJsdocTag[];
 }
 
 export interface ExportEnumMember {
     name: string;
-    value?: string;
+    value?: string | number;
     deprecated?: boolean;
     deprecationMessage?: string;
 }
@@ -558,23 +596,21 @@ export interface ExportVariable extends ExportSemanticFacts {
 }
 
 /**
- * Items grouped by source folder. The engine emits these alongside the flat
- * `variables` / `functions` / `typealiases` / `enumerations` arrays.
+ * Items grouped by source file (file path -> items). The engine emits these
+ * alongside the flat `variables` / `functions` / `typealiases` /
+ * `enumerations` arrays.
  */
-export interface ExportMiscellaneousGroup<T> {
-    file: string;
-    items: T[];
-}
+export type ExportMiscellaneousGroups<T> = Record<string, T[]>;
 
 export interface ExportMiscellaneous {
     variables?: ExportVariable[];
     functions?: ExportFunction[];
     typealiases?: ExportTypeAlias[];
     enumerations?: ExportEnumeration[];
-    groupedVariables?: ExportMiscellaneousGroup<ExportVariable>[];
-    groupedFunctions?: ExportMiscellaneousGroup<ExportFunction>[];
-    groupedEnumerations?: ExportMiscellaneousGroup<ExportEnumeration>[];
-    groupedTypeAliases?: ExportMiscellaneousGroup<ExportTypeAlias>[];
+    groupedVariables?: ExportMiscellaneousGroups<ExportVariable>;
+    groupedFunctions?: ExportMiscellaneousGroups<ExportFunction>;
+    groupedEnumerations?: ExportMiscellaneousGroups<ExportEnumeration>;
+    groupedTypeAliases?: ExportMiscellaneousGroups<ExportTypeAlias>;
 }
 
 export interface ExportCoverageFile {

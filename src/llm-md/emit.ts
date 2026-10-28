@@ -314,7 +314,8 @@ const emitClassLike = (
     return joinSections([
         heroLines(entity, allExtras),
         descriptionLine(entity.description),
-        renderProperties('Properties', entity.properties ?? []),
+        // Interface call signatures pass through as nameless properties, as before.
+        renderProperties('Properties', (entity.properties ?? []) as ExportProperty[]),
         renderMethods('Methods', entity.methods ?? [])
     ]);
 };
