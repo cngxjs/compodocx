@@ -4,7 +4,7 @@ import { ClockInterface } from './clock.interface';
  * An interface just for documentation purpose
  * @deprecated This interface is deprecated
  */
-interface LabelledTodo {
+export interface LabelledTodo {
     title: string;
     completed: Boolean;
     editing?: Boolean;
@@ -32,7 +32,7 @@ export interface ValueInRes {
  * }
  * ```
  */
-interface SearchFunc {
+export interface SearchFunc {
     /**
      * A function
      * @param {string} source A string
@@ -105,7 +105,7 @@ class Clock implements ClockInterface {
     }
 }
 
-interface IDATA {
+export interface IDATA {
     value: [number, string, number[]];
     value2: [string, string, ...boolean[]];
 }

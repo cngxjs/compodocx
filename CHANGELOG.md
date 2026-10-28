@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Fixed
+
+- **Only what a file exports is documented.** Functions, variables, interfaces, type aliases, enums and injection tokens that their file does not export no longer get a page, a sidebar entry, a coverage row or an entry in the JSON and llm-md exports. `export` on the declaration, `export { name }` and `export default name` count; a file without any import or export keeps all of its declarations, and routes arrays keep their own rule. Coverage figures change accordingly. See [MIGRATION.md](MIGRATION.md#changes-in-0111).
+
 ## [0.11.0] - 2026-10-27
 
 Upgrading from 0.10: no flag, config key or URL was removed. Custom `overview` templates, scripts and CSS written for the old dependency graph (`data.dependencyGraph`, `window.DEPENDENCY_GRAPH`, the edge markup), hosting that serves only selected files (the overview now loads `js/graph.js`) and sites with a custom logo need a look; [MIGRATION.md](MIGRATION.md) lists each change.

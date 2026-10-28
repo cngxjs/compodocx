@@ -9,7 +9,7 @@ import { TimeInterface } from './time.interface';
  * }
  * ```
  */
-interface ClockInterface extends TimeInterface {
+export interface ClockInterface extends TimeInterface {
     /**
      * The current time
      * @type {Date}

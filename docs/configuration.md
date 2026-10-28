@@ -71,7 +71,7 @@ Controls where and how the documentation is generated.
 
 ### Semantic fields in the JSON export
 
-With `-e json`, every symbol entry (components, directives, classes, injectables, services, tokens, interfaces, pipes, guards, interceptors and the miscellaneous functions, variables, type aliases and enumerations) can carry facts from a project-wide analysis of the `-p` tsconfig (its `extends`, `paths` and `baseUrl` included). All fields are optional; an empty list or a `false` flag is never written, so a symbol without facts looks exactly as before. The HTML output builds on the same facts: the Dependency Injection chapter and the feature type pages, the "Used by" lists, the Provider, Feature and Injection context badges, and the symbols that reach no entry point, which get no page.
+With `-e json`, every symbol entry (components, directives, classes, injectables, services, tokens, interfaces, pipes, guards, interceptors and the miscellaneous functions, variables, type aliases and enumerations) can carry facts from a project-wide analysis of the `-p` tsconfig (its `extends`, `paths` and `baseUrl` included). All fields are optional; an empty list or a `false` flag is never written, so a symbol without facts looks exactly as before. Only declarations their file exports are documented at all (`export` on the declaration, `export { name }` or `export default name`); file-local helpers get no entry, page or coverage row. A file without any import or export keeps all of its declarations. The HTML output builds on the same facts: the Dependency Injection chapter and the feature type pages, the "Used by" lists, the Provider, Feature and Injection context badges, and the symbols that reach no entry point, which get no page.
 
 | Field | Type | Meaning |
 |-|-|-|
@@ -79,7 +79,7 @@ With `-e json`, every symbol entry (components, directives, classes, injectables
 | `exportedBy` | string[] | Import paths of every entry point that exports the symbol, sorted |
 | `notExported` | `true` | Exported from its file, inside an entry point, but reachable from no entry point. Symbols tagged `@internal` are never flagged |
 | `usedBy` | `{ name, file }[]` | Top-level declarations of the same project that reference the symbol |
-| `di.role` | `'provider'` \| `'feature'` | Provider: annotated return type `Provider`, `EnvironmentProviders`, an array or a union of them. Feature: returns the type a provider accepts as its rest parameter (`...features: T[]`), matched by name |
+| `di.role` | `'provider'` \| `'feature'` | Provider: annotated return type `Provider`, `EnvironmentProviders`, an array or a union of them. Feature: returns the type a provider accepts as its rest parameter (`...features: T[]`), matched by name. Set only for functions their file exports; a function without any DI fact has no `di` field |
 | `di.featureType` | `{ name, file }` | The feature type of a provider or feature function; providers sharing it belong together |
 | `di.providesTokens` | `{ name, file }[]` | Tokens in `provide:` entries of a provider, plus those of the providers and helper functions it calls (one level) |
 | `di.readsTokens` | `{ name, file }[]` | Tokens read with `inject()`, directly or through one called helper |

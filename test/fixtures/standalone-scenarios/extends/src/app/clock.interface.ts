@@ -11,7 +11,7 @@ import { TimeInterface } from './time.interface';
  * }
  * ```
  */
-interface ClockInterface extends TimeInterface, BooInterface {
+export interface ClockInterface extends TimeInterface, BooInterface {
     /**
      * The current time
      * @type {Date}
