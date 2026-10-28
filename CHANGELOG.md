@@ -23,6 +23,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ### Fixed
 
+- **Empty API tab.** A class or directive whose only members are `inject()` fields or a constructor (such as a template marker directive with `templateRef = inject(TemplateRef)`) got an API tab with nothing in it. Those members show on the Info tab, so the API tab is now left out, as it already was for classes without members.
 - **Interface call signatures in the llm-md export.** An interface with a call signature (`(v: T): number`) listed it under Properties as `` `undefined` ``. It is now listed under Call signatures with its parameters and return type.
 - **A tab opens although a heading has its name.** A README or description heading such as `#### Example` or `## API` got the same id as the tab of that name, and clicking the tab opened the panel holding the heading instead. Tab panels now win over headings with the same id.
 - **No errors for examples hosted elsewhere.** The Example tab read the document of each example frame to fit its height and theme, which Safari reports as an error for a frame from another host (for example a demo app on another domain, or any URL from a site opened from disk). Such frames are left alone, and so are all frames of a site opened from disk, where every file counts as its own origin; frames from the same host are fitted to their content as before.
