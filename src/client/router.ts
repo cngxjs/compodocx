@@ -126,7 +126,8 @@ const updateActiveLink = (url: string, clickedAnchor: HTMLAnchorElement | null =
         return;
     }
 
-    const pathname = new URL(url, window.location.origin).pathname;
+    // The page URL as base, not the origin: Firefox reports `"null"` on file://.
+    const pathname = new URL(url, window.location.href).pathname;
     // Normalize: "/" -> "index.html", "/forms/Foo.html" -> "forms/Foo.html"
     let normalizedPath = pathname.replace(/^\//, '').toLowerCase();
     if (normalizedPath === '' || normalizedPath.endsWith('/')) {
@@ -301,7 +302,7 @@ const navigate = async (
         // Send GA4 pageview on SPA navigation
         if (typeof gtag === 'function') {
             gtag('event', 'page_view', {
-                page_path: new URL(url, window.location.origin).pathname
+                page_path: new URL(url, window.location.href).pathname
             });
         }
 
@@ -317,7 +318,7 @@ const navigate = async (
         await reinitPage();
 
         // Scroll to hash target or reset to top
-        const hash = new URL(url, window.location.origin).hash;
+        const hash = new URL(url, window.location.href).hash;
         if (hash) {
             applyHashTarget(resolveHash(hash));
         } else {
