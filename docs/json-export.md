@@ -2,6 +2,20 @@
 
 `--exportFormat json` writes `documentation.json`. Its top-level `schemaVersion` names the shape of the file; `generatedAt` (ISO 8601) and `compodocxVersion` change on every run and are not part of the shape. This page lists every schema version, what changed between them, and how future changes are made. The TypeScript types of the export are declared in [`src/app/interfaces/export-data.interface.ts`](https://github.com/cngxjs/compodocx/blob/develop/src/app/interfaces/export-data.interface.ts).
 
+## JSON Schema
+
+The package ships a JSON Schema (draft 2020-12) of the current version at `node_modules/@cngxjs/compodocx/src/data/schemas/documentation.v6.schema.json`. Validate an export with any 2020-12 validator, for example with ajv:
+
+```js
+import Ajv2020 from 'ajv/dist/2020.js';
+import schema from '@cngxjs/compodocx/src/data/schemas/documentation.v6.schema.json' with { type: 'json' };
+
+const validate = new Ajv2020({ strict: false }).compile(schema);
+validate(documentation) || console.error(validate.errors);
+```
+
+The schema is generated from the TypeScript declaration of the export. Objects allow fields the schema does not list (`additionalProperties: true`), so a newer export with added optional fields still validates. Deprecated fields carry `deprecated: true`. `jsdoctags` entries are the TypeScript JSDoc nodes as the crawler writes them; the schema lists their documented fields and allows the node fields next to them.
+
 ## Compatibility policy
 
 - Adding an optional field keeps the schema version. Readers ignore fields they do not know.
@@ -66,6 +80,7 @@ Added (optional): the semantic facts on every symbol entry (`entryPoint`, `expor
 
 ### Changed in 0.12.0
 
+- Added: the JSON Schema of the export (see [JSON Schema](#json-schema)).
 - Deprecated: `signal` on components and directives (see [Deprecated fields](#deprecated-fields)).
 - `signal` on components and directives is `true` when the entry has an `input()`, `output()` or `model()` member or the class tag `@signal`; it was `true` only with the tag.
 - `exampleUrls` holds the `<example-url>` tags of the entry's own JSDoc; it held every tag of the entry's file, so all classes of a file shared them.
