@@ -2,6 +2,8 @@ export const TRANSLATION_ZH_CN = {
     accessors: '存取器',
     'ai-generated': 'AI 生成',
     'ai-generated-tooltip': '此内容由 AI 协助生成',
+    'ai-generated-note': '在 AI 协助下起草。',
+    'ai-generated-note-value': '在 AI 协助下起草（{{value}}）。',
     'all-features': '所有功能',
     api: 'API',
     'api-reference': 'API Reference',

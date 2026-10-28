@@ -285,6 +285,8 @@ export interface MainDataInterface {
     /** The style files the globs matched; undefined without `styleFiles`. */
     styles?: StyleModel;
     featuresName: string;
+    /** Visible text for `@aiGenerated` markers; `''` uses the translated default. */
+    aiGeneratedNote: string;
     referencesName: string;
     collapsedAll: boolean;
     /** Where each member role shows in the feature sidebar (config-only `menuFeatureSections`). */

@@ -2,6 +2,8 @@ export const TRANSLATION_RU_RU = {
     accessors: 'Аксессор',
     'ai-generated': 'Сгенерировано ИИ',
     'ai-generated-tooltip': 'Этот контент создан с помощью ИИ',
+    'ai-generated-note': 'Подготовлено с помощью ИИ.',
+    'ai-generated-note-value': 'Подготовлено с помощью ИИ ({{value}}).',
     'all-features': 'Все функциональности',
     api: 'API',
     'api-reference': 'API Reference',

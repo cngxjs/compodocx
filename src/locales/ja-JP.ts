@@ -2,6 +2,8 @@ export const TRANSLATION_JA_JP = {
     accessors: 'アクセサ',
     'ai-generated': 'AI生成',
     'ai-generated-tooltip': 'このコンテンツはAI支援で生成されました',
+    'ai-generated-note': 'AI支援で作成されました。',
+    'ai-generated-note-value': 'AI支援で作成されました（{{value}}）。',
     'all-features': 'すべての機能',
     api: 'API',
     'api-reference': 'API Reference',

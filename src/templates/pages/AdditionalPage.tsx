@@ -1,5 +1,5 @@
 import Html from '@kitajs/html';
-import { AiGeneratedBadge } from '../components/AiGeneratedBadge';
+import { AiGeneratedBadge, AiGeneratedNote } from '../components/AiGeneratedBadge';
 
 type AdditionalPageProps = {
     readonly additionalPage: string;
@@ -13,6 +13,10 @@ export const AdditionalPage = (props: AdditionalPageProps): string =>
             {props.aiGenerated ? (
                 <div class="cdx-ai-generated-banner">
                     {AiGeneratedBadge({ aiGenerated: props.aiGenerated })}
+                    {AiGeneratedNote({
+                        aiGenerated: props.aiGenerated,
+                        class: 'cdx-ai-generated-note'
+                    })}
                 </div>
             ) : (
                 ''

@@ -39,7 +39,7 @@ import { ProvidersSection } from '../blocks/ProvidersSection';
 import { RelatedSection } from '../blocks/RelatedSection';
 import { RouteChip } from '../blocks/RouteChip';
 import { SourceViewer } from '../blocks/SourceViewer';
-import { AiGeneratedBadge } from '../components/AiGeneratedBadge';
+import { AiGeneratedBadge, AiGeneratedNote } from '../components/AiGeneratedBadge';
 import { AxisBadges, entityAxes } from '../components/AxisBadges';
 import { EmptyState } from '../components/EmptyState';
 import {
@@ -474,6 +474,7 @@ export const ComponentPage = (data: any): string => {
                     {WcagBadge({ wcagLevel: c.wcagLevel })}
                     {AxisBadges({ axes })}
                 </div>
+                {AiGeneratedNote({ aiGenerated: c.aiGenerated, class: 'cdx-entity-hero-ai-note' })}
                 {!data.disableFilePath && c.file && (
                     <p class="cdx-entity-hero-file" title="Source file">
                         {IconFile()}

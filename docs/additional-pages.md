@@ -107,6 +107,12 @@ Rules:
 
 The files are plain Markdown rendered by [`marked`](https://marked.js.org/). You have the normal toolbox: headings, paragraphs, lists, tables, fenced code blocks with language hints (Shiki-highlighted), block quotes, inline code, links, and images. Relative image paths resolve against the generated page's directory, so referencing images is easiest via absolute or external URLs.
 
+A page whose first line is `<!-- @aiGenerated -->` or `<!-- @aiGenerated <value> -->` (a model name, a date) gets a banner above its content: an "AI generated" chip and the sentence "Drafted with AI assistance (<value>).". The `aiGeneratedNote` config key replaces the sentence, with `{value}` standing for the marker value:
+
+```json
+{ "aiGeneratedNote": "Drafted with AI assistance ({value}) and reviewed by a maintainer." }
+```
+
 JSDoc-style `{@link Target}` references also work - compodocx resolves them against the project's symbol index, so a guide page can link to `{@link UserService}` and land the reader on the generated service page.
 
 Example (trimmed from `getting-started.md`):

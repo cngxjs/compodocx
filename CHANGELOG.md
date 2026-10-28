@@ -8,6 +8,10 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ## [Unreleased]
 
+### Added
+
+- **Visible text for `@aiGenerated`.** Pages and symbols marked `@aiGenerated` now show a sentence next to the "AI generated" chip, "Drafted with AI assistance." or, with a marker value, "Drafted with AI assistance (value).", translated in all 17 locales. Before, the marker value only appeared in the chip's tooltip. The new config key `aiGeneratedNote` sets the sentence, `{value}` standing for the marker value. The tooltip no longer carries the value.
+
 ### Fixed
 
 - **Only what a file exports is documented.** Functions, variables, interfaces, type aliases, enums and injection tokens that their file does not export no longer get a page, a sidebar entry, a coverage row or an entry in the JSON and llm-md exports. `export` on the declaration, `export { name }` and `export default name` count; a file without any import or export keeps all of its declarations, and routes arrays keep their own rule. Coverage figures change accordingly. See [MIGRATION.md](MIGRATION.md#changes-in-0111).

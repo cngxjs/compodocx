@@ -2,6 +2,8 @@ export const TRANSLATION_DE_DE = {
     accessors: 'Accessors',
     'ai-generated': 'KI-generiert',
     'ai-generated-tooltip': 'Dieser Inhalt wurde mit KI-Unterstützung erstellt',
+    'ai-generated-note': 'Mit KI-Unterstützung entworfen.',
+    'ai-generated-note-value': 'Mit KI-Unterstützung entworfen ({{value}}).',
     'all-features': 'Alle Features',
     api: 'API',
     'api-reference': 'API-Referenz',

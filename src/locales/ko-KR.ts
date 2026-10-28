@@ -2,6 +2,8 @@ export const TRANSLATION_KO_KR = {
     accessors: '접근자',
     'ai-generated': 'AI 생성',
     'ai-generated-tooltip': '이 콘텐츠는 AI 지원으로 생성되었습니다',
+    'ai-generated-note': 'AI 지원으로 작성되었습니다.',
+    'ai-generated-note-value': 'AI 지원으로 작성되었습니다 ({{value}}).',
     'all-features': '모든 기능',
     api: 'API',
     'api-reference': 'API Reference',

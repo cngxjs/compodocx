@@ -2,6 +2,8 @@ export const TRANSLATION_FR_FR = {
     accessors: 'Accesseurs',
     'ai-generated': 'Généré par IA',
     'ai-generated-tooltip': "Ce contenu a été généré avec l'aide d'IA",
+    'ai-generated-note': "Rédigé avec l'aide d'IA.",
+    'ai-generated-note-value': "Rédigé avec l'aide d'IA ({{value}}).",
     'all-features': 'Toutes les fonctionnalités',
     api: 'API',
     'api-reference': 'API Reference',

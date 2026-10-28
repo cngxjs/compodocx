@@ -236,6 +236,7 @@ Include external documentation, static assets, or supply custom templates.
 | includes | `--includes` | string | -- | Path to a folder of external markdown files, absolute or relative to the working directory (also in a config file). A folder that does not exist is reported with a warning. Each `.md` file becomes a page in the documentation, accessible via a dedicated sidebar section. Supports nested folders for sub-navigation |
 | includesName | `--includesName` | string | `'Additional documentation'` | Sidebar label for the external markdown pages section |
 | includesLabels | `--includesLabels` | string | -- | Path to a JSON file keyed by page slug, each entry with an optional `label` (sidebar text) and `title` (page title). Read only when `includes` is set. See [Additional pages](additional-pages.md) |
+| aiGeneratedNote | _config-only_ | string | `''` (i18n default) | Sentence shown next to the "AI generated" chip of a page or symbol marked `@aiGenerated` (Markdown pages with `<!-- @aiGenerated [value] -->` as their first line, symbols with the JSDoc tag). `{value}` is replaced by the marker value, or by nothing for a bare marker. Empty uses the translated default, "Drafted with AI assistance." or, with a value, "Drafted with AI assistance (value)." |
 | assetsFolder | `-a, --assetsFolder` | string | -- | Path to a folder of static assets (images, files) copied into the output directory. Referenced from markdown or custom templates via relative paths |
 | templates | `--templates` | string | -- | Path to a directory containing JS template overrides. Each file exports a function `(data, helpers) => string` that replaces the corresponding built-in template. See [Custom Templates](custom-templates.md) for the full API. Handlebars `.hbs` files in `partials/` are skipped with one warning. The removed `--templatePlayground` / `templatePlayground` are ignored with a warning |
 
@@ -679,6 +680,7 @@ Compodocx recognizes these custom JSDoc tags on any entity or member:
 |-|-|
 | `@since <version>` | Adds a version badge to the entity hero |
 | `@beta` | Adds a "Beta" badge |
+| `@aiGenerated [value]` | Adds an "AI generated" chip and, below the hero badges, a sentence with the value (for example a model name or a date); the text is set with `aiGeneratedNote`. The JSON export carries `aiGenerated` |
 | `@breaking <version>` | Adds a "Breaking" badge with version |
 | `@internal` | Hides the member when `--disableInternal` is set |
 | `@feature <key>` | Puts the symbol into the feature `<key>` of its entry point (or app), above the detected feature; the `features` config wins over the tag. One segment of lower-case letters, digits and dashes |

@@ -2,6 +2,8 @@ export const TRANSLATION_HU_HU = {
     accessors: 'Getter/setter metódusok',
     'ai-generated': 'MI-generált',
     'ai-generated-tooltip': 'Ezt a tartalmat MI segítségével generálták',
+    'ai-generated-note': 'MI segítségével készült.',
+    'ai-generated-note-value': 'MI segítségével készült ({{value}}).',
     'all-features': 'Minden funkció',
     api: 'API',
     'api-reference': 'API Reference',

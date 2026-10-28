@@ -570,6 +570,13 @@
             "default": "",
             "examples": ["Features", "Building Blocks"]
         },
+        "aiGeneratedNote": {
+            "$id": "/properties/aiGeneratedNote",
+            "type": "string",
+            "title": "Visible text next to the AI generated chip of pages and symbols marked @aiGenerated (config-only). {value} is replaced by the marker value. Defaults to the translated 'Drafted with AI assistance.' text, with the marker value in parentheses when there is one.",
+            "default": "",
+            "examples": ["Drafted with AI assistance ({value}) and reviewed by a maintainer."]
+        },
         "referencesName": {
             "$id": "/properties/referencesName",
             "type": "string",

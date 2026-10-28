@@ -83,6 +83,14 @@
     margin: var(--spacing-cdx-sm) 0 0;
 }
 
+.cdx-entity-hero-ai-note {
+    position: relative;
+    z-index: 1;
+    margin: var(--spacing-cdx-sm) 0 0;
+    font-size: var(--cdx-text-sm, 0.8125rem);
+    color: var(--color-cdx-text-secondary);
+}
+
 .cdx-entity-hero-context {
     position: relative;
     z-index: 1;

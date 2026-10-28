@@ -2,6 +2,8 @@ export const TRANSLATION_SK_SK = {
     accessors: 'Modifikátory prístupu',
     'ai-generated': 'Vygenerované AI',
     'ai-generated-tooltip': 'Tento obsah bol vygenerovaný s pomocou AI',
+    'ai-generated-note': 'Pripravené s pomocou AI.',
+    'ai-generated-note-value': 'Pripravené s pomocou AI ({{value}}).',
     'all-features': 'Všetky funkcie',
     api: 'API',
     'api-reference': 'API Reference',
