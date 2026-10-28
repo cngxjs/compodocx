@@ -105,6 +105,7 @@ export class Configuration implements ConfigurationInterface {
         disableProperties: COMPODOC_DEFAULTS.disableProperties,
         disableFilePath: COMPODOC_DEFAULTS.disableFilePath,
         disableOverview: COMPODOC_DEFAULTS.disableOverview,
+        disableMarkdownPages: [],
         showEffects: COMPODOC_DEFAULTS.showEffects,
         watch: false,
         entityIndex: {},

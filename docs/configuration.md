@@ -177,6 +177,7 @@ These flags disable entire features, tabs, or pages. Unlike visibility filters w
 | disableSearch | `--disableSearch` | boolean | `false` | Remove the Pagefind search functionality. Disables the command palette (Ctrl+K), the search input, and skips Pagefind index generation at build time |
 | disableCoverage | `--disableCoverage` | boolean | `false` | Remove the documentation coverage report page. Coverage measures how many public members have JSDoc descriptions |
 | disableOverview | `--disableOverview` | boolean | `false` | Remove the overview/dashboard page that shows project-level statistics and the main dependency graph |
+| disableMarkdownPages | `--disableMarkdownPages <pages>` | string[] | `[]` | Root Markdown files of the working directory not to build as pages: `changelog` (CHANGELOG.md), `contributing` (CONTRIBUTING.md), `license` (LICENSE.md or LICENSE), `todo` (TODO.md). A listed file gets no page, no sidebar link and no search entry. Comma-separated on the CLI (`--disableMarkdownPages changelog,license`); the flag replaces the config value. An unknown entry is ignored with a warning; the README stays the index page |
 | minimal | `--minimal` | boolean | `false` | Shorthand that disables search, all graphs, routes and the coverage report in one flag. Equivalent to `--disableSearch --disableGraph --disableRoutes --disableCoverage` |
 
 ## Dependency graph

@@ -10,6 +10,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ### Added
 
+- **`disableMarkdownPages` skips root Markdown pages.** The new config key and `--disableMarkdownPages` flag take a list of `changelog`, `contributing`, `license` and `todo`; the matching files in the working directory then get no page, no sidebar link and no search entry. Before, every such file that existed was built.
 - **Visible text for `@aiGenerated`.** Pages and symbols marked `@aiGenerated` now show a sentence next to the "AI generated" chip, "Drafted with AI assistance." or, with a marker value, "Drafted with AI assistance (value).", translated in all 17 locales. Before, the marker value only appeared in the chip's tooltip. The new config key `aiGeneratedNote` sets the sentence, `{value}` standing for the marker value. The tooltip no longer carries the value.
 
 ### Fixed

@@ -1,3 +1,4 @@
+import type { MarkdownPageKey } from '../../utils/markdown-pages';
 import type { MenuFeatureSections } from '../../utils/menu-feature-sections';
 import type { AxisConfig } from '../compiler/semantic/axes';
 import type { SemanticModel } from '../compiler/semantic/model';
@@ -100,6 +101,8 @@ export interface MainDataInterface {
     disableProperties: boolean;
     disableFilePath: boolean;
     disableOverview: boolean;
+    /** Root Markdown pages not built; validated by the config loader. */
+    disableMarkdownPages: readonly MarkdownPageKey[];
     showEffects: boolean;
     watch: boolean;
     /** The written dependency graph; absent without one (disabled or no symbols). */

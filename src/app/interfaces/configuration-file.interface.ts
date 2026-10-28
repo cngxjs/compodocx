@@ -50,6 +50,7 @@ export interface ConfigurationFileInterface {
     disableProperties: boolean;
     disableFilePath: boolean;
     disableOverview: boolean;
+    disableMarkdownPages: string[];
     showEffects: boolean;
     minimal: boolean;
     customFavicon: string;

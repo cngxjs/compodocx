@@ -3,6 +3,7 @@ import type { Command } from 'commander';
 import pkg from '../../../package.json';
 import { MENU_TOGGLE_KEYS } from '../../utils/constants';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
+import { MARKDOWN_PAGE_KEYS } from '../../utils/markdown-pages';
 
 const splitCommaList = (val: string): string[] => val.split(',');
 
@@ -230,6 +231,12 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
             '--disableOverview',
             'Do not add the overview page',
             COMPODOC_DEFAULTS.disableOverview
+        )
+        .option(
+            '--disableMarkdownPages <pages>',
+            `Root Markdown files not to build as pages, comma-separated: ${MARKDOWN_PAGE_KEYS.join(', ')}`,
+            splitCommaList,
+            COMPODOC_DEFAULTS.disableMarkdownPages
         )
         .option(
             '--showEffects',

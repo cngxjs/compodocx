@@ -432,6 +432,14 @@
             "default": false,
             "examples": [false]
         },
+        "disableMarkdownPages": {
+            "$id": "/properties/disableMarkdownPages",
+            "type": "array",
+            "items": { "type": "string", "enum": ["changelog", "contributing", "license", "todo"] },
+            "title": "Root Markdown files not to build as pages (CHANGELOG.md, CONTRIBUTING.md, LICENSE.md, TODO.md): no page, no sidebar link, no search entry. Unknown entries are ignored with a warning.",
+            "default": [],
+            "examples": [["changelog", "license"]]
+        },
         "minimal": {
             "$id": "/properties/minimal",
             "type": "boolean",

@@ -7,6 +7,7 @@ import { err, isErr, ok, type Result } from '../../lib';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { parseJsonIndent } from '../../utils/json-indent.util';
 import { logger } from '../../utils/logger';
+import { parseDisableMarkdownPages } from '../../utils/markdown-pages';
 import { parseMaxSearchResults } from '../../utils/max-search-results.util';
 import { parseMaxVersionsShown } from '../../utils/max-versions-shown.util';
 import { parseMenuFeatureSections } from '../../utils/menu-feature-sections';
@@ -827,6 +828,18 @@ export function applyConfigToMainData(
     }
     if (programOptions.disableOverview) {
         mainData.disableOverview = programOptions.disableOverview;
+    }
+
+    const disableMarkdownPages =
+        program.getOptionValueSource('disableMarkdownPages') === 'cli'
+            ? programOptions.disableMarkdownPages
+            : configFile.disableMarkdownPages;
+    if (disableMarkdownPages !== undefined) {
+        const parsed = parseDisableMarkdownPages(disableMarkdownPages);
+        for (const warning of parsed.warnings) {
+            logger.warn(warning);
+        }
+        mainData.disableMarkdownPages = parsed.pages;
     }
 
     if (configFile.showEffects) {
