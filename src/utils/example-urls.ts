@@ -53,3 +53,23 @@ export const relativeExampleUrls = (
             .filter(url => !isAbsoluteUrl(url))
             .map(url => ({ name: entry.name ?? '', url }))
     );
+
+const EXAMPLE_URL_TAG = /<example-url>.*?<\/example-url>/g;
+
+/**
+ * A description without its `<example-url>` tags: they feed `exampleUrls`
+ * and the Example tab, not the text. A line left empty by a tag goes too.
+ */
+export const stripExampleUrlTags = (text: string): string => {
+    if (!text.includes('<example-url>')) {
+        return text;
+    }
+    return text
+        .split('\n')
+        .flatMap(line => {
+            const stripped = line.replace(EXAMPLE_URL_TAG, '');
+            return stripped !== line && stripped.trim() === '' ? [] : [stripped];
+        })
+        .join('\n')
+        .replace(/\s+$/, '');
+};

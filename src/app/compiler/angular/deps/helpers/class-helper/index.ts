@@ -1,5 +1,6 @@
 import { SyntaxKind, ts } from 'ts-morph';
 import { isIgnore } from '../../../../../../utils';
+import { stripExampleUrlTags } from '../../../../../../utils/example-urls';
 import { JsdocParserUtil } from '../../../../../../utils/jsdoc-parser.util';
 import { markedAcl } from '../../../../../../utils/marked.acl';
 import { getNodeDecorators, nodeHasDecorator } from '../../../../../../utils/node.util';
@@ -67,7 +68,7 @@ export class ClassHelper {
 
         if (symbol) {
             const comment = this.jsdocParserUtil.getMainCommentOfNode(classDeclaration, sourceFile);
-            rawdescription = this.jsdocParserUtil.parseComment(comment);
+            rawdescription = stripExampleUrlTags(this.jsdocParserUtil.parseComment(comment));
             description = markedAcl(rawdescription);
             if (symbol.valueDeclaration && isIgnore(symbol.valueDeclaration)) {
                 return [{ ignore: true }];
