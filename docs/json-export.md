@@ -31,6 +31,9 @@ The schema is generated from the TypeScript declaration of the export. Objects a
 |-|-|-|-|
 | `components[].signal` | 0.12.0 | 7 | `signalKind` on the members |
 | `directives[].signal` | 0.12.0 | 7 | `signalKind` on the members |
+| `jsdoctags[] node fields` | 0.12.0 | 7 | the fields of `ExportJsdocTag` (`tagName`, `comment`, `name`, `type`, ...) |
+
+The node fields of `jsdoctags` entries are the fields the TypeScript JSDoc node carries besides the documented ones: `pos`, `end`, `kind`, `id`, `flags`, `modifierFlagsCache`, `transformFlags`, `escapedText` in `tagName` and `name`, and further node references. The JSON Schema does not list them.
 
 ## Versions
 
@@ -81,7 +84,7 @@ Added (optional): the semantic facts on every symbol entry (`entryPoint`, `expor
 ### Changed in 0.12.0
 
 - Added: the JSON Schema of the export (see [JSON Schema](#json-schema)).
-- Deprecated: `signal` on components and directives (see [Deprecated fields](#deprecated-fields)).
+- Deprecated: `signal` on components and directives, and the TypeScript node fields of `jsdoctags` entries (see [Deprecated fields](#deprecated-fields)).
 - `signal` on components and directives is `true` when the entry has an `input()`, `output()` or `model()` member or the class tag `@signal`; it was `true` only with the tag.
 - `exampleUrls` holds the `<example-url>` tags of the entry's own JSDoc; it held every tag of the entry's file, so all classes of a file shared them.
 - `description`, `rawdescription` and the `jsdoctags` comments of classes no longer contain `<example-url>` tags; the URLs are in `exampleUrls` only.

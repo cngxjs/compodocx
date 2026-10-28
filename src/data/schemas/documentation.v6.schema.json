@@ -2152,7 +2152,7 @@
             "additionalProperties": true
         },
         "ExportJsdocTag": {
-            "description": "A JSDoc tag of a class, member or parameter as the crawler writes it. Most\nentries are the TypeScript JSDoc node itself, so node fields (`pos`, `end`,\n`kind`, `flags`, ...) can appear next to the fields listed here.",
+            "description": "A JSDoc tag of a class, member or parameter as the crawler writes it. Most\nentries are the TypeScript JSDoc node itself, so node fields (`pos`, `end`,\n`kind`, `flags`, ...) can appear next to the fields listed here. Those node\nfields are deprecated since 0.12.0 and go with schema 7.",
             "type": "object",
             "properties": {
                 "tagName": {

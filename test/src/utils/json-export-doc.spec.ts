@@ -66,7 +66,9 @@ describe('DEPRECATED_EXPORT_FIELDS', () => {
         expect(field.removedWithSchema).toBeGreaterThan(EXPORT_SCHEMA_VERSION);
     });
 
-    it.each(DEPRECATED_EXPORT_FIELDS)('$path is marked @deprecated in the interface', field => {
+    const declared = DEPRECATED_EXPORT_FIELDS.filter(field => !field.undeclared);
+
+    it.each(declared)('$path is marked @deprecated in the interface', field => {
         const declaration = fieldDeclaration(field.path);
         expect(declaration, field.path).toBeDefined();
         const tags = ts.getJSDocTags(declaration as ts.PropertySignature).map(t => t.tagName.text);

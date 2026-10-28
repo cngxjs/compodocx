@@ -18,6 +18,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ### Deprecated
 
+- **TypeScript node fields in `jsdoctags` of the JSON export.** Most `jsdoctags` entries are written as the TypeScript JSDoc node, with `pos`, `end`, `kind`, `flags` and further node fields next to `tagName`, `comment`, `name` and `type`. The node fields are still written and go with schema 7.
 - **`signal` on components and directives in the JSON export.** The field is still written and goes with schema 7; read `signalKind` on the members instead. `docs/json-export.md` lists every deprecated field with the release that deprecated it and the schema that removes it.
 
 ### Fixed

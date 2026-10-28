@@ -111,6 +111,8 @@ export interface DeprecatedExportField {
     readonly removedWithSchema: number;
     /** What to read instead. */
     readonly replacement: string;
+    /** Written by the export but not declared in these interfaces (TypeScript node fields). */
+    readonly undeclared?: true;
 }
 
 /**
@@ -130,6 +132,13 @@ export const DEPRECATED_EXPORT_FIELDS: readonly DeprecatedExportField[] = [
         since: '0.12.0',
         removedWithSchema: 7,
         replacement: '`signalKind` on the members'
+    },
+    {
+        path: 'jsdoctags[] node fields',
+        since: '0.12.0',
+        removedWithSchema: 7,
+        replacement: 'the fields of `ExportJsdocTag` (`tagName`, `comment`, `name`, `type`, ...)',
+        undeclared: true
     }
 ];
 
@@ -155,7 +164,8 @@ export interface ExportJsdocName {
 /**
  * A JSDoc tag of a class, member or parameter as the crawler writes it. Most
  * entries are the TypeScript JSDoc node itself, so node fields (`pos`, `end`,
- * `kind`, `flags`, ...) can appear next to the fields listed here.
+ * `kind`, `flags`, ...) can appear next to the fields listed here. Those node
+ * fields are deprecated since 0.12.0 and go with schema 7.
  */
 export interface ExportJsdocTag {
     tagName?: ExportJsdocName;

@@ -28,7 +28,9 @@ describe('documentation.json JSON Schema', () => {
         expect(fs.readFileSync(file, 'utf8')).toBe(serializeSchema(schema));
     });
 
-    it.each(DEPRECATED_EXPORT_FIELDS)('marks $path as deprecated', field => {
+    it.each(
+        DEPRECATED_EXPORT_FIELDS.filter(field => !field.undeclared)
+    )('marks $path as deprecated', field => {
         const [list, property] = field.path.split('[].');
         const ref: string = schema.properties[list].items.$ref;
         const definition = schema.$defs[ref.replace('#/$defs/', '')];
