@@ -11,6 +11,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 ### Fixed
 
 - **Only what a file exports is documented.** Functions, variables, interfaces, type aliases, enums and injection tokens that their file does not export no longer get a page, a sidebar entry, a coverage row or an entry in the JSON and llm-md exports. `export` on the declaration, `export { name }` and `export default name` count; a file without any import or export keeps all of its declarations, and routes arrays keep their own rule. Coverage figures change accordingly. See [MIGRATION.md](MIGRATION.md#changes-in-0111).
+- **`compodocx migrate jsdoc` keeps what a short comment block still says.** In a single-line block (`/** @category x @internal */`) it removed the whole block with the other tags; now only `@category` / `@docsKind` and their text go. A tag on the opening or closing line of a longer block, or after text in a single-line block, is now removed too, a tag line inside a code fence in the block stays, and removing an inline block no longer leaves a double space.
 
 ## [0.11.0] - 2026-10-27
 
