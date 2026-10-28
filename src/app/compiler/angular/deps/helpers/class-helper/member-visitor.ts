@@ -29,6 +29,17 @@ const SIGNAL_MEMBER_KINDS: Readonly<Record<SignalApi, string>> = {
     model: 'model'
 };
 
+const SIGNAL_API_KINDS: ReadonlySet<string> = new Set(Object.values(SIGNAL_MEMBER_KINDS));
+
+/**
+ * Whether a component or directive has an `input()`, `output()` or `model()`
+ * member: the deprecated entry flag `signal` of the export.
+ */
+export const hasSignalMember = (
+    ...lists: readonly (readonly { signalKind?: string }[] | undefined)[]
+): boolean =>
+    lists.some(list => (list ?? []).some(member => SIGNAL_API_KINDS.has(member.signalKind ?? '')));
+
 const importsCache = new WeakMap<ts.SourceFile, AngularImports>();
 
 /** `angularImports` once per source file. */

@@ -67,6 +67,7 @@ Added (optional): the semantic facts on every symbol entry (`entryPoint`, `expor
 ### Changed in 0.12.0
 
 - Deprecated: `signal` on components and directives (see [Deprecated fields](#deprecated-fields)).
+- `signal` on components and directives is `true` when the entry has an `input()`, `output()` or `model()` member or the class tag `@signal`; it was `true` only with the tag.
 - Declarations that their file does not export (functions, variables, interfaces, type aliases, enums, injection tokens) have no entry any more.
 
 ## Schema 2
