@@ -338,6 +338,26 @@ describe('llm-md/emit — emitClass / emitInterface', () => {
         expect(out).toContain('Extends: `Base`, `Other`');
         expect(out).toContain('`tick(): void`');
     });
+
+    it('emitInterface lists a call signature as a signature, not as a property', () => {
+        const iface: ExportInterface = {
+            name: 'BandScale',
+            file: 'src/scales/band.ts',
+            properties: [
+                {
+                    id: 'call-declaration-1',
+                    args: [{ name: 'v', type: 'T' }],
+                    returnType: 'number',
+                    description: 'Position of a value.'
+                },
+                { name: 'domain', type: 'T[]' }
+            ]
+        };
+        const out = emitInterface(iface);
+        expect(out).toContain('Call signatures:\n- `(v: T): number`');
+        expect(out).toContain('Properties:\n- `domain: T[]`');
+        expect(out).not.toContain('`undefined`');
+    });
 });
 
 describe('llm-md/emit — miscellaneous emitters', () => {
