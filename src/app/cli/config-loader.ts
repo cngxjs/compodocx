@@ -254,7 +254,7 @@ function applyMenuFeatureSections(
  *  - `process.exit(1)` for invalid `--jsonIndent` / `--maxVersionsShown` /
  *    `--maxSearchResults` /
  *    missing custom-theme file / `--tsconfig` boolean.
- *  - `process.exit(2)` for invalid `menuLayout` / `collapsedAll` / `featuresName` / `aiGeneratedNote` /
+ *  - `process.exit(2)` for invalid `menuLayout` / `collapsedAll` / `featuresName` / `aiGeneratedNote` / `exampleUrlBase` /
  *    `referencesName` config.
  *  - Mutates `logger.silent` and `logger.routeToStderr`.
  *  - Mutates `I18nEngine` via the language-availability warning.
@@ -1000,6 +1000,19 @@ export function applyConfigToMainData(
             process.exit(2);
         }
         mainData.aiGeneratedNote = configFile.aiGeneratedNote.trim();
+    }
+
+    if (configFile.exampleUrlBase !== undefined) {
+        if (typeof configFile.exampleUrlBase !== 'string') {
+            logger.error(
+                `Invalid exampleUrlBase value "${configFile.exampleUrlBase}". Expected string.`
+            );
+            process.exit(2);
+        }
+        mainData.exampleUrlBase = configFile.exampleUrlBase.trim();
+    }
+    if (program.getOptionValueSource('exampleUrlBase') === 'cli') {
+        mainData.exampleUrlBase = String(programOptions.exampleUrlBase).trim();
     }
 
     if (configFile.referencesName !== undefined) {

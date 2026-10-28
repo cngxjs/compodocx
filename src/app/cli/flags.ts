@@ -239,6 +239,11 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
             COMPODOC_DEFAULTS.disableMarkdownPages
         )
         .option(
+            '--exampleUrlBase <url>',
+            'Base URL that relative <example-url> tags are appended to',
+            COMPODOC_DEFAULTS.exampleUrlBase
+        )
+        .option(
             '--showEffects',
             'Show Angular effect() entries in a dedicated Effects block',
             COMPODOC_DEFAULTS.showEffects

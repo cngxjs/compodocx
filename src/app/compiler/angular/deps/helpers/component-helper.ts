@@ -1,5 +1,7 @@
 import { SyntaxKind, ts } from 'ts-morph';
 import { detectIndent } from '../../../../../utils';
+import { resolveExampleUrl } from '../../../../../utils/example-urls';
+import Configuration from '../../../../configuration';
 import type { ClassHelper } from './class-helper';
 import { type IParseDeepIdentifierResult, type ProviderEntry, SymbolHelper } from './symbol-helper';
 
@@ -563,9 +565,12 @@ export class ComponentHelper {
         return this.symbolHelper.getSymbolDeps(props, 'templateUrl', srcFile);
     }
 
-    /** `<example-url>` tags of the declaration's own JSDoc. */
+    /** `<example-url>` tags of the declaration's own JSDoc, resolved against `exampleUrlBase`. */
     public getExampleUrlsOf(node: ts.Node | undefined): Array<string> | undefined {
-        return this.getComponentExampleUrls(jsDocTextOf(node));
+        const base = Configuration.mainData.exampleUrlBase ?? '';
+        return this.getComponentExampleUrls(jsDocTextOf(node))?.map(url =>
+            resolveExampleUrl(url, base)
+        );
     }
 
     public getComponentExampleUrls(text: string): Array<string> | undefined {

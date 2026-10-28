@@ -169,6 +169,7 @@ export class Configuration implements ConfigurationInterface {
         styleFilesBase: '',
         featuresName: 'Features',
         aiGeneratedNote: '',
+        exampleUrlBase: '',
         referencesName: 'References',
         collapsedAll: false,
         menuFeatureSections: DEFAULT_MENU_FEATURE_SECTIONS,

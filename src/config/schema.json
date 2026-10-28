@@ -585,6 +585,13 @@
             "default": "",
             "examples": ["Drafted with AI assistance ({value}) and reviewed by a maintainer."]
         },
+        "exampleUrlBase": {
+            "$id": "/properties/exampleUrlBase",
+            "type": "string",
+            "title": "Base URL that relative <example-url> tags are appended to (string concatenation, so a hash route such as /#/demo keeps the base path). Absolute URLs stay as written. Empty keeps relative URLs as written; the build then lists them in one warning.",
+            "default": "",
+            "examples": ["https://example.github.io/demo"]
+        },
         "referencesName": {
             "$id": "/properties/referencesName",
             "type": "string",
