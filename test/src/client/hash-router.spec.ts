@@ -159,3 +159,33 @@ describe('resolveHash', () => {
         expect(resolveHash('#L10')).toBeNull();
     });
 });
+
+describe('resolveHash with a heading named like a tab', () => {
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('opens the tab panel, not the panel of a Markdown heading with the same id', () => {
+        // `#### Example` in a README renders as <h4 id="example"> before the Example panel.
+        document.body.innerHTML = `
+            <div class="cdx-tab-content">
+                <div class="cdx-tab-panel" id="readme"><h4 id="example">Example</h4></div>
+                <div class="cdx-tab-panel" id="example"><iframe></iframe></div>
+            </div>`;
+
+        const result = resolveHash('#example');
+        expect(result?.kind).toBe('tab');
+        expect(result && 'panel' in result ? result.panel.id : '').toBe('example');
+        expect(result && 'panel' in result ? result.panel.tagName : '').toBe('DIV');
+    });
+
+    it('still reaches a heading that names no tab', () => {
+        document.body.innerHTML = `
+            <div class="cdx-tab-content">
+                <div class="cdx-tab-panel" id="readme"><h4 id="usage">Usage</h4></div>
+            </div>`;
+
+        const result = resolveHash('#usage');
+        expect(result?.kind).toBe('element');
+    });
+});

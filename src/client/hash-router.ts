@@ -47,7 +47,15 @@ export const resolveHash = (hash: string): HashTarget | null => {
         return { kind: 'line', panel, start: Math.min(a, b), end: Math.max(a, b) };
     }
 
-    // Exact panel match (e.g. #api, #source).
+    // Exact panel match (e.g. #api, #source). A Markdown heading of the same
+    // name (`#### Example` -> id="example") comes earlier in the page, so the
+    // panels are searched first.
+    const tabPanel = Array.from(document.querySelectorAll<HTMLElement>('.cdx-tab-panel')).find(
+        panel => panel.id === clean
+    );
+    if (tabPanel) {
+        return { kind: 'tab', panel: tabPanel };
+    }
     const direct = document.getElementById(clean);
     if (!direct) {
         return null;

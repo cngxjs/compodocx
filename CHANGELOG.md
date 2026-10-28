@@ -21,6 +21,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ### Fixed
 
+- **A tab opens although a heading has its name.** A README or description heading such as `#### Example` or `## API` got the same id as the tab of that name, and clicking the tab opened the panel holding the heading instead. Tab panels now win over headings with the same id.
 - **Example tabs show the examples of their own class.** `<example-url>` tags were read from the whole file, so every component, directive, pipe and service of a file got the Example tab and the `exampleUrls` of all its classes. They are now read from the JSDoc of the class itself.
 - **`signal` on components and directives in the JSON export follows the members.** It was `false` on every entry unless the class carried the undocumented `@signal` tag; it is now `true` when the entry has an `input()`, `output()` or `model()` member. The field and the class tag are deprecated (see Deprecated). `@signal` on functions keeps its badge.
 - **A site opened from disk in Firefox keeps its interactive parts.** Firefox reports the origin of a `file://` page as `null`, and the sidebar code built a URL against it, so the script stopped before the graphs, the DOM tree, the command palette, the examples and the other interactive parts started. Clicking a component in the DOM tree on such a site also led nowhere.
