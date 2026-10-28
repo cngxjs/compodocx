@@ -1094,9 +1094,10 @@ describe('CLI simple generation', () => {
             expect(stdoutString).to.contain('Documentation generated');
         });
 
-        it('should process identifiers in route arrays (cleanFileIdentifiers)', () => {
-            expect(stdoutString).to.contain('found          : DYNAMIC_ROUTE_ID');
-            expect(stdoutString).to.contain('found          : FALLBACK_COMPONENT');
+        it('reads file-local identifiers in route arrays without documenting them', () => {
+            expect(stdoutString).not.to.contain('found          : DYNAMIC_ROUTE_ID');
+            expect(stdoutString).not.to.contain('found          : FALLBACK_COMPONENT');
+            expect(stdoutString).to.contain('(1 lazy, 2 dynamic values)');
         });
 
         it('should read the router with spreads followed and dynamic values kept', () => {

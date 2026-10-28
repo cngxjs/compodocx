@@ -100,7 +100,7 @@ describe('CLI coverage report', () => {
                 '-p',
                 './test/fixtures/sample-files/tsconfig.simple.json',
                 '--coverageTest',
-                '40',
+                '70',
                 '-d',
                 distFolder
             ]);
@@ -321,7 +321,7 @@ describe('CLI coverage report', () => {
                 '--coverageMinimumPerFile',
                 '0',
                 '--coverageTest',
-                '40',
+                '70',
                 '-d',
                 distFolder
             ]);

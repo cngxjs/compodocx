@@ -1,5 +1,5 @@
 import Html from '@kitajs/html';
-import { AiGeneratedBadge } from '../components/AiGeneratedBadge';
+import { AiGeneratedBadge, AiGeneratedNote } from '../components/AiGeneratedBadge';
 
 type MarkdownProps = {
     readonly markdown: string;
@@ -12,6 +12,10 @@ export const Markdown = (props: MarkdownProps): string =>
             {props.aiGenerated ? (
                 <div class="cdx-ai-generated-banner">
                     {AiGeneratedBadge({ aiGenerated: props.aiGenerated })}
+                    {AiGeneratedNote({
+                        aiGenerated: props.aiGenerated,
+                        class: 'cdx-ai-generated-note'
+                    })}
                 </div>
             ) : (
                 ''

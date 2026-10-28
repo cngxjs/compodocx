@@ -432,6 +432,14 @@
             "default": false,
             "examples": [false]
         },
+        "disableMarkdownPages": {
+            "$id": "/properties/disableMarkdownPages",
+            "type": "array",
+            "items": { "type": "string", "enum": ["changelog", "contributing", "license", "todo"] },
+            "title": "Root Markdown files not to build as pages (CHANGELOG.md, CONTRIBUTING.md, LICENSE.md, TODO.md): no page, no sidebar link, no search entry. Unknown entries are ignored with a warning.",
+            "default": [],
+            "examples": [["changelog", "license"]]
+        },
         "minimal": {
             "$id": "/properties/minimal",
             "type": "boolean",
@@ -569,6 +577,13 @@
             "title": "Label for the Features chapter in menuLayout: 'feature' (config-only). Defaults to the translated 'features' i18n key.",
             "default": "",
             "examples": ["Features", "Building Blocks"]
+        },
+        "aiGeneratedNote": {
+            "$id": "/properties/aiGeneratedNote",
+            "type": "string",
+            "title": "Visible text next to the AI generated chip of pages and symbols marked @aiGenerated (config-only). {value} is replaced by the marker value. Defaults to the translated 'Drafted with AI assistance.' text, with the marker value in parentheses when there is one.",
+            "default": "",
+            "examples": ["Drafted with AI assistance ({value}) and reviewed by a maintainer."]
         },
         "referencesName": {
             "$id": "/properties/referencesName",

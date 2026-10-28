@@ -61,16 +61,16 @@ export type TypeOrTypeArray = string | symbol | Array<string | symbol>;
 
 export type RouterAdapterOptions = Pick<NavigationExtras, 'replaceUrl'>;
 
-type Foo = '320' | '360' | '1440';
+export type Foo = '320' | '360' | '1440';
 
-type Bar = `(min-width: ${Foo}px)`;
+export type Bar = `(min-width: ${Foo}px)`;
 
-function sumFunction0({ a = 0, b = 1, c = 2 }: { a: number; b: number; c: number }) {
+export function sumFunction0({ a = 0, b = 1, c = 2 }: { a: number; b: number; c: number }) {
     return a + b + c;
 }
 
-function sumFunction(trackId, { a, b, c }: { a: number; b: number; c: number }, test: string) {
+export function sumFunction(trackId, { a, b, c }: { a: number; b: number; c: number }, test: string) {
     return a + b + c;
 }
 
-var [first, second, third] = ['Laide', 'Gabriel', 'Jets'];
+export var [first, second, third] = ['Laide', 'Gabriel', 'Jets'];

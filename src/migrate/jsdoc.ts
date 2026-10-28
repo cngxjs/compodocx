@@ -15,6 +15,9 @@ export interface JsdocStripResult {
 }
 
 const REMOVED = /^@(category|docsKind)\b/;
+/** A block tag: `@name` at the start of the text or after whitespace (`{@link}` is not one). */
+const TAG_START = /(?<=^|\s)@[A-Za-z]/g;
+const FENCE = /^(```|~~~)/;
 const JSDOC_BLOCK = /\/\*\*[\s\S]*?\*\//g;
 const SKIPPED_DIRS: ReadonlySet<string> = new Set(['node_modules', 'dist']);
 
@@ -29,15 +32,39 @@ interface BlockResult {
 }
 
 /**
+ * `text` without the removed tags, each taken up to the next tag. The text
+ * before the first tag and the other tags stay; trailing space is trimmed.
+ */
+const stripInline = (text: string): BlockResult => {
+    const starts = [...text.matchAll(TAG_START)].map(match => match.index ?? 0);
+    const segments = starts.map((start, i) => text.slice(start, starts[i + 1] ?? text.length));
+    const kept = segments.filter(segment => !REMOVED.test(segment));
+    const removed = segments.length - kept.length;
+    if (removed === 0) {
+        return { text, removed: 0 };
+    }
+    const prefix = text.slice(0, starts[0]);
+    return { text: (prefix + kept.join('')).trimEnd(), removed };
+};
+
+/** The closing line of a block split into its decoration and its text. */
+const CLOSING_LINE = /^(\s*(?:\*(?!\/)\s?)?)(.*?)\s*\*\/$/;
+
+/**
  * One JSDoc block without the removed tags; `''` when nothing is left. A
  * removed tag takes only its own line: the lines below it belong to whatever
  * precedes the tag. A blank line right after a removed tag goes too when the
- * tag stood after a blank line or first in the block.
+ * tag stood after a blank line or first in the block. On the opening and the
+ * closing line, and in a single-line block, only the tag and its text go.
+ * Lines inside a code fence are left alone.
  */
 const stripBlock = (block: string): BlockResult => {
     if (!block.includes('\n')) {
-        const inner = block.slice(3, -2).trim();
-        return REMOVED.test(inner) ? { text: '', removed: 1 } : { text: block, removed: 0 };
+        const result = stripInline(block.slice(3, -2).trim());
+        if (result.removed === 0) {
+            return { text: block, removed: 0 };
+        }
+        return { text: result.text === '' ? '' : `/** ${result.text} */`, removed: result.removed };
     }
     const lines = block.split('\n');
     const last = lines.length - 1;
@@ -46,10 +73,24 @@ const stripBlock = (block: string): BlockResult => {
     let afterTag = false;
     let dropBlank = false;
     let droppedBeforeEnd = false;
-    for (let i = 0; i < lines.length; i++) {
-        const inner = i > 0 && i < last;
+    let inFence = false;
+
+    const opening = stripInline(lines[0].slice(3).trim());
+    if (opening.removed > 0) {
+        removed += opening.removed;
+        lines[0] = opening.text === '' ? '/**' : `/** ${opening.text}`;
+        afterTag = opening.text === '';
+        dropBlank = afterTag;
+    }
+
+    kept.push(lines[0]);
+    for (let i = 1; i < lines.length; i++) {
+        const inner = i < last;
         const text = inner ? lineText(lines[i]) : '';
-        if (inner && REMOVED.test(text)) {
+        if (inner && FENCE.test(text)) {
+            inFence = !inFence;
+        }
+        if (inner && !inFence && REMOVED.test(text)) {
             if (!afterTag) {
                 dropBlank = lineText(kept[kept.length - 1]) === '';
             }
@@ -61,6 +102,20 @@ const stripBlock = (block: string): BlockResult => {
             afterTag = false;
             droppedBeforeEnd = i === last - 1;
             continue;
+        }
+        if (i === last && !inFence) {
+            const closing = CLOSING_LINE.exec(lines[i]);
+            const result = closing ? stripInline(closing[2]) : { text: '', removed: 0 };
+            if (closing && result.removed > 0) {
+                removed += result.removed;
+                if (result.text === '') {
+                    kept.push(`${/^\s*/.exec(lines[i])?.[0] ?? ''}*/`);
+                    droppedBeforeEnd = true;
+                    break;
+                }
+                kept.push(`${closing[1]}${result.text} */`);
+                break;
+            }
         }
         if (i === last && afterTag) {
             droppedBeforeEnd = true;
@@ -76,7 +131,8 @@ const stripBlock = (block: string): BlockResult => {
             kept.splice(kept.length - 2, 1);
         }
     }
-    const hasContent = kept.slice(1, -1).some(line => lineText(line) !== '');
+    const hasContent =
+        lineText(kept[0]) !== '' || kept.slice(1, -1).some(line => lineText(line) !== '');
     return { text: hasContent ? kept.join('\n') : '', removed };
 };
 
@@ -110,9 +166,14 @@ export const stripRemovedJsdocTags = (file: string, source: string): JsdocStripR
         if (before.trim() === '' && after.trim() === '') {
             output += source.slice(cursor, lineStart);
             cursor = newline === -1 ? source.length : newline + 1;
-        } else {
-            output += source.slice(cursor, start);
+        } else if (after.trim() === '') {
+            // Code before the block: drop the space between them too.
+            output += source.slice(cursor, start).trimEnd();
             cursor = end;
+        } else {
+            // Code after the block: its leading space would double the gap.
+            output += source.slice(cursor, start);
+            cursor = end + (after.length - after.trimStart().length);
         }
     }
     output += source.slice(cursor);

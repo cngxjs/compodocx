@@ -111,6 +111,10 @@
     margin-left: 0;
 }
 
+.cdx-ai-generated-banner .cdx-ai-generated-note {
+    margin: 0;
+}
+
 .dark .cdx-ai-generated-banner {
     background: color-mix(in srgb, hsl(290 55% 48%) 14%, var(--color-cdx-bg));
     border-color: color-mix(in srgb, hsl(290 55% 48%) 30%, transparent);

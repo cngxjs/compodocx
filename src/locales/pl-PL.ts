@@ -2,6 +2,8 @@ export const TRANSLATION_PL_PL = {
     accessors: 'Akcesor',
     'ai-generated': 'Wygenerowane przez AI',
     'ai-generated-tooltip': 'Ta treść została wygenerowana z pomocą AI',
+    'ai-generated-note': 'Przygotowano z pomocą AI.',
+    'ai-generated-note-value': 'Przygotowano z pomocą AI ({{value}}).',
     'all-features': 'Wszystkie funkcje',
     api: 'API',
     'api-reference': 'API Reference',

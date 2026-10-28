@@ -48,6 +48,8 @@ export const COMPODOC_DEFAULTS = {
     disableProperties: false,
     disableFilePath: false,
     disableOverview: false,
+    /** Root Markdown pages not to build (`changelog`, `contributing`, `license`, `todo`). */
+    disableMarkdownPages: [] as string[],
     showEffects: false,
     hideGenerator: false,
     hideDarkModeToggle: false,

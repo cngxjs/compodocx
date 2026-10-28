@@ -30,7 +30,7 @@ import { ProvidersSection } from '../blocks/ProvidersSection';
 import { ReferencedBySection } from '../blocks/ReferencedBySection';
 import { RelatedSection } from '../blocks/RelatedSection';
 import { RouteChip } from '../blocks/RouteChip';
-import { AiGeneratedBadge } from '../components/AiGeneratedBadge';
+import { AiGeneratedBadge, AiGeneratedNote } from '../components/AiGeneratedBadge';
 import { AxisBadges, entityAxes } from '../components/AxisBadges';
 import { EmptyState } from '../components/EmptyState';
 import { EmptyIconDocument } from '../components/EmptyStateIcons';
@@ -649,6 +649,12 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
                     {WcagBadge({ wcagLevel: e.wcagLevel })}
                     {AxisBadges({ axes })}
                 </div>
+                {props.showJsdocBadges
+                    ? AiGeneratedNote({
+                          aiGenerated: e.aiGenerated,
+                          class: 'cdx-entity-hero-ai-note'
+                      })
+                    : ''}
                 {props.contextLine ? (
                     <p class="cdx-entity-hero-context">{props.contextLine}</p>
                 ) : (

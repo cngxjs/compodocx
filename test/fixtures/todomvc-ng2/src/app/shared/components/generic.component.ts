@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 
-interface Foo<T> {
+export interface Foo<T> {
     data: T;
 }
 

@@ -40,8 +40,8 @@ describe('CLI Export', () => {
             expect(ids.length).to.be.greaterThan(0);
             expect(new Set(ids)).to.deep.equal(
                 new Set([
-                    'test/fixtures/todomvc-ng2/src/app/shared/miscellaneous/miscellaneous.ts:68:23',
-                    'test/fixtures/todomvc-ng2/src/app/shared/miscellaneous/miscellaneous.ts:72:31'
+                    'test/fixtures/todomvc-ng2/src/app/shared/miscellaneous/miscellaneous.ts:68:30',
+                    'test/fixtures/todomvc-ng2/src/app/shared/miscellaneous/miscellaneous.ts:72:38'
                 ])
             );
         });

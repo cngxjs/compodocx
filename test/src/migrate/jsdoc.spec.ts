@@ -86,6 +86,71 @@ describe('migrate jsdoc', () => {
         expect(strip(multi)).toEqual({ file: 'x.ts', output: 'export class C {}\n', removed: 2 });
     });
 
+    it.each([
+        {
+            name: 'a single-line block keeps the tags that are not removed',
+            source: '/** @category X @internal */\nexport const a = 1;\n',
+            output: '/** @internal */\nexport const a = 1;\n',
+            removed: 1
+        },
+        {
+            name: 'a single-line block keeps its description',
+            source: '/** Text. @category X */\nexport const a = 1;\n',
+            output: '/** Text. */\nexport const a = 1;\n',
+            removed: 1
+        },
+        {
+            name: 'a single-line block keeps the text around a removed middle tag',
+            source: '/** Text. @docsKind primary @since 1.0 */\n',
+            output: '/** Text. @since 1.0 */\n',
+            removed: 1
+        },
+        {
+            name: 'a tag on the opening line goes with the blank line below it',
+            source: '/** @category X\n *\n * Text.\n */\nexport class A {}\n',
+            output: '/**\n * Text.\n */\nexport class A {}\n',
+            removed: 1
+        },
+        {
+            name: 'an opening line keeps its description',
+            source: '/** Text. @category X\n * More.\n */\n',
+            output: '/** Text.\n * More.\n */\n',
+            removed: 1
+        },
+        {
+            name: 'a tag on the closing line goes, the block end stays',
+            source: '/**\n * Text.\n * @category X */\nexport class A {}\n',
+            output: '/**\n * Text.\n */\nexport class A {}\n',
+            removed: 1
+        },
+        {
+            name: 'a closing line keeps its description',
+            source: '/**\n * Text.\n * More. @docsKind primary */\n',
+            output: '/**\n * Text.\n * More. */\n',
+            removed: 1
+        },
+        {
+            name: 'an inline block leaves no double space behind',
+            source: 'class A {\n    /** @docsKind primary */ foo = 1;\n}\n',
+            output: 'class A {\n    foo = 1;\n}\n',
+            removed: 1
+        },
+        {
+            name: 'an inline block after code leaves no trailing space',
+            source: 'const a = 1; /** @category X */\n',
+            output: 'const a = 1;\n',
+            removed: 1
+        },
+        {
+            name: 'a tag inside a code fence of the block stays',
+            source: '/**\n * Usage:\n * ```ts\n * @category X\n * ```\n * @category Y\n */\n',
+            output: '/**\n * Usage:\n * ```ts\n * @category X\n * ```\n */\n',
+            removed: 1
+        }
+    ])('$name', ({ source, output, removed }) => {
+        expect(strip(source)).toEqual({ file: 'x.ts', output, removed });
+    });
+
     it('leaves other tags and files without the tags byte-identical', () => {
         const source =
             '/**\n * Toast.\n *\n * @example\n * ```ts\n * toast();\n * ```\n * @deprecated use alert\n */\n// @category in a line comment\n';

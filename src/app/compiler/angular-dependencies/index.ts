@@ -29,6 +29,7 @@ import { type LegacyFinding, scanLegacy, sortLegacyFindings } from '../legacy-sc
 import { isAngularServiceDecorator, serviceOptions } from './angular-service';
 import { EntityVisitor } from './entity-visitor';
 import { ExpressionFinder } from './expression-finder';
+import { isExportedFromFile, localExportNames } from './file-exports';
 import { IoExtractor } from './io-extractor';
 import { JsdocTags } from './jsdoc-tags';
 import { MetadataPredicates } from './metadata-predicates';
@@ -300,6 +301,7 @@ export class AngularDependencies extends FrameworkDependencies {
             typeof this.project.getSourceFile(initialSrcFile.fileName) !== 'undefined'
                 ? this.project.getSourceFile(initialSrcFile.fileName)
                 : this.project.addSourceFileAtPath(initialSrcFile.fileName);
+        const exportNames = localExportNames(scannedFile);
 
         ts.forEachChild(scannedFile, (initialNode: ts.Node) => {
             if (
@@ -311,6 +313,15 @@ export class AngularDependencies extends FrameworkDependencies {
             const parseNode = (file, srcFile, node, fileBody, astFile) => {
                 const sourceCode = srcFile.getText();
                 const hash = crypto.createHash('sha512').update(sourceCode).digest('hex');
+                // Only what the file exports is documented; namespace members keep their
+                // own scope and stay as they are.
+                const isFileLocal = (declaration: ts.Node, name: string): boolean => {
+                    if (fileBody || isExportedFromFile(declaration, name, srcFile, exportNames)) {
+                        return false;
+                    }
+                    logger.debug(`Skipping ${name} (not exported from ${file})`);
+                    return true;
+                };
 
                 if (nodeHasDecorator(node)) {
                     let classWithCustomDecorator = false;
@@ -504,6 +515,9 @@ export class AngularDependencies extends FrameworkDependencies {
                         this.processClass(node, file, srcFile, outputSymbols, fileBody, astFile);
                     } else if (node.symbol.flags === ts.SymbolFlags.Interface) {
                         const name = this.expressionFinder.getSymboleName(node);
+                        if (isFileLocal(node, name)) {
+                            return;
+                        }
 
                         // Check if interface is allowed by public API filter
                         if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
@@ -565,6 +579,10 @@ export class AngularDependencies extends FrameworkDependencies {
                     } else if (ts.isFunctionDeclaration(node)) {
                         const infos = this.entityVisitor.visitFunctionDeclaration(node);
                         const name = infos.name;
+
+                        if (isFileLocal(node, name)) {
+                            return;
+                        }
 
                         // Check if function is allowed by public API filter
                         if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
@@ -633,6 +651,10 @@ export class AngularDependencies extends FrameworkDependencies {
                         const infos = this.entityVisitor.visitEnumDeclaration(node);
                         const name = infos.name;
 
+                        if (isFileLocal(node, name)) {
+                            return;
+                        }
+
                         // Check if enum is allowed by public API filter
                         if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
                             logger.debug(`Skipping enum ${name} (not in public API)`);
@@ -664,6 +686,10 @@ export class AngularDependencies extends FrameworkDependencies {
                     } else if (ts.isTypeAliasDeclaration(node)) {
                         const infos = this.entityVisitor.visitTypeDeclaration(node);
                         const name = infos.name;
+
+                        if (isFileLocal(node, name)) {
+                            return;
+                        }
 
                         // Check if type alias is allowed by public API filter
                         if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
@@ -753,6 +779,9 @@ export class AngularDependencies extends FrameworkDependencies {
                                     this.entityVisitor.visitVariableDeclaration(variableNode);
                                 if (infos) {
                                     const name = infos.name;
+                                    if (isFileLocal(node, name)) {
+                                        return;
+                                    }
                                     const deprecated = infos.deprecated;
                                     const deprecationMessage = infos.deprecationMessage;
                                     const deps: any = {
@@ -988,6 +1017,9 @@ export class AngularDependencies extends FrameworkDependencies {
                                         const name = destructuredVariable.name
                                             ? destructuredVariable.name.escapedText
                                             : '';
+                                        if (isFileLocal(node, name)) {
+                                            continue;
+                                        }
                                         const deps: any = {
                                             name,
                                             ctype: 'miscellaneous',

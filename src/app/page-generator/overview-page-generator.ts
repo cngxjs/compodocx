@@ -15,8 +15,15 @@ export class OverviewPageGenerator {
             let i = 0;
             const markdowns = ['readme', 'changelog', 'contributing', 'license', 'todo'];
             const numberOfMarkdowns = 5;
+            const disabled: readonly string[] = Configuration.mainData.disableMarkdownPages ?? [];
             const loop = () => {
                 if (i < numberOfMarkdowns) {
+                    if (disabled.includes(markdowns[i])) {
+                        logger.info(`${markdowns[i].toUpperCase()}.md page skipped`);
+                        i++;
+                        loop();
+                        return;
+                    }
                     const fileName = markdowns[i].toUpperCase();
                     const found = MarkdownEngine.hasTraditionalMarkdown(fileName);
                     // Only a missing README is worth a warning; the other files are optional.

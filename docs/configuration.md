@@ -71,15 +71,15 @@ Controls where and how the documentation is generated.
 
 ### Semantic fields in the JSON export
 
-With `-e json`, every symbol entry (components, directives, classes, injectables, services, tokens, interfaces, pipes, guards, interceptors and the miscellaneous functions, variables, type aliases and enumerations) can carry facts from a project-wide analysis of the `-p` tsconfig (its `extends`, `paths` and `baseUrl` included). All fields are optional; an empty list or a `false` flag is never written, so a symbol without facts looks exactly as before. The HTML output builds on the same facts: the Dependency Injection chapter and the feature type pages, the "Used by" lists, the Provider, Feature and Injection context badges, and the symbols that reach no entry point, which get no page.
+With `-e json`, every symbol entry (components, directives, classes, injectables, services, tokens, interfaces, pipes, guards, interceptors and the miscellaneous functions, variables, type aliases and enumerations) can carry facts from a project-wide analysis of the `-p` tsconfig (its `extends`, `paths` and `baseUrl` included). All fields are optional; an empty list or a `false` flag is never written, so a symbol without facts looks exactly as before. Only declarations their file exports are documented at all (`export` on the declaration, `export { name }` or `export default name`); file-local helpers get no entry, page or coverage row. A file without any import or export keeps all of its declarations. The HTML output builds on the same facts: the Dependency Injection chapter and the feature type pages, the "Used by" lists, the Provider, Feature and Injection context badges, and the symbols that reach no entry point, which get no page.
 
 | Field | Type | Meaning |
 |-|-|-|
 | `entryPoint` | string | Import path of the nearest entry point that exports the symbol |
 | `exportedBy` | string[] | Import paths of every entry point that exports the symbol, sorted |
-| `notExported` | `true` | Exported from its file, inside an entry point, but reachable from no entry point. Symbols tagged `@internal` are never flagged |
+| `notExported` | `true` | Exported from its file, inside an entry point, but reachable from no entry point. Symbols tagged `@internal` are never flagged. Such an entry has no `entryPoint`, `exportedBy` or `feature` |
 | `usedBy` | `{ name, file }[]` | Top-level declarations of the same project that reference the symbol |
-| `di.role` | `'provider'` \| `'feature'` | Provider: annotated return type `Provider`, `EnvironmentProviders`, an array or a union of them. Feature: returns the type a provider accepts as its rest parameter (`...features: T[]`), matched by name |
+| `di.role` | `'provider'` \| `'feature'` | Provider: annotated return type `Provider`, `EnvironmentProviders`, an array or a union of them. Feature: returns the type a provider accepts as its rest parameter (`...features: T[]`), matched by name. Set only for functions their file exports; a function without any DI fact has no `di` field |
 | `di.featureType` | `{ name, file }` | The feature type of a provider or feature function; providers sharing it belong together |
 | `di.providesTokens` | `{ name, file }[]` | Tokens in `provide:` entries of a provider, plus those of the providers and helper functions it calls (one level) |
 | `di.readsTokens` | `{ name, file }[]` | Tokens read with `inject()`, directly or through one called helper |
@@ -90,6 +90,8 @@ With `-e json`, every symbol entry (components, directives, classes, injectables
 | `routedAt` | string[] | Components: full paths of the routes rendering the component |
 | `mountedAt` | string[] | Route array variables: full paths of the places a router mounts the array at |
 | `axes` | `Record<string, string>` | Values on the declared classification axes, by axis name. `semantic.axes` lists each axis with `label`, `values` (`{ value, count }`), `classified` and `unclassified` |
+
+Entries with `notExported` stay in the JSON export; the HTML output gives them no page and the llm-md export leaves them out. They belong to no feature and no entry point. To read only the public API of a library, keep the entries whose `entryPoint` is set (in an application without entry points no entry has one).
 
 Entry points are the `ng-package.json` entry files below the workspace, plus tsconfig `paths` targets without a wildcard that re-export from other files (`export ... from`). The top-level `semantic` object lists them (`importPath`, `file`, `source`) with the counts of the analysis, which the build log also prints as one `Semantic analysis:` line. Every `file` is relative to the working directory. `schemaVersion` is `6`.
 
@@ -175,6 +177,7 @@ These flags disable entire features, tabs, or pages. Unlike visibility filters w
 | disableSearch | `--disableSearch` | boolean | `false` | Remove the Pagefind search functionality. Disables the command palette (Ctrl+K), the search input, and skips Pagefind index generation at build time |
 | disableCoverage | `--disableCoverage` | boolean | `false` | Remove the documentation coverage report page. Coverage measures how many public members have JSDoc descriptions |
 | disableOverview | `--disableOverview` | boolean | `false` | Remove the overview/dashboard page that shows project-level statistics and the main dependency graph |
+| disableMarkdownPages | `--disableMarkdownPages <pages>` | string[] | `[]` | Root Markdown files of the working directory not to build as pages: `changelog` (CHANGELOG.md), `contributing` (CONTRIBUTING.md), `license` (LICENSE.md or LICENSE), `todo` (TODO.md). A listed file gets no page, no sidebar link and no search entry. Comma-separated on the CLI (`--disableMarkdownPages changelog,license`); the flag replaces the config value. An unknown entry is ignored with a warning; the README stays the index page |
 | minimal | `--minimal` | boolean | `false` | Shorthand that disables search, all graphs, routes and the coverage report in one flag. Equivalent to `--disableSearch --disableGraph --disableRoutes --disableCoverage` |
 
 ## Dependency graph
@@ -234,6 +237,7 @@ Include external documentation, static assets, or supply custom templates.
 | includes | `--includes` | string | -- | Path to a folder of external markdown files, absolute or relative to the working directory (also in a config file). A folder that does not exist is reported with a warning. Each `.md` file becomes a page in the documentation, accessible via a dedicated sidebar section. Supports nested folders for sub-navigation |
 | includesName | `--includesName` | string | `'Additional documentation'` | Sidebar label for the external markdown pages section |
 | includesLabels | `--includesLabels` | string | -- | Path to a JSON file keyed by page slug, each entry with an optional `label` (sidebar text) and `title` (page title). Read only when `includes` is set. See [Additional pages](additional-pages.md) |
+| aiGeneratedNote | _config-only_ | string | `''` (i18n default) | Sentence shown next to the "AI generated" chip of a page or symbol marked `@aiGenerated` (Markdown pages with `<!-- @aiGenerated [value] -->` as their first line, symbols with the JSDoc tag). `{value}` is replaced by the marker value, or by nothing for a bare marker. Empty uses the translated default, "Drafted with AI assistance." or, with a value, "Drafted with AI assistance (value)." |
 | assetsFolder | `-a, --assetsFolder` | string | -- | Path to a folder of static assets (images, files) copied into the output directory. Referenced from markdown or custom templates via relative paths |
 | templates | `--templates` | string | -- | Path to a directory containing JS template overrides. Each file exports a function `(data, helpers) => string` that replaces the corresponding built-in template. See [Custom Templates](custom-templates.md) for the full API. Handlebars `.hbs` files in `partials/` are skipped with one warning. The removed `--templatePlayground` / `templatePlayground` are ignored with a warning |
 
@@ -677,6 +681,7 @@ Compodocx recognizes these custom JSDoc tags on any entity or member:
 |-|-|
 | `@since <version>` | Adds a version badge to the entity hero |
 | `@beta` | Adds a "Beta" badge |
+| `@aiGenerated [value]` | Adds an "AI generated" chip and, below the hero badges, a sentence with the value (for example a model name or a date); the text is set with `aiGeneratedNote`. The JSON export carries `aiGenerated` |
 | `@breaking <version>` | Adds a "Breaking" badge with version |
 | `@internal` | Hides the member when `--disableInternal` is set |
 | `@feature <key>` | Puts the symbol into the feature `<key>` of its entry point (or app), above the detected feature; the `features` config wins over the tag. One segment of lower-case letters, digits and dashes |

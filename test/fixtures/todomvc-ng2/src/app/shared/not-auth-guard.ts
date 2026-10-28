@@ -1,5 +1,5 @@
 import { CanMatchFn } from '@angular/router';
 
-const NotAuthGuard: CanMatchFn = () => {
+export const NotAuthGuard: CanMatchFn = () => {
     return true;
 };

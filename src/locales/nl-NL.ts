@@ -2,6 +2,8 @@ export const TRANSLATION_NL_NL = {
     accessors: 'Accessors',
     'ai-generated': 'AI-gegenereerd',
     'ai-generated-tooltip': 'Deze inhoud is gegenereerd met AI-ondersteuning',
+    'ai-generated-note': 'Opgesteld met AI-ondersteuning.',
+    'ai-generated-note-value': 'Opgesteld met AI-ondersteuning ({{value}}).',
     'all-features': 'Alle features',
     api: 'API',
     'api-reference': 'API Reference',

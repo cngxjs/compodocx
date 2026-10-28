@@ -2,6 +2,8 @@ export const TRANSLATION_KA_GE = {
     accessors: 'აქსესორი',
     'ai-generated': 'AI-ის გენერირებული',
     'ai-generated-tooltip': 'ეს კონტენტი შექმნილია AI-ის დახმარებით',
+    'ai-generated-note': 'შედგენილია AI-ის დახმარებით.',
+    'ai-generated-note-value': 'შედგენილია AI-ის დახმარებით ({{value}}).',
     'all-features': 'ყველა ფუნქციონალი',
     api: 'API',
     'api-reference': 'API Reference',

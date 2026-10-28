@@ -2,6 +2,8 @@ export const TRANSLATION_BG_BG = {
     accessors: 'Accessors',
     'ai-generated': 'Генерирано от ИИ',
     'ai-generated-tooltip': 'Това съдържание е създадено с помощта на ИИ',
+    'ai-generated-note': 'Изготвено с помощта на ИИ.',
+    'ai-generated-note-value': 'Изготвено с помощта на ИИ ({{value}}).',
     'all-features': 'Всички функционалности',
     api: 'API',
     'api-reference': 'API Reference',

@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Added
+
+- **`disableMarkdownPages` skips root Markdown pages.** The new config key and `--disableMarkdownPages` flag take a list of `changelog`, `contributing`, `license` and `todo`; the matching files in the working directory then get no page, no sidebar link and no search entry. Before, every such file that existed was built.
+- **Visible text for `@aiGenerated`.** Pages and symbols marked `@aiGenerated` now show a sentence next to the "AI generated" chip, "Drafted with AI assistance." or, with a marker value, "Drafted with AI assistance (value).", translated in all 17 locales. Before, the marker value only appeared in the chip's tooltip. The new config key `aiGeneratedNote` sets the sentence, `{value}` standing for the marker value. The tooltip no longer carries the value.
+
+### Fixed
+
+- **A site opened from disk in Firefox keeps its interactive parts.** Firefox reports the origin of a `file://` page as `null`, and the sidebar code built a URL against it, so the script stopped before the graphs, the DOM tree, the command palette, the examples and the other interactive parts started. Clicking a component in the DOM tree on such a site also led nowhere.
+- **Only what a file exports is documented.** Functions, variables, interfaces, type aliases, enums and injection tokens that their file does not export no longer get a page, a sidebar entry, a coverage row or an entry in the JSON and llm-md exports. `export` on the declaration, `export { name }` and `export default name` count; a file without any import or export keeps all of its declarations, and routes arrays keep their own rule. Coverage figures change accordingly. See [MIGRATION.md](MIGRATION.md#changes-in-0111).
+- **`compodocx migrate jsdoc` keeps what a short comment block still says.** In a single-line block (`/** @category x @internal */`) it removed the whole block with the other tags; now only `@category` / `@docsKind` and their text go. A tag on the opening or closing line of a longer block, or after text in a single-line block, is now removed too, a tag line inside a code fence in the block stays, and removing an inline block no longer leaves a double space.
+
 ## [0.11.0] - 2026-10-27
 
 Upgrading from 0.10: no flag, config key or URL was removed. Custom `overview` templates, scripts and CSS written for the old dependency graph (`data.dependencyGraph`, `window.DEPENDENCY_GRAPH`, the edge markup), hosting that serves only selected files (the overview now loads `js/graph.js`) and sites with a custom logo need a look; [MIGRATION.md](MIGRATION.md) lists each change.

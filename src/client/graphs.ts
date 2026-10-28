@@ -192,10 +192,11 @@ const initDomTree = async () => {
         // Click handler for component nodes
         node.on('click', (_event: any, d: any) => {
             if (d.data.isComponent && d.data.componentName) {
-                const current = globalThis.location;
-                document.location.href =
-                    current.origin +
-                    current.pathname.replace(ACTUAL_COMPONENT.name, d.data.componentName);
+                // Path only: Firefox reports the origin of a file:// page as `"null"`.
+                document.location.href = globalThis.location.pathname.replace(
+                    ACTUAL_COMPONENT.name,
+                    d.data.componentName
+                );
             }
         });
 

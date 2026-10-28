@@ -7,6 +7,7 @@ import { err, isErr, ok, type Result } from '../../lib';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { parseJsonIndent } from '../../utils/json-indent.util';
 import { logger } from '../../utils/logger';
+import { parseDisableMarkdownPages } from '../../utils/markdown-pages';
 import { parseMaxSearchResults } from '../../utils/max-search-results.util';
 import { parseMaxVersionsShown } from '../../utils/max-versions-shown.util';
 import { parseMenuFeatureSections } from '../../utils/menu-feature-sections';
@@ -253,7 +254,8 @@ function applyMenuFeatureSections(
  *  - `process.exit(1)` for invalid `--jsonIndent` / `--maxVersionsShown` /
  *    `--maxSearchResults` /
  *    missing custom-theme file / `--tsconfig` boolean.
- *  - `process.exit(2)` for invalid `menuLayout` / `collapsedAll` / `featuresName` / `referencesName` config.
+ *  - `process.exit(2)` for invalid `menuLayout` / `collapsedAll` / `featuresName` / `aiGeneratedNote` /
+ *    `referencesName` config.
  *  - Mutates `logger.silent` and `logger.routeToStderr`.
  *  - Mutates `I18nEngine` via the language-availability warning.
  *
@@ -828,6 +830,18 @@ export function applyConfigToMainData(
         mainData.disableOverview = programOptions.disableOverview;
     }
 
+    const disableMarkdownPages =
+        program.getOptionValueSource('disableMarkdownPages') === 'cli'
+            ? programOptions.disableMarkdownPages
+            : configFile.disableMarkdownPages;
+    if (disableMarkdownPages !== undefined) {
+        const parsed = parseDisableMarkdownPages(disableMarkdownPages);
+        for (const warning of parsed.warnings) {
+            logger.warn(warning);
+        }
+        mainData.disableMarkdownPages = parsed.pages;
+    }
+
     if (configFile.showEffects) {
         mainData.showEffects = configFile.showEffects;
     }
@@ -976,6 +990,16 @@ export function applyConfigToMainData(
             process.exit(2);
         }
         mainData.featuresName = configFile.featuresName;
+    }
+
+    if (configFile.aiGeneratedNote !== undefined) {
+        if (typeof configFile.aiGeneratedNote !== 'string') {
+            logger.error(
+                `Invalid aiGeneratedNote value "${configFile.aiGeneratedNote}". Expected string.`
+            );
+            process.exit(2);
+        }
+        mainData.aiGeneratedNote = configFile.aiGeneratedNote.trim();
     }
 
     if (configFile.referencesName !== undefined) {
