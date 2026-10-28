@@ -8,6 +8,7 @@ User-facing guides for compodocx. Start with the [repository README](../README.m
 | [custom-templates.md](custom-templates.md) | JavaScript template overrides for pages and blocks, their data and helpers |
 | [additional-pages.md](additional-pages.md) | Hand-written Markdown pages from a `summary.json` table of contents |
 | [theming-tokens-authoring-guide.md](theming-tokens-authoring-guide.md) | Documenting CSS custom properties, SCSS variables and mixins for the Theming tab |
+| [json-export.md](json-export.md) | Versions of the `documentation.json` schema, what changed in each, and the compatibility policy |
 | [versioned-docs.md](versioned-docs.md) | Multi-version output, `versions.json`, the version switcher and `redirects.json` |
 | [i18n.md](i18n.md) | Adding a language to the generated documentation |
 | [RELEASING.md](RELEASING.md) | How a compodocx release is tagged and published |

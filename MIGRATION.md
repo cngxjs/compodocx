@@ -432,6 +432,8 @@ The header fields are `schemaVersion`, `generatedAt` (ISO 8601) and `compodocxVe
 
 `compodocx diff` reads schema 6 only: an older or newer export exits with code 2 and asks to re-export (or to upgrade compodocx). Re-export stored baselines after upgrading. `compodocx diff` does not compare `routes` or `styleFiles`.
 
+Every schema version, the changes of values within schema 6 by release, and the compatibility policy for future changes are listed in [`docs/json-export.md`](https://github.com/cngxjs/compodocx/blob/develop/docs/json-export.md).
+
 ## Removed i18n keys
 
 Custom locale overrides of these keys have no effect any more. Removed with the pages they labelled: `category`, `declarations`, `docskind-primary-title`, `empty-category-desc`, `empty-category-title`, `entrycomponents`, `module`, `modules`, `no-graph`, `no-svg`, `open-detail-page`.
