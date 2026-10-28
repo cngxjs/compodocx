@@ -67,7 +67,7 @@ Useful flags:
 
 Re-running `ng add @cngxjs/compodocx` is idempotent (zero diff on the second pass). CI workflow files that invoke `compodoc -p ...` directly are not rewritten - update those manually, or rely on the `compodoc` bin alias the new package still ships. The schematic does not touch your sources, templates or config file: the warnings of the first run still apply.
 
-## Changes in 0.11.1
+## Changes in 0.12.0
 
 No flag or config key was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.11.0:
 
