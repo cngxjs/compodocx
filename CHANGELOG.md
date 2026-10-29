@@ -6,7 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
-## [Unreleased]
+## [0.12.1] - 2026-10-29
+
+Upgrading from 0.12.0: nothing to change. The JSON export schema stays 6; `slots` entries of multi-line `@slot` tags now carry the right name and description.
 
 ### Fixed
 
