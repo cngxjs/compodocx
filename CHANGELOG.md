@@ -21,6 +21,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 ### Fixed
 
 - **Generator footer under a long sidebar.** The "Generated using compodocx" footer was the last item of the menu list and only came into view after scrolling to its end. It now sits below the menu, which scrolls on its own, so the footer is visible without scrolling on wide screens and in the off-canvas sidebar.
+- **Missing assets folder.** An `assetsFolder` (or `-a`) that does not exist was logged as an error, although the build went on and exited with code 0. It is now a warning that names the resolved path and the option to check.
 
 ## [0.12.1] - 2026-10-29
 

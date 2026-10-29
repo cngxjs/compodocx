@@ -106,13 +106,15 @@ const copyLogoDark = (mainData: MainDataInterface, finalOutput: string): Promise
     );
 };
 
-/** Copy the user's `--assetsFolder` into the output folder. */
+/** Copy the user's `--assetsFolder` into the output folder; a missing folder only warns. */
 export const copyAssetsFolder = async (ctx: OutputContext): Promise<void> => {
     const { mainData } = ctx.config;
     logger.info('Copy assets folder');
 
     if (!FileEngine.existsSync(mainData.assetsFolder)) {
-        logger.error(`Provided assets folder ${mainData.assetsFolder} did not exist`);
+        logger.warn(
+            `Assets folder ${path.resolve(mainData.assetsFolder)} does not exist, nothing copied (check assetsFolder or -a)`
+        );
         return;
     }
 
