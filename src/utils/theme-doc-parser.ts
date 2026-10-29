@@ -1341,14 +1341,32 @@ export function collectStyleSources(args: {
     return sources;
 }
 
+/** The prefix of custom properties hidden from the docs (`themingPrivatePrefix`). */
+export const DEFAULT_THEMING_PRIVATE_PREFIX = '--_';
+
+/**
+ * The tokens without the custom properties whose name starts with `prefix`;
+ * `false` keeps every token. A hook (`@cssprop`) stays: naming the property in
+ * a tag is an explicit choice to document it.
+ */
+export const withoutPrivateTokens = (
+    tokens: readonly ThemeToken[],
+    prefix: string | false
+): ThemeToken[] =>
+    prefix === false
+        ? [...tokens]
+        : tokens.filter(token => token.kind === 'css-hook' || !token.name.startsWith(prefix));
+
 /**
  * Pull every documented theme token out of a component's styles. Convenience
  * wrapper that runs `collectStyleSources()` and `parseStyleSource()` end-to-end.
+ * `privatePrefix` is `themingPrivatePrefix`; the default keeps every token.
  */
 export function collectThemeTokens(args: {
     entityFile: string | undefined | null;
     styleUrls?: string[];
     styles?: string[];
+    privatePrefix?: string | false;
 }): { tokens: ThemeToken[]; sources: StyleSource[]; overview: string; mixins: StyleMixin[] } {
     const sources = collectStyleSources(args);
     const tokens: ThemeToken[] = [];
@@ -1356,7 +1374,7 @@ export function collectThemeTokens(args: {
     const overviewParts: string[] = [];
     for (const src of sources) {
         const parsed = parseStyleSource(src.content, src.file, src.language);
-        tokens.push(...parsed.tokens);
+        tokens.push(...withoutPrivateTokens(parsed.tokens, args.privatePrefix ?? false));
         mixins.push(...parsed.mixins);
         overviewParts.push(...parsed.overview);
     }

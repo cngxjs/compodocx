@@ -728,6 +728,16 @@
             "title": "Sections of the Theming tab, in order (config-only). Empty renders all of them",
             "default": [],
             "examples": [["overview", "tokens"]]
+        },
+        "themingPrivatePrefix": {
+            "$id": "/properties/themingPrivatePrefix",
+            "anyOf": [
+                { "type": "string", "pattern": "^--." },
+                { "const": false }
+            ],
+            "title": "Custom properties whose name starts with this prefix are hidden from the docs (config-only). false lists every property",
+            "default": "--_",
+            "examples": ["--_", "--private-", false]
         }
     }
 }

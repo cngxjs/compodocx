@@ -1,5 +1,6 @@
 import { COMPODOC_DEFAULTS } from '../utils/defaults';
 import { DEFAULT_MENU_FEATURE_SECTIONS } from '../utils/menu-feature-sections';
+import { DEFAULT_THEMING_PRIVATE_PREFIX } from '../utils/theme-doc-parser';
 import {
     DEFAULT_FEATURE_CONTAINERS,
     DEFAULT_FEATURE_ROLE_FOLDERS,
@@ -144,6 +145,7 @@ export class Configuration implements ConfigurationInterface {
         infoTabSections: [],
         apiTabSections: [],
         themingTabSections: [],
+        themingPrivatePrefix: DEFAULT_THEMING_PRIVATE_PREFIX,
         workspacePackage: {},
         playgroundDependencies: {},
         playgroundMaterialShell: false,

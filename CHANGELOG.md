@@ -11,6 +11,11 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 ### Added
 
 - **`@internal` in style comments.** A doc block in a CSS or SCSS file that carries `@internal` hides what it documents from the docs: a custom property, an `@property` rule, a `@cssprop` hook, an SCSS variable, mixin or function. The token no longer appears on the Theming tab, the style page, the design tokens page or in the JSON and llm-md exports, and the block is not reported as unattached. See [Hiding tokens from the docs](docs/theming-tokens-authoring-guide.md#hiding-tokens-from-the-docs).
+- **`themingPrivatePrefix`.** The new config key names the prefix of custom properties that are hidden from the docs, `'--_'` by default; `false` lists every property again. See [Hidden tokens](docs/configuration.md#hidden-tokens).
+
+### Changed
+
+- **Custom properties named `--_...` are hidden from the docs.** `@property` rules and declarations whose name starts with `--_`, documented or not, no longer appear on the Theming tab, the style page, the design tokens page or in `themeTokens` and `styleFiles[].tokens` of the JSON export and the llm-md export. `@cssprop` hooks stay. A style file left with such tokens only gets no page. `compodocx diff` reports each token that is gone as `theme-token-removed`. The JSON export schema stays 6.
 
 ## [0.12.1] - 2026-10-29
 

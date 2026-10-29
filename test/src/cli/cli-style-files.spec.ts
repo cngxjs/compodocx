@@ -9,14 +9,16 @@ describe('CLI style files in the exports', () => {
     const fixture = `${tmp.name}-style-export-fixture`;
     const jsonDist = `${tmp.name}-style-export-json`;
     const llmDist = `${tmp.name}-style-export-llm`;
+    const publicDist = `${tmp.name}-style-export-public`;
     let exported: any;
     let markdown: string;
+    let exportedPublic: any;
 
-    const run = (format: string, dist: string) => {
+    const run = (format: string, dist: string, config = '.compodocxrc.json') => {
         const ls = shell('node', [
             './bin/index-cli.js',
             '-c',
-            path.join(fixture, '.compodocxrc.json'),
+            path.join(fixture, config),
             '-p',
             path.join(fixture, 'tsconfig.json'),
             '-e',
@@ -34,17 +36,25 @@ describe('CLI style files in the exports', () => {
         fs.cpSync(path.resolve('test/fixtures/style-library'), fixture, { recursive: true });
         tmp.create(jsonDist);
         tmp.create(llmDist);
+        tmp.create(publicDist);
         run('json', jsonDist);
         run('llm-md', llmDist);
+        run('json', publicDist, '.compodocxrc.public.json');
         exported = JSON.parse(read(`${jsonDist}/documentation.json`));
         markdown = read(`${llmDist}/llm-context.md`);
+        exportedPublic = JSON.parse(read(`${publicDist}/documentation.json`));
     });
 
     afterAll(() => {
         tmp.clean(fixture);
         tmp.clean(jsonDist);
         tmp.clean(llmDist);
+        tmp.clean(publicDist);
     });
+
+    const highlightFile = (data: any) =>
+        data.styleFiles.find((file: any) => file.file.endsWith('sty-highlight.css'));
+    const tokenNames = (tokens: any[]) => tokens.map((t: any) => t.name);
 
     it('writes the style files with content, their themes and their sources', () => {
         const files = exported.styleFiles.map((file: any) => path.basename(file.file));
@@ -69,6 +79,21 @@ describe('CLI style files in the exports', () => {
             '--sty-highlight-padding'
         ]);
         expect(highlight.themeStyleSources).to.have.length(1);
+    });
+
+    it('leaves the custom properties named with --_ out of both exports', () => {
+        expect(tokenNames(highlightFile(exported).tokens)).to.not.contain('--_sty-highlight-inset');
+        expect(tokenNames(highlightFile(exported).tokens)).to.contain('--sty-highlight-padding');
+        expect(markdown).to.not.contain('--_sty-highlight-inset');
+        expect(markdown).to.contain('--sty-highlight-padding');
+    });
+
+    it('lists them again with themingPrivatePrefix: false', () => {
+        expect(tokenNames(highlightFile(exportedPublic).tokens)).to.contain(
+            '--_sty-highlight-inset'
+        );
+        const highlight = exportedPublic.directives.find((d: any) => d.name === 'StyHighlight');
+        expect(tokenNames(highlight.themeTokens)).to.contain('--_sty-highlight-inset');
     });
 
     it('adds a Design tokens section to the llm-md export', () => {

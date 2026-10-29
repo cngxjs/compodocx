@@ -368,6 +368,8 @@ A helper property that only the stylesheet itself reads is not part of the themi
 }
 ```
 
+Custom properties named with `--_` are hidden the same way without a tag, documented or not, `@property` rule or declaration. A `@cssprop` hook named `--_...` stays, because the tag names it on purpose. The prefix is the config key [`themingPrivatePrefix`](configuration.md#hidden-tokens) (default `'--_'`, `false` lists every property). A style file left with hidden tokens only, no overview and no documented mixin, gets no page.
+
 `@internal` works on every kind of block that documents something: a `@property` rule (an undocumented `@property` rule is listed on its own, but not one hidden this way), a custom property declaration, the first property inside a selector, a `@cssprop` block, an SCSS variable, mixin or function. In an `@overview` or `@themes` block it hides the `@cssprop` lines of that block and leaves the overview and the links as they are. The tag takes no value, it is never reported as unknown, and a block that carries it is never reported as [unattached](#unattached-blocks).
 
 ## Source resolution

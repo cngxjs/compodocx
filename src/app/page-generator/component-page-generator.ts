@@ -35,7 +35,8 @@ export class ComponentPageGenerator {
                     const themeResult = collectThemeTokens({
                         entityFile: component.file,
                         styleUrls: component.styleUrls,
-                        styles: component.styles
+                        styles: component.styles,
+                        privatePrefix: Configuration.mainData.themingPrivatePrefix
                     });
                     component.themeTokens = themeResult.tokens;
                     component.themeStyleSources = themeResult.sources;

@@ -15,7 +15,8 @@ import {
     parseScssTokens,
     parseStyleSource,
     type ThemeToken,
-    unknownStyleTags
+    unknownStyleTags,
+    withoutPrivateTokens
 } from '../../../src/utils/theme-doc-parser';
 
 describe('Utils - theme-doc-parser', () => {
@@ -934,6 +935,52 @@ describe('Utils - theme-doc-parser', () => {
             );
             expect(names(result)).to.deep.equal(['--a', '--b']);
             expect(result.tokens[0].description).to.equal('Public.');
+        });
+    });
+
+    describe('withoutPrivateTokens', () => {
+        const css = [
+            "/**\n * Documented.\n */\n@property --_a {\n  syntax: '*';\n  inherits: true;\n}",
+            "@property --_b {\n  syntax: '*';\n  inherits: true;\n}",
+            '/** Decl. */\n--_c: 1px;',
+            '/**\n * @cssprop --_d - Hook.\n */',
+            '/** Public. */\n--e: 1px;',
+            '/** Own prefix. */\n--priv-f: 1px;'
+        ].join('\n');
+        const tokens = parseCssTokens(css, 'a.css').tokens;
+        const names = (prefix: string | false) =>
+            withoutPrivateTokens(tokens, prefix)
+                .map(t => t.name)
+                .sort();
+
+        it('drops documented and undocumented properties and declarations, keeps hooks', () => {
+            expect(names('--_')).to.deep.equal(['--_d', '--e', '--priv-f']);
+        });
+
+        it('keeps every token for false', () => {
+            expect(names(false)).to.deep.equal(['--_a', '--_b', '--_c', '--_d', '--e', '--priv-f']);
+        });
+
+        it('reads a prefix of its own', () => {
+            expect(names('--priv-')).to.deep.equal(['--_a', '--_b', '--_c', '--_d', '--e']);
+        });
+
+        it('filters component tokens in collectThemeTokens', () => {
+            const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cdx-private-'));
+            const entity = path.join(tmp, 'c.component.ts');
+            fs.writeFileSync(entity, '// stub');
+            fs.writeFileSync(path.join(tmp, 'c.css'), css);
+            const result = collectThemeTokens({
+                entityFile: entity,
+                styleUrls: ['./c.css'],
+                privatePrefix: '--_'
+            });
+            fs.rmSync(tmp, { recursive: true, force: true });
+            expect(result.tokens.map(t => t.name).sort()).to.deep.equal([
+                '--_d',
+                '--e',
+                '--priv-f'
+            ]);
         });
     });
 

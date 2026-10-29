@@ -109,6 +109,7 @@ const makeMainData = (): MainDataInterface => {
         infoTabSections: [],
         apiTabSections: [],
         themingTabSections: [],
+        themingPrivatePrefix: '--_',
         playgroundDependencies: {}
     } as unknown as MainDataInterface;
 };
@@ -285,6 +286,34 @@ describe('applyConfigToMainData', () => {
             expect(mainData.styleFiles).toEqual([]);
             expect(warn).toHaveBeenCalledWith(
                 'styleFiles: expected a list of non-empty glob strings; ignored'
+            );
+            warn.mockRestore();
+        }
+    });
+
+    it('reads themingPrivatePrefix as a prefix or false', () => {
+        for (const themingPrivatePrefix of ['--priv-', false] as const) {
+            const mainData = makeMainData();
+            const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
+            applyConfigToMainData(mainData, { themingPrivatePrefix }, makeProgram(), {
+                cwd: '/tmp/test'
+            });
+            expect(mainData.themingPrivatePrefix).toBe(themingPrivatePrefix);
+            expect(warn).not.toHaveBeenCalled();
+            warn.mockRestore();
+        }
+    });
+
+    it('keeps the default themingPrivatePrefix for an invalid value, with a warning', () => {
+        for (const themingPrivatePrefix of ['', '--', '_x', true, 3] as unknown[]) {
+            const mainData = makeMainData();
+            const warn = vi.spyOn(logger, 'warn').mockImplementation(() => undefined);
+            applyConfigToMainData(mainData, { themingPrivatePrefix } as never, makeProgram(), {
+                cwd: '/tmp/test'
+            });
+            expect(mainData.themingPrivatePrefix).toBe('--_');
+            expect(warn).toHaveBeenCalledWith(
+                'themingPrivatePrefix: expected false or a prefix such as "--_" that starts with "--"; ignored, "--_" stays'
             );
             warn.mockRestore();
         }

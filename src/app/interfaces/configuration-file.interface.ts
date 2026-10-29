@@ -67,6 +67,7 @@ export interface ConfigurationFileInterface {
     infoTabSections: string[];
     apiTabSections: string[];
     themingTabSections: string[];
+    themingPrivatePrefix: string | false;
     playgroundMaterialShell: boolean;
     playgroundDepDepth: number;
     playgroundFileCountCap: number;

@@ -646,6 +646,22 @@ Style comments: 2 unknown tags ignored (@todo x1, @note x1)
 
 Two more groups appear in the same place when they apply: `Style comments: <n> doc blocks not attached` (a block with token tags that documents nothing, with `file:line` of its first line) and `Style comments: <n> hook tokens also declared in their sheets, declaration kept` (a `@cssprop` for a property the same sheet declares). A name documented in several sheets of one component is listed once, the `@property` winning over a plain declaration.
 
+### Hidden tokens
+
+Custom properties whose name starts with `--_` are hidden from the docs: they have no row on the Theming tab, the style page or `design-tokens.html`, and no entry in `documentation.json` or `llm-context.md`. This applies to `@property` rules and declarations, documented or not. A `@cssprop` hook stays, because naming a property in that tag is an explicit choice to document it. CSS has no private custom properties; `--_` is a naming convention for helpers that only the stylesheet itself reads, and the property still works in the browser.
+
+| Option | Type | Default | Description |
+|-|-|-|-|
+| themingPrivatePrefix | string \| false | `'--_'` | Prefix of the custom properties hidden from the docs. Must start with `--` and name at least one more character, for example `'--private-'`. `false` lists every property. Any other value logs a warning and the default stays. Config file only |
+
+```json
+{
+    "themingPrivatePrefix": false
+}
+```
+
+A style file whose tokens are all hidden, and that has no overview and no documented mixin, gets no page of its own. To hide a single token whatever its name, add `@internal` to its doc block (see [Hiding tokens from the docs](theming-tokens-authoring-guide.md#hiding-tokens-from-the-docs)).
+
 ### Source resolution
 
 For each component, compodocx reads the `@Component` decorator's `styleUrls` relative to the component file and parses each entry. Inline `styles[]` strings are parsed identically. SCSS files have their top-level `@import` and `@use` rules followed **one level deep**, so you can keep tokens in a partial like `_tokens.scss` and re-export from the component stylesheet. Deeper transitive resolution is intentionally out of scope.

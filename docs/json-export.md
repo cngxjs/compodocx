@@ -95,6 +95,10 @@ Added (optional): the semantic facts on every symbol entry (`entryPoint`, `expor
 
 - A `@slot` whose comment runs over several lines has its first word in `slots[].name` and the rest, with the following lines, in `slots[].description`; the whole comment was the name and the description was empty. `<example-url>` lines after the last `@slot` are no longer part of it.
 
+### Changed in 0.13.0
+
+- `themeTokens` of components and directives and `tokens` of `styleFiles` entries leave out the custom properties whose name starts with `themingPrivatePrefix` (default `--_`) and every token whose doc block carries `@internal`. Entries with `kind: 'css-hook'` are kept whatever their name. `false` for `themingPrivatePrefix` writes the named properties again.
+
 ## Schema 2
 
 Written by 0.6.0 to 0.8.x. Additive over schema 1, nothing was removed:

@@ -6,7 +6,8 @@ import {
     type StyleCommentLocation,
     type StyleMixin,
     type ThemeToken,
-    type UnknownStyleTag
+    type UnknownStyleTag,
+    withoutPrivateTokens
 } from '../../utils/theme-doc-parser';
 import type { SymbolId } from '../links/symbol-id';
 
@@ -74,9 +75,14 @@ export const isDocumentedToken = (token: ThemeToken): boolean =>
 
 const languageOf = (file: string): 'css' | 'scss' => (/\.scss$/i.test(file) ? 'scss' : 'css');
 
-/** One matched file, parsed. */
+/**
+ * One matched file, parsed. Tokens named with `privatePrefix`
+ * (`themingPrivatePrefix`) are dropped before the content rule runs, so a file
+ * with private tokens only has no content; `false` keeps every token.
+ */
 export const readStyleFile = (
-    source: StyleSourceFile
+    source: StyleSourceFile,
+    privatePrefix: string | false = false
 ): StyleFile & {
     readonly unknownTags: readonly UnknownStyleTag[];
     readonly hookConflicts: readonly HookConflict[];
@@ -85,7 +91,7 @@ export const readStyleFile = (
     const language = languageOf(source.file);
     const parsed = parseStyleSource(source.content, source.file, language);
     const overview = parsed.overview.join('\n\n').trim();
-    const tokens = mergeThemeTokens(parsed.tokens);
+    const tokens = mergeThemeTokens(withoutPrivateTokens(parsed.tokens, privatePrefix));
     return {
         id: styleFileId(source.file),
         file: source.file,
@@ -107,12 +113,16 @@ export const readStyleFile = (
 /**
  * The style model of the matched files: files with content (sorted), the
  * files listed without content (with their `@themes` names, if any), and
- * every unknown tag. `@themes` names stay unresolved here.
+ * every unknown tag. `@themes` names stay unresolved here. `privatePrefix` as
+ * in `readStyleFile`.
  */
-export const buildStyleModel = (sources: readonly StyleSourceFile[]): StyleModel => {
+export const buildStyleModel = (
+    sources: readonly StyleSourceFile[],
+    privatePrefix: string | false = false
+): StyleModel => {
     const read = [...sources]
         .sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : 0))
-        .map(readStyleFile);
+        .map(source => readStyleFile(source, privatePrefix));
     const listed = read.filter(file => !file.hasContent);
     return {
         files: read
