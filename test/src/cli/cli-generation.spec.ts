@@ -678,7 +678,7 @@ describe('CLI simple generation', () => {
 
         it('should not contain generator footer', () => {
             index = menuOf(distFolder);
-            expect(index).to.not.contain('class="copyright"');
+            expect(index).to.not.contain('cdx-sidebar-footer');
         });
     });
 

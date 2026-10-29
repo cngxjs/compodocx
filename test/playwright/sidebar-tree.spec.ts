@@ -288,3 +288,64 @@ test.describe('Sidebar tree', () => {
         }
     });
 });
+
+/** Box of the generator footer and the viewport height, with the scroll offset of the sidebar. */
+const footerPlacement = (page: Page) =>
+    page.evaluate(() => {
+        const footer = document.querySelector('#sidebar .cdx-sidebar-footer');
+        const menu = document.querySelector<HTMLElement>('#sidebar > nav');
+        const sidebar = document.getElementById('sidebar');
+        const box = footer?.getBoundingClientRect();
+        return {
+            top: box?.top ?? -1,
+            bottom: box?.bottom ?? -1,
+            height: box?.height ?? 0,
+            viewport: window.innerHeight,
+            sidebarScroll: sidebar?.scrollTop ?? -1,
+            menuOverflows: menu ? menu.scrollHeight > menu.clientHeight : false
+        };
+    });
+
+test.describe('Sidebar footer', () => {
+    /** Opens the first symbol page with the whole tree expanded, so the menu is long. */
+    const openSymbolPage = async (page: Page) => {
+        await page.goto('/index.html');
+        const link = page.locator('.menu .cdx-feature-link a, .menu a[data-type="entity-link"]');
+        await link.first().waitFor({ state: 'attached' });
+        const href = await link.last().getAttribute('href');
+        await page.goto(`/${href?.replace(/^(\.\.\/|\.\/)+/, '')}`);
+        await page.locator('#sidebar .cdx-sidebar-footer').waitFor({ state: 'attached' });
+        await page.addStyleTag({ content: '* { transition: none !important; }' });
+        await openAll(page);
+    };
+
+    test('shows the footer without scrolling under a long menu, light and dark', async ({
+        page
+    }) => {
+        await openSymbolPage(page);
+        for (const dark of [false, true]) {
+            await page.evaluate(isDark => {
+                document.documentElement.classList.toggle('dark', isDark);
+            }, dark);
+            const placement = await footerPlacement(page);
+            expect(placement.menuOverflows).toBe(true);
+            expect(placement.sidebarScroll).toBe(0);
+            expect(placement.height).toBeGreaterThan(0);
+            expect(placement.top).toBeGreaterThanOrEqual(0);
+            expect(placement.bottom).toBeLessThanOrEqual(placement.viewport);
+            await expect(page.locator('#sidebar .cdx-sidebar-footer a')).toBeVisible();
+        }
+    });
+
+    test('shows the footer in the off-canvas sidebar', async ({ page }) => {
+        await page.setViewportSize({ width: 390, height: 700 });
+        await openSymbolPage(page);
+        await page.locator('button[aria-label="Open navigation"]').click();
+        await expect(page.locator('#sidebar')).toHaveClass(/cdx-sidebar--open/);
+        const placement = await footerPlacement(page);
+        expect(placement.menuOverflows).toBe(true);
+        expect(placement.top).toBeGreaterThanOrEqual(0);
+        expect(placement.bottom).toBeLessThanOrEqual(placement.viewport);
+        await expect(page.locator('#sidebar .cdx-sidebar-footer a')).toBeInViewport();
+    });
+});

@@ -18,6 +18,10 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - **Custom properties named `--_...` are hidden from the docs.** `@property` rules and declarations whose name starts with `--_`, documented or not, no longer appear on the Theming tab, the style page, the design tokens page or in `themeTokens` and `styleFiles[].tokens` of the JSON export and the llm-md export. `@cssprop` hooks stay. A style file left with such tokens only gets no page. `compodocx diff` reports each token that is gone as `theme-token-removed`. The JSON export schema stays 6.
 - **Private SCSS variables are no tokens.** A documented SCSS variable whose name starts with `_` or `-` (`$_gap`, `$-gap`) is private to its Sass module and no longer listed, like private mixins already were. This follows the Sass rule and is not changed by `themingPrivatePrefix`.
 
+### Fixed
+
+- **Generator footer under a long sidebar.** The "Generated using compodocx" footer was the last item of the menu list and only came into view after scrolling to its end. It now sits below the menu, which scrolls on its own, so the footer is visible without scrolling on wide screens and in the off-canvas sidebar.
+
 ## [0.12.1] - 2026-10-29
 
 Upgrading from 0.12.0: nothing to change. The JSON export schema stays 6; `slots` entries of multi-line `@slot` tags now carry the right name and description.
