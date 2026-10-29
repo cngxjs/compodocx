@@ -27,3 +27,8 @@
         --sty-card-bg: #{bridge.color($theme, 'surface')};
     }
 }
+
+/// Shadow blur of the card, used only inside this module. Private to Sass
+/// (leading underscore), so it is no token.
+/// @type Length
+$_card-shadow-blur: 4px;

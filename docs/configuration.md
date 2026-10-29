@@ -583,7 +583,7 @@ Components grow a **Theming** tab when the parser finds documented theme tokens 
 $alert-padding: 12px 16px !default;
 ```
 
-The `///` block must sit immediately above the `$variable: value [!default];` declaration. Any non-comment line in between cancels the association.
+The `///` block must sit immediately above the `$variable: value [!default];` declaration. Any non-comment line in between cancels the association. Private variables (`$_x`, `$-x`) are not listed, as Sass keeps them out of the module.
 
 ### CSS custom properties -- JSDoc `/** */` blocks
 

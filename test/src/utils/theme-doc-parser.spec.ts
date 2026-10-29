@@ -938,6 +938,26 @@ describe('Utils - theme-doc-parser', () => {
         });
     });
 
+    describe('private SCSS variables', () => {
+        it('leaves documented $_x and $-x out and keeps $x, without reporting the blocks', () => {
+            const result = parseScssTokens(
+                '/// Hidden.\n/// @type Length\n$_gap: 4px;\n\n/// Hidden too.\n$-pad: 2px;\n\n/// Public.\n$size: 8px;\n',
+                'a.scss'
+            );
+            expect(result.tokens.map(t => t.name)).to.deep.equal(['$size']);
+            expect(result.orphanBlocks).to.deep.equal([]);
+            expect(result.unknownTags).to.deep.equal([]);
+        });
+
+        it('still leaves private mixins out and keeps public ones', () => {
+            const result = parseScssTokens(
+                '/// Inner.\n@mixin _inner() {}\n\n/// Outer.\n@mixin outer() {}\n',
+                'a.scss'
+            );
+            expect(result.mixins.map(m => m.name)).to.deep.equal(['outer']);
+        });
+    });
+
     describe('withoutPrivateTokens', () => {
         const css = [
             "/**\n * Documented.\n */\n@property --_a {\n  syntax: '*';\n  inherits: true;\n}",

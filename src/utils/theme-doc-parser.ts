@@ -821,7 +821,8 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
 
         if (pending) {
             const declMatch = raw.match(SCSS_VAR_DECL_RE);
-            if (declMatch && !internalBlock) {
+            // Sass keeps `$_x` and `$-x` out of a module's members, so they are no tokens.
+            if (declMatch && !internalBlock && !isPrivateName(declMatch[1])) {
                 tokens.push(
                     buildToken({
                         name: `$${declMatch[1]}`,

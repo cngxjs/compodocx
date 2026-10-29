@@ -16,6 +16,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 ### Changed
 
 - **Custom properties named `--_...` are hidden from the docs.** `@property` rules and declarations whose name starts with `--_`, documented or not, no longer appear on the Theming tab, the style page, the design tokens page or in `themeTokens` and `styleFiles[].tokens` of the JSON export and the llm-md export. `@cssprop` hooks stay. A style file left with such tokens only gets no page. `compodocx diff` reports each token that is gone as `theme-token-removed`. The JSON export schema stays 6.
+- **Private SCSS variables are no tokens.** A documented SCSS variable whose name starts with `_` or `-` (`$_gap`, `$-gap`) is private to its Sass module and no longer listed, like private mixins already were. This follows the Sass rule and is not changed by `themingPrivatePrefix`.
 
 ## [0.12.1] - 2026-10-29
 
