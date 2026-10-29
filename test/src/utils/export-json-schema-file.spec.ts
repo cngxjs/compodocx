@@ -25,7 +25,9 @@ describe('documentation.json JSON Schema', () => {
     it('matches the checked-in file (run `npm run schema:export` after changing the interface)', () => {
         const file = schemaFileOf(EXPORT_SCHEMA_VERSION);
         expect(fs.existsSync(file)).toBe(true);
-        expect(fs.readFileSync(file, 'utf8')).toBe(serializeSchema(schema));
+        // A Windows checkout may turn the line endings into CRLF.
+        const checkedIn = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+        expect(checkedIn).toBe(serializeSchema(schema));
     });
 
     it.each(
