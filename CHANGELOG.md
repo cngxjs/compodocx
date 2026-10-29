@@ -6,7 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
-## [Unreleased]
+## [0.13.0] - 2026-10-29
+
+Upgrading from 0.12: no flag or config key was removed and the JSON export schema stays 6. Custom properties named `--_...` are hidden from the docs, and `compodocx diff` against a 0.12 export reports them as `theme-token-removed` (set `"themingPrivatePrefix": false` to keep them); private SCSS variables (`$_x`, `$-x`) are no longer listed. [MIGRATION.md](MIGRATION.md) lists each change.
 
 ### Added
 
