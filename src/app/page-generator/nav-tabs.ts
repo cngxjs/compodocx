@@ -6,6 +6,28 @@ import Configuration from '../configuration';
 const themingKind = (dependency: { type?: unknown }): 'component' | 'directive' =>
     dependency.type === 'directive' ? 'directive' : 'component';
 
+/** `inject()` fields show as dependencies, not on the API tab. */
+const apiProperties = (dependency): unknown[] =>
+    (dependency.propertiesClass ?? dependency.properties ?? []).filter(
+        (p: { signalKind?: string }) => p.signalKind !== 'inject'
+    );
+
+/**
+ * Whether the API tab would render anything: the members it lists. The
+ * constructor is not one of them, it shows on the Info tab.
+ */
+export const hasApiMembers = (dependency): boolean =>
+    !!(
+        dependency.inputsClass?.length ||
+        dependency.outputsClass?.length ||
+        dependency.hostBindings?.length ||
+        dependency.hostListeners?.length ||
+        (dependency.methodsClass ?? dependency.methods)?.length ||
+        apiProperties(dependency).length ||
+        dependency.indexSignatures?.length ||
+        (dependency.accessors && Object.keys(dependency.accessors).length)
+    );
+
 export class NavTabsResolver {
     public resolve(dependency): Array<any> {
         let navTabConfig = Configuration.mainData.navTabConfig;
@@ -86,21 +108,8 @@ export class NavTabsResolver {
             }
 
             // API tab: drop it when the dependency has no member content to populate it.
-            if (customTab.id === 'api') {
-                const hasApiMembers = !!(
-                    dependency.constructorObj ||
-                    dependency.inputsClass?.length ||
-                    dependency.outputsClass?.length ||
-                    dependency.hostBindings?.length ||
-                    dependency.hostListeners?.length ||
-                    (dependency.methodsClass ?? dependency.methods)?.length ||
-                    (dependency.propertiesClass ?? dependency.properties)?.length ||
-                    dependency.indexSignatures?.length ||
-                    (dependency.accessors && Object.keys(dependency.accessors).length)
-                );
-                if (!hasApiMembers) {
-                    return;
-                }
+            if (customTab.id === 'api' && !hasApiMembers(dependency)) {
+                return;
             }
 
             navTabs.push(navTab);

@@ -290,6 +290,8 @@ export interface MainDataInterface {
     featuresName: string;
     /** Visible text for `@aiGenerated` markers; `''` uses the translated default. */
     aiGeneratedNote: string;
+    /** Base that relative `<example-url>` tags are appended to; `''` keeps them as written. */
+    exampleUrlBase: string;
     referencesName: string;
     collapsedAll: boolean;
     /** Where each member role shows in the feature sidebar (config-only `menuFeatureSections`). */

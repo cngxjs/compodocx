@@ -82,6 +82,7 @@ Full reference for every CLI flag and config key: [`docs/configuration.md`](docs
 | Theme tokens in SCSS / CSS | [`docs/theming-tokens-authoring-guide.md`](docs/theming-tokens-authoring-guide.md) |
 | Additional Markdown pages | [`docs/additional-pages.md`](docs/additional-pages.md) |
 | Multi-version output | [`docs/versioned-docs.md`](docs/versioned-docs.md) |
+| JSON export schema history | [`docs/json-export.md`](docs/json-export.md) |
 | Internationalization | [`docs/i18n.md`](docs/i18n.md) |
 | Migrating from compodoc | [`MIGRATION.md`](MIGRATION.md) |
 | Releasing | [`docs/RELEASING.md`](docs/RELEASING.md) |

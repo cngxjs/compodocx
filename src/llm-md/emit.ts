@@ -14,6 +14,7 @@
 
 import type {
     ExportArg,
+    ExportCallSignature,
     ExportClass,
     ExportComponent,
     ExportDirective,
@@ -80,6 +81,22 @@ const renderMethod = (method: ExportMethod): string => {
     const tail = desc ? ` — ${escapeMarkdown(desc)}` : '';
     return `- ${inlineCode(sig)}${dep}${tail}`;
 };
+
+/** An interface call signature (`(value: T): number`), listed with the properties. */
+const isCallSignature = (
+    member: ExportProperty | ExportCallSignature
+): member is ExportCallSignature => !('name' in member);
+
+/** Rendered like a method without a name: `(value: T): number`. */
+const renderCallSignature = (call: ExportCallSignature): string =>
+    renderMethod({
+        name: '',
+        args: call.args,
+        returnType: call.returnType,
+        deprecated: call.deprecated,
+        deprecationMessage: call.deprecationMessage,
+        description: call.description
+    });
 
 const renderList = (heading: string, items: ReadonlyArray<string>): string => {
     if (items.length === 0) {
@@ -314,7 +331,16 @@ const emitClassLike = (
     return joinSections([
         heroLines(entity, allExtras),
         descriptionLine(entity.description),
-        renderProperties('Properties', entity.properties ?? []),
+        renderList(
+            'Call signatures',
+            (entity.properties ?? []).filter(isCallSignature).map(renderCallSignature)
+        ),
+        renderProperties(
+            'Properties',
+            (entity.properties ?? []).filter(
+                (member): member is ExportProperty => !isCallSignature(member)
+            )
+        ),
         renderMethods('Methods', entity.methods ?? [])
     ]);
 };

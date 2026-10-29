@@ -90,6 +90,19 @@ describe('page-generator — orchestrator wiring', () => {
         expect(tabs.length).toBeGreaterThan(0);
     });
 
+    it('NavTabsResolver drops the API tab when only inject() fields and a constructor remain', () => {
+        const navTabs = new NavTabsResolver();
+        config.mainData.navTabConfig = [];
+        const marker = {
+            type: 'directive',
+            constructorObj: { name: 'constructor', args: [] },
+            propertiesClass: [{ name: 'templateRef', signalKind: 'inject' }]
+        };
+        const ids = (dep: object) => navTabs.resolve(dep).map(tab => tab.id);
+        expect(ids(marker)).not.toContain('api');
+        expect(ids({ ...marker, inputsClass: [{ name: 'value' }] })).toContain('api');
+    });
+
     it('PipePageGenerator.prepare populates Configuration.mainData.pipes and adds a page', async () => {
         const navTabs = new NavTabsResolver();
         config.mainData.navTabConfig = [];

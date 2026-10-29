@@ -355,7 +355,7 @@ export class AngularDependencies extends FrameworkDependencies {
                             }
                             const componentDep = new ComponentDepFactory(
                                 this.componentHelper
-                            ).create(file, srcFile, name, props, IO);
+                            ).create(file, srcFile, name, props, IO, node);
                             deps = componentDep;
                             if (typeof IO.ignore === 'undefined') {
                                 ComponentsTreeEngine.addComponent(componentDep);
@@ -385,6 +385,7 @@ export class AngularDependencies extends FrameworkDependencies {
                                 hash,
                                 file,
                                 srcFile,
+                                node,
                                 IO,
                                 providedIn && { providedIn }
                             );
@@ -400,6 +401,7 @@ export class AngularDependencies extends FrameworkDependencies {
                                 hash,
                                 file,
                                 srcFile,
+                                node,
                                 IO,
                                 serviceOptions(visitedDecorator, srcFile)
                             );
@@ -436,9 +438,7 @@ export class AngularDependencies extends FrameworkDependencies {
                                 pure: this.componentHelper.getComponentPure(props, srcFile),
                                 ngname: this.componentHelper.getComponentName(props, srcFile),
                                 sourceCode: srcFile.getText(),
-                                exampleUrls: this.componentHelper.getComponentExampleUrls(
-                                    srcFile.getText()
-                                )
+                                exampleUrls: this.componentHelper.getExampleUrlsOf(node)
                             };
                             if (Configuration.mainData.disableLifeCycleHooks) {
                                 pipeDeps.methods = cleanLifecycleHooksFromMethods(pipeDeps.methods);
@@ -453,7 +453,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         } else if (this.metadataPredicates.isDirective(visitedDecorator)) {
                             const directiveDeps = new DirectiveDepFactory(
                                 this.componentHelper
-                            ).create(file, srcFile, name, props, IO);
+                            ).create(file, srcFile, name, props, IO, node);
                             deps = directiveDeps;
                             if (typeof IO.ignore === 'undefined') {
                                 outputSymbols.directives.push(directiveDeps);
@@ -1077,6 +1077,7 @@ export class AngularDependencies extends FrameworkDependencies {
         hash: string,
         file,
         srcFile: ts.SourceFile,
+        node: ts.Node,
         IO,
         options: object | undefined
     ): IInjectableDep {
@@ -1091,7 +1092,7 @@ export class AngularDependencies extends FrameworkDependencies {
             description: IO.description,
             rawdescription: IO.rawdescription,
             sourceCode: srcFile.getText(),
-            exampleUrls: this.componentHelper.getComponentExampleUrls(srcFile.getText()),
+            exampleUrls: this.componentHelper.getExampleUrlsOf(node),
             ...options,
             // Custom JSDoc tags
             ...(IO.beta && { beta: true }),

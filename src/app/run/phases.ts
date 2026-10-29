@@ -4,6 +4,7 @@ import * as path from 'node:path';
 import { err, isErr, mapResult, ok, type Result, sequenceAsync } from '../../lib';
 import AngularVersionUtil from '../../utils/angular-version.util';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
+import { formatRelativeExampleUrlNotice, relativeExampleUrls } from '../../utils/example-urls';
 import { logger } from '../../utils/logger';
 import {
     formatHookConflictNotice,
@@ -362,6 +363,20 @@ const crawl: Stage = async current => {
 
     for (const line of formatLegacyNotice(dependenciesData.legacyFindings)) {
         logger.warn(line);
+    }
+    if (mainData.exampleUrlBase === '') {
+        const notice = formatRelativeExampleUrlNotice(
+            relativeExampleUrls([
+                ...dependenciesData.components,
+                ...dependenciesData.directives,
+                ...dependenciesData.pipes,
+                ...dependenciesData.injectables,
+                ...(dependenciesData.services ?? [])
+            ])
+        );
+        if (notice.length > 0) {
+            logger.warn(notice.join('\n'));
+        }
     }
     if (ctx.mode !== 'diff') {
         const notice = formatRemovedTagNotice(removedTagFindings(ctx.files));

@@ -90,6 +90,8 @@ export interface ConfigurationFileInterface {
     featuresName: string;
     /** Visible text for `@aiGenerated` markers; `{value}` is the marker value. */
     aiGeneratedNote: string;
+    /** Base for relative `<example-url>` tags. */
+    exampleUrlBase: string;
     referencesName: string;
     playgroundDependencies: Record<string, string>;
     shikiTheme: string;

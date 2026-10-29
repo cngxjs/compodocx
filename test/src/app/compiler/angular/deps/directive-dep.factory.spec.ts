@@ -16,6 +16,7 @@ const makeHelperStub = (): ComponentHelper =>
         getComponentHostStructured: () => [],
         getComponentStandalone: () => false,
         getComponentExampleUrls: () => [],
+        getExampleUrlsOf: () => [],
         getInputOutputSignals: (properties: any) => ({
             inputSignals: [],
             outputSignals: [],

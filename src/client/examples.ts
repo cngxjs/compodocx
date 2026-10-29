@@ -13,9 +13,34 @@ const measureContentHeight = (doc: Document): number => {
     return doc.documentElement?.scrollHeight ?? 0;
 };
 
+/**
+ * Whether the frame shares protocol and host with the page. Only then is its
+ * document read; WebKit logs every attempt on a foreign frame as an error,
+ * even when the access is caught. On `file://` every file is an origin of
+ * its own, so no frame counts as same-origin there.
+ */
+export const isSameOriginFrame = (src: string, page: string): boolean => {
+    try {
+        const frame = new URL(src, page);
+        const here = new URL(page);
+        return (
+            here.protocol !== 'file:' &&
+            frame.protocol === here.protocol &&
+            frame.host === here.host
+        );
+    } catch {
+        return false;
+    }
+};
+
+const documentOf = (iframe: HTMLIFrameElement): Document | null =>
+    isSameOriginFrame(iframe.getAttribute('src') ?? '', globalThis.location.href)
+        ? iframe.contentDocument
+        : null;
+
 const resizeIframe = (iframe: HTMLIFrameElement): void => {
     try {
-        const doc = iframe.contentDocument;
+        const doc = documentOf(iframe);
         if (!doc) {
             return;
         }
@@ -30,7 +55,7 @@ const resizeIframe = (iframe: HTMLIFrameElement): void => {
 
 const observeContent = (iframe: HTMLIFrameElement): void => {
     try {
-        const doc = iframe.contentDocument;
+        const doc = documentOf(iframe);
         if (!doc) {
             return;
         }
@@ -53,7 +78,7 @@ const applyThemeToIframe = (iframe: HTMLIFrameElement): void => {
     // example HTML can react via plain CSS (`.dark` selector or
     // `@media (prefers-color-scheme: dark)` fallback).
     try {
-        const doc = iframe.contentDocument;
+        const doc = documentOf(iframe);
         if (doc?.documentElement) {
             doc.documentElement.classList.toggle('dark', dark);
             doc.body?.classList.toggle('dark', dark);
@@ -84,7 +109,7 @@ const bind = (iframe: HTMLIFrameElement): void => {
 
     // Already-loaded iframes (cached / SPA-restored)
     try {
-        if (iframe.contentDocument?.readyState === 'complete') {
+        if (documentOf(iframe)?.readyState === 'complete') {
             applyThemeToIframe(iframe);
             resizeIframe(iframe);
             observeContent(iframe);

@@ -1,0 +1,3724 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "title": "compodocx documentation.json, schema 6",
+    "description": "Written by `compodocx --exportFormat json`. Generated from src/app/interfaces/export-data.interface.ts; see docs/json-export.md for the version history and the compatibility policy.",
+    "type": "object",
+    "properties": {
+        "schemaVersion": {
+            "const": 6
+        },
+        "generatedAt": {
+            "type": "string",
+            "description": "ISO 8601 timestamp of when this snapshot was generated.\nVolatile - listed in `VOLATILE_EXPORT_FIELDS`; strip before byte-equal diffs."
+        },
+        "compodocxVersion": {
+            "type": "string",
+            "description": "Version of `@cngxjs/compodocx` that produced this snapshot.\nVolatile - listed in `VOLATILE_EXPORT_FIELDS`; strip before byte-equal diffs."
+        },
+        "pipes": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportPipe"
+            }
+        },
+        "interfaces": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportInterface"
+            }
+        },
+        "injectables": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportInjectable"
+            }
+        },
+        "services": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportService"
+            },
+            "description": "Classes decorated with Angular's `@Service`; written only when there are any."
+        },
+        "guards": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportGuard"
+            }
+        },
+        "interceptors": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportInterceptor"
+            }
+        },
+        "classes": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportClass"
+            }
+        },
+        "directives": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportDirective"
+            }
+        },
+        "routes": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportRouteRoot"
+            },
+            "description": "Written only when the route model has routes and routes are not disabled."
+        },
+        "coverage": {
+            "$ref": "#/$defs/ExportCoverage"
+        },
+        "miscellaneous": {
+            "$ref": "#/$defs/ExportMiscellaneous"
+        },
+        "components": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportComponent"
+            }
+        },
+        "tokens": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportInjectable"
+            },
+            "description": "InjectionToken / HttpContextToken declarations (v0.6.0+)."
+        },
+        "styleSources": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": {
+                "$ref": "#/$defs/ExportStyleSource"
+            },
+            "description": "Style sources of the documented components, keyed by project-relative\nfile path, or `<component file>#inline-<n>` for inline styles. Each\ncomponent lists its keys in `themeStyleSources`."
+        },
+        "styleFiles": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportStyleFile"
+            },
+            "description": "Free-standing style files matched by `styleFiles` that have documented\ncontent. Their sources are in `styleSources`, keyed by file."
+        },
+        "semantic": {
+            "$ref": "#/$defs/ExportSemantic",
+            "description": "Entry points and counts of the semantic analysis. Absent when the\nanalysis did not run (no tsconfig, or the tsconfig could not be read)."
+        },
+        "additionalPages": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportAdditionalPage"
+            },
+            "description": "Pages from `--includes`, in sidebar order; written only when there are any."
+        }
+    },
+    "required": [
+        "schemaVersion",
+        "generatedAt",
+        "compodocxVersion"
+    ],
+    "additionalProperties": true,
+    "$defs": {
+        "ExportAccessor": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "getSignature": {},
+                "setSignature": {}
+            },
+            "additionalProperties": true
+        },
+        "ExportAdditionalPage": {
+            "description": "A page from `--includes` (`summary.json`).",
+            "type": "object",
+            "properties": {
+                "slug": {
+                    "type": "string",
+                    "description": "Slug path below the includes folder, forward slashes (\"guides/getting-started\")."
+                },
+                "title": {
+                    "type": "string",
+                    "description": "Page title (the heading text)."
+                },
+                "label": {
+                    "type": "string",
+                    "description": "Sidebar label; written only when it differs from the title."
+                },
+                "file": {
+                    "type": "string",
+                    "description": "Source file relative to the includes folder, forward slashes."
+                },
+                "markdown": {
+                    "type": "string",
+                    "description": "Raw Markdown as written, not the rendered HTML."
+                },
+                "aiGenerated": {
+                    "const": true,
+                    "description": "The page carries the `@aiGenerated` marker (its detail text stays in `markdown`)."
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportAdditionalPage"
+                    }
+                }
+            },
+            "required": [
+                "slug",
+                "title",
+                "file",
+                "markdown"
+            ],
+            "additionalProperties": true
+        },
+        "ExportArg": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "optional": {
+                    "type": "boolean"
+                },
+                "dotDotDotToken": {
+                    "type": "boolean"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "defaultValue": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportAxis": {
+            "description": "A declared classification axis: every declared value with its symbol count.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "values": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "value": {
+                                "type": "string"
+                            },
+                            "count": {
+                                "type": "number"
+                            }
+                        },
+                        "required": [
+                            "value",
+                            "count"
+                        ],
+                        "additionalProperties": true
+                    }
+                },
+                "classified": {
+                    "type": "number"
+                },
+                "unclassified": {
+                    "type": "number",
+                    "description": "Symbols of the axis' kinds without a value."
+                }
+            },
+            "required": [
+                "name",
+                "label",
+                "values",
+                "classified",
+                "unclassified"
+            ],
+            "additionalProperties": true
+        },
+        "ExportCallSignature": {
+            "description": "A call signature of an interface (`(value: T): number`), listed with its properties.",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportArg"
+                    }
+                },
+                "returnType": {
+                    "type": "string"
+                },
+                "line": {
+                    "type": "number"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                }
+            },
+            "required": [
+                "id"
+            ],
+            "additionalProperties": true
+        },
+        "ExportClass": {
+            "type": "object",
+            "properties": {
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportMethod"
+                    }
+                },
+                "accessors": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "$ref": "#/$defs/ExportAccessor"
+                    }
+                },
+                "constructorObj": {},
+                "indexSignatures": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportIndexSignature"
+                    }
+                },
+                "inputsClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "outputsClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "hostBindings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportHostBinding"
+                    }
+                },
+                "hostListeners": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportHostListener"
+                    }
+                },
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "sourceCode": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "extends": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "storybookUrl": {
+                    "type": "string",
+                    "description": "External documentation links injected by JSDoc tags."
+                },
+                "figmaUrl": {
+                    "type": "string"
+                },
+                "stackblitzUrl": {
+                    "type": "string"
+                },
+                "githubUrl": {
+                    "type": "string"
+                },
+                "docsUrl": {
+                    "type": "string"
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Symbols named by `@relatedTo`."
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportComponent": {
+            "type": "object",
+            "properties": {
+                "selector": {
+                    "type": "string"
+                },
+                "standalone": {
+                    "type": "boolean"
+                },
+                "signal": {
+                    "type": "boolean",
+                    "deprecated": true
+                },
+                "zoneless": {
+                    "type": "boolean"
+                },
+                "changeDetection": {
+                    "type": "string"
+                },
+                "encapsulation": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "preserveWhitespaces": {
+                    "type": "boolean"
+                },
+                "template": {
+                    "type": "string"
+                },
+                "templateUrl": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "styleUrls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "styles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "styleUrlsData": {
+                    "type": "string"
+                },
+                "stylesData": {
+                    "type": "string"
+                },
+                "assetsDirs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "exportAs": {
+                    "type": "string"
+                },
+                "inputs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "imports": {
+                    "type": "array",
+                    "items": {}
+                },
+                "providers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ProviderEntry"
+                    },
+                    "description": "A provider written as a call (`provideFoo(withBar())`) also carries `call`."
+                },
+                "viewProviders": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ProviderEntry"
+                    }
+                },
+                "hostBindings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportHostBinding"
+                    }
+                },
+                "hostListeners": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportHostListener"
+                    }
+                },
+                "hostStructured": {
+                    "type": "array",
+                    "items": {}
+                },
+                "hostDirectives": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/HostDirectiveEntry"
+                    }
+                },
+                "inputsClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "outputsClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "propertiesClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "methodsClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportMethod"
+                    }
+                },
+                "accessors": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "$ref": "#/$defs/ExportAccessor"
+                    }
+                },
+                "slots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSlot"
+                    }
+                },
+                "themeTokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ThemeToken"
+                    }
+                },
+                "themeStyleSources": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Keys into the top-level `styleSources` map, in collection order."
+                },
+                "themeOverview": {
+                    "type": "string"
+                },
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                },
+                "route": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "number"
+                },
+                "since": {
+                    "type": "string"
+                },
+                "beta": {
+                    "type": "boolean"
+                },
+                "breaking": {
+                    "type": "string",
+                    "description": "Text of the `@breaking` tag; `''` without one."
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "sourceCode": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "extends": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "storybookUrl": {
+                    "type": "string",
+                    "description": "External documentation links injected by JSDoc tags."
+                },
+                "figmaUrl": {
+                    "type": "string"
+                },
+                "stackblitzUrl": {
+                    "type": "string"
+                },
+                "githubUrl": {
+                    "type": "string"
+                },
+                "docsUrl": {
+                    "type": "string"
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Symbols named by `@relatedTo`."
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportCoverage": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "number"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportCoverageFile"
+                    }
+                }
+            },
+            "additionalProperties": true
+        },
+        "ExportCoverageFile": {
+            "type": "object",
+            "properties": {
+                "filePath": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "linktype": {
+                    "type": "string"
+                },
+                "linksubtype": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "coveragePercent": {
+                    "type": "number"
+                },
+                "coverageCount": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "filePath",
+                "type",
+                "name",
+                "coveragePercent",
+                "coverageCount",
+                "status"
+            ],
+            "additionalProperties": true
+        },
+        "ExportDiFacts": {
+            "type": "object",
+            "properties": {
+                "role": {
+                    "enum": [
+                        "provider",
+                        "feature"
+                    ]
+                },
+                "featureType": {
+                    "$ref": "#/$defs/ExportSymbolRef",
+                    "description": "Feature type a provider accepts or a feature function returns."
+                },
+                "providesTokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "readsTokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "usesInjectionContext": {
+                    "enum": [
+                        "direct",
+                        "call"
+                    ]
+                },
+                "configAccessor": {
+                    "const": true,
+                    "description": "Returns a value read from a token its library configures through a provider with features."
+                }
+            },
+            "additionalProperties": true
+        },
+        "ExportDirective": {
+            "type": "object",
+            "properties": {
+                "themeTokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ThemeToken"
+                    },
+                    "description": "Tokens of the style files that theme the directive (`@themes`)."
+                },
+                "themeStyleSources": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Keys into the top-level `styleSources` map, in collection order."
+                },
+                "themeOverview": {
+                    "type": "string"
+                },
+                "selector": {
+                    "type": "string"
+                },
+                "standalone": {
+                    "type": "boolean"
+                },
+                "signal": {
+                    "type": "boolean",
+                    "deprecated": true
+                },
+                "zoneless": {
+                    "type": "boolean"
+                },
+                "inputsClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "outputsClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "propertiesClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "methodsClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportMethod"
+                    }
+                },
+                "hostBindings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportHostBinding"
+                    }
+                },
+                "hostListeners": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportHostListener"
+                    }
+                },
+                "hostStructured": {
+                    "type": "array",
+                    "items": {}
+                },
+                "hostDirectives": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/HostDirectiveEntry"
+                    }
+                },
+                "providers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ProviderEntry"
+                    }
+                },
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                },
+                "group": {
+                    "type": "string"
+                },
+                "since": {
+                    "type": "string"
+                },
+                "beta": {
+                    "type": "boolean"
+                },
+                "breaking": {
+                    "type": "string",
+                    "description": "Text of the `@breaking` tag; `''` without one."
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "sourceCode": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "extends": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "storybookUrl": {
+                    "type": "string",
+                    "description": "External documentation links injected by JSDoc tags."
+                },
+                "figmaUrl": {
+                    "type": "string"
+                },
+                "stackblitzUrl": {
+                    "type": "string"
+                },
+                "githubUrl": {
+                    "type": "string"
+                },
+                "docsUrl": {
+                    "type": "string"
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Symbols named by `@relatedTo`."
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportEnumeration": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "ctype": {
+                    "type": "string"
+                },
+                "subtype": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "childs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportEnumMember"
+                    }
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportEnumMember": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "value": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        }
+                    ]
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportFeature": {
+            "description": "A feature: entry point plus a key below it, with the features it builds on.",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string",
+                    "description": "`${entryPoint ?? ''}#${key}`."
+                },
+                "entryPoint": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "detector": {
+                    "enum": [
+                        "config",
+                        "tag",
+                        "cohesion",
+                        "entry-point",
+                        "folder"
+                    ]
+                },
+                "readme": {
+                    "type": "string",
+                    "description": "README of the feature, relative to the working directory."
+                },
+                "buildsOn": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Ids of features in other entry points this one uses."
+                },
+                "extendedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Ids of features in other entry points that use this one."
+                }
+            },
+            "required": [
+                "id",
+                "key",
+                "label",
+                "detector",
+                "buildsOn",
+                "extendedBy"
+            ],
+            "additionalProperties": true
+        },
+        "ExportFeatureRef": {
+            "type": "object",
+            "properties": {
+                "entryPoint": {
+                    "type": "string"
+                },
+                "key": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "key"
+            ],
+            "additionalProperties": true
+        },
+        "ExportFunction": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "ctype": {
+                    "type": "string"
+                },
+                "subtype": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "returnType": {
+                    "type": "string"
+                },
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportArg"
+                    }
+                },
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportGuard": {
+            "type": "object",
+            "properties": {
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportMethod"
+                    }
+                },
+                "accessors": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "$ref": "#/$defs/ExportAccessor"
+                    }
+                },
+                "constructorObj": {},
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                },
+                "implements": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "indexSignatures": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportIndexSignature"
+                    }
+                },
+                "inputsClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "outputsClass": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "hostBindings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportHostBinding"
+                    }
+                },
+                "hostListeners": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportHostListener"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "sourceCode": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "extends": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "storybookUrl": {
+                    "type": "string",
+                    "description": "External documentation links injected by JSDoc tags."
+                },
+                "figmaUrl": {
+                    "type": "string"
+                },
+                "stackblitzUrl": {
+                    "type": "string"
+                },
+                "githubUrl": {
+                    "type": "string"
+                },
+                "docsUrl": {
+                    "type": "string"
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Symbols named by `@relatedTo`."
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportHostBinding": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportArg"
+                    }
+                },
+                "argsType": {
+                    "type": "string"
+                },
+                "line": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportHostListener": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportArg"
+                    }
+                },
+                "argsDecorator": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "line": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportIndexSignature": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportArg"
+                    }
+                },
+                "returnType": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true
+        },
+        "ExportInjectable": {
+            "type": "object",
+            "properties": {
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportMethod"
+                    }
+                },
+                "accessors": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "$ref": "#/$defs/ExportAccessor"
+                    }
+                },
+                "constructorObj": {},
+                "isToken": {
+                    "type": "boolean"
+                },
+                "tokenClass": {
+                    "type": "string",
+                    "description": "`InjectionToken` or `HttpContextToken`; absent means `InjectionToken`."
+                },
+                "tokenType": {
+                    "type": "string"
+                },
+                "providedIn": {
+                    "type": "string"
+                },
+                "factory": {
+                    "type": "string",
+                    "description": "Source text of the `factory` option of an `InjectionToken` or a `@Service`; absent without one."
+                },
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "sourceCode": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "extends": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "storybookUrl": {
+                    "type": "string",
+                    "description": "External documentation links injected by JSDoc tags."
+                },
+                "figmaUrl": {
+                    "type": "string"
+                },
+                "stackblitzUrl": {
+                    "type": "string"
+                },
+                "githubUrl": {
+                    "type": "string"
+                },
+                "docsUrl": {
+                    "type": "string"
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Symbols named by `@relatedTo`."
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportInterceptor": {
+            "type": "object",
+            "properties": {
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportMethod"
+                    }
+                },
+                "accessors": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "$ref": "#/$defs/ExportAccessor"
+                    }
+                },
+                "constructorObj": {},
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "sourceCode": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "extends": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "storybookUrl": {
+                    "type": "string",
+                    "description": "External documentation links injected by JSDoc tags."
+                },
+                "figmaUrl": {
+                    "type": "string"
+                },
+                "stackblitzUrl": {
+                    "type": "string"
+                },
+                "githubUrl": {
+                    "type": "string"
+                },
+                "docsUrl": {
+                    "type": "string"
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Symbols named by `@relatedTo`."
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportInterface": {
+            "type": "object",
+            "properties": {
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/ExportProperty"
+                            },
+                            {
+                                "$ref": "#/$defs/ExportCallSignature"
+                            }
+                        ]
+                    }
+                },
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportMethod"
+                    }
+                },
+                "indexSignatures": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportIndexSignature"
+                    }
+                },
+                "kind": {
+                    "type": "number"
+                },
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "sourceCode": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "extends": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "storybookUrl": {
+                    "type": "string",
+                    "description": "External documentation links injected by JSDoc tags."
+                },
+                "figmaUrl": {
+                    "type": "string"
+                },
+                "stackblitzUrl": {
+                    "type": "string"
+                },
+                "githubUrl": {
+                    "type": "string"
+                },
+                "docsUrl": {
+                    "type": "string"
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Symbols named by `@relatedTo`."
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportJsdocName": {
+            "description": "Name node of a JSDoc tag or parameter: `text` or `escapedText` holds the name.",
+            "type": "object",
+            "properties": {
+                "text": {
+                    "type": "string"
+                },
+                "escapedText": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true
+        },
+        "ExportJsdocTag": {
+            "description": "A JSDoc tag of a class, member or parameter as the crawler writes it. Most\nentries are the TypeScript JSDoc node itself, so node fields (`pos`, `end`,\n`kind`, `flags`, ...) can appear next to the fields listed here. Those node\nfields are deprecated since 0.12.0 and go with schema 7.",
+            "type": "object",
+            "properties": {
+                "tagName": {
+                    "$ref": "#/$defs/ExportJsdocName"
+                },
+                "comment": {
+                    "type": "string",
+                    "description": "Rendered comment of the tag."
+                },
+                "name": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/$defs/ExportJsdocName"
+                        }
+                    ],
+                    "description": "Parameter name, as text or as the name node."
+                },
+                "type": {
+                    "type": "string"
+                },
+                "defaultValue": {
+                    "type": "string"
+                },
+                "optional": {
+                    "type": "boolean"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": true
+        },
+        "ExportMethod": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportArg"
+                    }
+                },
+                "returnType": {
+                    "type": "string"
+                },
+                "typeParameters": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "optional": {
+                    "type": "boolean"
+                },
+                "line": {
+                    "type": "number"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "modifierKind": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportMiscellaneous": {
+            "type": "object",
+            "properties": {
+                "variables": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportVariable"
+                    }
+                },
+                "functions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportFunction"
+                    }
+                },
+                "typealiases": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportTypeAlias"
+                    }
+                },
+                "enumerations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportEnumeration"
+                    }
+                },
+                "groupedVariables": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/ExportVariable"
+                        }
+                    }
+                },
+                "groupedFunctions": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/ExportFunction"
+                        }
+                    }
+                },
+                "groupedEnumerations": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/ExportEnumeration"
+                        }
+                    }
+                },
+                "groupedTypeAliases": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/$defs/ExportTypeAlias"
+                        }
+                    }
+                }
+            },
+            "additionalProperties": true
+        },
+        "ExportPipe": {
+            "type": "object",
+            "properties": {
+                "standalone": {
+                    "type": "boolean"
+                },
+                "pure": {
+                    "type": "boolean"
+                },
+                "ngname": {
+                    "type": "string"
+                },
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportMethod"
+                    }
+                },
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "readme": {
+                    "type": "string"
+                },
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "sourceCode": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "extends": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "storybookUrl": {
+                    "type": "string",
+                    "description": "External documentation links injected by JSDoc tags."
+                },
+                "figmaUrl": {
+                    "type": "string"
+                },
+                "stackblitzUrl": {
+                    "type": "string"
+                },
+                "githubUrl": {
+                    "type": "string"
+                },
+                "docsUrl": {
+                    "type": "string"
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Symbols named by `@relatedTo`."
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportProperty": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "defaultValue": {
+                    "type": "string"
+                },
+                "optional": {
+                    "type": "boolean"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "line": {
+                    "type": "number"
+                },
+                "modifierKind": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "decorators": {
+                    "type": "array",
+                    "items": {}
+                },
+                "kind": {
+                    "type": "string"
+                },
+                "signalDeps": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                },
+                "signalKind": {
+                    "type": "string",
+                    "description": "Signal primitive of the initializer (`input-signal`, `output-signal`, `model`, `computed`, ...)."
+                },
+                "required": {
+                    "type": "boolean",
+                    "description": "Signal inputs, outputs and models: whether the member is `.required`."
+                },
+                "alias": {
+                    "type": "string",
+                    "description": "Public name from the `alias` option of a signal input, output or model."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportRoute": {
+            "description": "One route. Empty lists and absent values are never written.",
+            "type": "object",
+            "properties": {
+                "path": {
+                    "anyOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "The path text; `null` for a matcher route or a runtime-built child list."
+                },
+                "pathDynamic": {
+                    "const": true,
+                    "description": "Set when `path` is source text the type checker cannot evaluate."
+                },
+                "fullPath": {
+                    "type": "string",
+                    "description": "Parent full path + own path; dynamic segments as `{source}`; the root is `/`."
+                },
+                "pathMatch": {
+                    "enum": [
+                        "full",
+                        "prefix"
+                    ]
+                },
+                "outlet": {
+                    "type": "string"
+                },
+                "matcher": {
+                    "$ref": "#/$defs/ExportRouteRef"
+                },
+                "component": {
+                    "$ref": "#/$defs/ExportRouteTarget"
+                },
+                "loadChildren": {
+                    "$ref": "#/$defs/ExportRouteTarget"
+                },
+                "builtBy": {
+                    "$ref": "#/$defs/ExportRouteRef",
+                    "description": "The call that builds this node's routes at runtime."
+                },
+                "redirectTo": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/$defs/ExportRouteRef"
+                        }
+                    ],
+                    "description": "A string, or a redirect function / dynamic value."
+                },
+                "title": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "$ref": "#/$defs/ExportRouteRef"
+                        }
+                    ],
+                    "description": "A string, or a title resolver / dynamic value."
+                },
+                "canActivate": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportRouteRef"
+                    }
+                },
+                "canActivateChild": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportRouteRef"
+                    }
+                },
+                "canDeactivate": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportRouteRef"
+                    }
+                },
+                "canMatch": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportRouteRef"
+                    }
+                },
+                "canLoad": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportRouteRef"
+                    }
+                },
+                "resolve": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "$ref": "#/$defs/ExportRouteRef"
+                    }
+                },
+                "providers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportRouteRef"
+                    }
+                },
+                "data": {
+                    "type": "string",
+                    "description": "Source text of the `data` value."
+                },
+                "runGuardsAndResolvers": {
+                    "type": "string",
+                    "description": "Source text of the `runGuardsAndResolvers` value."
+                },
+                "file": {
+                    "type": "string",
+                    "description": "Declaring file, relative to the working directory."
+                },
+                "line": {
+                    "type": "number"
+                },
+                "children": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportRoute"
+                    },
+                    "description": "Inline children, spreads followed, plus an expanded `loadChildren` route array."
+                }
+            },
+            "required": [
+                "path",
+                "fullPath",
+                "file",
+                "line"
+            ],
+            "additionalProperties": true
+        },
+        "ExportRouteRef": {
+            "description": "A guard, resolver, title or redirect function, matcher, provider or router\nfeature of a route: the name, the declaring file when the name is a\ndocumented symbol, and the exact source text (`roleGuard('admin')`).",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Callee or identifier name; `''` for an inline function or a dynamic value."
+                },
+                "file": {
+                    "type": "string"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "call": {
+                    "const": true,
+                    "description": "Set for a call expression."
+                }
+            },
+            "required": [
+                "name",
+                "source"
+            ],
+            "additionalProperties": true
+        },
+        "ExportRouteRoot": {
+            "description": "A router (`provideRouter` reached from `bootstrapApplication`) or an\nexported route array that no router mounts (`unmounted`).",
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "enum": [
+                        "router",
+                        "unmounted"
+                    ]
+                },
+                "bootstraps": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "file": {
+                                "type": "string"
+                            },
+                            "line": {
+                                "type": "number"
+                            },
+                            "component": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "file",
+                            "line"
+                        ],
+                        "additionalProperties": true
+                    }
+                },
+                "config": {
+                    "type": "string",
+                    "description": "Name of the application config variable holding the `provideRouter` call."
+                },
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportRouteRef"
+                    },
+                    "description": "`provideRouter(routes, ...features)`."
+                },
+                "array": {
+                    "type": "string",
+                    "description": "Name of the route array variable (the routes argument, or the unmounted array)."
+                },
+                "routes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportRoute"
+                    }
+                }
+            },
+            "required": [
+                "kind",
+                "routes"
+            ],
+            "additionalProperties": true
+        },
+        "ExportRouteTarget": {
+            "description": "What a route renders (`component` / `loadComponent`) or loads (`loadChildren`).",
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "enum": [
+                        "symbol",
+                        "routes",
+                        "external",
+                        "unresolved"
+                    ]
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Exported name; a default-exported declaration by its own name, else `default`."
+                },
+                "file": {
+                    "type": "string",
+                    "description": "Declaring file when the target is a documented symbol."
+                },
+                "specifier": {
+                    "type": "string",
+                    "description": "Module specifier of a lazy import."
+                },
+                "lazy": {
+                    "const": true
+                },
+                "source": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "kind",
+                "name",
+                "source"
+            ],
+            "additionalProperties": true
+        },
+        "ExportSemantic": {
+            "type": "object",
+            "properties": {
+                "entryPoints": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "importPath": {
+                                "type": "string"
+                            },
+                            "file": {
+                                "type": "string"
+                            },
+                            "source": {
+                                "enum": [
+                                    "ng-package",
+                                    "tsconfig-paths"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "importPath",
+                            "file",
+                            "source"
+                        ],
+                        "additionalProperties": true
+                    }
+                },
+                "summary": {
+                    "$ref": "#/$defs/ExportSemanticSummary"
+                },
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportFeature"
+                    }
+                },
+                "axes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportAxis"
+                    },
+                    "description": "The declared classification axes with their counts; only when axes are declared."
+                }
+            },
+            "required": [
+                "entryPoints",
+                "summary"
+            ],
+            "additionalProperties": true
+        },
+        "ExportSemanticSummary": {
+            "type": "object",
+            "properties": {
+                "entryPoints": {
+                    "type": "number"
+                },
+                "providers": {
+                    "type": "number"
+                },
+                "features": {
+                    "type": "number"
+                },
+                "injectionContext": {
+                    "type": "object",
+                    "properties": {
+                        "direct": {
+                            "type": "number"
+                        },
+                        "viaCall": {
+                            "type": "number"
+                        },
+                        "unresolved": {
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "direct",
+                        "viaCall",
+                        "unresolved"
+                    ],
+                    "additionalProperties": true
+                },
+                "notExported": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "entryPoints",
+                "providers",
+                "features",
+                "injectionContext",
+                "notExported"
+            ],
+            "additionalProperties": true
+        },
+        "ExportService": {
+            "description": "A class decorated with Angular's `@Service` (Angular 22).",
+            "type": "object",
+            "properties": {
+                "autoProvided": {
+                    "type": "boolean",
+                    "description": "`autoProvided` when written as a boolean literal."
+                },
+                "properties": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportProperty"
+                    }
+                },
+                "methods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportMethod"
+                    }
+                },
+                "accessors": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "$ref": "#/$defs/ExportAccessor"
+                    }
+                },
+                "constructorObj": {},
+                "isToken": {
+                    "type": "boolean"
+                },
+                "tokenClass": {
+                    "type": "string",
+                    "description": "`InjectionToken` or `HttpContextToken`; absent means `InjectionToken`."
+                },
+                "tokenType": {
+                    "type": "string"
+                },
+                "providedIn": {
+                    "type": "string"
+                },
+                "factory": {
+                    "type": "string",
+                    "description": "Source text of the `factory` option of an `InjectionToken` or a `@Service`; absent without one."
+                },
+                "jsdoctags": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportJsdocTag"
+                    }
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "rawdescription": {
+                    "type": "string"
+                },
+                "sourceCode": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "extends": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ]
+                },
+                "storybookUrl": {
+                    "type": "string",
+                    "description": "External documentation links injected by JSDoc tags."
+                },
+                "figmaUrl": {
+                    "type": "string"
+                },
+                "stackblitzUrl": {
+                    "type": "string"
+                },
+                "githubUrl": {
+                    "type": "string"
+                },
+                "docsUrl": {
+                    "type": "string"
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Symbols named by `@relatedTo`."
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportSlot": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportStyleFile": {
+            "description": "A free-standing style file with documented content.",
+            "type": "object",
+            "properties": {
+                "file": {
+                    "type": "string",
+                    "description": "Relative to the working directory, forward slashes."
+                },
+                "language": {
+                    "enum": [
+                        "css",
+                        "scss"
+                    ]
+                },
+                "overview": {
+                    "type": "string"
+                },
+                "tokens": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ThemeToken"
+                    }
+                },
+                "mixins": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/StyleMixin"
+                    }
+                },
+                "themes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    },
+                    "description": "Components and directives the file themes (`@themes`)."
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef"
+                }
+            },
+            "required": [
+                "file",
+                "language",
+                "tokens"
+            ],
+            "additionalProperties": true
+        },
+        "ExportStyleSource": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "language": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "content",
+                "language"
+            ],
+            "additionalProperties": true
+        },
+        "ExportSymbolRef": {
+            "description": "A top-level declaration of the same run; `file` is relative to the working directory.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "name",
+                "file"
+            ],
+            "additionalProperties": true
+        },
+        "ExportTokenFacts": {
+            "type": "object",
+            "properties": {
+                "shape": {
+                    "enum": [
+                        "function",
+                        "interface",
+                        "signal",
+                        "primitive",
+                        "union",
+                        "other"
+                    ]
+                },
+                "providedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "injectedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                }
+            },
+            "required": [
+                "shape"
+            ],
+            "additionalProperties": true
+        },
+        "ExportTypeAlias": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "ctype": {
+                    "type": "string"
+                },
+                "subtype": {
+                    "type": "string"
+                },
+                "rawtype": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "kind": {
+                    "type": "number"
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ExportVariable": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "ctype": {
+                    "type": "string"
+                },
+                "subtype": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "type": "boolean"
+                },
+                "deprecationMessage": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "defaultValue": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "HostDirectiveEntry": {
+            "description": "Structured representation of a single entry from a\n`@Component({ hostDirectives: [...] })` array. The render layer\n(`MetadataHostDirectivesRow` in `MetadataRow.tsx`) reads `name`, `inputs`\nand `outputs`. `unresolved` lets the renderer optionally mark entries\nwhose identifier could not be traced back to an object literal or\ndirective class; `refName` preserves the original identifier text of a\ndereferenced entry for attribution if we ever want to surface it.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "inputs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "outputs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "unresolved": {
+                    "type": "boolean",
+                    "description": "True if `name` is an unresolved identifier - no matching directive class or local const."
+                },
+                "refName": {
+                    "type": "string",
+                    "description": "Original identifier text when the entry was dereferenced from a local const."
+                }
+            },
+            "required": [
+                "name"
+            ],
+            "additionalProperties": true
+        },
+        "ProviderCall": {
+            "description": "A provider written as a call: `provideFoo(withBar())` or `...provideFoo()`.",
+            "type": "object",
+            "properties": {
+                "callee": {
+                    "type": "string"
+                },
+                "args": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Callee names of the arguments that are calls (feature functions); others are dropped."
+                }
+            },
+            "required": [
+                "callee",
+                "args"
+            ],
+            "additionalProperties": true
+        },
+        "ProviderEntry": {
+            "description": "Structured representation of a single entry in a `providers: [...]` array.\n\nThe top-level `name` and `type` fields are preserved for backwards\ncompatibility with every existing downstream consumer (`application.ts`\nfilter, dependencies engine relationships, JSON/PDF exports, menu helpers).\n`name` is the `provide:` target for object providers, or the class / token\nidentifier for bare providers. `type` is derived from a substring match on\nthe name via `getType(name)` and may be further refined by\n`application.ts` when the provider matches a known Injectable or\nInterceptor in the dep-engine registry.\n\nThe remaining fields are additive and consumed by the render layer\n(`ProvidersSection`) to show the provider strategy.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "`provide:` target for object providers, else the class / token name."
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Derived from `getType(name)` or set later by `application.ts`."
+                },
+                "kind": {
+                    "enum": [
+                        "class",
+                        "useClass",
+                        "useValue",
+                        "useFactory",
+                        "useExisting"
+                    ],
+                    "description": "Which DI pattern this provider uses."
+                },
+                "provide": {
+                    "type": "string",
+                    "description": "Same as `name` for object providers, omitted for `kind: 'class'`."
+                },
+                "useClass": {
+                    "type": "string"
+                },
+                "useValue": {
+                    "type": "string",
+                    "description": "Source text of the useValue expression. See `valueKind` for category."
+                },
+                "valueKind": {
+                    "enum": [
+                        "literal",
+                        "identifier",
+                        "expression"
+                    ]
+                },
+                "factory": {
+                    "type": "string",
+                    "description": "Identifier name of the factory function."
+                },
+                "deps": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Identifier names of factory dependencies, in source order."
+                },
+                "useExisting": {
+                    "type": "string"
+                },
+                "multi": {
+                    "type": "boolean"
+                },
+                "call": {
+                    "$ref": "#/$defs/ProviderCall",
+                    "description": "Set when the entry is a call (`provideFoo(withBar())`) or a spread of\none: the callee and the callee names of the arguments that are calls.\n`name` keeps the printed source."
+                }
+            },
+            "required": [
+                "name",
+                "kind"
+            ],
+            "additionalProperties": true
+        },
+        "StyleMixin": {
+            "description": "An SCSS mixin or function documented with a `///` block.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "kind": {
+                    "enum": [
+                        "function",
+                        "mixin"
+                    ]
+                },
+                "params": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/StyleMixinParam"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "content": {
+                    "anyOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "`@content` description; null when the tag is absent."
+                },
+                "returns": {
+                    "type": "string",
+                    "description": "Functions: the `@return` text, else ''."
+                },
+                "examples": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "since": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "anyOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                },
+                "see": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "file": {
+                    "type": "string"
+                },
+                "line": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "name",
+                "kind",
+                "params",
+                "description",
+                "content",
+                "returns",
+                "examples",
+                "since",
+                "deprecated",
+                "see",
+                "relatedTo",
+                "file",
+                "line"
+            ],
+            "additionalProperties": true
+        },
+        "StyleMixinParam": {
+            "description": "One parameter of a documented SCSS mixin or function.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Without the `$`."
+                },
+                "default": {
+                    "type": "string",
+                    "description": "From `@param [default]`, else the signature default, else ''."
+                },
+                "description": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string",
+                    "description": "From `@param {Type}`, else ''."
+                }
+            },
+            "required": [
+                "name",
+                "default",
+                "description",
+                "type"
+            ],
+            "additionalProperties": true
+        },
+        "ThemeToken": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Variable name including prefix: `--cngx-alert-padding` or `$alert-padding`"
+                },
+                "kind": {
+                    "enum": [
+                        "css-custom-property",
+                        "scss-variable",
+                        "css-at-property",
+                        "css-hook"
+                    ],
+                    "description": "Source kind - drives rendering and the prefix in the name column.\n`css-hook` is a property the component reads but never sets; it exists\nonly because a `@cssprop` tag names it."
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Resolved type - from"
+                },
+                "defaultValue": {
+                    "type": "string",
+                    "description": "Resolved default - from"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Markdown description (everything before the tag block)"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "examples": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Multi-line code from"
+                },
+                "since": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "anyOf": [
+                        {
+                            "type": "null"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "deprecated": true
+                },
+                "see": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "relatedTo": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "file": {
+                    "type": "string",
+                    "description": "Source location for \"view in source\" link"
+                },
+                "line": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "name",
+                "kind",
+                "type",
+                "defaultValue",
+                "description",
+                "group",
+                "examples",
+                "since",
+                "deprecated",
+                "see",
+                "file",
+                "line"
+            ],
+            "additionalProperties": true
+        }
+    }
+}

@@ -50,6 +50,8 @@ export const COMPODOC_DEFAULTS = {
     disableOverview: false,
     /** Root Markdown pages not to build (`changelog`, `contributing`, `license`, `todo`). */
     disableMarkdownPages: [] as string[],
+    /** Base that relative `<example-url>` tags are appended to; `''` keeps them as written. */
+    exampleUrlBase: '',
     showEffects: false,
     hideGenerator: false,
     hideDarkModeToggle: false,

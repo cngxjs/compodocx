@@ -1,9 +1,21 @@
 import { SyntaxKind, ts } from 'ts-morph';
 import { detectIndent } from '../../../../../utils';
+import { resolveExampleUrl } from '../../../../../utils/example-urls';
+import Configuration from '../../../../configuration';
 import type { ClassHelper } from './class-helper';
 import { type IParseDeepIdentifierResult, type ProviderEntry, SymbolHelper } from './symbol-helper';
 
 export type { ProviderEntry };
+
+/** Text of the JSDoc blocks of a declaration, not of the rest of its file. */
+export const jsDocTextOf = (node: ts.Node | undefined): string =>
+    node
+        ? ts
+              .getJSDocCommentsAndTags(node)
+              .filter(ts.isJSDoc)
+              .map(doc => doc.getText())
+              .join('\n')
+        : '';
 
 const INPUT_SIGNAL_KINDS: ReadonlySet<string> = new Set(['input-signal', 'model']);
 const OUTPUT_SIGNAL_KINDS: ReadonlySet<string> = new Set(['output-signal', 'model']);
@@ -551,6 +563,14 @@ export class ComponentHelper {
         srcFile: ts.SourceFile
     ): Array<string> {
         return this.symbolHelper.getSymbolDeps(props, 'templateUrl', srcFile);
+    }
+
+    /** `<example-url>` tags of the declaration's own JSDoc, resolved against `exampleUrlBase`. */
+    public getExampleUrlsOf(node: ts.Node | undefined): Array<string> | undefined {
+        const base = Configuration.mainData.exampleUrlBase ?? '';
+        return this.getComponentExampleUrls(jsDocTextOf(node))?.map(url =>
+            resolveExampleUrl(url, base)
+        );
     }
 
     public getComponentExampleUrls(text: string): Array<string> | undefined {

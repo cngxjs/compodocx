@@ -2,6 +2,7 @@ import * as path from 'node:path';
 import * as fs from 'fs-extra';
 import { ts } from 'ts-morph';
 import { AngularLifecycleHooks } from './angular-lifecycles-hooks';
+import { stripExampleUrlTags } from './example-urls';
 import { JsdocParserUtil } from './jsdoc-parser.util';
 import { kindToType } from './kind-to-type';
 import { logger } from './logger';
@@ -47,7 +48,8 @@ export function markedtags(tags: Array<any>) {
     const jsdocParserUtil = new JsdocParserUtil();
     const mtags = tags;
     mtags.forEach(tag => {
-        const rawComment = jsdocParserUtil.parseJSDocNode(tag);
+        // `<example-url>` feeds the Example tab, not the tag text
+        const rawComment = stripExampleUrlTags(jsdocParserUtil.parseJSDocNode(tag));
         const markdown = tag.tagName?.text === 'example' ? exampleMarkdown(rawComment) : rawComment;
         // links stay as written; parseDescription resolves them at render time
         tag.comment = markedAcl(markdown);

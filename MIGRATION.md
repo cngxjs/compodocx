@@ -67,11 +67,15 @@ Useful flags:
 
 Re-running `ng add @cngxjs/compodocx` is idempotent (zero diff on the second pass). CI workflow files that invoke `compodoc -p ...` directly are not rewritten - update those manually, or rely on the `compodoc` bin alias the new package still ships. The schematic does not touch your sources, templates or config file: the warnings of the first run still apply.
 
-## Changes in 0.11.1
+## Changes in 0.12.0
 
 No flag or config key was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.11.0:
 
 - **File-local declarations are no longer documented.** A function, variable, interface, type alias, enum or injection token that its file does not export has no page, no sidebar entry, no coverage row and no entry in `documentation.json` or `llm-context.md` any more. Links to such pages and tools that looked those entries up need a look; export the declaration if it belongs to the documented API. Coverage percentages change, because these declarations no longer count, so revisit `--coverageTest` and `--coverageMinimumPerFile` thresholds.
+- **`<example-url>` tags are no longer part of descriptions.** `description`, `rawdescription` and the `jsdoctags` comments in `documentation.json` and the text in `llm-context.md` leave them out; read `exampleUrls`. Custom templates that hid the tag with CSS no longer need to.
+- **Example tabs and `exampleUrls` follow the class.** An `<example-url>` tag counts for the class whose JSDoc holds it. Before, every class of a file got every tag of that file; a class that relied on a tag in a neighbour's comment needs its own tag now.
+- **The TypeScript node fields of `jsdoctags` entries are deprecated.** `pos`, `end`, `kind`, `flags` and the other node fields are still written and go with schema 7; read `tagName`, `comment`, `name`, `type`, `defaultValue` and `optional`. The list is in [`docs/json-export.md`](https://github.com/cngxjs/compodocx/blob/develop/docs/json-export.md#deprecated-fields).
+- **`signal` on components and directives in `documentation.json` is deprecated.** It is still written and goes with schema 7; read `signalKind` on the members instead. Until then it is `true` when the entry has an `input()`, `output()` or `model()` member (it was `false` unless the class carried the undocumented `@signal` tag, which is deprecated too). The deprecated fields are listed in [`docs/json-export.md`](https://github.com/cngxjs/compodocx/blob/develop/docs/json-export.md#deprecated-fields).
 
 ## Changes in 0.11.0
 
@@ -431,6 +435,8 @@ New optional fields (readers can ignore them): the semantic facts on every symbo
 The header fields are `schemaVersion`, `generatedAt` (ISO 8601) and `compodocxVersion`. The export is written on one line by default; pass `--jsonIndent 2` for indented output. The TypeScript types of the export are not part of the package; the shape is declared in [`src/app/interfaces/export-data.interface.ts`](https://github.com/cngxjs/compodocx/blob/develop/src/app/interfaces/export-data.interface.ts) in the repository.
 
 `compodocx diff` reads schema 6 only: an older or newer export exits with code 2 and asks to re-export (or to upgrade compodocx). Re-export stored baselines after upgrading. `compodocx diff` does not compare `routes` or `styleFiles`.
+
+Every schema version, the changes of values within schema 6 by release, and the compatibility policy for future changes are listed in [`docs/json-export.md`](https://github.com/cngxjs/compodocx/blob/develop/docs/json-export.md).
 
 ## Removed i18n keys
 
