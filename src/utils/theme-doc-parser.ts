@@ -276,8 +276,17 @@ const TOKEN_TAGS: readonly string[] = [
     'relatedTo'
 ];
 
-const hasTokenTag = (body: string): boolean =>
-    parseDocBody(body).tags.some(tag => TOKEN_TAGS.includes(tag.name));
+/** `@internal` hides whatever the block documents; such a block is never reported as dropped. */
+const isInternalBlock = (body: string): boolean =>
+    parseDocBody(body).tags.some(tag => tag.name === 'internal');
+
+const hasTokenTag = (body: string): boolean => {
+    const tags = parseDocBody(body).tags;
+    return (
+        !tags.some(tag => tag.name === 'internal') &&
+        tags.some(tag => TOKEN_TAGS.includes(tag.name))
+    );
+};
 
 /** Tags that document a custom property the component reads (custom-elements-manifest names). */
 export const HOOK_TAGS = ['cssprop', 'cssproperty'] as const;
@@ -402,6 +411,9 @@ const readHookBlock = (
     if (!parseDocBody(body).tags.some(tag => isHookTag(tag.name))) {
         return false;
     }
+    if (isInternalBlock(body)) {
+        return true;
+    }
     into.tokens.push(
         ...readHooks({ body, bodyLine, file, ownBlock: true, unknownTags: into.unknownTags })
     );
@@ -428,9 +440,16 @@ const readFileLevelBlock = (
         into.overview.push(intro);
     }
     const lines = tagLineIndexes(body);
-    into.hooks.push(
-        ...readHooks({ body, bodyLine, file, ownBlock: false, unknownTags: into.unknownTags })
-    );
+    const hooks = readHooks({
+        body,
+        bodyLine,
+        file,
+        ownBlock: false,
+        unknownTags: into.unknownTags
+    });
+    if (!isInternalBlock(body)) {
+        into.hooks.push(...hooks);
+    }
     parsed.tags.forEach((tag, i) => {
         switch (tag.name) {
             case 'overview':
@@ -443,6 +462,7 @@ const readFileLevelBlock = (
                 break;
             case 'cssprop':
             case 'cssproperty':
+            case 'internal':
                 break;
             default:
                 into.unknownTags.push({ file, line: bodyLine + (lines[i] ?? 0), tag: tag.name });
@@ -782,8 +802,9 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
             continue;
         }
 
+        const internalBlock = pending !== null && isInternalBlock(pending.body);
         const mixinMatch = pending ? raw.match(SCSS_MIXIN_DECL_RE) : null;
-        if (pending && mixinMatch && !isPrivateName(mixinMatch[2])) {
+        if (pending && mixinMatch && !isPrivateName(mixinMatch[2]) && !internalBlock) {
             mixins.push(
                 buildMixin({
                     kind: mixinMatch[1] as StyleMixin['kind'],
@@ -800,7 +821,7 @@ export function parseScssTokens(source: string, file: string): ParsedStyleResult
 
         if (pending) {
             const declMatch = raw.match(SCSS_VAR_DECL_RE);
-            if (declMatch) {
+            if (declMatch && !internalBlock) {
                 tokens.push(
                     buildToken({
                         name: `$${declMatch[1]}`,
@@ -1057,15 +1078,23 @@ export function parseCssTokens(source: string, file: string): ParsedStyleResult 
         ) {
             continue;
         }
+        const after = consumeWhitespace(source, block.end);
+        const rest = source.slice(after);
+
+        if (isInternalBlock(block.body)) {
+            // The fallback below must not bring a hidden `@property` back.
+            const hiddenAtProp = rest.match(AT_PROPERTY_RE);
+            if (hiddenAtProp) {
+                consumedAtProperties.add(hiddenAtProp[1]);
+            }
+            continue;
+        }
         open = { body: block.body, start: block.start, tokenCount: tokens.length };
         const docArgs = {
             body: block.body,
             bodyLine: block.bodyLine,
             unknownTags: fileLevel.unknownTags
         };
-
-        const after = consumeWhitespace(source, block.end);
-        const rest = source.slice(after);
 
         const atPropMatch = rest.match(AT_PROPERTY_RE);
         if (atPropMatch) {

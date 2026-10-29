@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Added
+
+- **`@internal` in style comments.** A doc block in a CSS or SCSS file that carries `@internal` hides what it documents from the docs: a custom property, an `@property` rule, a `@cssprop` hook, an SCSS variable, mixin or function. The token no longer appears on the Theming tab, the style page, the design tokens page or in the JSON and llm-md exports, and the block is not reported as unattached. See [Hiding tokens from the docs](docs/theming-tokens-authoring-guide.md#hiding-tokens-from-the-docs).
+
 ## [0.12.1] - 2026-10-29
 
 Upgrading from 0.12.0: nothing to change. The JSON export schema stays 6; `slots` entries of multi-line `@slot` tags now carry the right name and description.

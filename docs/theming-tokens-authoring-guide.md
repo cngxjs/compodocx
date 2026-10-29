@@ -250,15 +250,16 @@ If the same stylesheet also declares the property (`--badge-color: ...;` or `@pr
 | `@cssprop` | `{<syntax>} [--name=default] - description`, repeatable; every part but the name is optional | Documents a property the component reads and never sets (a hook). The block never attaches to the next declaration. See [Pattern 5](#pattern-5-hook-token-read-not-set) |
 | `@cssproperty` | Same as `@cssprop` | Alias of `@cssprop` |
 | `@themes` | `Name[, Name...]`, comma or space separated, repeatable | File level only. Links a free-standing style file to the components and directives it themes. See [`@themes`](#linking-a-file-with-themes) |
+| `@internal` | None | Hides what the block documents (token, `@property`, hook, SCSS mixin or function) from the docs. In a file-level block it hides the `@cssprop` lines only. See [Hiding tokens from the docs](#hiding-tokens-from-the-docs) |
 
 Which tags are read where:
 
 | Position | Tags |
 |-|-|
-| Token (variable, custom property, `@property`) | `@type`, `@default`, `@group`, `@example`, `@since`, `@deprecated`, `@see`, `@relatedTo` |
+| Token (variable, custom property, `@property`) | `@type`, `@default`, `@group`, `@example`, `@since`, `@deprecated`, `@see`, `@relatedTo`, `@internal` |
 | Hook block (carries `@cssprop`) | `@cssprop`/`@cssproperty` plus the token tags above, shared by the hooks of the block |
-| File level (`@overview` block or a block carrying `@themes`) | `@overview`, `@themes`, `@relatedTo`, `@cssprop`/`@cssproperty` |
-| SCSS mixin or function | `@param`, `@content`, `@return`, `@output`, `@example`, `@since`, `@deprecated`, `@see`, `@relatedTo` |
+| File level (`@overview` block or a block carrying `@themes`) | `@overview`, `@themes`, `@relatedTo`, `@cssprop`/`@cssproperty`, `@internal` |
+| SCSS mixin or function | `@param`, `@content`, `@return`, `@output`, `@example`, `@since`, `@deprecated`, `@see`, `@relatedTo`, `@internal` |
 
 Any other tag is dropped and reported in the build log, see [Unknown tags](#unknown-tags).
 
@@ -350,6 +351,24 @@ Style comments: 1 hook token also declared in its sheet, declaration kept
 ```
 
 Declarations in another sheet of the same component are not a conflict; they merge as described above.
+
+## Hiding tokens from the docs
+
+A helper property that only the stylesheet itself reads is not part of the theming surface. Add `@internal` to its doc block and it is hidden from the docs: no row on the Theming tab, the style page or `design-tokens.html`, and no entry in the JSON and llm-md exports. CSS has no private custom properties, so this hides the property from the docs only; it still works in the browser like any other.
+
+```css
+/**
+ * Width reserved for the overflow badge, copied from the public token.
+ * @internal
+ */
+@property --acme-chip-reserve {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0px;
+}
+```
+
+`@internal` works on every kind of block that documents something: a `@property` rule (an undocumented `@property` rule is listed on its own, but not one hidden this way), a custom property declaration, the first property inside a selector, a `@cssprop` block, an SCSS variable, mixin or function. In an `@overview` or `@themes` block it hides the `@cssprop` lines of that block and leaves the overview and the links as they are. The tag takes no value, it is never reported as unknown, and a block that carries it is never reported as [unattached](#unattached-blocks).
 
 ## Source resolution
 
@@ -547,7 +566,7 @@ Text you want readers to see belongs in the description, above the first tag.
 
 ## Unattached blocks
 
-A doc block that carries at least one token tag (`@type`, `@default`, `@group`, `@example`, `@since`, `@deprecated`, `@see`, `@relatedTo`) but documents nothing is reported too: no property, `@property` or SCSS variable follows it, or something else sits in between. Blocks with prose only, blocks with only unknown tags, file-level blocks, hook blocks and the block above a private SCSS mixin are not reported.
+A doc block that carries at least one token tag (`@type`, `@default`, `@group`, `@example`, `@since`, `@deprecated`, `@see`, `@relatedTo`) but documents nothing is reported too: no property, `@property` or SCSS variable follows it, or something else sits in between. Blocks with prose only, blocks with only unknown tags, file-level blocks, hook blocks, blocks with `@internal` and the block above a private SCSS mixin are not reported.
 
 ```text
 Style comments: 2 doc blocks not attached
