@@ -1,4 +1,5 @@
 import type { JsdocParserUtil } from '../../../utils';
+import { stripExampleUrlTags } from '../../../utils/example-urls';
 import { warnOnce } from '../../../utils/jsdoc-tag-warn';
 
 export class JsdocTags {
@@ -115,13 +116,14 @@ export class JsdocTags {
                     break;
                 }
                 case 'slot': {
-                    // @slot name - description; a repeated name keeps the first
+                    // @slot name - description; the description runs over the
+                    // following lines, a repeated name keeps the first
                     if (!result.slots) {
                         result.slots = [];
                     }
-                    const parts = comment.match(/^(\S+)\s*-?\s*(.*)$/);
+                    const parts = comment.match(/^(\S+)\s*-?\s*([\s\S]*)$/);
                     const slotName = parts ? parts[1] : comment;
-                    const slotDesc = parts ? parts[2] || '' : '';
+                    const slotDesc = parts ? stripExampleUrlTags(parts[2]).trim() : '';
                     if (slotName && !result.slots.some((s: any) => s.name === slotName)) {
                         result.slots.push({
                             name: slotName,

@@ -11,6 +11,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 ### Fixed
 
 - **Example URLs in the llm-md export.** Since 0.12.0 `<example-url>` tags leave the description, and the llm-md export lost every example URL with them. Components and directives now list their `exampleUrls` under `Examples:`, one URL per line, after the description. The JSON Schema of the export declares `exampleUrls` on components and directives, which the export already wrote.
+- **Multi-line `@slot`.** A `@slot` tag followed by more lines, such as a description over two lines or `<example-url>` tags after the last slot of a comment, became one slot named after the whole comment with no description. The first word is now the name and the rest the description, without `<example-url>` tags, in the Content Slots section and in `slots` of the JSON export.
 
 ## [0.12.0] - 2026-10-29
 

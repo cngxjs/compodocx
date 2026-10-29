@@ -12,6 +12,8 @@ import { TooltipDirective } from '../directives/tooltip.directive';
  * ```
  *
  * @since 2.0.0
+ * @slot default - Content of the wrapper `div`,
+ * which carries the highlight and tooltip of the host.
  */
 @Component({
     selector: 'app-host-dir-demo',
