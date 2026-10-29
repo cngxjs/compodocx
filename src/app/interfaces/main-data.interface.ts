@@ -168,6 +168,8 @@ export interface MainDataInterface {
     infoTabSections: string[];
     apiTabSections: string[];
     themingTabSections: string[];
+    /** Custom properties named with this prefix are left out of the docs; `false` keeps all. */
+    themingPrivatePrefix: string | false;
     /**
      * Subset of the consumer's `package.json` (`dependencies` and
      * `peerDependencies`) used to pin third-party deps in `@playground`

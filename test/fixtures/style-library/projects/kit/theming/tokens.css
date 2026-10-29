@@ -79,4 +79,32 @@
         inherits: true;
         initial-value: 16px;
     }
+
+    /**
+     * Step between two spacing levels, read only by the spacing rules of the
+     * kit. Hidden from the docs with `@internal`.
+     *
+     * @type <length>
+     * @group Spacing
+     * @internal
+     */
+    @property --sty-space-step {
+        syntax: '<length>';
+        inherits: true;
+        initial-value: 4px;
+    }
+
+    /**
+     * Half of the small gap, computed for the dense rules of the kit. The
+     * name starts with `--_`, so it is hidden unless `themingPrivatePrefix`
+     * is `false`.
+     *
+     * @type <length>
+     * @group Spacing
+     */
+    @property --_sty-space-half {
+        syntax: '<length>';
+        inherits: true;
+        initial-value: 4px;
+    }
 }

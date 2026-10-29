@@ -18,6 +18,27 @@ const undocumentedProperty =
 const mixinOnly = '/// Emits the theme.\n/// @param $theme - Theme map.\n@mixin theme($theme) {}\n';
 
 describe('buildStyleModel', () => {
+    const privateOnly =
+        "/**\n * Private alias.\n */\n@property --_k-reserve {\n  syntax: '<length>';\n  inherits: true;\n  initial-value: 0px;\n}\n";
+
+    it('drops private tokens before the content rule, so such a file has no page', () => {
+        const model = buildStyleModel(
+            [
+                { file: 'a/private.css', content: privateOnly },
+                { file: 'a/mixed.css', content: `${privateOnly}${documentedToken}` }
+            ],
+            '--_'
+        );
+        expect(model.files.map(f => f.file)).toEqual(['a/mixed.css']);
+        expect(model.files[0].tokens.map(t => t.name)).toEqual(['--primary']);
+        expect(model.listed).toEqual(['a/private.css']);
+    });
+
+    it('keeps private tokens without a prefix', () => {
+        const model = buildStyleModel([{ file: 'a/private.css', content: privateOnly }], false);
+        expect(model.files.map(f => f.tokens.map(t => t.name))).toEqual([['--_k-reserve']]);
+    });
+
     it('collects the unattached blocks of every file without leaking them into the files', () => {
         const model = buildStyleModel([
             { file: 'a/x.css', content: '/**\n * @group G\n */\n.chip { x: y; }\n' },

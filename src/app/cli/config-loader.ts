@@ -155,6 +155,28 @@ function applyStyleFilesConfig(
 }
 
 /**
+ * `themingPrivatePrefix` from the config file: `false`, or a string that starts
+ * with `--` and names at least one more character. Anything else warns and the
+ * default stays.
+ */
+function applyThemingPrivatePrefix(
+    configFile: Partial<ConfigurationFileInterface>,
+    mainData: MainDataInterface
+): void {
+    const prefix: unknown = configFile.themingPrivatePrefix;
+    if (prefix === undefined) {
+        return;
+    }
+    if (prefix === false || (typeof prefix === 'string' && /^--./.test(prefix))) {
+        mainData.themingPrivatePrefix = prefix;
+        return;
+    }
+    logger.warn(
+        `themingPrivatePrefix: expected false or a prefix such as "--_" that starts with "--"; ignored, "${mainData.themingPrivatePrefix}" stays`
+    );
+}
+
+/**
  * `features`, `featureContainers`, `featureUtilityFolders` and `featureRoleFolders` from the config
  * file. Invalid entries warn once each and are ignored; the run goes on.
  */
@@ -410,6 +432,7 @@ export function applyConfigToMainData(
     if (configFile.themingTabSections) {
         mainData.themingTabSections = configFile.themingTabSections;
     }
+    applyThemingPrivatePrefix(configFile, mainData);
 
     if (
         configFile.playgroundDependencies &&

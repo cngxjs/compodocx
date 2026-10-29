@@ -1140,6 +1140,23 @@ const AdditionalEntry = (page: any): string => {
     ) as string;
 };
 
+/**
+ * The generator footer. It follows the menu `<nav>` instead of sitting in its
+ * list, so it stays at the bottom of the sidebar while the menu scrolls.
+ */
+const GeneratorFooter = (): string =>
+    (
+        <div class="copyright cdx-sidebar-footer">
+            {t('generated-using')}{' '}
+            <a href="https://compodocx.dev/" target="_blank" rel="noopener noreferrer">
+                <span class="cdx-logo-placeholder">
+                    <span class="cdx-logo-text">compodoc</span>
+                    <span class="text-ember font-bold">x</span>
+                </span>
+            </a>
+        </div>
+    ) as string;
+
 export const Menu = (props: MenuProps): string => {
     const d = withoutHidden(withFunctionalKinds(props.data));
     const byFeature = (items: any[] | undefined, kind: TableKind) =>
@@ -1153,8 +1170,8 @@ export const Menu = (props: MenuProps): string => {
     const entities = d.entities ?? [];
     const styles = styleMenuItems(d.symbols);
 
-    return (
-        <nav>
+    const menu = (
+        <nav class="cdx-sidebar-menu">
             <ul class="list">
                 {/* Getting Started */}
                 <li class="chapter">
@@ -1440,27 +1457,8 @@ export const Menu = (props: MenuProps): string => {
                         </a>
                     </li>
                 )}
-
-                {/* Generator footer */}
-                {!d.hideGenerator && (
-                    <>
-                        <li class="divider"></li>
-                        <li class="copyright">
-                            {t('generated-using')}{' '}
-                            <a
-                                href="https://compodocx.dev/"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                <span class="cdx-logo-placeholder">
-                                    <span class="cdx-logo-text">compodoc</span>
-                                    <span class="text-ember font-bold">x</span>
-                                </span>
-                            </a>
-                        </li>
-                    </>
-                )}
             </ul>
         </nav>
     ) as string;
+    return d.hideGenerator ? menu : menu + GeneratorFooter();
 };

@@ -431,6 +431,33 @@ describe('CLI simple generation', () => {
         });
     });
 
+    describe('when the assets folder does not exist', () => {
+        let run: ReturnType<typeof shell>;
+        beforeAll(() => {
+            tmp.create(distFolder);
+            run = shell('node', [
+                './bin/index-cli.js',
+                '--no-multiVersion',
+                '-p',
+                './test/fixtures/sample-files/tsconfig.simple.json',
+                '-d',
+                distFolder,
+                '-a',
+                './test/fixtures/sample-files/no-such-assets'
+            ]);
+        });
+        afterAll(() => tmp.clean(distFolder));
+
+        it('warns with the resolved path and still generates the docs', () => {
+            expect(run.status).to.equal(0);
+            expect(hasStderrError(run.stderr.toString())).to.equal(false);
+            expect(run.stdout.toString()).to.contain(
+                `Assets folder ${path.resolve('./test/fixtures/sample-files/no-such-assets')} does not exist, nothing copied (check assetsFolder or -a)`
+            );
+            expect(exists(`${distFolder}/index.html`)).to.equal(true);
+        });
+    });
+
     describe('when passing a deep path on a flag', () => {
         beforeAll(() => {
             tmp.create(distFolder);
@@ -678,7 +705,7 @@ describe('CLI simple generation', () => {
 
         it('should not contain generator footer', () => {
             index = menuOf(distFolder);
-            expect(index).to.not.contain('class="copyright"');
+            expect(index).to.not.contain('cdx-sidebar-footer');
         });
     });
 

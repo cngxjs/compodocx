@@ -583,7 +583,7 @@ Components grow a **Theming** tab when the parser finds documented theme tokens 
 $alert-padding: 12px 16px !default;
 ```
 
-The `///` block must sit immediately above the `$variable: value [!default];` declaration. Any non-comment line in between cancels the association.
+The `///` block must sit immediately above the `$variable: value [!default];` declaration. Any non-comment line in between cancels the association. Private variables (`$_x`, `$-x`) are not listed, as Sass keeps them out of the module.
 
 ### CSS custom properties -- JSDoc `/** */` blocks
 
@@ -632,6 +632,7 @@ The doc block can sit directly above the property OR above a wrapping selector t
 | `@relatedTo` | `Name[, Name]` | On a token: a "Related" row linking the named symbols (unresolved names render as code). At file level: a Related section on the style page |
 | `@cssprop` (alias `@cssproperty`) | `{<syntax>} [--name=default] - description`, repeatable | Documents a property the component reads but never sets (a hook), in the form of the custom-elements-manifest. The block never attaches to the next declaration. Shown with a "Hook" badge; JSON `kind` is `css-hook`. Also read inside an `@overview` block |
 | `@themes` | `Name[, Name...]`, file level, repeatable | Links a [style file](#style-files) to the components and directives it themes, resolved like `{@link}` names. Written in the `@overview` block or in a block of its own (a block carrying `@themes` never documents the declaration after it) |
+| `@internal` | none | Hides what the block documents (token, `@property`, hook, mixin or function) from the docs, see [Hiding tokens from the docs](theming-tokens-authoring-guide.md#hiding-tokens-from-the-docs). In an `@overview` block it hides the `@cssprop` lines only. The block is never reported as unattached |
 
 Documented SCSS mixins and functions: a `///` block directly above `@mixin name(...)` or `@function name(...)` with `@param` (SassDoc `@param {Type} $name [default] - text` or plain `@param $name text`), `@content`, `@return`, `@example`, `@since`, `@deprecated`, `@see` and `@relatedTo`. Parameters come from the signature, so a parameter without a `@param` line is still listed. Private names (`_x`, `-x`) and undocumented mixins are not shown. They render in the **Mixins** section of the Theming tab and on the style page.
 
@@ -644,6 +645,22 @@ Style comments: 2 unknown tags ignored (@todo x1, @note x1)
 ```
 
 Two more groups appear in the same place when they apply: `Style comments: <n> doc blocks not attached` (a block with token tags that documents nothing, with `file:line` of its first line) and `Style comments: <n> hook tokens also declared in their sheets, declaration kept` (a `@cssprop` for a property the same sheet declares). A name documented in several sheets of one component is listed once, the `@property` winning over a plain declaration.
+
+### Hidden tokens
+
+Custom properties whose name starts with `--_` are hidden from the docs: they have no row on the Theming tab, the style page or `design-tokens.html`, and no entry in `documentation.json` or `llm-context.md`. This applies to `@property` rules and declarations, documented or not. A `@cssprop` hook stays, because naming a property in that tag is an explicit choice to document it. CSS has no private custom properties; `--_` is a naming convention for helpers that only the stylesheet itself reads, and the property still works in the browser.
+
+| Option | Type | Default | Description |
+|-|-|-|-|
+| themingPrivatePrefix | string \| false | `'--_'` | Prefix of the custom properties hidden from the docs. Must start with `--` and name at least one more character, for example `'--private-'`. `false` lists every property. Any other value logs a warning and the default stays. Config file only |
+
+```json
+{
+    "themingPrivatePrefix": false
+}
+```
+
+A style file whose tokens are all hidden, and that has no overview and no documented mixin, gets no page of its own. To hide a single token whatever its name, add `@internal` to its doc block (see [Hiding tokens from the docs](theming-tokens-authoring-guide.md#hiding-tokens-from-the-docs)).
 
 ### Source resolution
 

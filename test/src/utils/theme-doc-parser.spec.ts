@@ -15,7 +15,8 @@ import {
     parseScssTokens,
     parseStyleSource,
     type ThemeToken,
-    unknownStyleTags
+    unknownStyleTags,
+    withoutPrivateTokens
 } from '../../../src/utils/theme-doc-parser';
 
 describe('Utils - theme-doc-parser', () => {
@@ -856,6 +857,150 @@ describe('Utils - theme-doc-parser', () => {
             expect(orphans('/// Inner.\n/// @since 1\n@mixin _inner() {}', 'a.scss')).to.deep.equal(
                 []
             );
+        });
+    });
+
+    describe('@internal', () => {
+        const AT_PROP =
+            "@property --x {\n  syntax: '<length>';\n  inherits: true;\n  initial-value: 0px;\n}";
+        const names = (result: { tokens: ThemeToken[] }) => result.tokens.map(t => t.name);
+
+        it('hides a documented @property and keeps the fallback from bringing it back', () => {
+            const result = parseCssTokens(
+                `/**\n * Private alias.\n * @group G\n * @internal\n */\n${AT_PROP}\n`,
+                'a.css'
+            );
+            expect(result.tokens).to.deep.equal([]);
+            expect(result.unknownTags).to.deep.equal([]);
+            expect(result.orphanBlocks).to.deep.equal([]);
+        });
+
+        it('hides a declaration and the first property of a selector head', () => {
+            expect(
+                names(parseCssTokens('/**\n * @internal\n */\n--x: 1px;\n--y: 2px;', 'a.css'))
+            ).to.deep.equal([]);
+            expect(
+                names(
+                    parseCssTokens(
+                        '/**\n * @default 1px\n * @internal\n */\n:host { --x: 1px; }',
+                        'a.css'
+                    )
+                )
+            ).to.deep.equal([]);
+        });
+
+        it('hides the properties of a @cssprop block', () => {
+            const result = parseCssTokens(
+                '/**\n * @cssprop {<length>} [--x=0] - Hidden.\n * @internal\n */\n.a { b: c; }',
+                'a.css'
+            );
+            expect(result.tokens).to.deep.equal([]);
+            expect(result.unknownTags).to.deep.equal([]);
+        });
+
+        it('hides the @cssprop lines of a file-level block and keeps its overview', () => {
+            const result = parseCssTokens(
+                '/**\n * Intro.\n * @overview\n * @cssprop --x\n * @internal\n */\n',
+                'a.css'
+            );
+            expect(result.tokens).to.deep.equal([]);
+            expect(result.overview).to.deep.equal(['Intro.']);
+            expect(result.unknownTags).to.deep.equal([]);
+        });
+
+        it('hides a SCSS variable and a SCSS mixin without reporting the block', () => {
+            const result = parseScssTokens(
+                '/// Gap.\n/// @group G\n/// @internal\n$gap: 4px;\n\n/// Pad.\n/// @internal\n@mixin pad() {}\n',
+                'a.scss'
+            );
+            expect(result.tokens).to.deep.equal([]);
+            expect(result.mixins).to.deep.equal([]);
+            expect(result.unknownTags).to.deep.equal([]);
+            expect(result.orphanBlocks).to.deep.equal([]);
+        });
+
+        it('does not report an @internal block that documents nothing', () => {
+            const result = parseCssTokens(
+                '/**\n * @group G\n * @internal\n */\n.a { b: c; }',
+                'a.css'
+            );
+            expect(result.orphanBlocks).to.deep.equal([]);
+            expect(result.unknownTags).to.deep.equal([]);
+        });
+
+        it('leaves the public tokens around it untouched', () => {
+            const result = parseCssTokens(
+                `/**\n * Public.\n */\n--a: 1px;\n/**\n * @internal\n */\n${AT_PROP}\n/** Next. */\n--b: 2px;\n`,
+                'a.css'
+            );
+            expect(names(result)).to.deep.equal(['--a', '--b']);
+            expect(result.tokens[0].description).to.equal('Public.');
+        });
+    });
+
+    describe('private SCSS variables', () => {
+        it('leaves documented $_x and $-x out and keeps $x, without reporting the blocks', () => {
+            const result = parseScssTokens(
+                '/// Hidden.\n/// @type Length\n$_gap: 4px;\n\n/// Hidden too.\n$-pad: 2px;\n\n/// Public.\n$size: 8px;\n',
+                'a.scss'
+            );
+            expect(result.tokens.map(t => t.name)).to.deep.equal(['$size']);
+            expect(result.orphanBlocks).to.deep.equal([]);
+            expect(result.unknownTags).to.deep.equal([]);
+        });
+
+        it('still leaves private mixins out and keeps public ones', () => {
+            const result = parseScssTokens(
+                '/// Inner.\n@mixin _inner() {}\n\n/// Outer.\n@mixin outer() {}\n',
+                'a.scss'
+            );
+            expect(result.mixins.map(m => m.name)).to.deep.equal(['outer']);
+        });
+    });
+
+    describe('withoutPrivateTokens', () => {
+        const css = [
+            "/**\n * Documented.\n */\n@property --_a {\n  syntax: '*';\n  inherits: true;\n}",
+            "@property --_b {\n  syntax: '*';\n  inherits: true;\n}",
+            '/** Decl. */\n--_c: 1px;',
+            '/**\n * @cssprop --_d - Hook.\n */',
+            '/** Public. */\n--e: 1px;',
+            '/** Own prefix. */\n--priv-f: 1px;'
+        ].join('\n');
+        const tokens = parseCssTokens(css, 'a.css').tokens;
+        const names = (prefix: string | false) =>
+            withoutPrivateTokens(tokens, prefix)
+                .map(t => t.name)
+                .sort();
+
+        it('drops documented and undocumented properties and declarations, keeps hooks', () => {
+            expect(names('--_')).to.deep.equal(['--_d', '--e', '--priv-f']);
+        });
+
+        it('keeps every token for false', () => {
+            expect(names(false)).to.deep.equal(['--_a', '--_b', '--_c', '--_d', '--e', '--priv-f']);
+        });
+
+        it('reads a prefix of its own', () => {
+            expect(names('--priv-')).to.deep.equal(['--_a', '--_b', '--_c', '--_d', '--e']);
+        });
+
+        it('filters component tokens in collectThemeTokens', () => {
+            const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'cdx-private-'));
+            const entity = path.join(tmp, 'c.component.ts');
+            fs.writeFileSync(entity, '// stub');
+            fs.writeFileSync(path.join(tmp, 'c.css'), css);
+            const result = collectThemeTokens({
+                entityFile: entity,
+                styleUrls: ['./c.css'],
+                privatePrefix: '--_'
+            });
+            fs.rmSync(tmp, { recursive: true, force: true });
+            expect(result.tokens.map(t => t.name).sort()).to.deep.equal([
+                '--_d',
+                '--e',
+                '--priv-f'
+            ]);
         });
     });
 

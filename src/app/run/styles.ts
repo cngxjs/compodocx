@@ -113,7 +113,8 @@ export const deriveStyles = (
     const built = buildStyleModel(
         files
             .filter(file => !own.has(file))
-            .map(file => ({ file, content: fs.readFileSync(path.resolve(cwd, file), 'utf8') }))
+            .map(file => ({ file, content: fs.readFileSync(path.resolve(cwd, file), 'utf8') })),
+        mainData.themingPrivatePrefix
     );
     const { model, problems } = resolveThemes(built, themeResolver(table));
     return {

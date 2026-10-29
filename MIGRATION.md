@@ -67,6 +67,13 @@ Useful flags:
 
 Re-running `ng add @cngxjs/compodocx` is idempotent (zero diff on the second pass). CI workflow files that invoke `compodoc -p ...` directly are not rewritten - update those manually, or rely on the `compodoc` bin alias the new package still ships. The schematic does not touch your sources, templates or config file: the warnings of the first run still apply.
 
+## Changes in 0.13.0
+
+No flag or config key was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.12:
+
+- **Custom properties named `--_...` are hidden from the docs.** `@property` rules and declarations whose name starts with `--_` are left out of the Theming tab, the style pages, `design-tokens.html`, `themeTokens` and `styleFiles[].tokens` in `documentation.json` and `llm-context.md`, documented or not. `@cssprop` hooks are kept. `compodocx diff` against a 0.12 export reports each of them as `theme-token-removed`, a breaking change; this is the expected result of the upgrade, not a change in your styles. A style file whose tokens are all hidden, and that has no overview and no documented mixin, loses its page, so links to it need a look. To keep the old listing, set `"themingPrivatePrefix": false`; to use another prefix, set it there (see [Hidden tokens](docs/configuration.md#hidden-tokens)).
+- **Private SCSS variables are no longer listed.** A documented `$_x` or `$-x` is private to its Sass module and drops out like private mixins; `themingPrivatePrefix` does not bring it back. Rename the variable if it belongs to the public theming surface.
+
 ## Changes in 0.12.0
 
 No flag or config key was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.11.0:

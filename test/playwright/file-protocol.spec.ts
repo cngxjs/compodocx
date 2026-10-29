@@ -24,6 +24,14 @@ test.describe('Site opened from file://', () => {
         expect(errors).toEqual([]);
     });
 
+    test('keeps the generator footer at the bottom of the sidebar', async ({ page }) => {
+        await page.goto(fileUrl('overview.html'));
+        const footer = page.locator('#sidebar .cdx-sidebar-footer');
+        await expect(footer).toBeInViewport();
+        const scrolled = await page.evaluate(() => document.getElementById('sidebar')?.scrollTop);
+        expect(scrolled).toBe(0);
+    });
+
     test('draws the dependency graph', async ({ page }) => {
         await page.goto(fileUrl('overview.html'));
         const graph = page.locator('#dependency-graph-container');
