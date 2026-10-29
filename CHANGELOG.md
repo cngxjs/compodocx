@@ -6,7 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
-## [Unreleased]
+## [0.12.0] - 2026-10-29
+
+Upgrading from 0.11: no flag or config key was removed and the JSON export schema stays 6. Declarations a file does not export are no longer documented, `<example-url>` tags leave descriptions and count only for the class whose comment holds them, and `signal` plus the TypeScript node fields of `jsdoctags` in `documentation.json` are deprecated; [MIGRATION.md](MIGRATION.md) lists each change.
 
 ### Added
 
