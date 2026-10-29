@@ -134,6 +134,21 @@ describe('llm-md/emit — emitComponent', () => {
         expect(out).toMatch(/Properties:[\s\S]*`plain: string`/);
         expect(out).not.toMatch(/Properties:[\s\S]*`count: Signal<number>`/);
     });
+
+    it('lists the example URLs after the description, one per line', () => {
+        const out = emitComponent({
+            ...base,
+            exampleUrls: ['https://demo.example.com/#/foo', 'https://demo.example.com/#/bar']
+        });
+        expect(out).toContain(
+            'Description: Renders a foo widget.\n\nExamples:\n- https://demo.example.com/#/foo\n- https://demo.example.com/#/bar'
+        );
+    });
+
+    it('writes no Examples list without example URLs', () => {
+        expect(emitComponent(base)).not.toContain('Examples:');
+        expect(emitComponent({ ...base, exampleUrls: [] })).not.toContain('Examples:');
+    });
 });
 
 describe('llm-md/emit — emitDirective', () => {
@@ -150,6 +165,15 @@ describe('llm-md/emit — emitDirective', () => {
         expect(out).toContain('Selector: `[appBorder]`');
         expect(out).toContain('Standalone: yes');
         expect(out).toContain('Description: Adds a border');
+    });
+
+    it('lists the example URLs after the description', () => {
+        const out = emitDirective({
+            name: 'BorderDirective',
+            description: 'Adds a border',
+            exampleUrls: ['/#/border']
+        });
+        expect(out).toContain('Description: Adds a border\n\nExamples:\n- /#/border');
     });
 });
 

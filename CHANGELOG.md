@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Fixed
+
+- **Example URLs in the llm-md export.** Since 0.12.0 `<example-url>` tags leave the description, and the llm-md export lost every example URL with them. Components and directives now list their `exampleUrls` under `Examples:`, one URL per line, after the description. The JSON Schema of the export declares `exampleUrls` on components and directives, which the export already wrote.
+- **Multi-line `@slot`.** A `@slot` tag followed by more lines, such as a description over two lines or `<example-url>` tags after the last slot of a comment, became one slot named after the whole comment with no description. The first word is now the name and the rest the description, without `<example-url>` tags, in the Content Slots section and in `slots` of the JSON export.
+
 ## [0.12.0] - 2026-10-29
 
 Upgrading from 0.11: no flag or config key was removed and the JSON export schema stays 6. Declarations a file does not export are no longer documented, `<example-url>` tags leave descriptions and count only for the class whose comment holds them, and `signal` plus the TypeScript node fields of `jsdoctags` in `documentation.json` are deprecated; [MIGRATION.md](MIGRATION.md) lists each change.

@@ -421,6 +421,8 @@ export interface ExportComponent extends ExportEntityCommon {
     methodsClass?: ExportMethod[];
     accessors?: Record<string, ExportAccessor>;
     slots?: ExportSlot[];
+    /** URLs of the `<example-url>` tags in the entry's own JSDoc, relative ones behind `exampleUrlBase`. */
+    exampleUrls?: string[];
     themeTokens?: ThemeToken[];
     /** Keys into the top-level `styleSources` map, in collection order. */
     themeStyleSources?: string[];
@@ -455,6 +457,8 @@ export interface ExportDirective extends ExportEntityCommon {
     hostStructured?: ReadonlyArray<unknown>;
     hostDirectives?: HostDirectiveEntry[];
     providers?: ProviderEntry[];
+    /** URLs of the `<example-url>` tags in the entry's own JSDoc, relative ones behind `exampleUrlBase`. */
+    exampleUrls?: string[];
     jsdoctags?: ExportJsdocTag[];
     group?: string;
     since?: string;

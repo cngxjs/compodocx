@@ -91,6 +91,10 @@ Added (optional): the semantic facts on every symbol entry (`entryPoint`, `expor
 - With the new `exampleUrlBase` option, relative URLs in `exampleUrls` are written with the base in front.
 - Declarations that their file does not export (functions, variables, interfaces, type aliases, enums, injection tokens) have no entry any more.
 
+### Changed in 0.12.1
+
+- A `@slot` whose comment runs over several lines has its first word in `slots[].name` and the rest, with the following lines, in `slots[].description`; the whole comment was the name and the description was empty. `<example-url>` lines after the last `@slot` are no longer part of it.
+
 ## Schema 2
 
 Written by 0.6.0 to 0.8.x. Additive over schema 1, nothing was removed:

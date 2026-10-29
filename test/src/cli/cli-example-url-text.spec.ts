@@ -5,7 +5,8 @@ const tmp = temporaryDir();
 /**
  * `<example-url>` tags in a class description feed `exampleUrls` and the
  * Example tab; they are not part of `description`, `rawdescription` or the
- * llm-md text. The todomvc-ng2 `TodoComponent` has one in its description.
+ * llm-md text, which lists the URLs under `Examples:`. The todomvc-ng2
+ * `TodoComponent` has one in its description.
  */
 const generate = (distFolder: string, format: string): void => {
     tmp.create(distFolder);
@@ -57,8 +58,15 @@ describe('CLI export: example URLs out of descriptions', () => {
         expect(todo.exampleUrls).to.deep.equal(['/demo/mysample.component.html']);
     });
 
-    it('keeps the tag and its URL out of the llm-md text', () => {
+    it('keeps the tag out of the llm-md text', () => {
         expect(llm).not.to.contain('example-url');
-        expect(llm).not.to.contain('/demo/mysample.component.html');
+        const section = llm.slice(llm.indexOf('### TodoComponent'));
+        const description = section.split('\n').find(line => line.startsWith('Description:'));
+        expect(description).not.to.contain('/demo/mysample.component.html');
+    });
+
+    it('lists the URL under Examples in the llm-md entry', () => {
+        const section = llm.slice(llm.indexOf('### TodoComponent')).split('\n### ')[0];
+        expect(section).to.contain('Examples:\n- /demo/mysample.component.html');
     });
 });
