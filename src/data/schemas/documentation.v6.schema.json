@@ -633,6 +633,13 @@
                         "$ref": "#/$defs/ExportSlot"
                     }
                 },
+                "exampleUrls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "URLs of the `<example-url>` tags in the entry's own JSDoc, relative ones behind `exampleUrlBase`."
+                },
                 "themeTokens": {
                     "type": "array",
                     "items": {
@@ -974,6 +981,13 @@
                     "items": {
                         "$ref": "#/$defs/ProviderEntry"
                     }
+                },
+                "exampleUrls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "URLs of the `<example-url>` tags in the entry's own JSDoc, relative ones behind `exampleUrlBase`."
                 },
                 "jsdoctags": {
                     "type": "array",

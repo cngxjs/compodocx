@@ -105,6 +105,13 @@ const renderList = (heading: string, items: ReadonlyArray<string>): string => {
     return `${heading}:\n${items.join('\n')}`;
 };
 
+/** `Examples:` with one URL per line; empty without URLs. */
+const renderExamples = (urls: ReadonlyArray<string> | undefined): string =>
+    renderList(
+        'Examples',
+        (urls ?? []).map(url => `- ${url}`)
+    );
+
 const renderProperties = (heading: string, props: ReadonlyArray<ExportProperty>): string =>
     renderList(heading, props.map(renderProperty));
 
@@ -160,6 +167,7 @@ export const emitComponent = (entity: ExportComponent): string => {
     return joinSections([
         heroLines(entity, extras),
         description,
+        renderExamples(entity.exampleUrls),
         renderProperties('Inputs', entity.inputsClass ?? []),
         renderProperties('Outputs', entity.outputsClass ?? []),
         renderProperties('Properties', regularProperties(entity.propertiesClass ?? [])),
@@ -237,6 +245,7 @@ export const emitDirective = (entity: ExportDirective): string => {
     return joinSections([
         heroLines(entity, extras),
         descriptionLine(entity.description),
+        renderExamples(entity.exampleUrls),
         renderProperties('Inputs', entity.inputsClass ?? []),
         renderProperties('Outputs', entity.outputsClass ?? []),
         renderProperties('Properties', regularProperties(entity.propertiesClass ?? [])),
