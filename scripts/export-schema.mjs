@@ -16,8 +16,9 @@ export const schemaFileOf = version =>
 const isLibType = (program, symbol) =>
     (symbol?.declarations ?? []).some(d => program.isSourceFileDefaultLibrary(d.getSourceFile()));
 
+/** Doc comment text with `\n` line breaks, also from a CRLF checkout. */
 const docOf = (checker, symbol) =>
-    ts.displayPartsToString(symbol.getDocumentationComment(checker)).trim();
+    ts.displayPartsToString(symbol.getDocumentationComment(checker)).replace(/\r\n/g, '\n').trim();
 
 const isDeprecated = symbol =>
     (symbol.declarations ?? []).some(d =>
