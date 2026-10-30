@@ -14,6 +14,7 @@ import {
     findInjectAsyncLoads,
     findInjectCalls,
     type InjectAsyncLoad,
+    isAngularCoreCall,
     loadedSymbol,
     loadKey,
     visitOwnScope
@@ -52,6 +53,8 @@ const PROVIDER_TYPES: ReadonlySet<string> = new Set(['Provider', 'EnvironmentPro
 const ARRAY_TYPES: ReadonlySet<string> = new Set(['Array', 'ReadonlyArray']);
 const TOKEN_CLASSES: ReadonlySet<string> = new Set(['InjectionToken', 'HttpContextToken']);
 const SIGNAL_TYPES: ReadonlySet<string> = new Set(['Signal', 'WritableSignal', 'InputSignal']);
+const PROVIDER_LISTS: ReadonlySet<string> = new Set(['providers', 'viewProviders']);
+const PROVIDING_DECORATORS: ReadonlySet<string> = new Set(['Component', 'Directive']);
 
 const typeName = (node: ts.TypeReferenceNode): string =>
     ts.isIdentifier(node.typeName) ? node.typeName.text : node.typeName.right.text;
@@ -377,13 +380,19 @@ export const analyzeDi = (
         exportedFunctions.filter(d => !providerSet.has(d) && featureTypeOf.has(d))
     );
 
-    /** A class listed in a providers array; `deps` and `useValue` arrays list no providers. */
+    /**
+     * A class listed in a providers array; `deps`, `useValue` and `imports`
+     * arrays list no providers.
+     */
     const listedClass = (node: ts.Node): SymbolKey | undefined => {
         const list = node.parent;
         if (!ts.isIdentifier(node) || !list || !ts.isArrayLiteralExpression(list)) {
             return undefined;
         }
-        if (ts.isPropertyAssignment(list.parent) && list.parent.name.getText() !== 'providers') {
+        if (
+            ts.isPropertyAssignment(list.parent) &&
+            !PROVIDER_LISTS.has(list.parent.name.getText())
+        ) {
             return undefined;
         }
         const symbol = symbolOf(node);
@@ -391,9 +400,10 @@ export const analyzeDi = (
         return declaration?.cls ? declaration.key : undefined;
     };
 
-    // Tokens a provider provides: `provide: X` and classes listed in its body,
-    // plus those of the functions it calls.
-    const ownProvided = (fn: FunctionNode): readonly SymbolKey[] => {
+    // Tokens a provider provides: `provide: X` and classes listed below a root
+    // (a function body or a decorator's providers array), plus those of the
+    // functions called there.
+    const ownProvided = (root: ts.Node | undefined): readonly SymbolKey[] => {
         const keys: SymbolKey[] = [];
         const walk = (node: ts.Node): void => {
             const key =
@@ -405,31 +415,60 @@ export const analyzeDi = (
             }
             ts.forEachChild(node, walk);
         };
-        if (fn.body) {
-            walk(fn.body);
+        if (root) {
+            walk(root);
         }
         return keys;
     };
     const providerByNode = new Map<ts.Node, FunctionDeclarationEntry>(
         providers.map(p => [p.fn, p])
     );
-    const providedTokens = (provider: FunctionDeclarationEntry): readonly SymbolKey[] => {
+    const providedTokens = (
+        roots: readonly ts.Node[],
+        self?: FunctionNode
+    ): readonly SymbolKey[] => {
         const called: SymbolKey[] = [];
         const walk = (node: ts.Node): void => {
             if (ts.isCallExpression(node)) {
                 const callee = (symbolOf(node.expression)?.declarations ?? [])
                     .map(d => calleeOwner(d, isRootFile))
-                    .find((o): o is FunctionNode => isFunctionNode(o) && o !== provider.fn);
+                    .find((o): o is FunctionNode => isFunctionNode(o) && o !== self);
                 if (callee) {
-                    called.push(...ownProvided(callee));
+                    called.push(...ownProvided(callee.body));
                 }
             }
             ts.forEachChild(node, walk);
         };
-        if (provider.fn.body) {
-            walk(provider.fn.body);
+        for (const root of roots) {
+            walk(root);
         }
-        return sortedKeys([...ownProvided(provider.fn), ...called]);
+        return sortedKeys([...roots.flatMap(ownProvided), ...called]);
+    };
+    /** The `providers` and `viewProviders` arrays of an `@Component` or `@Directive` from `@angular/core`. */
+    const decoratorProviderLists = (cls: ts.ClassDeclaration): readonly ts.Expression[] =>
+        (ts.getDecorators(cls) ?? []).flatMap(decorator => {
+            const call = decorator.expression;
+            if (
+                !ts.isCallExpression(call) ||
+                !isAngularCoreCall(call, importsOf(cls), PROVIDING_DECORATORS)
+            ) {
+                return [];
+            }
+            const options = call.arguments[0];
+            if (!options || !ts.isObjectLiteralExpression(options)) {
+                return [];
+            }
+            return options.properties
+                .filter(ts.isPropertyAssignment)
+                .filter(p => PROVIDER_LISTS.has(p.name.getText()))
+                .map(p => p.initializer);
+        });
+    const providesTokensOf = (declaration: Declaration): readonly SymbolKey[] => {
+        const provider = declaration.fn && providerByNode.get(declaration.fn);
+        if (provider) {
+            return providedTokens(provider.fn.body ? [provider.fn.body] : [], provider.fn);
+        }
+        return declaration.cls ? providedTokens(decoratorProviderLists(declaration.cls)) : [];
     };
 
     // Per-declaration facts.
@@ -463,7 +502,6 @@ export const analyzeDi = (
         } else if (context.unresolved) {
             counts.unresolved++;
         }
-        const provider = declaration.fn && providerByNode.get(declaration.fn);
         const role = roleOf(declaration);
         const accessor =
             declaration.exported &&
@@ -474,7 +512,7 @@ export const analyzeDi = (
         const facts: DiFacts = {
             role,
             featureType: featureTypeOf.get(declaration),
-            providesTokens: provider ? providedTokens(provider) : [],
+            providesTokens: providesTokensOf(declaration),
             readsTokens: sortedKeys(context.reads),
             usesInjectionContext: context.via,
             ...(accessor ? { accessor: true as const } : {})

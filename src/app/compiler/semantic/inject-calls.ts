@@ -122,6 +122,16 @@ const angularCallee = (
     return undefined;
 };
 
+/** A call to one of `names` imported from `@angular/core`, such as `Component({ ... })`. */
+export const isAngularCoreCall = (
+    call: ts.CallExpression,
+    imports: AngularImports,
+    names: ReadonlySet<string>
+): boolean => {
+    const callee = angularCallee(call, imports);
+    return callee?.module === ANGULAR_CORE && names.has(callee.name);
+};
+
 const isInjectCall = (call: ts.CallExpression, imports: AngularImports): boolean => {
     const callee = angularCallee(call, imports);
     return callee?.name === 'inject' && callee.module === ANGULAR_CORE;
