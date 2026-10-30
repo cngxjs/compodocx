@@ -636,6 +636,15 @@
             "default": 15,
             "examples": [15]
         },
+        "searchFacetLimit": {
+            "$id": "/properties/searchFacetLimit",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000,
+            "title": "Filter chips per facet in the search command palette before a \"+N more\" toggle (0 shows all)",
+            "default": 8,
+            "examples": [8]
+        },
         "jsonIndent": {
             "$id": "/properties/jsonIndent",
             "type": "integer",

@@ -43,3 +43,32 @@ export const axisFacets = (raw: string | undefined): readonly FacetDimension[] =
         return [];
     }
 };
+
+/**
+ * Chip limit per facet dimension, read from the palette's
+ * `data-cdx-facet-limit`. `0`, a missing or an unreadable attribute show
+ * every chip.
+ */
+export const facetLimit = (raw: string | undefined): number => {
+    const limit = Number(raw);
+    return Number.isInteger(limit) && limit > 0 ? limit : 0;
+};
+
+/**
+ * The chips a dimension shows: the first `limit` values of the sorted
+ * list, plus every active value further down (an active filter never
+ * hides). `hidden` counts the values left out. An expanded dimension or
+ * a `limit` of `0` shows all values.
+ */
+export const limitFacetValues = (
+    sorted: readonly string[],
+    active: ReadonlySet<string>,
+    limit: number,
+    expanded: boolean
+): { readonly shown: readonly string[]; readonly hidden: number } => {
+    if (expanded || limit === 0 || sorted.length <= limit) {
+        return { shown: sorted, hidden: 0 };
+    }
+    const shown = sorted.filter((value, index) => index < limit || active.has(value));
+    return { shown, hidden: sorted.length - shown.length };
+};

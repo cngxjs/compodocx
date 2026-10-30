@@ -90,6 +90,53 @@ test.describe('Feature pages', () => {
         await expect(item.first()).toBeVisible({ timeout: 10_000 });
         await expect(item.first().locator('.cdx-cp-category')).toHaveText('select');
     });
+
+    test('the search palette folds a facet past the chip limit and keeps active chips', async ({
+        page
+    }) => {
+        await page.goto('/index.html');
+        // The fixture has few values per facet; a limit of 1 folds every larger one.
+        await page.evaluate(() => {
+            document
+                .getElementById('cdx-command-palette')
+                ?.setAttribute('data-cdx-facet-limit', '1');
+        });
+        await page.keyboard.press('Meta+k');
+        const dialog = page.locator('#cdx-command-palette');
+        await expect(dialog).toBeVisible();
+        const more = dialog.locator('.cdx-cp-facet-more').first();
+        await expect(more).toBeVisible({ timeout: 10_000 });
+        await expect(more).toHaveAttribute('aria-expanded', 'false');
+        await expect(more).toHaveText(/^\+\d+ more$/);
+        const dim = await more.getAttribute('data-dim');
+        const chips = dialog.locator(`.cdx-cp-facet-chip[data-dim="${dim}"]`);
+        await expect(chips).toHaveCount(1);
+
+        await more.click();
+        const toggle = dialog.locator(`.cdx-cp-facet-more[data-dim="${dim}"]`);
+        await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+        await expect(toggle).toHaveText('Show less');
+        await expect(toggle).toBeFocused();
+        expect(await chips.count()).toBeGreaterThan(1);
+
+        // An active chip past the limit stays visible after folding again.
+        const last = chips.last();
+        const value = await last.getAttribute('data-value');
+        await last.click();
+        await expect(
+            dialog.locator(`.cdx-cp-facet-chip[data-dim="${dim}"][data-value="${value}"]`)
+        ).toHaveAttribute('aria-pressed', 'true');
+        const folding = dialog.locator(`.cdx-cp-facet-more[data-dim="${dim}"]`);
+        if (
+            (await folding.count()) > 0 &&
+            (await folding.getAttribute('aria-expanded')) === 'true'
+        ) {
+            await folding.click();
+        }
+        await expect(
+            dialog.locator(`.cdx-cp-facet-chip[data-dim="${dim}"][data-value="${value}"]`)
+        ).toBeVisible();
+    });
 });
 
 test.describe('Feature sidebar', () => {

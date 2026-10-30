@@ -81,6 +81,7 @@ const makeMainData = (): MainDataInterface => {
         gaID: '',
         publicApiOnly: '',
         maxSearchResults: 15,
+        searchFacetLimit: 8,
         menuLayout: 'type',
         features: {},
         classificationAxes: {},
@@ -132,6 +133,7 @@ const makeProgram = (argv: readonly string[] = []): Command => {
         .option('--versionsRoot [path]')
         .option('--maxVersionsShown <n>', '', '10')
         .option('--maxSearchResults <n>', '', '15')
+        .option('--searchFacetLimit <n>', '', '8')
         .option('--gaID [id]')
         .option('--logoLayout [layout]')
         .option('--customLogo [path]')
@@ -345,6 +347,20 @@ describe('applyConfigToMainData', () => {
         const program = makeProgram(['--maxSearchResults', '40']);
         applyConfigToMainData(mainData, { maxSearchResults: 7 }, program, { cwd: '/tmp/test' });
         expect(mainData.maxSearchResults).toBe(40);
+    });
+
+    it('searchFacetLimit: config value applies, the default flag does not override it', () => {
+        const mainData = makeMainData();
+        const program = makeProgram();
+        applyConfigToMainData(mainData, { searchFacetLimit: 0 }, program, { cwd: '/tmp/test' });
+        expect(mainData.searchFacetLimit).toBe(0);
+    });
+
+    it('searchFacetLimit: an explicit flag wins and is a number', () => {
+        const mainData = makeMainData();
+        const program = makeProgram(['--searchFacetLimit', '12']);
+        applyConfigToMainData(mainData, { searchFacetLimit: 3 }, program, { cwd: '/tmp/test' });
+        expect(mainData.searchFacetLimit).toBe(12);
     });
 
     it('config-file includesLabels sets mainData.includesLabels', () => {

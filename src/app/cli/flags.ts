@@ -270,6 +270,11 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
             'Max results in the search command palette (0 shows all)',
             String(COMPODOC_DEFAULTS.maxSearchResults)
         )
+        .option(
+            '--searchFacetLimit <n>',
+            'Filter chips per facet in the search command palette before "+N more" (0 shows all)',
+            String(COMPODOC_DEFAULTS.searchFacetLimit)
+        )
         .addHelpText(
             'after',
             [

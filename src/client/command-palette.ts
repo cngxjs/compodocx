@@ -4,7 +4,13 @@
  */
 
 import { hrefFor, hrefText } from '../app/links/layout';
-import { axisFacets, BASE_FACETS, type FacetDimension } from './axis-facets';
+import {
+    axisFacets,
+    BASE_FACETS,
+    type FacetDimension,
+    facetLimit,
+    limitFacetValues
+} from './axis-facets';
 
 const DIALOG_ID = 'cdx-command-palette';
 const INPUT_SELECTOR = '.cdx-cp-input';
@@ -295,6 +301,11 @@ const activeIn = (dim: string): Set<string> => {
     return values;
 };
 const anyFilterActive = (): boolean => facetDims().some(dim => activeIn(dim).size > 0);
+
+/** Dimensions the user expanded past the chip limit; cleared on close. */
+const expandedDims = new Set<string>();
+/** Counts of the last facet render, so a "+N more" toggle can re-render. */
+let renderedCounts: Record<string, Record<string, number>> = {};
 const clearFilters = () => {
     for (const values of activeFilters.values()) {
         values.clear();
@@ -390,12 +401,16 @@ const hydrateStateFromUrl = (): string => {
  *  intersection). Non-active 0-count chips are filtered out so a
  *  narrow query doesn't drown the dropdown in dead values; remaining
  *  chips are sorted by count descending so the most populated lands
- *  closest to the dimension label. */
+ *  closest to the dimension label. Each dimension shows at most
+ *  `data-cdx-facet-limit` chips plus its active ones; a toggle chip
+ *  expands the rest. */
 const renderFacets = (counts: Record<string, Record<string, number>>) => {
     const root = getFacets();
     if (!root) {
         return;
     }
+    renderedCounts = counts;
+    const limit = facetLimit(getDialog()?.dataset.cdxFacetLimit);
     const groups: string[] = [];
     for (const { dim, label: dimLabel } of facets()) {
         const dimCounts = counts[dim] ?? {};
@@ -410,12 +425,20 @@ const renderFacets = (counts: Record<string, Record<string, number>>) => {
         if (visible.length === 0) {
             continue;
         }
+        const expanded = expandedDims.has(dim);
+        const { shown } = limitFacetValues(visible, active, limit, expanded);
+        const { hidden } = limitFacetValues(visible, active, limit, false);
         const chips: string[] = [];
-        for (const value of visible) {
+        for (const value of shown) {
             const count = dimCounts[value] ?? 0;
             const isActive = active.has(value);
             chips.push(
                 `<button type="button" class="cdx-cp-facet-chip" data-dim="${escapeAttr(dim)}" data-value="${escapeAttr(value)}" data-active="${isActive}" aria-pressed="${isActive}">${escapeHtml(value)} <span class="cdx-cp-facet-count">${count}</span></button>`
+            );
+        }
+        if (hidden > 0) {
+            chips.push(
+                `<button type="button" class="cdx-cp-facet-more" data-dim="${escapeAttr(dim)}" aria-expanded="${expanded}">${expanded ? 'Show less' : `+${hidden} more`}</button>`
             );
         }
         groups.push(
@@ -434,6 +457,21 @@ const renderFacets = (counts: Record<string, Record<string, number>>) => {
         (anyActive
             ? `<button type="button" class="cdx-cp-facet-reset">Reset filters</button>`
             : '');
+};
+
+/** Expand or collapse one dimension past the chip limit and keep focus on
+ *  its toggle, which the re-render replaces. */
+const toggleExpanded = (dim: string | undefined) => {
+    if (!dim || !facetDims().includes(dim)) {
+        return;
+    }
+    if (!expandedDims.delete(dim)) {
+        expandedDims.add(dim);
+    }
+    renderFacets(renderedCounts);
+    getFacets()
+        ?.querySelector<HTMLButtonElement>(`.cdx-cp-facet-more[data-dim="${CSS.escape(dim)}"]`)
+        ?.focus();
 };
 
 /** Load Pagefind lazily */
@@ -733,6 +771,7 @@ export const openCommandPalette = () => {
  */
 const resetState = () => {
     clearFilters();
+    expandedDims.clear();
     lastQuery = '';
     activeIndex = -1;
     const input = getInput();
@@ -846,6 +885,12 @@ export const initCommandPalette = () => {
                 clearFilters();
                 updateUrlFromState();
                 search(lastQuery);
+                return;
+            }
+            const more = (e.target as HTMLElement).closest<HTMLButtonElement>('.cdx-cp-facet-more');
+            if (more) {
+                e.preventDefault();
+                toggleExpanded(more.dataset.dim);
                 return;
             }
             const chip = (e.target as HTMLElement).closest<HTMLButtonElement>('.cdx-cp-facet-chip');

@@ -95,7 +95,8 @@ describe('defineFlags', () => {
             '--logoLayout',
             '--gaID',
             '--publicApiOnly',
-            '--maxSearchResults'
+            '--maxSearchResults',
+            '--searchFacetLimit'
         ];
 
         for (const flag of expected) {
