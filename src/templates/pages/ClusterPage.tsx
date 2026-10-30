@@ -1,5 +1,4 @@
 import Html from '@kitajs/html';
-import type { SymbolKey } from '../../app/compiler/semantic/model';
 import Configuration from '../../app/configuration';
 import {
     hrefFor,
@@ -9,10 +8,10 @@ import {
     pageLocation,
     pagePath
 } from '../../app/links/layout';
-import { clusterTarget, itemTarget, placedLink } from '../../app/links/resolve';
-import { symbolId } from '../../app/links/symbol-id';
+import { clusterTarget, itemTarget } from '../../app/links/resolve';
 import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { ImportStatement } from '../blocks/ImportStatement';
+import { ProvidedSymbols } from '../blocks/ProvidedSymbols';
 import { type ReferencedByEntry, ReferencedBySection } from '../blocks/ReferencedBySection';
 import { DiBadges } from '../components/DiBadges';
 import { IconFile, IconInjectable } from '../components/Icons';
@@ -122,31 +121,6 @@ const TypeDefinition = (item: any, depth: number): string => {
     ) as string;
 };
 
-/** Links to the token pages a provider provides. */
-const ProvidedTokens = (keys: readonly SymbolKey[], table: SymbolTable, depth: number): string => {
-    const links = keys
-        .map(key => table.byId.get(symbolId({ kind: 'token', file: key.file, name: key.name })))
-        .flatMap(entry => {
-            const link = entry && placedLink(table, entry, Configuration.mainData.di);
-            return entry && link
-                ? [
-                      (
-                          <a href={hrefText(hrefFor(link.target, depth, link.anchor))}>
-                              <code>{entry.ref.name}</code>
-                          </a>
-                      ) as string
-                  ]
-                : [];
-        });
-    return links.length > 0
-        ? ((
-              <p class="cdx-di-provided-tokens">
-                  {t('tokens')}: {links.join(', ')}
-              </p>
-          ) as string)
-        : '';
-};
-
 const MemberSection = (item: any, owner: string, depth: number): string => {
     const kind = memberKind(item);
     const facts = symbolFacts(Configuration.mainData, kind, item);
@@ -170,7 +144,7 @@ const MemberSection = (item: any, owner: string, depth: number): string => {
                 </code>
             </pre>
             {item.description ? parseDescription(item.description, depth) : ''}
-            {table ? ProvidedTokens(facts?.di?.providesTokens ?? [], table, depth) : ''}
+            {table ? ProvidedSymbols(facts?.di?.providesTokens ?? [], table, depth) : ''}
             {item.file && (
                 <p class="cdx-entity-hero-file" title={t('defined-in')}>
                     {IconFile()}

@@ -27,7 +27,7 @@ import { ImportStatement } from '../blocks/ImportStatement';
 import { JsdocExamplesBlock } from '../blocks/JsdocExamplesBlock';
 import { PlaygroundContent } from '../blocks/PlaygroundContent';
 import { ProvidersSection } from '../blocks/ProvidersSection';
-import { ReferencedBySection } from '../blocks/ReferencedBySection';
+import { ReferencedBySection, SymbolChips } from '../blocks/ReferencedBySection';
 import { RelatedSection } from '../blocks/RelatedSection';
 import { RouteChip } from '../blocks/RouteChip';
 import { AiGeneratedBadge, AiGeneratedNote } from '../components/AiGeneratedBadge';
@@ -61,7 +61,7 @@ import {
     t
 } from '../helpers';
 import type { ComponentPlaygroundBlock } from '../helpers/jsdoc';
-import { usedByEntries } from '../helpers/used-by';
+import { providedByEntries, usedByEntries } from '../helpers/used-by';
 
 /** Map entity key to CSS color variable, badge class, and watermark icon */
 const entityMeta: Record<
@@ -227,7 +227,8 @@ const hasInfoContent = (e: any, props: EntityInfoProps): boolean =>
         e.relatedTo?.length ||
         props.relationships?.incoming?.length ||
         props.relationships?.outgoing?.length ||
-        usedByEntries(Configuration.mainData, props.entityKey as EntityKind, e).length > 0
+        usedByEntries(Configuration.mainData, props.entityKey as EntityKind, e).length > 0 ||
+        providedByEntries(Configuration.mainData, props.entityKey as EntityKind, e).length > 0
     );
 
 /** Render extends/implements as metadata card rows for entities without decorator metadata */
@@ -309,6 +310,18 @@ const InfoContent = (props: EntityInfoProps): string => {
             {ReferencedBySection({
                 entries: usedByEntries(Configuration.mainData, props.entityKey as EntityKind, e),
                 depth: props.depth
+            })}
+
+            {/* Provider functions that list this class */}
+            {SymbolChips({
+                entries: providedByEntries(
+                    Configuration.mainData,
+                    props.entityKey as EntityKind,
+                    e
+                ),
+                depth: props.depth,
+                id: 'provided-by',
+                title: t('provided-by')
             })}
 
             {/* Import statement */}

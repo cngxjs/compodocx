@@ -1,4 +1,4 @@
-import { factKey, type SymbolKey } from '../../app/compiler/semantic/model';
+import { factKey, type SemanticModel, type SymbolKey } from '../../app/compiler/semantic/model';
 import { isHidden } from '../../app/di/model';
 import type { EntityKind } from '../../app/engines/dependencies.engine';
 import { pageLocation } from '../../app/links/layout';
@@ -80,4 +80,41 @@ export const usedByEntries = (
     const own = ownEntry(data, kind, item);
     const facts = entryFacts(data.semantic, own);
     return own && facts ? factKeyEntries(data, facts.usedBy, own) : [];
+};
+
+const providersIndexes = new WeakMap<SemanticModel, ReadonlyMap<string, readonly SymbolKey[]>>();
+
+/** Provider keys by the fact key of what they provide, built once per model. */
+const providersByKey = (model: SemanticModel): ReadonlyMap<string, readonly SymbolKey[]> => {
+    const known = providersIndexes.get(model);
+    if (known) {
+        return known;
+    }
+    const index = new Map<string, SymbolKey[]>();
+    for (const facts of model.facts.values()) {
+        for (const provided of facts.di?.providesTokens ?? []) {
+            const key = factKey(provided);
+            index.set(key, [...(index.get(key) ?? []), facts.key]);
+        }
+    }
+    providersIndexes.set(model, index);
+    return index;
+};
+
+/**
+ * The documented provider functions that provide an engine object (a class
+ * they list or a `provide:` target), from the semantic facts. Empty without
+ * the semantic stage.
+ */
+export const providedByEntries = (
+    data: UsedByContext,
+    kind: EntityKind | TableKind,
+    item: { readonly name?: unknown; readonly file?: unknown } | undefined
+): ReferencedByEntry[] => {
+    const own = ownEntry(data, kind, item);
+    if (!own || !data.semantic) {
+        return [];
+    }
+    const providers = providersByKey(data.semantic).get(factKey(toSymbolKey(own.ref))) ?? [];
+    return factKeyEntries(data, providers, own);
 };

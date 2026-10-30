@@ -243,6 +243,57 @@ export function provideWithProvider(): Provider[] {
     });
 });
 
+describe('classes a provider lists', () => {
+    const FILE = '/p/classes.ts';
+    const SOURCE = `
+export class Audit {}
+export class Logger {}
+export class Http {}
+export const T = new InjectionToken('t');
+export const helperFn = () => 1;
+const auditProviders = () => [Audit];
+export function provideAudit(): EnvironmentProviders {
+    return makeEnvironmentProviders([
+        Audit,
+        { provide: Logger, useFactory: (http: Http) => http, deps: [Http] },
+        { provide: T, useValue: [Http] }
+    ]);
+}
+export function provideDirect(): Provider[] {
+    return [Audit, helperFn];
+}
+export function provideThroughHelper(): Provider[] {
+    return [auditProviders()];
+}
+`;
+    let di: ReturnType<typeof analyzeDi>['di'];
+    const provides = (name: string) =>
+        di.get(`p/classes.ts#${name}`)?.providesTokens.map(k => k.name);
+
+    beforeAll(() => {
+        const program = memoryProgram({ [FILE]: SOURCE });
+        const checker = program.getTypeChecker();
+        const sourceFiles = [program.getSourceFile(FILE)].filter(
+            (sf): sf is ts.SourceFile => sf !== undefined
+        );
+        di = analyzeDi(collectDeclarations(sourceFiles, checker, '/'), checker, () => true).di;
+    });
+
+    it('counts a class listed in a providers array', () => {
+        expect(provides('provideAudit')).toEqual(['Audit', 'Logger', 'T']);
+        expect(provides('provideDirect')).toEqual(['Audit']);
+    });
+
+    it('counts the classes of a helper the provider calls', () => {
+        expect(provides('provideThroughHelper')).toEqual(['Audit']);
+    });
+
+    it('does not count deps, values or functions', () => {
+        expect(provides('provideAudit')).not.toContain('Http');
+        expect(provides('provideDirect')).not.toContain('helperFn');
+    });
+});
+
 describe('accessor functions', () => {
     const FILE = '/p/accessors.ts';
     const SOURCE = `

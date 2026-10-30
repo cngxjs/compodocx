@@ -377,15 +377,31 @@ export const analyzeDi = (
         exportedFunctions.filter(d => !providerSet.has(d) && featureTypeOf.has(d))
     );
 
-    // Tokens a provider provides: `provide: X` in its body, plus those of the functions it calls.
+    /** A class listed in a providers array; `deps` and `useValue` arrays list no providers. */
+    const listedClass = (node: ts.Node): SymbolKey | undefined => {
+        const list = node.parent;
+        if (!ts.isIdentifier(node) || !list || !ts.isArrayLiteralExpression(list)) {
+            return undefined;
+        }
+        if (ts.isPropertyAssignment(list.parent) && list.parent.name.getText() !== 'providers') {
+            return undefined;
+        }
+        const symbol = symbolOf(node);
+        const declaration = symbol && declarationIn(bySymbol.get(symbol), 'value');
+        return declaration?.cls ? declaration.key : undefined;
+    };
+
+    // Tokens a provider provides: `provide: X` and classes listed in its body,
+    // plus those of the functions it calls.
     const ownProvided = (fn: FunctionNode): readonly SymbolKey[] => {
         const keys: SymbolKey[] = [];
         const walk = (node: ts.Node): void => {
-            if (ts.isPropertyAssignment(node) && node.name.getText() === 'provide') {
-                const key = keyOfExpression(node.initializer);
-                if (key) {
-                    keys.push(key);
-                }
+            const key =
+                ts.isPropertyAssignment(node) && node.name.getText() === 'provide'
+                    ? keyOfExpression(node.initializer)
+                    : listedClass(node);
+            if (key) {
+                keys.push(key);
             }
             ts.forEachChild(node, walk);
         };

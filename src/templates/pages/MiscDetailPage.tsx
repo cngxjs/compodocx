@@ -1,8 +1,10 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
 import { hrefFor, hrefText } from '../../app/links/layout';
+import type { SymbolTable } from '../../app/links/symbol-table';
 import { BlockRoutedAt } from '../blocks/BlockRoutedAt';
 import { ParamsTable } from '../blocks/ParamsTable';
+import { ProvidedSymbols } from '../blocks/ProvidedSymbols';
 import { ReferencedBySection } from '../blocks/ReferencedBySection';
 import { AxisBadges, entityAxes } from '../components/AxisBadges';
 import { DiBadges } from '../components/DiBadges';
@@ -111,7 +113,10 @@ export const collectExampleComments = (item: any): string[] =>
 //  Info-tab content (description + prose)
 
 const InfoContent = (item: any, depth: number, kind: MiscDetailKind): string => {
+    const table: SymbolTable | undefined = Configuration.mainData.symbols;
+    const provided = symbolFacts(Configuration.mainData, kind, item)?.di?.providesTokens ?? [];
     const backlinks =
+        (table ? ProvidedSymbols(provided, table, depth) : '') +
         BlockRoutedAt(routedAt(Configuration.mainData, kind, item, depth)) +
         ReferencedBySection({
             entries: usedByEntries(Configuration.mainData, kind, item),

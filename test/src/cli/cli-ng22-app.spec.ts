@@ -149,6 +149,22 @@ describe('CLI Angular 22 application', () => {
         ]);
     });
 
+    it('counts classes listed in providers as provided', () => {
+        const provideAudit = data.miscellaneous.functions.find(
+            (f: any) => f.name === 'provideAudit'
+        );
+        expect(provideAudit.di.providesTokens).to.deep.equal([
+            { name: 'AuditService', file: 'src/app/core/audit.service.ts' },
+            { name: 'Logger', file: 'src/app/core/logger.ts' }
+        ]);
+        const provided = page('service', 'AuditService').split('id="provided-by"')[1] ?? '';
+        expect(provided).to.contain('provideAudit');
+        expect(page('service', 'Logger')).to.match(/id="provided-by"[\s\S]*provideAudit/);
+        const provider = page('provider', 'provideAudit');
+        expect(provider).to.match(/cdx-di-provided-tokens[\s\S]*AuditService/);
+        expect(provider).to.match(/cdx-di-provided-tokens[\s\S]*Logger/);
+    });
+
     it('notes the OnPush default only where changeDetection is not set', () => {
         expect(page('component', 'AppComponent')).to.contain('OnPush (default)');
         expect(page('component', 'DashboardComponent')).not.to.contain('OnPush (default)');

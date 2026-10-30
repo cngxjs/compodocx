@@ -9,7 +9,7 @@ import {
 } from '../../../../src/app/compiler/semantic/model';
 import { buildDiView } from '../../../../src/app/di';
 import { buildSymbolTable, KIND_FOLDER } from '../../../../src/app/links';
-import { usedByEntries } from '../../../../src/templates/helpers/used-by';
+import { providedByEntries, usedByEntries } from '../../../../src/templates/helpers/used-by';
 
 const F = 'lib/a.ts';
 const key = (name: string): SymbolKey => ({ name, file: F });
@@ -77,5 +77,55 @@ describe('used by entries', () => {
         expect(usedByEntries({ symbols: table }, 'function', { name: 'format', file: F })).toEqual(
             []
         );
+    });
+});
+
+describe('provided by entries', () => {
+    const providers = buildSymbolTable(
+        {
+            services: [{ name: 'Audit', file: F }],
+            miscellaneous: {
+                functions: [
+                    { name: 'provideAudit', file: F },
+                    { name: 'provideHidden', file: F }
+                ]
+            }
+        },
+        { cwd: '/' }
+    );
+    const di = (provided: readonly SymbolKey[]) => ({
+        providesTokens: provided,
+        readsTokens: [],
+        role: 'provider' as const
+    });
+    const model: SemanticModel = {
+        ...emptyModel(),
+        facts: new Map(
+            [
+                facts('Audit'),
+                facts('provideAudit', { di: di([key('Audit')]) }),
+                facts('provideHidden', {
+                    di: di([key('Audit')]),
+                    notExported: true,
+                    exportedBy: []
+                })
+            ].map(f => [factKey(f.key), f])
+        )
+    };
+    const context = { symbols: providers, semantic: model, di: buildDiView(providers, model) };
+
+    it('maps the provider functions that provide a class to their pages', () => {
+        expect(
+            providedByEntries(context, 'service', { name: 'Audit', file: F }).map(e => e.name)
+        ).toEqual(['provideAudit']);
+    });
+
+    it('is empty for a class no provider lists and without the semantic stage', () => {
+        expect(providedByEntries(context, 'function', { name: 'provideAudit', file: F })).toEqual(
+            []
+        );
+        expect(
+            providedByEntries({ symbols: providers }, 'service', { name: 'Audit', file: F })
+        ).toEqual([]);
     });
 });
