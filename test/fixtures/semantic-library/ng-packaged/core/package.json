@@ -1,0 +1,14 @@
+{
+    "name": "@sem/core",
+    "version": "1.0.0",
+    "exports": {
+        "./package.json": { "default": "./package.json" },
+        ".": { "types": "./types/sem-core.d.ts", "default": "./fesm2022/sem-core.mjs" },
+        "./tokens": {
+            "types": "./types/sem-core-tokens.d.ts",
+            "default": "./fesm2022/sem-core-tokens.mjs"
+        },
+        "./theming/*.css": "./theming/*.css"
+    },
+    "sideEffects": false
+}

@@ -14,6 +14,7 @@ import { createSession, runSession, serveOnly } from './app/run/run-compodocx';
 import { isErr } from './lib';
 import { parseApiMarkdownExports } from './utils/api-markdown-parser.util';
 import { logger } from './utils/logger';
+import { parsePackageTypesExports } from './utils/package-exports-parser.util';
 import { parsePublicApi } from './utils/public-api-parser.util';
 import { createSourcePathMapper } from './utils/source-path-mapper.util';
 import {
@@ -389,9 +390,7 @@ async function processPublicApi(distPath: string, sourceRoot: string): Promise<v
             const publicApiExports = await parsePublicApi(distPath);
 
             if (publicApiExports.symbolToFiles.size === 0) {
-                logger.warn(
-                    'No public API exports found in dist folder. Documentation will be empty.'
-                );
+                await processPackageTypesExports(distPath);
                 return;
             }
 
@@ -430,6 +429,25 @@ async function processPublicApi(distPath: string, sourceRoot: string): Promise<v
         logger.error('Error processing public API:', error);
         throw error;
     }
+}
+
+/**
+ * Public names of a dist without `index.d.ts` (Angular Package Format): the
+ * `exports[*].types` files of its `package.json` files, per import path.
+ */
+async function processPackageTypesExports(distPath: string): Promise<void> {
+    const { byImportPath, typesFiles } = await parsePackageTypesExports(distPath);
+    const names = [...byImportPath.values()].reduce((sum, set) => sum + set.size, 0);
+    if (names === 0) {
+        logger.warn(
+            `No public API names found in ${distPath}: no *.api.md report, no index.d.ts and no package.json "exports" with "types". --publicApiOnly filters nothing.`
+        );
+        return;
+    }
+    Configuration.mainData.publicApiEntryExports = byImportPath;
+    logger.info(
+        `Loaded ${names} public API name(s) of ${byImportPath.size} entry point(s) from ${typesFiles} declaration file(s) (using package.json exports)`
+    );
 }
 
 /**

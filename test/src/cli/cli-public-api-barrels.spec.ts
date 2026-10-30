@@ -84,6 +84,54 @@ describe('CLI public-api-only option with barrel re-exports', () => {
         });
     });
 
+    describe('Angular Package Format dist without index.d.ts', () => {
+        const out = `${tmp.name}-public-api-ng-packaged`;
+        const project = './test/fixtures/semantic-library';
+        let data: ExportData;
+        let stdout: string;
+
+        beforeAll(() => {
+            tmp.create(out);
+            const ls = shell('node', [
+                './bin/index-cli.js',
+                '--no-multiVersion',
+                '-p',
+                `${project}/tsconfig.json`,
+                '-e',
+                'json',
+                '-d',
+                out,
+                '--publicApiOnly',
+                `${project}/ng-packaged`
+            ]);
+            stdout = ls.stdout.toString();
+            data = JSON.parse(read(`${out}/documentation.json`)) as ExportData;
+        });
+        afterAll(() => tmp.clean(out));
+
+        it('keeps the names the exports[*].types files list, followed through the source barrels', () => {
+            expect(functionNames(data)).toEqual(['formatFoo', 'normalizeLabel', 'provideFoo']);
+            expect(data.tokens?.map(item => item.name)).toEqual(['FOO_CONFIG']);
+            expect(data.interfaces?.map(item => item.name).sort()).toEqual([
+                'FooConfig',
+                'FooFeature'
+            ]);
+            expect(data.classes?.map(item => item.name)).toEqual(['SemButton']);
+        });
+
+        it('drops what the dist does not export, including a whole entry point', () => {
+            expect(data.components ?? []).toEqual([]);
+            expect(functionNames(data)).not.toContain('provideFooLimit');
+            expect(data.directives ?? []).toEqual([]);
+        });
+
+        it('names an import path without a source entry point', () => {
+            expect(stdout).toContain(
+                'Public API: no source entry point for @sem/ui/legacy; their names are not documented.'
+            );
+        });
+    });
+
     describe('*.api.md report in a folder whose name holds glob syntax', () => {
         const out = `${tmp.name}-public-api-barrels-glob`;
         const copy = `${tmp.name}-public-api-barrels (copy)`;

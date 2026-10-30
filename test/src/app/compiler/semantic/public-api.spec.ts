@@ -4,7 +4,12 @@ import fg from 'fast-glob';
 import type { ts } from 'ts-morph';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-import { createSemanticProgram, resolvePublicApi } from '../../../../../src/app/compiler/semantic';
+import {
+    createSemanticProgram,
+    recordEntryExports,
+    resolvePublicApi
+} from '../../../../../src/app/compiler/semantic';
+import type { EntryPoint } from '../../../../../src/app/compiler/semantic/model';
 
 const FIXTURE = path.join(process.cwd(), 'test/fixtures/public-api-barrels/declarations');
 const TSCONFIG = path.join(FIXTURE, 'tsconfig.json');
@@ -67,5 +72,41 @@ describe('resolvePublicApi', () => {
         ]);
         expect([...resolved.keys()].sort()).toEqual(['ghost', 'hiddenFn']);
         expect(resolved.get('hiddenFn')).toEqual(new Set([src('index.ts')]));
+    });
+});
+
+describe('recordEntryExports', () => {
+    const entry = (importPath: string, file: string): EntryPoint => ({
+        importPath,
+        file,
+        root: path.dirname(file),
+        source: 'ng-package'
+    });
+
+    it('records each name against the entry file of its import path', () => {
+        const { recorded, unmatched } = recordEntryExports(
+            new Map([
+                ['@lib/core', new Set(['a', 'b'])],
+                ['@lib/core/sub', new Set(['b'])]
+            ]),
+            [entry('@lib/core', 'core/src/public-api.ts'), entry('@lib/core/sub', 'sub/index.ts')]
+        );
+        expect(recorded.get('a')).toEqual(new Set([path.resolve('core/src/public-api.ts')]));
+        expect(recorded.get('b')).toEqual(
+            new Set([path.resolve('core/src/public-api.ts'), path.resolve('sub/index.ts')])
+        );
+        expect(unmatched).toEqual([]);
+    });
+
+    it('lists import paths without a source entry point', () => {
+        const { recorded, unmatched } = recordEntryExports(
+            new Map([
+                ['@lib/z', new Set(['z'])],
+                ['@lib/a', new Set(['a'])]
+            ]),
+            []
+        );
+        expect(recorded.size).toBe(0);
+        expect(unmatched).toEqual(['@lib/a', '@lib/z']);
     });
 });
