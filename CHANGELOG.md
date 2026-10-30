@@ -6,7 +6,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
-## [Unreleased]
+## [0.14.0] - 2026-10-30
+
+Upgrading from 0.13: no flag or config key was removed and the JSON export schema stays 6. `type` of `providers` entries now names the kind of the provided symbol, components and directives can carry `di.providesTokens`, and `--publicApiOnly` with an Angular Package Format dist now filters. [MIGRATION.md](MIGRATION.md) lists each change.
 
 ### Added
 
