@@ -1,0 +1,13 @@
+{
+    "name": "@sem/ui",
+    "version": "1.0.0",
+    "exports": {
+        "./package.json": { "default": "./package.json" },
+        ".": { "types": "./types/sem-ui.d.ts", "default": "./fesm2022/sem-ui.mjs" },
+        "./legacy": {
+            "types": "./types/sem-ui-legacy.d.ts",
+            "default": "./fesm2022/sem-ui-legacy.mjs"
+        }
+    },
+    "sideEffects": false
+}

@@ -22,6 +22,7 @@ import {
     formatAxesSummary,
     formatFeatureSummary,
     formatSemanticSummary,
+    recordEntryExports,
     resolvePublicApi
 } from '../compiler/semantic';
 import { buildDiView, formatHiddenList } from '../di';
@@ -322,6 +323,38 @@ const sharedSourceFiles = (ctx: RunContext) => {
 };
 
 /**
+ * Names a dist lists per import path, recorded against the entry files of
+ * the matching source entry points; warns about import paths without one.
+ */
+const entryExportsOf = (ctx: RunContext): Map<string, Set<string>> => {
+    const byImportPath = ctx.config.mainData.publicApiEntryExports;
+    if (byImportPath.size === 0) {
+        return new Map();
+    }
+    const { recorded, unmatched } = recordEntryExports(
+        byImportPath,
+        ctx.semantic?.model.entryPoints ?? []
+    );
+    if (unmatched.length > 0) {
+        logger.warn(
+            `Public API: no source entry point for ${unmatched.join(', ')}; their names are not documented.`
+        );
+    }
+    return recorded;
+};
+
+const mergeNames = (
+    a: ReadonlyMap<string, ReadonlySet<string>>,
+    b: ReadonlyMap<string, ReadonlySet<string>>
+): Map<string, Set<string>> => {
+    const merged = new Map<string, Set<string>>();
+    for (const [name, files] of [...a, ...b]) {
+        merged.set(name, new Set([...(merged.get(name) ?? []), ...files]));
+    }
+    return merged;
+};
+
+/**
  * The public API map followed to the declarations through the semantic
  * program; without semantic facts the recorded map is used as it is.
  */
@@ -330,10 +363,9 @@ const withPublicApi = (ctx: RunContext): void => {
     if (!mainData.publicApiOnly) {
         return;
     }
+    const recorded = mergeNames(mainData.publicApiExports, entryExportsOf(ctx));
     const program = ctx.semantic?.program;
-    mainData.publicApiDeclarations = program
-        ? resolvePublicApi(program, mainData.publicApiExports)
-        : mainData.publicApiExports;
+    mainData.publicApiDeclarations = program ? resolvePublicApi(program, recorded) : recorded;
 };
 
 /** Semantic state, public API and route draft, read before the crawler touches the files. */

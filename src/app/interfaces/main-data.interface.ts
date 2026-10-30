@@ -165,6 +165,11 @@ export interface MainDataInterface {
     searchFacetLimit: number;
     publicApiOnly: string;
     publicApiExports: Map<string, Set<string>>;
+    /**
+     * Public names per import path from the `exports[*].types` files of a dist
+     * without `index.d.ts`; mapped to the source entry points in the crawl phase.
+     */
+    publicApiEntryExports: Map<string, Set<string>>;
     /** `publicApiExports` followed through barrels to the declarations; read by the filter. */
     publicApiDeclarations: Map<string, Set<string>>;
     infoTabSections: string[];

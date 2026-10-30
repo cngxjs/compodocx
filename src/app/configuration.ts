@@ -142,6 +142,7 @@ export class Configuration implements ConfigurationInterface {
         searchFacetLimit: COMPODOC_DEFAULTS.searchFacetLimit,
         publicApiOnly: '',
         publicApiExports: new Map<string, Set<string>>(),
+        publicApiEntryExports: new Map<string, Set<string>>(),
         publicApiDeclarations: new Map<string, Set<string>>(),
         infoTabSections: [],
         apiTabSections: [],

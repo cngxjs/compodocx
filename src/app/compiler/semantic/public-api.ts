@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { ts } from 'ts-morph';
 
 import { resolveAlias } from './declarations';
+import type { EntryPoint } from './model';
 
 const add = (map: Map<string, Set<string>>, name: string, file: string): void => {
     const files = map.get(name) ?? new Set<string>();
@@ -57,4 +58,29 @@ export const resolvePublicApi = (
         }
     }
     return resolved;
+};
+
+/**
+ * Names per import path (from a dist's `exports[*].types` files) recorded
+ * against the entry file of the source entry point with that import path;
+ * `unmatched` lists the import paths without one.
+ */
+export const recordEntryExports = (
+    byImportPath: ReadonlyMap<string, ReadonlySet<string>>,
+    entryPoints: readonly EntryPoint[]
+): { readonly recorded: Map<string, Set<string>>; readonly unmatched: readonly string[] } => {
+    const entryFiles = new Map(entryPoints.map(entry => [entry.importPath, entry.file]));
+    const recorded = new Map<string, Set<string>>();
+    const unmatched: string[] = [];
+    for (const [importPath, names] of byImportPath) {
+        const file = entryFiles.get(importPath);
+        if (!file) {
+            unmatched.push(importPath);
+            continue;
+        }
+        for (const name of names) {
+            add(recorded, name, path.resolve(file));
+        }
+    }
+    return { recorded, unmatched: unmatched.sort() };
 };
