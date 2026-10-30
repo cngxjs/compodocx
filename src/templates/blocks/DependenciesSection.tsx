@@ -22,7 +22,19 @@ const parseInjectModifiers = (defaultValue: string): string[] => {
     return mods;
 };
 
-/** Dependencies section merging inject() properties and constructor params. */
+type DependencySource = 'inject' | 'inject-async' | 'constructor';
+
+const BADGE: Readonly<Record<DependencySource, { modifier: string; label: string }>> = {
+    inject: { modifier: 'inject', label: 'inject()' },
+    'inject-async': { modifier: 'inject-async', label: 'injectAsync()' },
+    constructor: { modifier: 'constructor-di', label: 'constructor' }
+};
+
+/** Whether a member is an `inject()` or `injectAsync()` field, listed under Dependencies. */
+export const isDependencyMember = (p: any): boolean =>
+    p.signalKind === 'inject' || p.signalKind === 'inject-async';
+
+/** Dependencies section merging inject()/injectAsync() properties and constructor params. */
 export const DependenciesSection = (props: {
     injectProps: any[];
     constructorArgs: any[];
@@ -32,7 +44,7 @@ export const DependenciesSection = (props: {
     const items: Array<{
         name: string;
         type: string;
-        source: 'inject' | 'constructor';
+        source: DependencySource;
         modifiers: string[];
         description?: string;
     }> = [];
@@ -41,7 +53,7 @@ export const DependenciesSection = (props: {
         items.push({
             name: p.name,
             type: p.type ?? '',
-            source: 'inject',
+            source: p.signalKind === 'inject-async' ? 'inject-async' : 'inject',
             modifiers: parseInjectModifiers(p.defaultValue ?? ''),
             description: p.description
         });
@@ -83,16 +95,14 @@ export const DependenciesSection = (props: {
                                 : item.name}
                         </span>
                         <span class="cdx-deps-badges">
-                            <span
-                                class={`cdx-badge cdx-badge--${item.source === 'inject' ? 'inject' : 'constructor-di'}`}
-                            >
-                                {item.source === 'inject' ? 'inject()' : 'constructor'}
+                            <span class={`cdx-badge cdx-badge--${BADGE[item.source].modifier}`}>
+                                {BADGE[item.source].label}
                             </span>
                             {item.modifiers.map(mod => (
                                 <span class="cdx-member-modifier">{mod}</span>
                             ))}
                         </span>
-                        {item.source === 'inject' && item.name && (
+                        {item.source !== 'constructor' && item.name && (
                             <span class="cdx-deps-alias">{item.name}</span>
                         )}
                         {item.description && (

@@ -6,6 +6,7 @@ import {
     declarationsBySymbol,
     resolveAlias
 } from './declarations';
+import { type AngularImports, angularImports, injectAsyncLoad, loadedSymbol } from './inject-calls';
 import { compareKeys, type DeclarationSpace, factKey, type SymbolKey } from './model';
 
 const isSpecifier = (node: ts.Node): boolean =>
@@ -40,7 +41,8 @@ const spaceOfUse = (identifier: ts.Identifier): DeclarationSpace => {
  * "Used by" edges between the top-level declarations of one run: a
  * declaration uses another when an identifier anywhere in it (signature,
  * body, initializer, heritage clause, decorator) resolves to the other.
- * Members roll up to their class; self edges are dropped.
+ * Members roll up to their class; self edges are dropped. An `injectAsync()`
+ * loader uses the service it loads.
  */
 export const usedByEdges = (
     declarations: readonly Declaration[],
@@ -64,9 +66,26 @@ export const usedByEdges = (
         return symbol !== undefined && (symbol.flags & ts.SymbolFlags.Module) !== 0;
     };
 
+    const importsCache = new Map<ts.SourceFile, AngularImports>();
+    const importsOf = (node: ts.Node): AngularImports => {
+        const sourceFile = node.getSourceFile();
+        const cached = importsCache.get(sourceFile) ?? angularImports(sourceFile);
+        importsCache.set(sourceFile, cached);
+        return cached;
+    };
+
     const edges = new Map<string, Map<string, SymbolKey>>();
     for (const user of declarations) {
         const userKey = factKey(user.key);
+        const addEdge = (symbol: ts.Symbol | undefined, space: DeclarationSpace): void => {
+            const target = symbol && declarationIn(bySymbol.get(symbol), space);
+            const targetKey = target && factKey(target.key);
+            if (target && targetKey !== userKey) {
+                const users = edges.get(targetKey as string) ?? new Map<string, SymbolKey>();
+                users.set(userKey, user.key);
+                edges.set(targetKey as string, users);
+            }
+        };
         const walk = (node: ts.Node): void => {
             if (ts.isStringLiteralLike(node) || isSpecifier(node)) {
                 return;
@@ -78,15 +97,12 @@ export const usedByEdges = (
                 return;
             }
             if (ts.isIdentifier(node)) {
-                const symbol = symbolOf(node);
-                const target = symbol && declarationIn(bySymbol.get(symbol), spaceOfUse(node));
-                const targetKey = target && factKey(target.key);
-                if (target && targetKey !== userKey) {
-                    const users = edges.get(targetKey as string) ?? new Map<string, SymbolKey>();
-                    users.set(userKey, user.key);
-                    edges.set(targetKey as string, users);
-                }
+                addEdge(symbolOf(node), spaceOfUse(node));
                 return;
+            }
+            const load = ts.isCallExpression(node) && injectAsyncLoad(node, importsOf(node));
+            if (load) {
+                addEdge(loadedSymbol(load, checker), 'value');
             }
             ts.forEachChild(node, walk);
         };

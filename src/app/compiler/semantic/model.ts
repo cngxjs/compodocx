@@ -99,6 +99,11 @@ export interface SemanticModel {
     readonly summary: SemanticSummary;
     /** Imports between the root files; not exported. */
     readonly imports?: ImportGraph;
+    /**
+     * The class each followable `injectAsync()` call loads, keyed by `loadKey`
+     * of the call; read by the crawler, not exported.
+     */
+    readonly asyncLoads?: ReadonlyMap<string, SymbolKey>;
     /** Features of the documented symbols, derived once the symbols are known. */
     readonly features?: FeatureModel;
     /** Values of the declared classification axes, derived with the features. */

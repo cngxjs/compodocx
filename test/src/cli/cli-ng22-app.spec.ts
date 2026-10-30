@@ -124,6 +124,22 @@ describe('CLI Angular 22 application', () => {
         expect(page('service', 'ReportLoader')).to.contain('cdx-badge--inject-async');
     });
 
+    it('follows injectAsync to the service it loads', () => {
+        const byName = (name: string) => data.services.find((s: any) => s.name === name);
+        expect(byName('ReportLoader').di.readsTokens).to.deep.equal([
+            { name: 'ReportEngine', file: 'src/app/reports/report-engine.ts' }
+        ]);
+        expect(names(byName('ReportEngine').usedBy)).to.deep.equal(['ReportLoader']);
+        const engine = byName('ReportLoader').properties.find((p: any) => p.name === 'engine');
+        expect(engine.type).to.equal('ReportEngine');
+        expect(page('service', 'ReportEngine')).to.match(/id="used-by"[\s\S]*ReportLoader/);
+        const dependencies = page('service', 'ReportLoader').split(
+            'data-compodoc="block-dependencies"'
+        )[1];
+        expect(dependencies).to.contain('cdx-badge--inject-async');
+        expect(dependencies).to.contain('ReportEngine');
+    });
+
     it('notes the OnPush default only where changeDetection is not set', () => {
         expect(page('component', 'AppComponent')).to.contain('OnPush (default)');
         expect(page('component', 'DashboardComponent')).not.to.contain('OnPush (default)');

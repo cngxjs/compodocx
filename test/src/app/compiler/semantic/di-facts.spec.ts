@@ -353,6 +353,55 @@ export function withY(): XFeature {
     });
 });
 
+describe('services loaded with injectAsync', () => {
+    const FILES = {
+        '/p/engine.ts': 'export default class Engine {}\nexport class Named {}\n',
+        '/p/loader.ts': `
+import { injectAsync } from '@angular/core';
+export class Loader {
+    readonly engine = injectAsync(() => import('./engine'));
+    readonly named = injectAsync(() => import('./engine').then(m => m.Named));
+}
+`
+    };
+    let di: ReturnType<typeof analyzeDi>['di'];
+    let asyncLoads: ReturnType<typeof analyzeDi>['asyncLoads'];
+
+    beforeAll(() => {
+        const program = memoryProgram(FILES);
+        const checker = program.getTypeChecker();
+        const sourceFiles = Object.keys(FILES)
+            .map(file => program.getSourceFile(file))
+            .filter((sf): sf is ts.SourceFile => sf !== undefined);
+        ({ di, asyncLoads } = analyzeDi(
+            collectDeclarations(sourceFiles, checker, '/'),
+            checker,
+            () => true
+        ));
+    });
+
+    it('records the loaded class as a read of the loading class', () => {
+        expect(di.get('p/loader.ts#Loader')?.readsTokens.map(k => k.name)).toEqual([
+            'Engine',
+            'Named'
+        ]);
+        expect(di.get('p/loader.ts#Loader')?.usesInjectionContext).toBe('direct');
+    });
+
+    it('keeps the loaded class per injectAsync call for the crawler', () => {
+        const source = FILES['/p/loader.ts'];
+        expect(
+            [...asyncLoads].map(([at, loaded]) => [at.replace(/#\d+$/, ''), loaded.name])
+        ).toEqual([
+            ['/p/loader.ts', 'Engine'],
+            ['/p/loader.ts', 'Named']
+        ]);
+        expect(asyncLoads.get(`/p/loader.ts#${source.indexOf('injectAsync(() =>')}`)?.name).toBe(
+            'Engine'
+        );
+    });
+});
+
 describe('declaration spaces', () => {
     const FOO = 'core/src/foo/foo.ts';
     const typeFacts = (file: string, name: string): SymbolFacts | undefined =>

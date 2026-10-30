@@ -19,7 +19,7 @@ import { BlockMethod } from '../blocks/BlockMethod';
 import { BlockOutput } from '../blocks/BlockOutput';
 import { BlockProperty } from '../blocks/BlockProperty';
 import { BlockRelationshipGraph } from '../blocks/BlockRelationshipGraph';
-import { DependenciesSection } from '../blocks/DependenciesSection';
+import { DependenciesSection, isDependencyMember } from '../blocks/DependenciesSection';
 import { EntityTabs } from '../blocks/EntityTabs';
 import { ExternalLinks } from '../blocks/ExternalLinks';
 import { HostSection } from '../blocks/HostSection';
@@ -221,7 +221,7 @@ const hasInfoContent = (e: any, props: EntityInfoProps): boolean =>
         e.hostStructured?.length ||
         e.providers?.length ||
         e.viewProviders?.length ||
-        (e.propertiesClass ?? e.properties ?? []).some((p: any) => p.signalKind === 'inject') ||
+        (e.propertiesClass ?? e.properties ?? []).some(isDependencyMember) ||
         e.extends?.length ||
         e.implements?.length ||
         e.relatedTo?.length ||
@@ -387,7 +387,7 @@ const InfoContent = (props: EntityInfoProps): string => {
             {isInfoSection('dependencies') &&
                 (() => {
                     const allProps = e.propertiesClass ?? e.properties ?? [];
-                    const injectProps = allProps.filter((p: any) => p.signalKind === 'inject');
+                    const injectProps = allProps.filter(isDependencyMember);
                     const ctorArgs = e.constructorObj?.args ?? [];
                     if (injectProps.length === 0 && ctorArgs.length === 0) {
                         // Constructor with no public deps but with explicit

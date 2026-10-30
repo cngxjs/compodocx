@@ -159,6 +159,7 @@ export const buildSemanticModel = (
             },
             notExported
         },
+        asyncLoads: di.asyncLoads,
         imports: buildImportGraph(
             program,
             sourceFiles.map(sf => sf.fileName),
