@@ -89,6 +89,7 @@ describe('CLI Angular 22 application', () => {
     it('documents the components, the guard, the token and the routes', () => {
         expect(names(data.components)).to.deep.equal([
             'AppComponent',
+            'AuditPanelComponent',
             'DashboardComponent',
             'ReportsComponent'
         ]);
@@ -138,6 +139,14 @@ describe('CLI Angular 22 application', () => {
         )[1];
         expect(dependencies).to.contain('cdx-badge--inject-async');
         expect(dependencies).to.contain('ReportEngine');
+    });
+
+    it('gives providers the kind of the symbol they name', () => {
+        const panel = data.components.find((c: any) => c.name === 'AuditPanelComponent');
+        expect(panel.providers.map((p: any) => [p.name, p.type])).to.deep.equal([
+            ['AuditService', 'service'],
+            ['Logger', 'service']
+        ]);
     });
 
     it('notes the OnPush default only where changeDetection is not set', () => {

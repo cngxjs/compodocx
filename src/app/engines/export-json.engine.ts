@@ -37,7 +37,7 @@ import {
 } from '../interfaces/export-data.interface';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
 import { type SymbolRef, toSymbolKey } from '../links/symbol-id';
-import { type SymbolTable, styleFileName } from '../links/symbol-table';
+import { lookupEntry, type SymbolTable, styleFileName } from '../links/symbol-table';
 import { exportRoutes, type RoutingModel, withRouteFacts } from '../routing';
 import type { StyleModel } from '../styles/model';
 import { exportAdditionalPages } from './export-additional-pages';
@@ -233,6 +233,40 @@ export const configAccessorKeys = (
             .filter((ref): ref is SymbolRef => ref !== undefined)
             .map(ref => factKey(toSymbolKey(ref)))
     );
+};
+
+type ProviderList = readonly { readonly name?: unknown; readonly type?: string }[];
+type WithProviders = { providers?: ProviderList; viewProviders?: ProviderList };
+
+/** A provider typed by the kind of the symbol it names; a name outside the table keeps its type. */
+const providerKind = <P extends ProviderList[number]>(provider: P, symbols: SymbolTable): P => {
+    const kind =
+        typeof provider.name === 'string'
+            ? lookupEntry(symbols, provider.name, 'related')?.ref.kind
+            : undefined;
+    return kind ? { ...provider, type: kind } : provider;
+};
+
+/**
+ * Copies of the components or directives whose `providers` and
+ * `viewProviders` entries carry the kind of the symbol they name (`service`,
+ * `injectable`, `token`, ...); the engine objects keep the type the crawler
+ * guessed from the name.
+ */
+export const withProviderKinds = <T extends WithProviders>(
+    entries: T[] | undefined,
+    symbols: SymbolTable | undefined
+): T[] | undefined => {
+    if (!entries || !symbols) {
+        return entries;
+    }
+    const typed = (list: ProviderList | undefined) =>
+        list?.map(provider => providerKind(provider, symbols));
+    return entries.map(entry => ({
+        ...entry,
+        ...(entry.providers ? { providers: typed(entry.providers) } : {}),
+        ...(entry.viewProviders ? { viewProviders: typed(entry.viewProviders) } : {})
+    }));
 };
 
 /** A symbol's axis values, by axis name; nothing without values. */
@@ -467,7 +501,10 @@ export class ExportJsonEngine {
         const directives = shareStyleSources<ExportDirective>(
             withLinkedTheming(data.directives, 'directive', themed) ?? []
         );
-        exportData.directives = facts(data.directives && directives.components);
+        exportData.directives = withProviderKinds(
+            facts(data.directives && directives.components),
+            data.symbols
+        );
         const shared = shareStyleSources<ExportComponent>(
             withLinkedTheming(data.components, 'component', themed) ?? []
         );
@@ -475,7 +512,10 @@ export class ExportJsonEngine {
             Configuration.mainData.disableRoutes ? undefined : data.routing,
             data.symbols
         );
-        exportData.components = routeFacts(facts(shared.components), 'component');
+        exportData.components = routeFacts(
+            withProviderKinds(facts(shared.components), data.symbols),
+            'component'
+        );
         const styleFiles = exportStyleFiles(data.styles, data.symbols, model?.features);
         const styleSources = {
             ...shared.styleSources,

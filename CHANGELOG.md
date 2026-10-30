@@ -12,6 +12,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 - **Generator footer logo in dark mode.** Since 0.13.0 the "compodoc" part of the sidebar footer logo took the primary colour in dark mode instead of the text colour, which shows with a theme that sets `--color-cdx-primary` to a colour. It is in the text colour again.
 - **`injectAsync` is followed to the service it loads.** A member `injectAsync(() => import('./engine'))` (or `.then(m => m.Engine)`) made no link to the loaded class: the loaded service had no Used by entry, the loading class listed nothing under Dependencies and the JSON export had no `di.readsTokens` for it and the member type `unknown`. The loaded class is now a read of the loading class, its Used by section names the loading class, the Dependencies block lists the member with an `injectAsync()` badge and the member `type` in the JSON export is the class name.
+- **Provider types in the JSON export.** `type` of `providers` and `viewProviders` entries was guessed from the name: a `@Service` class was `injectable`, and a service without "Service" in its name had no `type`. It is now the kind of the symbol the entry names (`service`, `injectable`, `token`, ...); names outside the project keep the guess. See [MIGRATION.md](MIGRATION.md).
 
 ## [0.13.0] - 2026-10-29
 
