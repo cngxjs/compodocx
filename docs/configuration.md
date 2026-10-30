@@ -81,12 +81,12 @@ With `-e json`, every symbol entry (components, directives, classes, injectables
 | `usedBy` | `{ name, file }[]` | Top-level declarations of the same project that reference the symbol |
 | `di.role` | `'provider'` \| `'feature'` | Provider: annotated return type `Provider`, `EnvironmentProviders`, an array or a union of them. Feature: returns the type a provider accepts as its rest parameter (`...features: T[]`), matched by name. Set only for functions their file exports; a function without any DI fact has no `di` field |
 | `di.featureType` | `{ name, file }` | The feature type of a provider or feature function; providers sharing it belong together |
-| `di.providesTokens` | `{ name, file }[]` | Tokens in `provide:` entries of a provider, plus those of the providers and helper functions it calls (one level) |
+| `di.providesTokens` | `{ name, file }[]` | Tokens in `provide:` entries and classes listed directly, plus those of the providers and helper functions called there (one level). Set on provider functions and on components and directives, from the `providers` and `viewProviders` of their `@Component` / `@Directive`. `deps` and `useValue` arrays do not count |
 | `di.readsTokens` | `{ name, file }[]` | Tokens read with `inject()`, directly or through one called helper |
 | `di.usesInjectionContext` | `'direct'` \| `'call'` | Calls `inject()` or an Angular API that needs an injection context (`effect`, `toSignal`, `takeUntilDestroyed`, ... without an injector), directly or through exactly one called function, method or constructor |
 | `di.configAccessor` | `true` | Function that returns a value read from a token its library configures through a provider with features |
 | `token.shape` | string | Type argument of an `InjectionToken`/`HttpContextToken`: `interface`, `signal`, `function`, `primitive`, `union` or `other` |
-| `token.providedBy` / `token.injectedBy` | `{ name, file }[]` | Providers that provide the token / symbols that read it |
+| `token.providedBy` / `token.injectedBy` | `{ name, file }[]` | Providers, components and directives that provide the token / symbols that read it |
 | `routedAt` | string[] | Components: full paths of the routes rendering the component |
 | `mountedAt` | string[] | Route array variables: full paths of the places a router mounts the array at |
 | `axes` | `Record<string, string>` | Values on the declared classification axes, by axis name. `semantic.axes` lists each axis with `label`, `values` (`{ value, count }`), `classified` and `unclassified` |

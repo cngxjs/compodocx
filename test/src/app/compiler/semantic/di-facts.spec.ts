@@ -180,7 +180,8 @@ describe('dependency injection facts', () => {
         const config = facts(TOKENS, 'FOO_CONFIG')?.token;
         expect(config?.providedBy).toEqual([
             key(PROVIDERS, 'provideFoo'),
-            key(PROVIDERS, 'provideFooAt')
+            key(PROVIDERS, 'provideFooAt'),
+            key('ui/src/foo-panel/foo-panel.ts', 'SemFooPanel')
         ]);
         expect(config?.injectedBy).toEqual([
             key(INJECT, 'FooStore'),
@@ -291,6 +292,59 @@ export function provideThroughHelper(): Provider[] {
     it('does not count deps, values or functions', () => {
         expect(provides('provideAudit')).not.toContain('Http');
         expect(provides('provideDirect')).not.toContain('helperFn');
+    });
+});
+
+describe('classes and tokens a component provides', () => {
+    const FILE = '/p/host.ts';
+    const SOURCE = `
+import { Component, Directive } from '@angular/core';
+import { Component as Local } from './local';
+export class Audit {}
+export class Logger {}
+export class Http {}
+export const T = new InjectionToken('t');
+const auditProviders = () => [Audit];
+@Component({
+    selector: 'app-host',
+    imports: [Http],
+    providers: [Audit, { provide: T, useValue: 1 }, { provide: Logger, useFactory: () => 1, deps: [Http] }],
+    viewProviders: [Logger]
+})
+export class Host {}
+@Directive({ selector: '[appMark]', providers: [auditProviders()] })
+export class Mark {}
+@Local({ providers: [Audit] })
+export class NotAngular {}
+`;
+    let analysis: ReturnType<typeof analyzeDi>;
+    const provides = (name: string) =>
+        analysis.di.get(`p/host.ts#${name}`)?.providesTokens.map(k => k.name);
+
+    beforeAll(() => {
+        const program = memoryProgram({ [FILE]: SOURCE });
+        const checker = program.getTypeChecker();
+        const sourceFiles = [program.getSourceFile(FILE)].filter(
+            (sf): sf is ts.SourceFile => sf !== undefined
+        );
+        analysis = analyzeDi(collectDeclarations(sourceFiles, checker, '/'), checker, () => true);
+    });
+
+    it('counts the providers and viewProviders of a component', () => {
+        expect(provides('Host')).toEqual(['Audit', 'Logger', 'T']);
+    });
+
+    it('counts the classes of a helper a directive calls in its providers', () => {
+        expect(provides('Mark')).toEqual(['Audit']);
+    });
+
+    it('gives the component no role and ignores a decorator not from Angular', () => {
+        expect(analysis.di.get('p/host.ts#Host')?.role).toBeUndefined();
+        expect(provides('NotAngular')).toBeUndefined();
+    });
+
+    it('names the component among the providers of a token', () => {
+        expect(analysis.tokens.get('p/host.ts#T')?.providedBy.map(k => k.name)).toEqual(['Host']);
     });
 });
 
