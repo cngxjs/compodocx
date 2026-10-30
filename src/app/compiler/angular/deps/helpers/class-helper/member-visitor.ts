@@ -9,9 +9,11 @@ import { getNodeDecorators, nodeHasDecorator } from '../../../../../../utils/nod
 import { StringifyObjectLiteralExpression } from '../../../../../../utils/object-literal-expression.util';
 import { getNamesCompareFn, markedtags, mergeTagsAndArgs } from '../../../../../../utils/utils';
 import Configuration from '../../../../../configuration';
+import { unwrapExpression } from '../../../../semantic/declarations';
 import {
     type AngularImports,
     angularImports,
+    loadKey,
     rootInjectCall
 } from '../../../../semantic/inject-calls';
 import {
@@ -98,9 +100,8 @@ export class MemberVisitor {
                 ? importedMemberCall(initializer, importsOf(sourceFile), sourceFile)
                 : undefined;
         if (imported) {
-            return imported.type
-                ? { kind: imported.kind, signalType: imported.type }
-                : { kind: imported.kind };
+            const type = imported.type ?? this.loadedServiceName(initializer);
+            return type ? { kind: imported.kind, signalType: type } : { kind: imported.kind };
         }
 
         // Order matters: check specific patterns before generic ones
@@ -154,6 +155,17 @@ export class MemberVisitor {
             }
         }
         return this.detectInject(cleaned, initializer, sourceFile);
+    }
+
+    /**
+     * Name of the class an `injectAsync()` initializer loads. The semantic stage
+     * resolved it; this program resolves no modules.
+     */
+    private loadedServiceName(initializer: ts.Expression): string | undefined {
+        const root = unwrapExpression(initializer);
+        return ts.isCallExpression(root)
+            ? Configuration.mainData.semantic?.asyncLoads?.get(loadKey(root))?.name
+            : undefined;
     }
 
     /** `inject(X)` at the root of the initializer; the token name becomes the type. */

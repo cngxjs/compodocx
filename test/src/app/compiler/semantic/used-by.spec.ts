@@ -2,6 +2,7 @@ import { ts } from 'ts-morph';
 import { beforeAll, describe, expect, it } from 'vitest';
 
 import { collectDeclarations, usedByEdges } from '../../../../../src/app/compiler/semantic';
+import { memoryProgram } from '../../routing/program';
 
 const FILES: Record<string, string> = {
     '/p/a.ts': `
@@ -69,5 +70,41 @@ describe('used-by edges', () => {
     it('ignores import specifiers', () => {
         expect(usersOf('b.ts', 'unused')).toEqual([]);
         expect([...edges.keys()].every(key => !key.startsWith('a.ts#'))).toBe(true);
+    });
+});
+
+describe('used-by edges of injectAsync', () => {
+    const LOADS: Record<string, string> = {
+        '/p/engine.ts':
+            'export default class Engine {}\nexport class Named {}\nexport class Other {}\n',
+        '/p/loader.ts': `
+import { injectAsync } from '@angular/core';
+export class Loader {
+    readonly engine = injectAsync(() => import('./engine'));
+    readonly named = injectAsync(() => import('./engine').then(m => m.Named));
+}
+export const route = { loadComponent: () => import('./engine').then(m => m.Other) };
+`
+    };
+    let loadEdges: ReadonlyMap<string, readonly { name: string; file: string }[]>;
+    const loadUsers = (name: string): readonly string[] =>
+        (loadEdges.get(`engine.ts#${name}`) ?? []).map(key => `${key.file}#${key.name}`);
+
+    beforeAll(() => {
+        const program = memoryProgram(LOADS);
+        const checker = program.getTypeChecker();
+        const sourceFiles = Object.keys(LOADS).map(
+            file => program.getSourceFile(file) as ts.SourceFile
+        );
+        loadEdges = usedByEdges(collectDeclarations(sourceFiles, checker, '/p'), checker);
+    });
+
+    it('records the class an injectAsync loader loads', () => {
+        expect(loadUsers('Engine')).toEqual(['loader.ts#Loader']);
+        expect(loadUsers('Named')).toEqual(['loader.ts#Loader']);
+    });
+
+    it('records no edge for another dynamic import', () => {
+        expect(loadUsers('Other')).toEqual([]);
     });
 });

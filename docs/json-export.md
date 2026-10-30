@@ -99,6 +99,10 @@ Added (optional): the semantic facts on every symbol entry (`entryPoint`, `expor
 
 - `themeTokens` of components and directives and `tokens` of `styleFiles` entries leave out the custom properties whose name starts with `themingPrivatePrefix` (default `--_`) and every token whose doc block carries `@internal`. Entries with `kind: 'css-hook'` are kept whatever their name. `false` for `themingPrivatePrefix` writes the named properties again.
 
+### Changed in 0.14.0
+
+- `type` of `providers` and `viewProviders` entries of components and directives is the kind of the symbol the entry names (`service`, `injectable`, `token`, `class`, ...). It was guessed from the name, so an Angular 22 `@Service` class was `injectable` and a service without "Service" in its name had no `type`. Names outside the project keep the guess.
+
 ## Schema 2
 
 Written by 0.6.0 to 0.8.x. Additive over schema 1, nothing was removed:

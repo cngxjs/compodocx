@@ -16,6 +16,7 @@ import {
     exportStyleFiles,
     miscellaneousWithFacts,
     withLinkedTheming,
+    withProviderKinds,
     withSemanticFacts
 } from '../../../src/app/engines/export-json.engine';
 import {
@@ -563,5 +564,49 @@ describe('export-json style files', () => {
             highlight
         );
         expect(exportStyleFiles(undefined, symbols, undefined).files).toEqual([]);
+    });
+});
+
+describe('export-json provider kinds', () => {
+    const symbols = buildSymbolTable(
+        {
+            services: [
+                { name: 'AuditService', file: 'a/audit.service.ts' },
+                { name: 'Logger', file: 'a/logger.ts' }
+            ],
+            injectables: [{ name: 'PrefsStore', file: 'a/prefs.store.ts' }],
+            tokens: [{ name: 'CONFIG', file: 'a/config.ts' }]
+        },
+        { cwd: '/' }
+    );
+    const host = {
+        name: 'Host',
+        file: 'a/host.component.ts',
+        providers: [
+            { name: 'AuditService', kind: 'class', type: 'injectable' },
+            { name: 'Logger', kind: 'useClass', provide: 'Logger', useClass: 'ConsoleLogger' },
+            { name: 'PrefsStore', kind: 'class' },
+            { name: 'CONFIG', kind: 'useValue', provide: 'CONFIG', useValue: '{}' },
+            { name: 'ExternalService', kind: 'class', type: 'injectable' }
+        ],
+        viewProviders: [{ name: 'AuditService', kind: 'class', type: 'injectable' }]
+    };
+
+    it('types each provider by the kind of the symbol it names', () => {
+        const [typed] = withProviderKinds([host], symbols) ?? [];
+        expect((typed as any).providers.map((p: any) => [p.name, p.type])).toEqual([
+            ['AuditService', 'service'],
+            ['Logger', 'service'],
+            ['PrefsStore', 'injectable'],
+            ['CONFIG', 'token'],
+            ['ExternalService', 'injectable']
+        ]);
+        expect((typed as any).viewProviders[0].type).toBe('service');
+    });
+
+    it('copies the entries and leaves the engine objects as they were', () => {
+        withProviderKinds([host], symbols);
+        expect(host.providers[0].type).toBe('injectable');
+        expect(host.providers[1]).not.toHaveProperty('type');
     });
 });

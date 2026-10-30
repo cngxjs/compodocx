@@ -89,6 +89,7 @@ describe('CLI Angular 22 application', () => {
     it('documents the components, the guard, the token and the routes', () => {
         expect(names(data.components)).to.deep.equal([
             'AppComponent',
+            'AuditPanelComponent',
             'DashboardComponent',
             'ReportsComponent'
         ]);
@@ -122,6 +123,46 @@ describe('CLI Angular 22 application', () => {
         expect(member('ReportLoader', 'engine').signalKind).to.equal('inject-async');
         expect(page('service', 'SessionService')).to.contain('cdx-badge--http-resource');
         expect(page('service', 'ReportLoader')).to.contain('cdx-badge--inject-async');
+    });
+
+    it('follows injectAsync to the service it loads', () => {
+        const byName = (name: string) => data.services.find((s: any) => s.name === name);
+        expect(byName('ReportLoader').di.readsTokens).to.deep.equal([
+            { name: 'ReportEngine', file: 'src/app/reports/report-engine.ts' }
+        ]);
+        expect(names(byName('ReportEngine').usedBy)).to.deep.equal(['ReportLoader']);
+        const engine = byName('ReportLoader').properties.find((p: any) => p.name === 'engine');
+        expect(engine.type).to.equal('ReportEngine');
+        expect(page('service', 'ReportEngine')).to.match(/id="used-by"[\s\S]*ReportLoader/);
+        const dependencies = page('service', 'ReportLoader').split(
+            'data-compodoc="block-dependencies"'
+        )[1];
+        expect(dependencies).to.contain('cdx-badge--inject-async');
+        expect(dependencies).to.contain('ReportEngine');
+    });
+
+    it('gives providers the kind of the symbol they name', () => {
+        const panel = data.components.find((c: any) => c.name === 'AuditPanelComponent');
+        expect(panel.providers.map((p: any) => [p.name, p.type])).to.deep.equal([
+            ['AuditService', 'service'],
+            ['Logger', 'service']
+        ]);
+    });
+
+    it('counts classes listed in providers as provided', () => {
+        const provideAudit = data.miscellaneous.functions.find(
+            (f: any) => f.name === 'provideAudit'
+        );
+        expect(provideAudit.di.providesTokens).to.deep.equal([
+            { name: 'AuditService', file: 'src/app/core/audit.service.ts' },
+            { name: 'Logger', file: 'src/app/core/logger.ts' }
+        ]);
+        const provided = page('service', 'AuditService').split('id="provided-by"')[1] ?? '';
+        expect(provided).to.contain('provideAudit');
+        expect(page('service', 'Logger')).to.match(/id="provided-by"[\s\S]*provideAudit/);
+        const provider = page('provider', 'provideAudit');
+        expect(provider).to.match(/cdx-di-provided-tokens[\s\S]*AuditService/);
+        expect(provider).to.match(/cdx-di-provided-tokens[\s\S]*Logger/);
     });
 
     it('notes the OnPush default only where changeDetection is not set', () => {

@@ -67,6 +67,12 @@ Useful flags:
 
 Re-running `ng add @cngxjs/compodocx` is idempotent (zero diff on the second pass). CI workflow files that invoke `compodoc -p ...` directly are not rewritten - update those manually, or rely on the `compodoc` bin alias the new package still ships. The schematic does not touch your sources, templates or config file: the warnings of the first run still apply.
 
+## Changes in 0.14.0
+
+No flag or config key was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.13:
+
+- **`providers[].type` in `documentation.json` names the kind of the provided symbol.** On components and directives, `type` of `providers` and `viewProviders` entries is the kind of the project symbol the entry names (`service`, `injectable`, `token`, `class`, ...) instead of a guess from the name. An Angular 22 `@Service` class is `service` (it was `injectable`), and a provider whose name holds no "Service" gets a `type` too. Names outside the project keep the guess. Tools that filter providers by `type: 'injectable'` need to accept `service` as well.
+
 ## Changes in 0.13.0
 
 No flag or config key was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.12:

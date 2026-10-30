@@ -17,6 +17,15 @@ export interface InjectCall {
     readonly node: ts.CallExpression;
 }
 
+/** A service an `injectAsync` loader loads: the module it imports and the export it reads. */
+export interface InjectAsyncLoad {
+    /** Specifier of the dynamic `import()`. */
+    readonly specifier: ts.StringLiteral;
+    /** `default`, or the export a `.then(m => m.X)` callback selects. */
+    readonly exportName: string;
+    readonly node: ts.CallExpression;
+}
+
 const ANGULAR_CORE = '@angular/core';
 
 /**
@@ -282,4 +291,105 @@ export const findContextApiCalls = (node: ts.Node, imports: AngularImports): rea
         }
     });
     return names;
+};
+
+const isDynamicImport = (expression: ts.Expression): expression is ts.CallExpression =>
+    ts.isCallExpression(expression) &&
+    expression.expression.kind === ts.SyntaxKind.ImportKeyword &&
+    expression.arguments.length >= 1 &&
+    ts.isStringLiteralLike(expression.arguments[0]);
+
+/** The single expression a loader returns: an expression body or one `return` statement. */
+const loaderResult = (loader: ts.Expression): ts.Expression | undefined => {
+    if (!ts.isArrowFunction(loader) && !ts.isFunctionExpression(loader)) {
+        return undefined;
+    }
+    if (!ts.isBlock(loader.body)) {
+        return loader.body;
+    }
+    const [statement] = loader.body.statements;
+    return loader.body.statements.length === 1 && ts.isReturnStatement(statement)
+        ? statement.expression
+        : undefined;
+};
+
+/** `m => m.X` selects `X`. */
+const selectedExport = (callback: ts.Expression | undefined): string | undefined => {
+    if (!callback || !ts.isArrowFunction(callback) || callback.parameters.length !== 1) {
+        return undefined;
+    }
+    const parameter = callback.parameters[0].name;
+    const body = callback.body;
+    return ts.isIdentifier(parameter) &&
+        ts.isPropertyAccessExpression(body) &&
+        ts.isIdentifier(body.expression) &&
+        body.expression.text === parameter.text
+        ? body.name.text
+        : undefined;
+};
+
+/** The import and export of `import('./x')` or `import('./x').then(m => m.X)`. */
+const loadedExport = (
+    result: ts.Expression
+): { readonly specifier: ts.StringLiteral; readonly exportName: string } | undefined => {
+    const expression = ts.isParenthesizedExpression(result) ? result.expression : result;
+    if (isDynamicImport(expression)) {
+        return { specifier: expression.arguments[0] as ts.StringLiteral, exportName: 'default' };
+    }
+    if (
+        !ts.isCallExpression(expression) ||
+        !ts.isPropertyAccessExpression(expression.expression) ||
+        expression.expression.name.text !== 'then' ||
+        !isDynamicImport(expression.expression.expression)
+    ) {
+        return undefined;
+    }
+    const exportName = selectedExport(expression.arguments[0]);
+    const specifier = expression.expression.expression.arguments[0] as ts.StringLiteral;
+    return exportName ? { specifier, exportName } : undefined;
+};
+
+/** The service an `injectAsync(loader)` call from `@angular/core` loads, when the loader can be followed. */
+export const injectAsyncLoad = (
+    call: ts.CallExpression,
+    imports: AngularImports
+): InjectAsyncLoad | undefined => {
+    const callee = angularCallee(call, imports);
+    if (callee?.name !== 'injectAsync' || callee.module !== ANGULAR_CORE) {
+        return undefined;
+    }
+    const result = call.arguments[0] && loaderResult(call.arguments[0]);
+    const loaded = result && loadedExport(result);
+    return loaded ? { ...loaded, node: call } : undefined;
+};
+
+/** Source file and position of an `injectAsync()` call; the crawler parses the same files. */
+export const loadKey = (call: ts.CallExpression): string =>
+    `${call.getSourceFile().fileName}#${call.getStart()}`;
+
+/** Every followable `injectAsync()` call in the own scope of `node`, in source order. */
+export const findInjectAsyncLoads = (
+    node: ts.Node,
+    imports: AngularImports
+): readonly InjectAsyncLoad[] => {
+    const loads: InjectAsyncLoad[] = [];
+    visitOwnScope(node, imports, current => {
+        const load = ts.isCallExpression(current) ? injectAsyncLoad(current, imports) : undefined;
+        if (load) {
+            loads.push(load);
+        }
+    });
+    return loads;
+};
+
+/** The symbol a load names in the module it imports, aliases followed. */
+export const loadedSymbol = (
+    load: InjectAsyncLoad,
+    checker: ts.TypeChecker
+): ts.Symbol | undefined => {
+    const module = checker.getSymbolAtLocation(load.specifier);
+    const exported = module && checker.tryGetMemberInModuleExports(load.exportName, module);
+    return exported && exported.flags & ts.SymbolFlags.Alias
+        ? checker.getAliasedSymbol(exported)
+        : exported;
 };

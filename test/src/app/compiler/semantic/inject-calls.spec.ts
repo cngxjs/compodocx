@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
     angularImports,
     findContextApiCalls,
+    findInjectAsyncLoads,
     findInjectCalls,
     injectAliases
 } from '../../../../../src/app/compiler/semantic/inject-calls';
@@ -105,6 +106,45 @@ describe('inject() detection', () => {
         expect(tokens(`${CORE}function f() { return computed(() => inject(TOKEN)()); }`)).toEqual([
             'TOKEN'
         ]);
+    });
+});
+
+const loads = (source: string): readonly string[] => {
+    const sourceFile = parse(source);
+    return findInjectAsyncLoads(
+        firstFunction(sourceFile).body as ts.Node,
+        angularImports(sourceFile)
+    ).map(load => `${load.specifier.text}#${load.exportName}`);
+};
+
+describe('injectAsync loads', () => {
+    const ASYNC = "import { injectAsync } from '@angular/core';\n";
+
+    it('reads the default export of a returned dynamic import', () => {
+        expect(loads(`${ASYNC}function f() { injectAsync(() => import('./x')); }`)).toEqual([
+            './x#default'
+        ]);
+    });
+
+    it('reads the export a then callback selects', () => {
+        expect(
+            loads(`${ASYNC}function f() { injectAsync(() => import('./x').then(m => m.Engine)); }`)
+        ).toEqual(['./x#Engine']);
+    });
+
+    it('reads a loader with a block body returning the import', () => {
+        expect(
+            loads(`${ASYNC}function f() { injectAsync(() => { return import('./x'); }); }`)
+        ).toEqual(['./x#default']);
+    });
+
+    it('ignores a loader it cannot follow and an injectAsync not from Angular', () => {
+        expect(loads(`${ASYNC}function f(load) { injectAsync(load); }`)).toEqual([]);
+        expect(
+            loads(
+                "import { injectAsync } from './local';\nfunction f() { injectAsync(() => import('./x')); }"
+            )
+        ).toEqual([]);
     });
 });
 

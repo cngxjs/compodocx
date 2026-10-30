@@ -243,6 +243,57 @@ export function provideWithProvider(): Provider[] {
     });
 });
 
+describe('classes a provider lists', () => {
+    const FILE = '/p/classes.ts';
+    const SOURCE = `
+export class Audit {}
+export class Logger {}
+export class Http {}
+export const T = new InjectionToken('t');
+export const helperFn = () => 1;
+const auditProviders = () => [Audit];
+export function provideAudit(): EnvironmentProviders {
+    return makeEnvironmentProviders([
+        Audit,
+        { provide: Logger, useFactory: (http: Http) => http, deps: [Http] },
+        { provide: T, useValue: [Http] }
+    ]);
+}
+export function provideDirect(): Provider[] {
+    return [Audit, helperFn];
+}
+export function provideThroughHelper(): Provider[] {
+    return [auditProviders()];
+}
+`;
+    let di: ReturnType<typeof analyzeDi>['di'];
+    const provides = (name: string) =>
+        di.get(`p/classes.ts#${name}`)?.providesTokens.map(k => k.name);
+
+    beforeAll(() => {
+        const program = memoryProgram({ [FILE]: SOURCE });
+        const checker = program.getTypeChecker();
+        const sourceFiles = [program.getSourceFile(FILE)].filter(
+            (sf): sf is ts.SourceFile => sf !== undefined
+        );
+        di = analyzeDi(collectDeclarations(sourceFiles, checker, '/'), checker, () => true).di;
+    });
+
+    it('counts a class listed in a providers array', () => {
+        expect(provides('provideAudit')).toEqual(['Audit', 'Logger', 'T']);
+        expect(provides('provideDirect')).toEqual(['Audit']);
+    });
+
+    it('counts the classes of a helper the provider calls', () => {
+        expect(provides('provideThroughHelper')).toEqual(['Audit']);
+    });
+
+    it('does not count deps, values or functions', () => {
+        expect(provides('provideAudit')).not.toContain('Http');
+        expect(provides('provideDirect')).not.toContain('helperFn');
+    });
+});
+
 describe('accessor functions', () => {
     const FILE = '/p/accessors.ts';
     const SOURCE = `
@@ -350,6 +401,55 @@ export function withY(): XFeature {
         expect(accessor('provideX')).toBe(false);
         expect(di.get('p/accessors.ts#withY')?.role).toBe('feature');
         expect(accessor('withY')).toBe(false);
+    });
+});
+
+describe('services loaded with injectAsync', () => {
+    const FILES = {
+        '/p/engine.ts': 'export default class Engine {}\nexport class Named {}\n',
+        '/p/loader.ts': `
+import { injectAsync } from '@angular/core';
+export class Loader {
+    readonly engine = injectAsync(() => import('./engine'));
+    readonly named = injectAsync(() => import('./engine').then(m => m.Named));
+}
+`
+    };
+    let di: ReturnType<typeof analyzeDi>['di'];
+    let asyncLoads: ReturnType<typeof analyzeDi>['asyncLoads'];
+
+    beforeAll(() => {
+        const program = memoryProgram(FILES);
+        const checker = program.getTypeChecker();
+        const sourceFiles = Object.keys(FILES)
+            .map(file => program.getSourceFile(file))
+            .filter((sf): sf is ts.SourceFile => sf !== undefined);
+        ({ di, asyncLoads } = analyzeDi(
+            collectDeclarations(sourceFiles, checker, '/'),
+            checker,
+            () => true
+        ));
+    });
+
+    it('records the loaded class as a read of the loading class', () => {
+        expect(di.get('p/loader.ts#Loader')?.readsTokens.map(k => k.name)).toEqual([
+            'Engine',
+            'Named'
+        ]);
+        expect(di.get('p/loader.ts#Loader')?.usesInjectionContext).toBe('direct');
+    });
+
+    it('keeps the loaded class per injectAsync call for the crawler', () => {
+        const source = FILES['/p/loader.ts'];
+        expect(
+            [...asyncLoads].map(([at, loaded]) => [at.replace(/#\d+$/, ''), loaded.name])
+        ).toEqual([
+            ['/p/loader.ts', 'Engine'],
+            ['/p/loader.ts', 'Named']
+        ]);
+        expect(asyncLoads.get(`/p/loader.ts#${source.indexOf('injectAsync(() =>')}`)?.name).toBe(
+            'Engine'
+        );
     });
 });
 

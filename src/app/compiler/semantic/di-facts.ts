@@ -11,7 +11,11 @@ import {
     type AngularImports,
     angularImports,
     findContextApiCalls,
+    findInjectAsyncLoads,
     findInjectCalls,
+    type InjectAsyncLoad,
+    loadedSymbol,
+    loadKey,
     visitOwnScope
 } from './inject-calls';
 import {
@@ -28,6 +32,8 @@ export interface DiAnalysis {
     /** Keyed by `factKey`. */
     readonly di: ReadonlyMap<string, DiFacts>;
     readonly tokens: ReadonlyMap<string, TokenFacts>;
+    /** The class each followable `injectAsync()` call loads, keyed by `loadKey`. */
+    readonly asyncLoads: ReadonlyMap<string, SymbolKey>;
     readonly counts: {
         readonly providers: number;
         readonly features: number;
@@ -132,17 +138,21 @@ interface DirectScan {
     /** `inject()` or a context API needing an injection context. */
     readonly hit: boolean;
     readonly tokens: readonly ts.Expression[];
+    /** Services loaded with `injectAsync()`. */
+    readonly loads: readonly InjectAsyncLoad[];
     /** Callee expressions of other calls and `new` expressions. */
     readonly callees: readonly ts.Expression[];
 }
 
 const scanScopes = (owner: ScopeOwner, imports: AngularImports): DirectScan => {
     const tokens: ts.Expression[] = [];
+    const loads: InjectAsyncLoad[] = [];
     const callees: ts.Expression[] = [];
     let hit = false;
     for (const scope of scopesOf(owner)) {
         const injects = findInjectCalls(scope, imports);
         tokens.push(...injects.map(call => call.token));
+        loads.push(...findInjectAsyncLoads(scope, imports));
         hit = hit || injects.length > 0 || findContextApiCalls(scope, imports).length > 0;
         const handled = new Set(injects.map(call => call.node));
         visitOwnScope(scope, imports, node => {
@@ -153,7 +163,7 @@ const scanScopes = (owner: ScopeOwner, imports: AngularImports): DirectScan => {
             }
         });
     }
-    return { hit, tokens, callees };
+    return { hit, tokens, loads, callees };
 };
 
 const functionInitializer = (initializer: ts.Expression | undefined): FunctionNode | undefined => {
@@ -313,10 +323,14 @@ export const analyzeDi = (
         calleeOwners.set(owner, owners);
         return owners;
     };
+    const keyOfLoad = (load: InjectAsyncLoad): SymbolKey | undefined => {
+        const symbol = loadedSymbol(load, checker);
+        return symbol ? declarationIn(bySymbol.get(symbol), 'value')?.key : undefined;
+    };
     const tokenKeys = (owner: ScopeOwner): readonly SymbolKey[] =>
-        scan(owner)
-            .tokens.map(keyOfExpression)
-            .filter((k): k is SymbolKey => k !== undefined);
+        [...scan(owner).tokens.map(keyOfExpression), ...scan(owner).loads.map(keyOfLoad)].filter(
+            (k): k is SymbolKey => k !== undefined
+        );
 
     const contextOf = (
         owner: ScopeOwner
@@ -363,15 +377,31 @@ export const analyzeDi = (
         exportedFunctions.filter(d => !providerSet.has(d) && featureTypeOf.has(d))
     );
 
-    // Tokens a provider provides: `provide: X` in its body, plus those of the functions it calls.
+    /** A class listed in a providers array; `deps` and `useValue` arrays list no providers. */
+    const listedClass = (node: ts.Node): SymbolKey | undefined => {
+        const list = node.parent;
+        if (!ts.isIdentifier(node) || !list || !ts.isArrayLiteralExpression(list)) {
+            return undefined;
+        }
+        if (ts.isPropertyAssignment(list.parent) && list.parent.name.getText() !== 'providers') {
+            return undefined;
+        }
+        const symbol = symbolOf(node);
+        const declaration = symbol && declarationIn(bySymbol.get(symbol), 'value');
+        return declaration?.cls ? declaration.key : undefined;
+    };
+
+    // Tokens a provider provides: `provide: X` and classes listed in its body,
+    // plus those of the functions it calls.
     const ownProvided = (fn: FunctionNode): readonly SymbolKey[] => {
         const keys: SymbolKey[] = [];
         const walk = (node: ts.Node): void => {
-            if (ts.isPropertyAssignment(node) && node.name.getText() === 'provide') {
-                const key = keyOfExpression(node.initializer);
-                if (key) {
-                    keys.push(key);
-                }
+            const key =
+                ts.isPropertyAssignment(node) && node.name.getText() === 'provide'
+                    ? keyOfExpression(node.initializer)
+                    : listedClass(node);
+            if (key) {
+                keys.push(key);
             }
             ts.forEachChild(node, walk);
         };
@@ -488,7 +518,17 @@ export const analyzeDi = (
         });
     }
 
-    return { di, tokens, counts };
+    const asyncLoads = new Map<string, SymbolKey>();
+    for (const { loads } of scans.values()) {
+        for (const load of loads) {
+            const loaded = keyOfLoad(load);
+            if (loaded) {
+                asyncLoads.set(loadKey(load.node), loaded);
+            }
+        }
+    }
+
+    return { di, tokens, asyncLoads, counts };
 };
 
 const keyFromFactKey = (key: string): SymbolKey => {

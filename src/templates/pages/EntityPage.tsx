@@ -19,7 +19,7 @@ import { BlockMethod } from '../blocks/BlockMethod';
 import { BlockOutput } from '../blocks/BlockOutput';
 import { BlockProperty } from '../blocks/BlockProperty';
 import { BlockRelationshipGraph } from '../blocks/BlockRelationshipGraph';
-import { DependenciesSection } from '../blocks/DependenciesSection';
+import { DependenciesSection, isDependencyMember } from '../blocks/DependenciesSection';
 import { EntityTabs } from '../blocks/EntityTabs';
 import { ExternalLinks } from '../blocks/ExternalLinks';
 import { HostSection } from '../blocks/HostSection';
@@ -27,7 +27,7 @@ import { ImportStatement } from '../blocks/ImportStatement';
 import { JsdocExamplesBlock } from '../blocks/JsdocExamplesBlock';
 import { PlaygroundContent } from '../blocks/PlaygroundContent';
 import { ProvidersSection } from '../blocks/ProvidersSection';
-import { ReferencedBySection } from '../blocks/ReferencedBySection';
+import { ReferencedBySection, SymbolChips } from '../blocks/ReferencedBySection';
 import { RelatedSection } from '../blocks/RelatedSection';
 import { RouteChip } from '../blocks/RouteChip';
 import { AiGeneratedBadge, AiGeneratedNote } from '../components/AiGeneratedBadge';
@@ -61,7 +61,7 @@ import {
     t
 } from '../helpers';
 import type { ComponentPlaygroundBlock } from '../helpers/jsdoc';
-import { usedByEntries } from '../helpers/used-by';
+import { providedByEntries, usedByEntries } from '../helpers/used-by';
 
 /** Map entity key to CSS color variable, badge class, and watermark icon */
 const entityMeta: Record<
@@ -221,13 +221,14 @@ const hasInfoContent = (e: any, props: EntityInfoProps): boolean =>
         e.hostStructured?.length ||
         e.providers?.length ||
         e.viewProviders?.length ||
-        (e.propertiesClass ?? e.properties ?? []).some((p: any) => p.signalKind === 'inject') ||
+        (e.propertiesClass ?? e.properties ?? []).some(isDependencyMember) ||
         e.extends?.length ||
         e.implements?.length ||
         e.relatedTo?.length ||
         props.relationships?.incoming?.length ||
         props.relationships?.outgoing?.length ||
-        usedByEntries(Configuration.mainData, props.entityKey as EntityKind, e).length > 0
+        usedByEntries(Configuration.mainData, props.entityKey as EntityKind, e).length > 0 ||
+        providedByEntries(Configuration.mainData, props.entityKey as EntityKind, e).length > 0
     );
 
 /** Render extends/implements as metadata card rows for entities without decorator metadata */
@@ -311,6 +312,18 @@ const InfoContent = (props: EntityInfoProps): string => {
                 depth: props.depth
             })}
 
+            {/* Provider functions that list this class */}
+            {SymbolChips({
+                entries: providedByEntries(
+                    Configuration.mainData,
+                    props.entityKey as EntityKind,
+                    e
+                ),
+                depth: props.depth,
+                id: 'provided-by',
+                title: t('provided-by')
+            })}
+
             {/* Import statement */}
             {isInfoSection('import') && ImportStatement({ name: e.name, file: e.file })}
 
@@ -387,7 +400,7 @@ const InfoContent = (props: EntityInfoProps): string => {
             {isInfoSection('dependencies') &&
                 (() => {
                     const allProps = e.propertiesClass ?? e.properties ?? [];
-                    const injectProps = allProps.filter((p: any) => p.signalKind === 'inject');
+                    const injectProps = allProps.filter(isDependencyMember);
                     const ctorArgs = e.constructorObj?.args ?? [];
                     if (injectProps.length === 0 && ctorArgs.length === 0) {
                         // Constructor with no public deps but with explicit

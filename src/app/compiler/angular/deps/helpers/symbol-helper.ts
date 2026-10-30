@@ -20,9 +20,9 @@ enum AngularProviderConfigProperties {
  * filter, dependencies engine relationships, JSON/PDF exports, menu helpers).
  * `name` is the `provide:` target for object providers, or the class / token
  * identifier for bare providers. `type` is derived from a substring match on
- * the name via `getType(name)` and may be further refined by
- * `application.ts` when the provider matches a known Injectable or
- * Interceptor in the dep-engine registry.
+ * the name via `getType(name)`. The JSON export replaces it with the kind of
+ * the symbol the name resolves to (`service`, `injectable`, `token`, ...) and
+ * keeps the guess for names outside the project.
  *
  * The remaining fields are additive and consumed by the render layer
  * (`ProvidersSection`) to show the provider strategy.
@@ -30,7 +30,7 @@ enum AngularProviderConfigProperties {
 export type ProviderEntry = {
     /** `provide:` target for object providers, else the class / token name. */
     readonly name: string;
-    /** Derived from `getType(name)` or set later by `application.ts`. */
+    /** Derived from `getType(name)`; in the JSON export the kind of the named symbol. */
     type?: string;
 
     /** Which DI pattern this provider uses. */

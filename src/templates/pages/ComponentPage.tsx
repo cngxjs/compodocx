@@ -16,7 +16,7 @@ import { BlockRelationshipGraph } from '../blocks/BlockRelationshipGraph';
 import { BlockRoutedAt } from '../blocks/BlockRoutedAt';
 import { BlockTheming } from '../blocks/BlockTheming';
 import { ContentSlotsSection } from '../blocks/ContentSlots';
-import { DependenciesSection } from '../blocks/DependenciesSection';
+import { DependenciesSection, isDependencyMember } from '../blocks/DependenciesSection';
 import { ExternalLinks } from '../blocks/ExternalLinks';
 import {
     GraphKindLegend,
@@ -164,7 +164,7 @@ const hasComponentInfoContent = (data: any): boolean => {
         c.viewProviders?.length ||
         c.hostDirectives?.length ||
         c.hostStructured?.length ||
-        c.propertiesClass?.some((p: any) => p.signalKind === 'inject') ||
+        c.propertiesClass?.some(isDependencyMember) ||
         c.slots?.length ||
         c.relatedTo?.length ||
         data.relationships?.incoming?.length ||
@@ -242,9 +242,7 @@ const InfoContent = (data: any): string => {
 
             {isInfoSection('dependencies') &&
                 (() => {
-                    const injectProps = (c.propertiesClass ?? []).filter(
-                        (p: any) => p.signalKind === 'inject'
-                    );
+                    const injectProps = (c.propertiesClass ?? []).filter(isDependencyMember);
                     return injectProps.length > 0
                         ? DependenciesSection({
                               injectProps,

@@ -3459,7 +3459,7 @@
             "additionalProperties": true
         },
         "ProviderEntry": {
-            "description": "Structured representation of a single entry in a `providers: [...]` array.\n\nThe top-level `name` and `type` fields are preserved for backwards\ncompatibility with every existing downstream consumer (`application.ts`\nfilter, dependencies engine relationships, JSON/PDF exports, menu helpers).\n`name` is the `provide:` target for object providers, or the class / token\nidentifier for bare providers. `type` is derived from a substring match on\nthe name via `getType(name)` and may be further refined by\n`application.ts` when the provider matches a known Injectable or\nInterceptor in the dep-engine registry.\n\nThe remaining fields are additive and consumed by the render layer\n(`ProvidersSection`) to show the provider strategy.",
+            "description": "Structured representation of a single entry in a `providers: [...]` array.\n\nThe top-level `name` and `type` fields are preserved for backwards\ncompatibility with every existing downstream consumer (`application.ts`\nfilter, dependencies engine relationships, JSON/PDF exports, menu helpers).\n`name` is the `provide:` target for object providers, or the class / token\nidentifier for bare providers. `type` is derived from a substring match on\nthe name via `getType(name)`. The JSON export replaces it with the kind of\nthe symbol the name resolves to (`service`, `injectable`, `token`, ...) and\nkeeps the guess for names outside the project.\n\nThe remaining fields are additive and consumed by the render layer\n(`ProvidersSection`) to show the provider strategy.",
             "type": "object",
             "properties": {
                 "name": {
@@ -3468,7 +3468,7 @@
                 },
                 "type": {
                     "type": "string",
-                    "description": "Derived from `getType(name)` or set later by `application.ts`."
+                    "description": "Derived from `getType(name)`; in the JSON export the kind of the named symbol."
                 },
                 "kind": {
                     "enum": [
