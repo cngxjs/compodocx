@@ -626,7 +626,10 @@ button.menu-toggler:focus-visible {
     z-index: 1;
 }
 
-.copyright a {
+/* `.menu` (the sidebar itself) lifts this above `.dark a` in compodocx.css,
+   which comes later with the same specificity and would paint the logo in
+   the primary colour now that the footer is no longer in the menu list. */
+.menu .copyright a {
     --tracking-tight: -0.025em;
     --font-weight-semibold: 600;
     color: var(--color-cdx-text);

@@ -337,6 +337,29 @@ test.describe('Sidebar footer', () => {
         }
     });
 
+    test('keeps the footer logo in the text colour under a coloured primary, light and dark', async ({
+        page
+    }) => {
+        await openSymbolPage(page);
+        await page.addStyleTag({
+            content: ':root, .dark { --color-cdx-primary: rgb(255, 0, 0) !important; }'
+        });
+        for (const dark of [false, true]) {
+            const colours = await page.evaluate(isDark => {
+                document.documentElement.classList.toggle('dark', isDark);
+                const probe = document.createElement('span');
+                probe.style.color = 'var(--color-cdx-text)';
+                document.body.append(probe);
+                const text = getComputedStyle(probe).color;
+                probe.remove();
+                const logo = document.querySelector('#sidebar .cdx-sidebar-footer .cdx-logo-text');
+                return { text, logo: logo ? getComputedStyle(logo).color : '' };
+            }, dark);
+            expect(colours.logo).not.toBe('rgb(255, 0, 0)');
+            expect(colours.logo).toBe(colours.text);
+        }
+    });
+
     test('shows the footer in the off-canvas sidebar', async ({ page }) => {
         await page.setViewportSize({ width: 390, height: 700 });
         await openSymbolPage(page);
