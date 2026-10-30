@@ -139,6 +139,7 @@ export class Configuration implements ConfigurationInterface {
         angularProject: false,
         language: COMPODOC_DEFAULTS.language,
         maxSearchResults: 15,
+        searchFacetLimit: COMPODOC_DEFAULTS.searchFacetLimit,
         publicApiOnly: '',
         publicApiExports: new Map<string, Set<string>>(),
         publicApiDeclarations: new Map<string, Set<string>>(),

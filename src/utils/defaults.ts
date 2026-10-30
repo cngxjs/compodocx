@@ -65,5 +65,6 @@ export const COMPODOC_DEFAULTS = {
     },
     coverageTestShowOnlyFailed: false,
     language: 'en-US',
-    maxSearchResults: 15
+    maxSearchResults: 15,
+    searchFacetLimit: 8
 };

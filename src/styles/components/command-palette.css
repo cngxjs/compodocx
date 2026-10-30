@@ -208,6 +208,26 @@
     opacity: 0.9;
 }
 
+/* "+N more" / "Show less" toggle of a dimension past the chip limit
+   (`searchFacetLimit`): chip-shaped, dashed, so it does not read as a filter. */
+.cdx-cp .cdx-cp-facet-more {
+    @apply inline-flex items-center px-2 py-0.5 text-xs;
+    border: 1px dashed var(--color-cdx-border);
+    border-radius: 9999px;
+    background: transparent;
+    color: var(--color-cdx-text-muted);
+    font-family: var(--font-body);
+    cursor: pointer;
+    transition:
+        color var(--cdx-transition-fast),
+        border-color var(--cdx-transition-fast);
+}
+
+.cdx-cp .cdx-cp-facet-more:hover {
+    color: var(--color-cdx-text);
+    border-color: var(--color-cdx-text-muted);
+}
+
 .cdx-cp .cdx-cp-facet-reset {
     @apply self-start px-2 py-0.5 text-xs;
     border: none;

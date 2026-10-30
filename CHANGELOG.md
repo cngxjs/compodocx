@@ -8,6 +8,10 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ## [Unreleased]
 
+### Added
+
+- **`searchFacetLimit`.** The facets of the search command palette show at most this many filter chips each, `8` by default, ordered by count; a "+N more" chip expands the rest and "Show less" folds them again. An active filter stays visible past the limit. Set it in the config file or with `--searchFacetLimit`; `0` shows every chip as before. See [Search](docs/configuration.md#search).
+
 ### Fixed
 
 - **Generator footer logo in dark mode.** Since 0.13.0 the "compodoc" part of the sidebar footer logo took the primary colour in dark mode instead of the text colour, which shows with a theme that sets `--color-cdx-primary` to a colour. It is in the text colour again.

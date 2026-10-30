@@ -11,6 +11,7 @@ import { parseDisableMarkdownPages } from '../../utils/markdown-pages';
 import { parseMaxSearchResults } from '../../utils/max-search-results.util';
 import { parseMaxVersionsShown } from '../../utils/max-versions-shown.util';
 import { parseMenuFeatureSections } from '../../utils/menu-feature-sections';
+import { parseSearchFacetLimit } from '../../utils/search-facet-limit.util';
 import { parseAxesConfig } from '../compiler/semantic/axes';
 import { isFeatureKey } from '../compiler/semantic/features';
 import I18nEngine from '../engines/i18n.engine';
@@ -274,7 +275,7 @@ function applyMenuFeatureSections(
  *
  * Side-effects allowed:
  *  - `process.exit(1)` for invalid `--jsonIndent` / `--maxVersionsShown` /
- *    `--maxSearchResults` /
+ *    `--maxSearchResults` / `--searchFacetLimit` /
  *    missing custom-theme file / `--tsconfig` boolean.
  *  - `process.exit(2)` for invalid `menuLayout` / `collapsedAll` / `featuresName` / `aiGeneratedNote` / `exampleUrlBase` /
  *    `referencesName` config.
@@ -983,6 +984,22 @@ export function applyConfigToMainData(
             process.exit(1);
         }
         mainData.maxSearchResults = result.value;
+    }
+    if (configFile.searchFacetLimit !== undefined) {
+        const result = parseSearchFacetLimit(configFile.searchFacetLimit, 'config');
+        if (isErr(result)) {
+            logger.error(result.message);
+            process.exit(1);
+        }
+        mainData.searchFacetLimit = result.value;
+    }
+    if (program.getOptionValueSource('searchFacetLimit') === 'cli') {
+        const result = parseSearchFacetLimit(programOptions.searchFacetLimit, 'flag');
+        if (isErr(result)) {
+            logger.error(result.message);
+            process.exit(1);
+        }
+        mainData.searchFacetLimit = result.value;
     }
 
     for (const [key, reason] of Object.entries(IGNORED_CONFIG_KEYS)) {

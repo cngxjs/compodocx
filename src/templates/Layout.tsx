@@ -30,6 +30,8 @@ export type PageData = {
     readonly disableProperties?: boolean;
     readonly hideDarkModeToggle?: boolean;
     readonly maxSearchResults?: number;
+    /** Chips per palette facet dimension before "+N more" (`0` = all). */
+    readonly searchFacetLimit?: number;
     readonly gaID?: string;
     readonly entityIndex?: Record<string, { href: string; kind: string }>;
     /** Multi-version: when true, the version switcher is rendered. */
@@ -89,13 +91,14 @@ const axesAttribute = (axes: PageData['classificationAxes']): string | undefined
         : JSON.stringify(entries.map(([name, axis]) => ({ name, label: axis.label })));
 };
 
-const CommandPalette = (props: { readonly axes?: string }) =>
+const CommandPalette = (props: { readonly axes?: string; readonly facetLimit?: number }) =>
     (
         <dialog
             id="cdx-command-palette"
             class="cdx-cp"
             aria-label="Search documentation"
             data-cdx-axes={props.axes}
+            data-cdx-facet-limit={props.facetLimit}
         >
             <div class="cdx-cp-panel">
                 <div class="cdx-cp-header">
@@ -572,7 +575,10 @@ export const Layout = (props: LayoutProps): string => {
                 </main>
 
                 {!data.disableSearch && (
-                    <CommandPalette axes={axesAttribute(data.classificationAxes)} />
+                    <CommandPalette
+                        axes={axesAttribute(data.classificationAxes)}
+                        facetLimit={data.searchFacetLimit}
+                    />
                 )}
 
                 <PageGlobals data={data} />

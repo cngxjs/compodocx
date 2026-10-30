@@ -161,6 +161,8 @@ export interface MainDataInterface {
     hasZoneJs?: boolean;
     language: string;
     maxSearchResults: number;
+    /** Chips per facet dimension of the search palette before "+N more" (`0` = all). */
+    searchFacetLimit: number;
     publicApiOnly: string;
     publicApiExports: Map<string, Set<string>>;
     /** `publicApiExports` followed through barrels to the declarations; read by the filter. */

@@ -506,6 +506,9 @@ Compodocx uses [Pagefind](https://pagefind.app/) for client-side search. The sea
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
 | maxSearchResults | `--maxSearchResults` | number | `15` | Maximum number of results shown in the search command palette, an integer from `0` to `10000`. Set to `0` to show all results (may be slow for large projects). Also read from the config file; the flag wins when both are set. Any other value stops the build with an error |
+| searchFacetLimit | `--searchFacetLimit` | number | `8` | Filter chips each facet of the search command palette (Kind, Library, Feature, WCAG, axes) shows before a "+N more" toggle that expands the rest, an integer from `0` to `1000`. Chips are ordered by count; an active filter stays visible past the limit. Set to `0` to show every chip. Also read from the config file; the flag wins when both are set. Any other value stops the build with an error |
+
+Above the results the palette shows a filter chip for every value of each facet: Kind, Library, Feature, WCAG and one per declared classification axis. Without a query the chips count the whole index, so the API can be browsed by clicking a chip; with a query they count the matches. Chips within a facet combine with OR, facets with AND, and the active filters are kept in the URL (`?q=&kind=&feature=`). A facet with more values than `searchFacetLimit` shows the most frequent ones and a "+N more" chip.
 
 ## Logging
 
