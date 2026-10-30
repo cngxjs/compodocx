@@ -72,6 +72,8 @@ Re-running `ng add @cngxjs/compodocx` is idempotent (zero diff on the second pas
 No flag or config key was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.13:
 
 - **`providers[].type` in `documentation.json` names the kind of the provided symbol.** On components and directives, `type` of `providers` and `viewProviders` entries is the kind of the project symbol the entry names (`service`, `injectable`, `token`, `class`, ...) instead of a guess from the name. An Angular 22 `@Service` class is `service` (it was `injectable`), and a provider whose name holds no "Service" gets a `type` too. Names outside the project keep the guess. Tools that filter providers by `type: 'injectable'` need to accept `service` as well.
+- **Components and directives can carry `di.providesTokens`.** The classes and tokens in the `providers` and `viewProviders` of an `@Component` or `@Directive` count as provided, so `components[].di` / `directives[].di` can appear with `providesTokens`, and `semantic` token facts list the component under `providedBy`. Tools that read `providesTokens` only from provider functions see more entries.
+- **`--publicApiOnly` filters with an Angular Package Format dist.** With a dist built by ng-packagr for Angular 21 (no `index.d.ts`) the flag found no names and documented everything. It now reads `exports[*].types` and documents only the public API, so such a build gets fewer pages. Check the log for `Public API: no source entry point for ...` warnings.
 
 ## Changes in 0.13.0
 
