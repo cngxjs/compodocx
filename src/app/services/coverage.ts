@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import { SyntaxKind } from 'ts-morph';
+import { qualifiedName } from '../links/symbol-id';
 
 export type CoverageStatus = 'low' | 'medium' | 'good' | 'very-good';
 
@@ -80,7 +81,7 @@ export function computeDocumentationCoverage(deps: CoverageDependenciesInput): C
                 filePath: element.file,
                 type: element.type,
                 linktype: element.type,
-                name: element.name
+                name: qualifiedName(element)
             };
             let totalStatementDocumented = 0;
             let totalStatements =
@@ -202,7 +203,7 @@ export function computeDocumentationCoverage(deps: CoverageDependenciesInput): C
                 type: type,
                 linktype: el.type,
                 linksubtype: el.subtype,
-                name: el.name
+                name: qualifiedName(el)
             };
             if (type === 'variable' || type === 'function' || type === 'type alias') {
                 cl.linktype = 'miscellaneous';
@@ -243,7 +244,7 @@ export function computeDocumentationCoverage(deps: CoverageDependenciesInput): C
                 filePath: element.file,
                 type: type,
                 linktype: linktype,
-                name: element.name
+                name: qualifiedName(element)
             };
             let totalStatementDocumented = 0;
             let totalStatements = element.properties.length + element.methods.length + 1; // +1 for element itself

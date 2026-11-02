@@ -3,6 +3,7 @@ import type { EntityKind } from '../engines/dependencies.engine';
 import { type FileNameRequest, folderFileNames, safeFileName, symbolFolder } from './layout';
 import {
     presentationKind,
+    qualifiedName,
     type SymbolId,
     type SymbolRef,
     symbolFile,
@@ -28,13 +29,17 @@ export interface SymbolEntry {
 
 export interface SymbolTable {
     readonly byId: ReadonlyMap<SymbolId, SymbolEntry>;
-    /** One id per engine entry, in engine order. An id repeats for each overload. */
+    /**
+     * One id per engine entry, in engine order. An id repeats for each overload.
+     * Keys are the qualified names (`Ns.Member`); a namespace member is also
+     * listed under its bare name unless a symbol is named so.
+     */
     readonly byName: ReadonlyMap<string, readonly SymbolId[]>;
     /** The engine object of each `byName` id, index for index. */
     readonly dataByName: ReadonlyMap<string, readonly unknown[]>;
 }
 
-type Named = { readonly name?: unknown; readonly file?: unknown };
+type Named = { readonly name?: unknown; readonly file?: unknown; readonly namespace?: unknown };
 type List = readonly Named[] | undefined;
 
 /** The plain arrays a `DependenciesEngine` (or an export) holds. */
@@ -139,11 +144,22 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
     const refOf = (kind: EntityKind, item: Named): SymbolRef => ({
         kind: presentationKind(kind, item),
         file: typeof item.file === 'string' ? symbolFile(item.file, cwd) : '',
-        name: item.name as string
+        name: qualifiedName(item)
     });
     const byId = new Map<SymbolId, SymbolEntry>();
     const byName = new Map<string, SymbolId[]>();
     const dataByName = new Map<string, unknown[]>();
+    const add = (name: string, id: SymbolId, item: Named): void => {
+        const ids = byName.get(name);
+        if (ids) {
+            ids.push(id);
+            dataByName.get(name)?.push(item);
+        } else {
+            byName.set(name, [id]);
+            dataByName.set(name, [item]);
+        }
+    };
+    const bareNames: { name: string; id: SymbolId; item: Named }[] = [];
     for (const kind of TABLE_ORDER) {
         for (const item of listOf(data, kind) ?? []) {
             if (typeof item?.name !== 'string') {
@@ -165,15 +181,17 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
                     overloads: 0
                 });
             }
-            const ids = byName.get(item.name);
-            if (ids) {
-                ids.push(id);
-                dataByName.get(item.name)?.push(item);
-            } else {
-                byName.set(item.name, [id]);
-                dataByName.set(item.name, [item]);
+            add(ref.name, id, item);
+            if (ref.name !== item.name) {
+                bareNames.push({ name: item.name, id, item });
             }
         }
+    }
+    // A bare reference inside a namespace (`StateSource` for `Ns.StateSource`)
+    // keeps resolving; a symbol of that very name keeps the name.
+    const qualified = new Set(byName.keys());
+    for (const bare of bareNames.filter(bare => !qualified.has(bare.name))) {
+        add(bare.name, bare.id, bare.item);
     }
     return withFileNames({ byId, byName, dataByName });
 };
@@ -462,7 +480,11 @@ export const entryInFile = (
     name: string,
     file: string | undefined
 ): SymbolEntry | undefined => {
-    const occurrences = occurrencesOf(table, name).filter(o => o.kind === kind);
+    // The symbol of that very name first, then a namespace member listed under its bare name.
+    const named = (o: Occurrence) => table.byId.get(o.id)?.ref.name === name;
+    const occurrences = occurrencesOf(table, name)
+        .filter(o => o.kind === kind)
+        .sort((a, b) => Number(named(b)) - Number(named(a)));
     // The engine's own path first, then the id form (absolute or backslash paths).
     const id = file === undefined ? undefined : symbolFile(file, process.cwd());
     const refFile = (o: Occurrence) => table.byId.get(o.id)?.ref.file ?? '';

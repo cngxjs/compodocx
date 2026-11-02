@@ -488,25 +488,25 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support namespace', () => {
-        let file = read(`${distFolder}/${pages.of('class', 'AboutModule2')}`);
+        let file = read(`${distFolder}/${pages.of('class', 'BSBO.Events.AboutModule2')}`);
         expect(file).to.contain('The about module');
 
-        file = read(`${distFolder}/${pages.of('component', 'AboutComponent2')}`);
+        file = read(`${distFolder}/${pages.of('component', 'BSBO.Events.AboutComponent2')}`);
         expect(file).to.contain('The about component');
 
-        file = read(`${distFolder}/${pages.of('directive', 'DoNothingDirective2')}`);
+        file = read(`${distFolder}/${pages.of('directive', 'BSBO.Events.DoNothingDirective2')}`);
         expect(file).to.contain('This directive does nothing !');
 
-        file = read(`${distFolder}/${pages.of('class', 'Todo2')}`);
+        file = read(`${distFolder}/${pages.of('class', 'BSBO.Events.Todo2')}`);
         expect(file).to.contain('The todo class');
 
-        file = read(`${distFolder}/${pages.of('injectable', 'TodoStore2')}`);
+        file = read(`${distFolder}/${pages.of('injectable', 'BSBO.Events.TodoStore2')}`);
         expect(file).to.contain('This service is a todo store');
 
-        file = read(`${distFolder}/${pages.of('interface', 'TimeInterface2')}`);
+        file = read(`${distFolder}/${pages.of('interface', 'BSBO.Events.TimeInterface2')}`);
         expect(file).to.contain('A time interface just for documentation purpose');
 
-        file = read(`${distFolder}/${pages.of('pipe', 'FirstUpperPipe2')}`);
+        file = read(`${distFolder}/${pages.of('pipe', 'BSBO.Events.FirstUpperPipe2')}`);
         expect(file).to.contain('Uppercase the first letter of the string');
 
         file = readKindPages(distFolder, 'enumeration');
@@ -674,11 +674,13 @@ describe('CLI simple generation - big app', () => {
         const file = menuOf(distFolder);
         expect(file).to.contain(`href="${pages.of('component', 'JigsawTab')}"`);
         expect(file).to.contain('>JigsawTab');
-        expect(file).to.contain(`href="${pages.of('directive', 'DoNothingDirective2')}"`);
+        expect(file).to.contain(
+            `href="${pages.of('directive', 'BSBO.Events.DoNothingDirective2')}"`
+        );
         expect(file).to.contain('>DoNothingDirective2');
         expect(file).to.contain(`href="${pages.of('injectable', 'EmitterService')}"`);
         expect(file).to.contain('>EmitterService');
-        expect(file).to.contain(`href="${pages.of('pipe', 'FirstUpperPipe2')}"`);
+        expect(file).to.contain(`href="${pages.of('pipe', 'BSBO.Events.FirstUpperPipe2')}"`);
         expect(file).to.contain('>FirstUpperPipe2');
     });
 

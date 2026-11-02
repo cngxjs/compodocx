@@ -10,7 +10,7 @@ import {
     symbolFolder,
     type UtilityKind
 } from './layout';
-import { presentationKind, type SymbolId } from './symbol-id';
+import { presentationKind, qualifiedName, type SymbolId } from './symbol-id';
 import {
     entryInFile,
     type LookupPolicy,
@@ -39,9 +39,9 @@ export const symbolTarget = (entry: SymbolEntry): PageTarget => ({
 export const itemTarget = (
     table: SymbolTable | undefined,
     kind: PageKind,
-    item: { readonly name?: unknown; readonly file?: unknown }
+    item: { readonly name?: unknown; readonly file?: unknown; readonly namespace?: unknown }
 ): PageTarget => {
-    const name = String(item.name);
+    const name = qualifiedName(item);
     const entry =
         table && kind !== 'provider'
             ? entryInFile(table, kind, name, item.file as string | undefined)

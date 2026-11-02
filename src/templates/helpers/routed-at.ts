@@ -1,5 +1,5 @@
 import { hrefFor, hrefText, routeAnchor } from '../../app/links/layout';
-import type { TableKind } from '../../app/links/symbol-id';
+import { qualifiedName, type TableKind } from '../../app/links/symbol-id';
 import type { SymbolTable } from '../../app/links/symbol-table';
 import { entryInFile } from '../../app/links/symbol-table';
 import { mountsOf, routedNodes } from '../../app/routing/lookup';
@@ -43,7 +43,7 @@ export const routedAt = (
     if (model === undefined || symbols === undefined || data.disableRoutes || !item.name) {
         return undefined;
     }
-    const entry = entryInFile(symbols, kind, item.name, item.file);
+    const entry = entryInFile(symbols, kind, qualifiedName(item), item.file);
     if (!entry) {
         return undefined;
     }

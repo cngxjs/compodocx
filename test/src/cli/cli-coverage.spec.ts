@@ -421,9 +421,11 @@ describe('CLI coverage report', () => {
             expect(coverageFile).to.contain(`${pages.of('typealias', 'ChartChange')}`);
             expect(coverageFile).to.contain(`${pages.of('variable', 'PI')}`);
             expect(coverageFile).to.contain(`${pages.of('pipe', 'FirstUpperPipe')}`);
-            expect(coverageFile).to.contain(`${pages.of('directive', 'DoNothingDirective2')}`);
-            expect(coverageFile).to.contain(`${pages.of('injectable', 'TodoStore2')}`);
-            expect(coverageFile).to.contain(`${pages.of('class', 'Todo2')}`);
+            expect(coverageFile).to.contain(
+                `${pages.of('directive', 'BSBO.Events.DoNothingDirective2')}`
+            );
+            expect(coverageFile).to.contain(`${pages.of('injectable', 'BSBO.Events.TodoStore2')}`);
+            expect(coverageFile).to.contain(`${pages.of('class', 'BSBO.Events.Todo2')}`);
             expect(coverageFile).to.contain(`${pages.of('guard', 'AuthGuard')}`);
             expect(coverageFile).to.contain(`${pages.of('interceptor', 'NoopInterceptor')}`);
         });

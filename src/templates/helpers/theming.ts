@@ -1,7 +1,7 @@
 import type { MainDataInterface } from '../../app/interfaces/main-data.interface';
 import { hrefFor, hrefText } from '../../app/links/layout';
 import { symbolTarget } from '../../app/links/resolve';
-import { symbolId } from '../../app/links/symbol-id';
+import { qualifiedName, symbolId } from '../../app/links/symbol-id';
 import { entryInFile, styleFileName } from '../../app/links/symbol-table';
 import type { StyleFile } from '../../app/styles/model';
 import {
@@ -53,7 +53,7 @@ export const linkedStyleFiles = (
     const entry = entryInFile(
         mainData.symbols,
         kind,
-        data.name,
+        qualifiedName(data),
         typeof data.file === 'string' ? data.file : undefined
     );
     const ids = entry ? (styles.byTarget.get(entry.id) ?? []) : [];

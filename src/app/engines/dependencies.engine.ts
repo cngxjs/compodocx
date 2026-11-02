@@ -21,7 +21,7 @@ import Configuration from '../configuration';
 import { hiddenFilter } from '../di/model';
 import type { MiscellaneousData } from '../interfaces/miscellaneous-data.interface';
 import type { ParsedData } from '../interfaces/parsed-data.interface';
-import type { TableKind } from '../links/symbol-id';
+import { qualifiedName, type TableKind } from '../links/symbol-id';
 import {
     buildSymbolTable,
     lookupEntry,
@@ -232,7 +232,7 @@ export class DependenciesEngine {
     private manageDuplicatesName() {
         const processDuplicates = (element, _index, array) => {
             const elementsWithSameName = array.filter(
-                el => (el as any).name === (element as any).name
+                el => qualifiedName(el) === qualifiedName(element)
             );
             if (elementsWithSameName.length > 1) {
                 // First element is the reference for duplicates

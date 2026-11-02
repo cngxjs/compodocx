@@ -187,7 +187,7 @@ export class AngularDependencies extends FrameworkDependencies {
         const hash = crypto.createHash('sha512').update(sourceCode).digest('hex');
         const deps: any = {
             name,
-            id: `class-${name}-${hash}`,
+            id: `class-${qualify(scope, name)}-${hash}`,
             file: file,
             deprecated: IO.deprecated,
             deprecationMessage: IO.deprecationMessage,
@@ -608,7 +608,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         );
                         const interfaceDeps: IInterfaceDep = {
                             name,
-                            id: `interface-${name}-${hash}`,
+                            id: `interface-${qualify(scope, name)}-${hash}`,
                             file: file,
                             deprecated: IO.deprecated,
                             deprecationMessage: IO.deprecationMessage,

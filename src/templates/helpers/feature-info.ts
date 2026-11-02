@@ -3,7 +3,12 @@ import { factKey, type SemanticModel } from '../../app/compiler/semantic/model';
 import { type DiView, foldClusterMembers, placementOf } from '../../app/di/model';
 import { type EntityWithKind, PRIMARY_KINDS } from '../../app/engines/dependencies.engine';
 import { featureSegments } from '../../app/links/feature-paths';
-import { presentationKind, type TableKind, toSymbolKey } from '../../app/links/symbol-id';
+import {
+    presentationKind,
+    qualifiedName,
+    type TableKind,
+    toSymbolKey
+} from '../../app/links/symbol-id';
 import { entryInFile, type SymbolEntry, type SymbolTable } from '../../app/links/symbol-table';
 import {
     DEFAULT_MENU_FEATURE_SECTIONS,
@@ -320,7 +325,12 @@ export const groupItemsByFeature = (
         const file = typeof item?.file === 'string' ? item.file : undefined;
         const entry =
             typeof item?.name === 'string'
-                ? entryInFile(table, presentationKind(kind as never, item), item.name, file)
+                ? entryInFile(
+                      table,
+                      presentationKind(kind as never, item),
+                      qualifiedName(item),
+                      file
+                  )
                 : undefined;
         const info = featureInfoOf(semantic, entry);
         if (info) {
