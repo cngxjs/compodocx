@@ -223,6 +223,54 @@ describe('Utils - JsdocParserUtil', () => {
             expect(result).to.equal('\n\nThis is a simple comment\n');
         });
 
+        it('keeps the continuation lines of a block tag out of the description', () => {
+            const comment = `/**
+ * Host component.
+ *
+ * @slot default - Content of the wrapper \`div\`,
+ * which carries the highlight of the host.
+ * @deprecated use Other,
+ * it is faster.
+ */`;
+
+            const result = jsdocParserUtil.parseComment(comment);
+
+            expect(result).to.include('Host component.');
+            expect(result).to.not.include('which carries');
+            expect(result).to.not.include('it is faster');
+        });
+
+        it('keeps a code fence inside a block tag out of the description', () => {
+            const comment = `/**
+ * Host component.
+ * @slot default - Content:
+ * \`\`\`html
+ * @if (x) { <b>y</b> }
+ * \`\`\`
+ */`;
+
+            const result = jsdocParserUtil.parseComment(comment);
+
+            expect(result).to.include('Host component.');
+            expect(result).to.not.include('```');
+            expect(result).to.not.include('@if');
+        });
+
+        it('still shows @example and @see after another tag', () => {
+            const comment = `/**
+ * Host component.
+ * @since 2.0.0
+ * @see Other
+ * @example
+ * <app-host />
+ */`;
+
+            const result = jsdocParserUtil.parseComment(comment);
+
+            expect(result).to.include('See Other');
+            expect(result).to.include('<app-host />');
+        });
+
         it('should parse JSDoc comment with @param tag', () => {
             const comment = `/**
  * Function description
