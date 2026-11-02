@@ -110,3 +110,34 @@ describe('recordEntryExports', () => {
         expect(unmatched).toEqual(['@lib/a', '@lib/z']);
     });
 });
+
+describe('resolvePublicApi - namespaces', () => {
+    const LIBRARY = path.join(process.cwd(), 'test/fixtures/semantic-library');
+    const barrel = path.join(LIBRARY, 'projects/core/src/public-api.ts');
+    const bridge = path.join(LIBRARY, 'projects/core/src/foo/bridge.ts');
+    let resolved: Map<string, Set<string>>;
+
+    beforeAll(() => {
+        const tsconfig = path.join(LIBRARY, 'tsconfig.json');
+        const files = fg.sync('projects/**/*.ts', { cwd: LIBRARY, absolute: true }).sort();
+        const created = createSemanticProgram(tsconfig, files);
+        if (created.ok === false) {
+            throw new Error(created.message);
+        }
+        resolved = resolvePublicApi(created.value, new Map([['Bridge', new Set([barrel])]]));
+    });
+
+    it('allows the exported members of a public namespace by their qualified name', () => {
+        expect(resolved.get('Bridge')?.has(bridge)).toBe(true);
+        expect(resolved.get('Bridge.StateSource')).toEqual(new Set([bridge]));
+        expect(resolved.get('Bridge.read')).toEqual(new Set([bridge]));
+        expect(resolved.has('Bridge.internalOnly')).toBe(false);
+        expect(resolved.has('Other.StateSource')).toBe(false);
+    });
+
+    it('follows nested and dotted namespaces', () => {
+        expect(resolved.get('Bridge.Inner')).toEqual(new Set([bridge]));
+        expect(resolved.get('Bridge.Inner.Deep')).toEqual(new Set([bridge]));
+        expect(resolved.get('Bridge.Dotted.DOTTED')).toEqual(new Set([bridge]));
+    });
+});

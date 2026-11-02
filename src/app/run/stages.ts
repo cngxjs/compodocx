@@ -1,6 +1,7 @@
 import { err, ok, type Result, sequenceAsync } from '../../lib';
 import { logger } from '../../utils/logger';
 import DependenciesEngine from '../engines/dependencies.engine';
+import type { SymbolTable } from '../links/symbol-table';
 import type { DependenciesData } from '../services/dependencies';
 import { hasStylePage, unlinkedTokenFiles } from '../styles';
 import type { RunContext } from './context';
@@ -63,6 +64,10 @@ const alwaysUnlessDiffWithout =
 const hasAny =
     (count: (counts: SourceCounts) => number) => (_ctx: RunContext, counts: SourceCounts) =>
         count(counts) > 0;
+
+/** Whether the table holds a namespace (code without one renders no namespace page). */
+const hasNamespaces = (table: SymbolTable | undefined): boolean =>
+    [...(table?.byId.values() ?? [])].some(entry => entry.ref.kind === 'namespace');
 
 /** One-shot builds only; watch rebuilds have never run these stages. */
 const oneShotWhen = (predicate: (ctx: RunContext) => boolean) => (ctx: RunContext) =>
@@ -151,6 +156,11 @@ export const PREPARE_STAGES: readonly PrepareStage[] = [
         key: 'utilities',
         when: hasAny(c => c.utilities),
         run: step(ctx => ctx.generators.utilities.prepare())
+    },
+    {
+        key: 'namespace',
+        when: ctx => hasNamespaces(ctx.config.mainData.symbols),
+        run: step(ctx => ctx.generators.namespace.prepare())
     },
     { key: 'feature', when: always, run: step(ctx => ctx.generators.feature.prepare()) },
     {

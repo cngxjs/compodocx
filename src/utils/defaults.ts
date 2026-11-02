@@ -57,6 +57,7 @@ export const COMPODOC_DEFAULTS = {
     hideDarkModeToggle: false,
     minimal: false,
     silent: false,
+    verbose: false,
     serve: false,
     watch: false,
     PAGE_TYPES: {

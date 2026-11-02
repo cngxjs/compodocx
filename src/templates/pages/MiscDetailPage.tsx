@@ -1,6 +1,7 @@
 import Html from '@kitajs/html';
 import Configuration from '../../app/configuration';
 import { hrefFor, hrefText } from '../../app/links/layout';
+import { qualifiedName } from '../../app/links/symbol-id';
 import type { SymbolTable } from '../../app/links/symbol-table';
 import { BlockRoutedAt } from '../blocks/BlockRoutedAt';
 import { ParamsTable } from '../blocks/ParamsTable';
@@ -10,6 +11,7 @@ import { AxisBadges, entityAxes } from '../components/AxisBadges';
 import { DiBadges } from '../components/DiBadges';
 import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
 import { IconEnum, IconFile, IconFunction, IconTypealias, IconVariable } from '../components/Icons';
+import { NamespaceLine } from '../components/NamespaceLine';
 import { WcagBadge } from '../components/WcagBadge';
 import {
     codeText,
@@ -430,12 +432,12 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                                 ) as string
                             ].join('');
                         })()}
-                        <li aria-current="page">{item.name}</li>
+                        <li aria-current="page">{qualifiedName(item)}</li>
                     </ol>
                 </nav>
                 <h1 class="cdx-entity-hero-name">
                     <span class={item.deprecated ? 'cdx-member-name--deprecated' : ''}>
-                        {item.name}
+                        {qualifiedName(item)}
                     </span>
                 </h1>
                 <div class="cdx-entity-hero-badges">
@@ -454,6 +456,7 @@ export const renderMiscDetailPage = (props: MiscDetailProps): string => {
                 {item.deprecated && item.deprecationMessage && (
                     <p class="cdx-entity-hero-context">{item.deprecationMessage}</p>
                 )}
+                {NamespaceLine({ item, depth: props.depth })}
                 {item.file && (
                     <p class="cdx-entity-hero-file" title="Source file">
                         {IconFile()}

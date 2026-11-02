@@ -10,10 +10,12 @@
  * - `miscellaneous/<kind>/<name>.html` pages and `miscellaneous/<kind>.html#<name>`
  *   collection anchors of utility symbols;
  * - feature pages `features/<segments>.html` and bucket pages
- *   `categories/<segments>.html`.
+ *   `categories/<segments>.html`;
+ * - namespace members under their bare name (`<folder>/Member.html`), before
+ *   they were documented as `Ns.Member`.
  */
 
-import { KIND_FOLDER, type PageKind, pageFile } from './layout';
+import { KIND_FOLDER, type PageKind, pageFile, safeFileName } from './layout';
 import type { SymbolId, TableKind } from './symbol-id';
 import type { SymbolEntry, SymbolTable } from './symbol-table';
 
@@ -39,6 +41,7 @@ const UTILITY_KINDS: ReadonlySet<string> = new Set([
 ]);
 
 type Data = {
+    readonly name?: unknown;
     readonly ctype?: unknown;
     readonly subtype?: unknown;
     readonly duplicateName?: unknown;
@@ -62,6 +65,31 @@ const engineKind = (entry: SymbolEntry): TableKind => {
     return entry.ref.kind;
 };
 
+/** The engine's own (bare) name; a namespace member's id carries `Ns.Member`. */
+const bareName = (entry: SymbolEntry): string => {
+    const name = (entry.data as Data | undefined)?.name;
+    return typeof name === 'string' ? name : entry.ref.name;
+};
+
+/** Ids per bare name in engine order, each id once. */
+const idsByBareName = (table: SymbolTable): ReadonlyMap<string, readonly SymbolId[]> => {
+    const groups = new Map<string, SymbolId[]>();
+    for (const [name, ids] of table.byName) {
+        for (const id of ids) {
+            const entry = table.byId.get(id);
+            // A bare-name listing of a namespace member is not its own key.
+            if (!entry || entry.ref.name !== name) {
+                continue;
+            }
+            const bare = bareName(entry);
+            const group = groups.get(bare) ?? [];
+            group.push(id);
+            groups.set(bare, group);
+        }
+    }
+    return groups;
+};
+
 /**
  * The page name each symbol had in the kind folders: same-name copies of the
  * table-numbered kinds got `-1`, `-2` in engine order, the other kinds kept
@@ -69,7 +97,7 @@ const engineKind = (entry: SymbolEntry): TableKind => {
  */
 export const legacyNames = (table: SymbolTable): ReadonlyMap<SymbolId, string> => {
     const names = new Map<SymbolId, string>();
-    for (const [name, ids] of table.byName) {
+    for (const [name, ids] of idsByBareName(table)) {
         const seen = new Map<string, SymbolId[]>();
         for (const id of ids) {
             const entry = table.byId.get(id);
@@ -118,7 +146,10 @@ export const legacyPaths = (
     if (UTILITY_KINDS.has(kind)) {
         const folder = KIND_FOLDER[kind as PageKind];
         paths.push(pageFile(`${MISC_FOLDER}/${folder}`, oldName));
-        paths.push(`${pageFile(MISC_FOLDER, folder)}#${entry.ref.name}`);
+        paths.push(`${pageFile(MISC_FOLDER, folder)}#${bareName(entry)}`);
+    }
+    if (entry.ref.name !== bareName(entry)) {
+        paths.push(pageFile(entry.folder.join('/'), safeFileName(bareName(entry))));
     }
     return paths;
 };

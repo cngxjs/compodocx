@@ -294,6 +294,9 @@
 .cdx-ref-kind-icon--style {
     --cdx-ref-kind-color: var(--color-cdx-entity-style);
 }
+.cdx-ref-kind-icon--namespace {
+    --cdx-ref-kind-color: var(--color-cdx-entity-namespace);
+}
 .cdx-ref-kind-icon--injectable,
 .cdx-ref-kind-icon--service {
     --cdx-ref-kind-color: var(--color-cdx-entity-service);

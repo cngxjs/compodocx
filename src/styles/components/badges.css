@@ -218,6 +218,11 @@
     color: var(--color-cdx-text-inverse, white);
     border: none;
 }
+.cdx-badge--entity-namespace {
+    background: var(--color-cdx-entity-namespace);
+    color: var(--color-cdx-text-inverse, white);
+    border: none;
+}
 .cdx-badge--entity-class {
     background: var(--color-cdx-entity-class);
     color: var(--color-cdx-text-inverse, white);
@@ -284,6 +289,10 @@
 }
 .dark .cdx-badge--entity-style {
     background: var(--color-cdx-entity-style);
+    color: var(--color-cdx-text-inverse);
+}
+.dark .cdx-badge--entity-namespace {
+    background: var(--color-cdx-entity-namespace);
     color: var(--color-cdx-text-inverse);
 }
 .dark .cdx-badge--entity-class {

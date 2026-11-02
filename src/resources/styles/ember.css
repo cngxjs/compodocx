@@ -31,6 +31,7 @@
     --color-cdx-entity-directive: #7e22ce; /* purple-700 warm */
     --color-cdx-entity-pipe: #d81c45; /* rose-700 */
     --color-cdx-entity-style: #0f766e;
+    --color-cdx-entity-namespace: #155e75;
     --color-cdx-entity-module: #2563eb; /* blue-600 */
     --color-cdx-entity-class: #15803d; /* green-700 warm */
     --color-cdx-entity-interface: #0e7490; /* cyan-700 warm */
@@ -118,6 +119,7 @@
     --color-cdx-entity-directive: #c084fc; /* purple-400 */
     --color-cdx-entity-pipe: #fb7185; /* rose-400 */
     --color-cdx-entity-style: #2dd4bf;
+    --color-cdx-entity-namespace: #22d3ee;
     --color-cdx-entity-module: #93c5fd; /* blue-300 */
     --color-cdx-entity-class: #86efac; /* green-300 */
     --color-cdx-entity-interface: #67e8f9; /* cyan-300 */

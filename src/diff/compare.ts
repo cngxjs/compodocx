@@ -24,7 +24,7 @@ import type {
     ExportPipe,
     ExportProperty
 } from '../app/interfaces/export-data.interface';
-import { type SymbolId, symbolFile, symbolId } from '../app/links/symbol-id';
+import { qualifiedName, type SymbolId, symbolFile, symbolId } from '../app/links/symbol-id';
 import { stripVolatileFields } from './normalize';
 import type { ChangeKind, EntityChange, EntityKind, FieldChange } from './types';
 
@@ -277,7 +277,7 @@ const indexById = <T extends ExportEntityCommon>(
     for (const item of items) {
         if (typeof item?.name === 'string') {
             const file = symbolFile(item.file ?? '', process.cwd());
-            map.set(symbolId({ kind, file, name: item.name }), item);
+            map.set(symbolId({ kind, file, name: qualifiedName(item) }), item);
         }
     }
     return map;

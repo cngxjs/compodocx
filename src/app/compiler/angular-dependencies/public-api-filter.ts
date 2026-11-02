@@ -31,9 +31,11 @@ export class PublicApiFilter {
     }
 
     /**
-     * Check if a symbol is part of the public API
+     * Check if a symbol is part of the public API. A namespace member is
+     * named `Ns.Member`; a module augmentation member (`byFile`) is never a
+     * named export and counts when its file declares a public symbol.
      */
-    public isSymbolAllowed(symbolName: string, fileName: string): boolean {
+    public isSymbolAllowed(symbolName: string, fileName: string, byFile = false): boolean {
         // If public API filtering is not enabled, allow all symbols
         if (!Configuration.mainData.publicApiOnly) {
             return true;
@@ -45,6 +47,10 @@ export class PublicApiFilter {
         }
 
         const resolvedFileName = path.resolve(fileName);
+
+        if (byFile) {
+            return this.allowedFiles.has(resolvedFileName);
+        }
 
         // Check if the symbol is explicitly allowed
         if (this.allowedSymbols.has(symbolName)) {

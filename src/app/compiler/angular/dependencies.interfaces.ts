@@ -5,6 +5,10 @@ export interface IDep {
     type?: string;
     ctype?: string;
     name: string;
+    /** Dotted chain of the enclosing namespaces, e.g. `Outer.Inner`. */
+    namespace?: string;
+    /** Module a `declare module 'x'` / `declare global` block augments (`'global'`). */
+    augments?: string;
     wcagLevel?: WcagLevel;
     a11yNote?: string;
     taggedSelector?: string;
@@ -213,4 +217,12 @@ export interface Deps {
 
     imports?: Deps[];
     exports?: Deps[];
+}
+
+/** A TypeScript namespace; `members` are the qualified names of what it declares. */
+export interface INamespaceDep extends IDep {
+    file: string;
+    description: string;
+    rawdescription: string;
+    members: string[];
 }

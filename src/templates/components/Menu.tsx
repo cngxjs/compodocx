@@ -19,7 +19,7 @@ import {
     type UtilityKind
 } from '../../app/links/layout';
 import { itemTarget, placedLink, placeTarget } from '../../app/links/resolve';
-import type { SymbolId, TableKind } from '../../app/links/symbol-id';
+import { qualifiedName, type SymbolId, type TableKind } from '../../app/links/symbol-id';
 import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { isAdditionalGroup } from '../../app/page-generator/additional-page-tree';
 import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
@@ -54,6 +54,7 @@ import {
     IconInterceptor,
     IconInterface,
     IconList,
+    IconNamespace,
     IconPalette,
     IconPipe,
     IconPodium,
@@ -79,6 +80,12 @@ const singularizeType = (type: string): string => {
 type MenuProps = {
     readonly data: any;
 };
+
+/** The sidebar label of an engine object: `Ns.Member` for a namespace member. */
+const menuName = (item: { readonly name?: unknown; readonly namespace?: unknown }): string =>
+    typeof item.namespace === 'string' && item.namespace
+        ? qualifiedName(item)
+        : (item.name as string);
 
 /** Chevron icon - CSS rotation handles open/closed state */
 const chevron = (): string => IconChevronRight('cdx-chevron');
@@ -208,7 +215,7 @@ const UtilitiesChapter = (d: any): string =>
             links: utilityItems(d.miscellaneous[group.list] ?? [], group.kind).map(item =>
                 EntityLink({
                     href: entityHref(group.kind, item),
-                    name: item.name,
+                    name: menuName(item),
                     deprecated: item.deprecated,
                     beta: item.beta,
                     entityType: group.kind,
@@ -270,7 +277,7 @@ const DependencyInjectionChapter = (d: any): string => {
                 links: (d.tokens ?? []).map((item: any) =>
                     EntityLink({
                         href: entityHref('token', item),
-                        name: item.name,
+                        name: menuName(item),
                         deprecated: item.deprecated,
                         isToken: true,
                         beta: item.beta,
@@ -440,7 +447,7 @@ const GroupTree = (props: {
                 {props.node.items.map((item: any) =>
                     EntityLink({
                         href: entityHref(props.kind, item),
-                        name: item.name,
+                        name: menuName(item),
                         deprecated: item.deprecated,
                         isToken: item.isToken,
                         beta: item.beta,
@@ -491,6 +498,8 @@ const kindIconHtml = (kind: TableKind): string => {
             return IconEnum();
         case 'style':
             return IconPalette();
+        case 'namespace':
+            return IconNamespace();
         default:
             return '';
     }
@@ -847,9 +856,9 @@ const EntitySection = (props: {
                           const groupedNames = new Set(
                               Object.values(props.categorized!)
                                   .flat()
-                                  .map((i: any) => i.name)
+                                  .map((i: any) => menuName(i))
                           );
-                          const ungrouped = props.items.filter(i => !groupedNames.has(i.name));
+                          const ungrouped = props.items.filter(i => !groupedNames.has(menuName(i)));
                           return (
                               <>
                                   {tree.map(node =>
@@ -864,7 +873,7 @@ const EntitySection = (props: {
                                   {ungrouped.map(item =>
                                       EntityLink({
                                           href: entityHref(props.kind, item),
-                                          name: item.name,
+                                          name: menuName(item),
                                           deprecated: item.deprecated,
                                           isToken: item.isToken,
                                           beta: item.beta,
@@ -881,7 +890,7 @@ const EntitySection = (props: {
                     : props.items.map(item =>
                           EntityLink({
                               href: entityHref(props.kind, item),
-                              name: item.name,
+                              name: menuName(item),
                               deprecated: item.deprecated,
                               isToken: item.isToken,
                               beta: item.beta,
@@ -906,6 +915,7 @@ const MENU_LISTS: readonly (readonly [string, TableKind])[] = [
     ['pipes', 'pipe'],
     ['classes', 'class'],
     ['interfaces', 'interface'],
+    ['namespaces', 'namespace'],
     ['guards', 'guard'],
     ['interceptors', 'interceptor'],
     ['resolvers', 'resolver'],
@@ -1397,6 +1407,16 @@ export const Menu = (props: MenuProps): string => {
                                 iconHtml: IconInterface(),
                                 labelKey: 'interfaces',
                                 kind: 'interface',
+                                groupDepth: GROUP_EXPAND_DEPTH
+                            })}
+                        {d.namespaces?.length > 0 &&
+                            EntitySection({
+                                items: d.namespaces,
+                                categorized: byFeature(d.namespaces, 'namespace'),
+                                type: 'namespaces',
+                                iconHtml: IconNamespace(),
+                                labelKey: 'namespaces',
+                                kind: 'namespace',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
                         {pipes.length > 0 &&

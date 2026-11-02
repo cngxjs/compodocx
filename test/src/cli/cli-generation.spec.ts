@@ -1106,7 +1106,8 @@ describe('CLI simple generation', () => {
                 '-p',
                 './test/fixtures/standalone-scenarios/routing-coverage/tsconfig.json',
                 '-d',
-                distFolder
+                distFolder,
+                '--verbose'
             ]);
 
             if (hasStderrError(ls.stderr.toString())) {

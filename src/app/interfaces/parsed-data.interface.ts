@@ -10,6 +10,7 @@ export interface ParsedData {
     interceptors?;
     guards?;
     interfaces?;
+    namespaces?;
     pipes?;
     classes?;
     miscellaneous?;

@@ -6,6 +6,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+Upgrading from 0.14: no flag or config key was removed and the JSON export schema stays 6. The per-symbol log lines need `--verbose` now, namespace members get pages named after their qualified name (old URLs redirect), and members a namespace does not export are no longer documented. [MIGRATION.md](MIGRATION.md) lists each change.
+
+### Added
+
+- **`--verbose`.** The debug lines (one per symbol found, file scanned and symbol skipped, per style file without documented content, routing note and watch event) are only printed with `--verbose` or the config key `verbose: true`. A run prints the build steps, warnings and errors only. `--silent` wins over `--verbose`. See [Logging](docs/configuration.md#logging).
+- **Namespace pages.** Every TypeScript namespace gets its own page with its description, entry point and a table of its members (kind, linked name, first sentence); inner namespaces are listed as members. `{@link Ns}` links to it, a `namespace` override replaces it. The sidebar lists namespaces with the other symbols of their feature, under `menuLayout: 'type'` in a new `namespaces` chapter (also a `toggleMenuItems` key). The search command palette lists them too.
+- **Namespace and augmentation in the exports.** Symbols declared in a namespace carry `namespace` (the dotted chain, e.g. `Outer.Inner`) and symbols declared in `declare module 'x'` or `declare global` carry `augments` in the JSON export; a top-level `namespaces` list holds every namespace with its qualified members. The llm-md export heads such entries with the qualified name, adds a `Namespace:` or `Augments:` line and a "Namespaces" section. See [JSON export](docs/json-export.md).
+
+### Changed
+
+- **Namespace members are documented under their qualified name.** A member of `export namespace Bridge { ... }` is titled, listed and linked as `Bridge.StateSource`, and its page is `Bridge.StateSource.html`. Two namespaces with a member of the same name in one file get two pages instead of one. A bare reference (`StateSource`) still links when the name is unique. The old page name redirects to the new one.
+- **Only exported namespace members are documented.** Inside a namespace a member without `export` is local to it and no longer gets a page, as for the top level of a file. Members of a `declare namespace` count as exported. A namespace the file does not export is not documented, with its members.
+- **Module augmentations are marked.** An interface in `declare module 'vitest' { ... }` or `declare global { ... }` is documented with an "Augments `vitest`" line instead of posing as an own interface.
+
+### Fixed
+
+- **Dotted namespaces.** `namespace A.B { ... }` was skipped. Its members are documented as `A.B.Member`, and `A` and `A.B` get namespace pages.
+- **`publicApiOnly` with namespaces.** The members of a namespace that the public API exports were dropped, because the declaration files only name the namespace. They are kept now, nested namespaces included. A module augmentation is kept when its file declares a public symbol.
+
 ## [0.14.0] - 2026-10-30
 
 Upgrading from 0.13: no flag or config key was removed and the JSON export schema stays 6. `type` of `providers` entries now names the kind of the provided symbol, components and directives can carry `di.providesTokens`, and `--publicApiOnly` with an Angular Package Format dist now filters. [MIGRATION.md](MIGRATION.md) lists each change.

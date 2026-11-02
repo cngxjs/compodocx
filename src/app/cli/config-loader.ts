@@ -279,7 +279,7 @@ function applyMenuFeatureSections(
  *    missing custom-theme file / `--tsconfig` boolean.
  *  - `process.exit(2)` for invalid `menuLayout` / `collapsedAll` / `featuresName` / `aiGeneratedNote` / `exampleUrlBase` /
  *    `referencesName` config.
- *  - Mutates `logger.silent` and `logger.routeToStderr`.
+ *  - Mutates `logger.silent`, `logger.verbose` and `logger.routeToStderr`.
  *  - Mutates `I18nEngine` via the language-availability warning.
  *
  * Wrapping these in `Result` is a Sprint 7+ concern; today's job is
@@ -530,6 +530,13 @@ export function applyConfigToMainData(
     }
     if (programOptions.silent) {
         logger.silent = false;
+    }
+
+    if (configFile.verbose) {
+        logger.verbose = true;
+    }
+    if (programOptions.verbose) {
+        logger.verbose = true;
     }
 
     if (configFile.serve) {

@@ -105,6 +105,13 @@
             },
             "description": "Free-standing style files matched by `styleFiles` that have documented\ncontent. Their sources are in `styleSources`, keyed by file."
         },
+        "namespaces": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportNamespace"
+            },
+            "description": "TypeScript namespaces, outermost first; written only when there are any."
+        },
         "semantic": {
             "$ref": "#/$defs/ExportSemantic",
             "description": "Entry points and counts of the semantic analysis. Absent when the\nanalysis did not run (no tsconfig, or the tsconfig could not be read)."
@@ -474,6 +481,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -796,6 +811,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -1123,6 +1146,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -1212,6 +1243,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -1408,6 +1447,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -1595,6 +1642,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -1835,6 +1890,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -1986,6 +2049,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -2145,6 +2216,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -2332,6 +2411,94 @@
             },
             "additionalProperties": true
         },
+        "ExportNamespace": {
+            "description": "A TypeScript namespace; `members` are the qualified names of what it declares.",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Last segment; with `namespace` the parent chain."
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "entryPoint": {
+                    "type": "string",
+                    "description": "Import path of the nearest barrel that exports the symbol."
+                },
+                "exportedBy": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Import paths of every barrel that exports the symbol, sorted."
+                },
+                "notExported": {
+                    "const": true,
+                    "description": "Exported from its file, inside an entry point, but in no barrel."
+                },
+                "usedBy": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportSymbolRef"
+                    }
+                },
+                "di": {
+                    "$ref": "#/$defs/ExportDiFacts"
+                },
+                "token": {
+                    "$ref": "#/$defs/ExportTokenFacts"
+                },
+                "feature": {
+                    "$ref": "#/$defs/ExportFeatureRef",
+                    "description": "The feature the symbol belongs to; `key` `''` is the entry point's root feature."
+                },
+                "axes": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Values on the declared classification axes, by axis name."
+                },
+                "routedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Components: full paths of the routes rendering it."
+                },
+                "mountedAt": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "description": "Route array variables: full paths of the places a router mounts it at."
+                }
+            },
+            "required": [
+                "id",
+                "name",
+                "file",
+                "members"
+            ],
+            "additionalProperties": true
+        },
         "ExportPipe": {
             "type": "object",
             "properties": {
@@ -2480,6 +2647,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -3087,6 +3262,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -3308,6 +3491,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [
@@ -3397,6 +3588,14 @@
                         "type": "string"
                     },
                     "description": "Route array variables: full paths of the places a router mounts it at."
+                },
+                "namespace": {
+                    "type": "string",
+                    "description": "Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`."
+                },
+                "augments": {
+                    "type": "string",
+                    "description": "Module a `declare module` block augments, `global` for `declare global`."
                 }
             },
             "required": [

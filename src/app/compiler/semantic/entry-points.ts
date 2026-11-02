@@ -199,7 +199,8 @@ export const exportFactsOf = (
             (best, entry) => (!best || entry.root.length > best.root.length ? entry : best),
             undefined
         );
-    const importPaths = declaration.symbol ? exported.get(declaration.symbol) : undefined;
+    const exportSymbol = declaration.exportSymbol ?? declaration.symbol;
+    const importPaths = exportSymbol ? exported.get(exportSymbol) : undefined;
     if (importPaths && importPaths.size > 0) {
         const exportedBy = [...importPaths].sort(compareText);
         const entryPoint =

@@ -48,6 +48,8 @@ export interface MainDataInterface {
     pipes: any;
     classes: any;
     interfaces: any;
+    /** The TypeScript namespaces (`INamespaceDep`); set by the namespace stage. */
+    namespaces?: unknown[];
     components: any;
     entities: any;
     directives: any;

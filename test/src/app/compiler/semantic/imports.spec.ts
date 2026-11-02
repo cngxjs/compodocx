@@ -51,6 +51,7 @@ describe('semantic import graph', () => {
         expect(importsOf('core/src/public-api.ts')).toEqual([
             'core/src/di/foo.inject.ts',
             'core/src/di/foo.providers.ts',
+            'core/src/foo/bridge.ts',
             'core/src/foo/foo.ts',
             'core/src/routes/foo.routes.ts',
             'core/tokens/src/public-api.ts'

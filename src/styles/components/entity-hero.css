@@ -100,6 +100,19 @@
     margin: 0;
 }
 
+/* "Namespace Bridge" / "Augments 'vitest'" line of a namespace member. */
+.cdx-entity-hero-namespace {
+    position: relative;
+    z-index: 1;
+    margin: var(--spacing-cdx-xs) 0 0;
+    font-size: var(--cdx-text-sm, 0.8125rem);
+    color: var(--color-cdx-text-secondary);
+}
+
+.cdx-entity-hero-namespace code {
+    font-family: var(--font-code);
+}
+
 .cdx-entity-hero-selector {
     position: relative;
     z-index: 1;

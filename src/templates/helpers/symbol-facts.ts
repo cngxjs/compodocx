@@ -1,7 +1,12 @@
 import { factKey, type SemanticModel, type SymbolFacts } from '../../app/compiler/semantic/model';
 import type { DiView } from '../../app/di/model';
 import type { EntityKind } from '../../app/engines/dependencies.engine';
-import { presentationKind, type TableKind, toSymbolKey } from '../../app/links/symbol-id';
+import {
+    presentationKind,
+    qualifiedName,
+    type TableKind,
+    toSymbolKey
+} from '../../app/links/symbol-id';
 import { entryInFile, type SymbolEntry, type SymbolTable } from '../../app/links/symbol-table';
 
 export interface FactsContext {
@@ -14,13 +19,20 @@ export interface FactsContext {
 export const ownEntry = (
     data: FactsContext,
     kind: EntityKind | TableKind,
-    item: { readonly name?: unknown; readonly file?: unknown } | undefined
+    item:
+        | { readonly name?: unknown; readonly file?: unknown; readonly namespace?: unknown }
+        | undefined
 ): SymbolEntry | undefined => {
     if (!data.symbols || typeof item?.name !== 'string') {
         return undefined;
     }
     const file = typeof item.file === 'string' ? item.file : undefined;
-    return entryInFile(data.symbols, presentationKind(kind as EntityKind, item), item.name, file);
+    return entryInFile(
+        data.symbols,
+        presentationKind(kind as EntityKind, item),
+        qualifiedName(item),
+        file
+    );
 };
 
 /** The semantic facts of a table entry; undefined without the semantic stage. */

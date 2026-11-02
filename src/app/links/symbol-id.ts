@@ -14,13 +14,14 @@ export interface SymbolRef extends SymbolKey {
 /**
  * The kind a symbol is documented as: the engine kind, or `guard`,
  * `interceptor` or `resolver` for a function or constant that is one
- * (`functionalKind`). The engine keeps those under miscellaneous.
+ * (`functionalKind`). The engine keeps those under miscellaneous. `style`
+ * is a free-standing style file, `namespace` a TypeScript namespace.
  */
-export type TableKind = EntityKind | 'resolver' | 'style';
+export type TableKind = EntityKind | 'resolver' | 'style' | 'namespace';
 
 const FUNCTIONAL_KINDS: ReadonlySet<string> = new Set(['guard', 'interceptor', 'resolver']);
 
-export const presentationKind = (kind: EntityKind, item: unknown): TableKind => {
+export const presentationKind = (kind: EntityKind | 'namespace', item: unknown): TableKind => {
     const functional = (item as { functionalKind?: unknown } | undefined)?.functionalKind;
     const isMisc = kind === 'function' || kind === 'variable';
     return isMisc && typeof functional === 'string' && FUNCTIONAL_KINDS.has(functional)
@@ -47,10 +48,23 @@ const SYMBOL_KINDS: ReadonlySet<string> = new Set<TableKind>([
     'typealias',
     'enumeration',
     'resolver',
-    'style'
+    'style',
+    'namespace'
 ]);
 
 export const isTableKind = (value: string): value is TableKind => SYMBOL_KINDS.has(value);
+
+/**
+ * The name a symbol is documented under: `Ns.Member` for a namespace member
+ * (`namespace` is the dotted chain of its namespaces), the bare name elsewhere.
+ */
+export const qualifiedName = (item: {
+    readonly name?: unknown;
+    readonly namespace?: unknown;
+}): string =>
+    typeof item.namespace === 'string' && item.namespace
+        ? `${item.namespace}.${String(item.name)}`
+        : String(item.name);
 
 /** `kind:file#name`. Overloads share one id; a const and a type of one name do not. */
 export const symbolId = (ref: SymbolRef): SymbolId =>

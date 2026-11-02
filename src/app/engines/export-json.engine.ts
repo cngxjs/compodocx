@@ -5,6 +5,7 @@ import pkg from '../../../package.json';
 import { linkedStyleFiles, themingFor } from '../../templates/helpers/theming';
 import { logger } from '../../utils/logger';
 import type { StyleSource } from '../../utils/theme-doc-parser';
+import type { INamespaceDep } from '../compiler/angular/dependencies.interfaces';
 import type { AxisModel } from '../compiler/semantic/axes';
 import type { FamilyLink, Feature, FeatureModel } from '../compiler/semantic/features';
 import {
@@ -28,6 +29,7 @@ import {
     type ExportDirective,
     type ExportFeature,
     type ExportFeatureRef,
+    type ExportNamespace,
     type ExportSemantic,
     type ExportSemanticFacts,
     type ExportStyleFile,
@@ -36,7 +38,7 @@ import {
     type ExportTokenFacts
 } from '../interfaces/export-data.interface';
 import type { MainDataInterface } from '../interfaces/main-data.interface';
-import { type SymbolRef, toSymbolKey } from '../links/symbol-id';
+import { qualifiedName, type SymbolRef, toSymbolKey } from '../links/symbol-id';
 import { lookupEntry, type SymbolTable, styleFileName } from '../links/symbol-table';
 import { exportRoutes, type RoutingModel, withRouteFacts } from '../routing';
 import type { StyleModel } from '../styles/model';
@@ -213,7 +215,7 @@ const featureOfKey = (model: SemanticModel, key: string): Feature | undefined =>
     return byId.get(id);
 };
 
-type SymbolEntry = { name?: string; file?: string };
+type SymbolEntry = { name?: string; file?: string; namespace?: string };
 
 /** Fact keys of the config accessors (`DiView.accessors`). */
 type AccessorKeys = ReadonlySet<string>;
@@ -287,7 +289,7 @@ export const withSemanticFacts = <T extends SymbolEntry>(
 ): T => {
     const key =
         entry.file && entry.name
-            ? factKey({ name: entry.name, file: entry.file, space })
+            ? factKey({ name: qualifiedName(entry), file: entry.file, space })
             : undefined;
     const facts = key === undefined ? undefined : model.facts.get(key);
     const feature = key === undefined ? undefined : featureOfKey(model, key);
@@ -450,6 +452,21 @@ const exportAxes = (model: AxisModel): ExportAxis[] =>
         unclassified: axis.unclassified
     }));
 
+/** The namespaces of the engine, outermost first, each with its qualified members. */
+export const exportNamespaces = (
+    namespaces: readonly INamespaceDep[] | undefined
+): ExportNamespace[] =>
+    [...(namespaces ?? [])]
+        .sort((a, b) => compareText(qualifiedName(a), qualifiedName(b)))
+        .map(entry => ({
+            id: entry.id ?? `namespace-${qualifiedName(entry)}`,
+            name: entry.name,
+            ...(entry.namespace && { namespace: entry.namespace }),
+            file: entry.file,
+            ...(entry.description && { description: entry.description }),
+            members: [...entry.members]
+        }));
+
 export class ExportJsonEngine {
     private static instance: ExportJsonEngine;
     private constructor() {}
@@ -527,6 +544,10 @@ export class ExportJsonEngine {
         }
         if (styleFiles.files.length > 0) {
             exportData.styleFiles = styleFiles.files;
+        }
+        const namespaces = exportNamespaces(data.namespaces);
+        if (namespaces.length > 0) {
+            exportData.namespaces = facts(namespaces);
         }
         exportData.miscellaneous = withRouteVariables(
             model

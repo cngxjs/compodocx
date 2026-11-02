@@ -23,7 +23,8 @@ export const KIND_LABELS: Record<TableKind, string> = {
     variable: 'Variable',
     typealias: 'Type Alias',
     enumeration: 'Enumeration',
-    style: 'Style'
+    style: 'Style',
+    namespace: 'Namespace'
 };
 
 /**
@@ -51,7 +52,8 @@ export const KIND_LETTER: Record<TableKind, string> = {
     variable: 'V',
     typealias: 'Tp',
     enumeration: 'En',
-    style: 'St'
+    style: 'St',
+    namespace: 'Ns'
 };
 
 /**

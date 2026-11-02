@@ -35,6 +35,7 @@ const ENTITY_TYPES = [
     'function',
     'typealias',
     'variable',
+    'namespace',
     'provider',
     'style',
     'route'
@@ -69,6 +70,7 @@ const entityClass = (type: EntityType | 'other'): string => {
         case 'variable':
         case 'typealias':
         case 'enum':
+        case 'namespace':
         case 'style':
             return type;
         default:
@@ -113,6 +115,7 @@ const KIND_LABEL_TO_TYPE: Record<string, EntityType> = {
     Function: 'function',
     Variable: 'variable',
     'Type Alias': 'typealias',
+    Namespace: 'namespace',
     Entity: 'class',
     // A feature type page with its providers and feature functions.
     Cluster: 'provider',
@@ -176,7 +179,8 @@ const RESULT_ICONS: Record<string, string> = {
     variable: icon(
         '<line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/>'
     ),
-    typealias: icon('<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>')
+    typealias: icon('<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>'),
+    namespace: icon('<path d="M16 3h3v18h-3"/><path d="M8 21H5V3h3"/>')
 };
 
 const resultIcon = (type: EntityType | 'other'): string =>

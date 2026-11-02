@@ -12,6 +12,7 @@ import {
     CoveragePageGenerator,
     createDesignTokensPageGenerator,
     createFeaturePageGenerator,
+    createNamespacePageGenerator,
     createStylePageGenerator,
     type DesignTokensPageGenerator,
     DiPageGenerator,
@@ -23,6 +24,7 @@ import {
     InterceptorPageGenerator,
     InterfacePageGenerator,
     MiscellaneousPageGenerator,
+    type NamespacePageGenerator,
     NavTabsResolver,
     OverviewPageGenerator,
     PackageDependenciesPageGenerator,
@@ -68,6 +70,7 @@ export interface Generators {
     readonly interface: InterfacePageGenerator;
     readonly appConfig: AppConfigPageGenerator;
     readonly utilities: MiscellaneousPageGenerator;
+    readonly namespace: NamespacePageGenerator;
     readonly feature: FeaturePageGenerator;
     readonly style: StylePageGenerator;
     readonly designTokens: DesignTokensPageGenerator;
@@ -101,6 +104,7 @@ export const createGenerators = (): Generators => {
         interface: new InterfacePageGenerator(navTabs),
         appConfig: new AppConfigPageGenerator(),
         utilities: new MiscellaneousPageGenerator(),
+        namespace: createNamespacePageGenerator(),
         feature: createFeaturePageGenerator(),
         style: createStylePageGenerator(),
         designTokens: createDesignTokensPageGenerator(),

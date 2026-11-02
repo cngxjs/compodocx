@@ -10,6 +10,7 @@ import type {
     IInjectableDep,
     IInterceptorDep,
     IInterfaceDep,
+    INamespaceDep,
     IPipeDep,
     IServiceDep,
     ITypeAliasDecDep
@@ -20,7 +21,7 @@ import Configuration from '../configuration';
 import { hiddenFilter } from '../di/model';
 import type { MiscellaneousData } from '../interfaces/miscellaneous-data.interface';
 import type { ParsedData } from '../interfaces/parsed-data.interface';
-import type { TableKind } from '../links/symbol-id';
+import { qualifiedName, type TableKind } from '../links/symbol-id';
 import {
     buildSymbolTable,
     lookupEntry,
@@ -150,6 +151,7 @@ export class DependenciesEngine {
     public interceptors: IInterceptorDep[];
     public guards: IGuardDep[];
     public interfaces: IInterfaceDep[];
+    public namespaces: INamespaceDep[] = [];
     public pipes: IPipeDep[];
     public classes: IDep[];
     public appConfig: any[] = [];
@@ -212,6 +214,9 @@ export class DependenciesEngine {
         this.interfaces = [...this.rawData.interfaces].sort((a, b) =>
             (a as any).name.toLowerCase().localeCompare((b as any).name.toLowerCase())
         );
+        this.namespaces = [...(this.rawData.namespaces ?? [])].sort((a, b) =>
+            a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+        );
         this.pipes = [...this.rawData.pipes].sort((a, b) =>
             (a as any).name.toLowerCase().localeCompare((b as any).name.toLowerCase())
         );
@@ -227,7 +232,7 @@ export class DependenciesEngine {
     private manageDuplicatesName() {
         const processDuplicates = (element, _index, array) => {
             const elementsWithSameName = array.filter(
-                el => (el as any).name === (element as any).name
+                el => qualifiedName(el) === qualifiedName(element)
             );
             if (elementsWithSameName.length > 1) {
                 // First element is the reference for duplicates

@@ -22,8 +22,8 @@ export type RunOutcome =
 
 /**
  * Copy run options onto `mainData`: only keys `mainData` already has, `name`
- * as the documentation title, and `silent` (which, as always, re-enables
- * logging).
+ * as the documentation title, `silent` (which, as always, re-enables
+ * logging) and `verbose` (debug lines).
  */
 export const applyRunOptions = (
     mainData: MainDataInterface,
@@ -39,6 +39,9 @@ export const applyRunOptions = (
         }
         if (option === 'silent') {
             logger.silent = false;
+        }
+        if (option === 'verbose' && options[option] === true) {
+            logger.verbose = true;
         }
     }
 };

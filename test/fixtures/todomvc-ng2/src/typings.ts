@@ -7,7 +7,7 @@ import { Todo } from './app/shared/models/todo.model';
 
 import { LabelledTodo } from './app/shared/interfaces/interfaces';
 
-namespace BSBO {
+export namespace BSBO {
     export namespace Events {
         /**
          * A time interface just for documentation purpose

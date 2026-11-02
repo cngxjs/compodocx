@@ -112,3 +112,63 @@ describe('AngularDependencies - public API filter on the resolved map', () => {
         expect(functionsWith(new Map([['pub', new Set([barrel])]]))).toEqual([]);
     });
 });
+
+/**
+ * A namespace member is allowed by its qualified name; a module augmentation
+ * member is allowed when its file declares a public symbol.
+ */
+describe('AngularDependencies - public API filter on namespaces', () => {
+    let tmpDir: string;
+    let result: any;
+    const saved = {
+        publicApiOnly: Configuration.mainData.publicApiOnly,
+        publicApiDeclarations: Configuration.mainData.publicApiDeclarations
+    };
+
+    beforeAll(() => {
+        tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'cdx-public-api-ns-')));
+        const file = path.join(tmpDir, 'api.ts');
+        const other = path.join(tmpDir, 'other.ts');
+        fs.writeFileSync(
+            file,
+            `export namespace Shown { export interface Shape { id: number; } export const LIMIT = 1; }
+export namespace Hidden { export interface Shape { id: number; } }
+declare module 'runner' { interface Matchers<R> { toShow(): R; } }
+`
+        );
+        fs.writeFileSync(
+            other,
+            `export const nothingPublic = 1;
+declare module 'runner' { interface Expect { hidden: true; } }
+`
+        );
+        Configuration.mainData.publicApiOnly = tmpDir;
+        Configuration.mainData.publicApiDeclarations = new Map(
+            ['Shown', 'Shown.Shape', 'Shown.LIMIT'].map(name => [name, new Set([file])])
+        );
+        result = new AngularDependencies([file, other], {
+            tsconfigDirectory: tmpDir
+        }).getDependencies();
+    });
+
+    afterAll(() => {
+        Configuration.mainData.publicApiOnly = saved.publicApiOnly;
+        Configuration.mainData.publicApiDeclarations = saved.publicApiDeclarations;
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    const qualified = (list: any[]) =>
+        list.map(item => (item.namespace ? `${item.namespace}.${item.name}` : item.name));
+
+    it('keeps the members of a public namespace and drops the rest', () => {
+        expect(qualified(result.namespaces)).toEqual(['Shown']);
+        expect(qualified(result.miscellaneous.variables)).toEqual(['Shown.LIMIT']);
+        expect(qualified(result.interfaces)).toContain('Shown.Shape');
+        expect(qualified(result.interfaces)).not.toContain('Hidden.Shape');
+    });
+
+    it('keeps an augmentation member only in a file with a public symbol', () => {
+        expect(qualified(result.interfaces)).toContain('Matchers');
+        expect(qualified(result.interfaces)).not.toContain('Expect');
+    });
+});

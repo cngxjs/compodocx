@@ -3,7 +3,12 @@ import { factKey, type SemanticModel } from '../../app/compiler/semantic/model';
 import { type DiView, foldClusterMembers, placementOf } from '../../app/di/model';
 import { type EntityWithKind, PRIMARY_KINDS } from '../../app/engines/dependencies.engine';
 import { featureSegments } from '../../app/links/feature-paths';
-import { presentationKind, type TableKind, toSymbolKey } from '../../app/links/symbol-id';
+import {
+    presentationKind,
+    qualifiedName,
+    type TableKind,
+    toSymbolKey
+} from '../../app/links/symbol-id';
 import { entryInFile, type SymbolEntry, type SymbolTable } from '../../app/links/symbol-table';
 import {
     DEFAULT_MENU_FEATURE_SECTIONS,
@@ -97,11 +102,15 @@ export const appRootPath = (semantic: SemanticModel | undefined): string | undef
 /** Root-relative path of a feature page's segments, the key of its group. */
 const featurePathKey = (segments: readonly string[]): string => segments.join('/');
 
-const asItem = (entry: SymbolEntry): EntityWithKind => ({
-    ...(entry.data as object),
-    kind: entry.ref.kind,
-    name: entry.ref.name
-});
+/**
+ * A copy of the entry's engine object with its kind, named by its table name
+ * (`Ns.Member` for a namespace member). The copy carries no `namespace`: its
+ * name is already qualified.
+ */
+const asItem = (entry: SymbolEntry): EntityWithKind => {
+    const { namespace: _namespace, ...data } = entry.data as { readonly namespace?: unknown };
+    return { ...data, kind: entry.ref.kind, name: entry.ref.name };
+};
 
 const groupCache = new WeakMap<SymbolTable, Record<string, EntityWithKind[]>>();
 
@@ -320,7 +329,12 @@ export const groupItemsByFeature = (
         const file = typeof item?.file === 'string' ? item.file : undefined;
         const entry =
             typeof item?.name === 'string'
-                ? entryInFile(table, presentationKind(kind as never, item), item.name, file)
+                ? entryInFile(
+                      table,
+                      presentationKind(kind as never, item),
+                      qualifiedName(item),
+                      file
+                  )
                 : undefined;
         const info = featureInfoOf(semantic, entry);
         if (info) {

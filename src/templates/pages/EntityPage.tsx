@@ -7,6 +7,7 @@ import type {
     FileRefBundle,
     VendorPackage
 } from '../../app/engines/stackblitz';
+import { qualifiedName } from '../../app/links/symbol-id';
 import { BlockAccessors } from '../blocks/BlockAccessors';
 import { BlockConstructor } from '../blocks/BlockConstructor';
 import { BlockDerivedState } from '../blocks/BlockDerivedState';
@@ -47,6 +48,7 @@ import {
     IconInterface,
     IconPipe
 } from '../components/Icons';
+import { NamespaceLine } from '../components/NamespaceLine';
 import { WcagBadge } from '../components/WcagBadge';
 import {
     deriveLibFromBucket,
@@ -623,11 +625,13 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
                     <ol class="cdx-breadcrumb">
                         {FeatureCrumbs(feature, props.depth) ??
                             ((<li>{t(props.breadcrumbLabel)}</li>) as string)}
-                        <li aria-current="page">{e.name}</li>
+                        <li aria-current="page">{qualifiedName(e)}</li>
                     </ol>
                 </nav>
                 <h1 class="cdx-entity-hero-name">
-                    <span class={e.deprecated ? 'cdx-member-name--deprecated' : ''}>{e.name}</span>
+                    <span class={e.deprecated ? 'cdx-member-name--deprecated' : ''}>
+                        {qualifiedName(e)}
+                    </span>
                 </h1>
                 {e.taggedSelector ? (
                     <p class="cdx-entity-hero-selector">
@@ -673,6 +677,7 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
                 ) : (
                     ''
                 )}
+                {NamespaceLine({ item: e, depth: props.depth })}
                 {!props.disableFilePath && e.file && (
                     <p class="cdx-entity-hero-file" title="Source file">
                         {IconFile()}

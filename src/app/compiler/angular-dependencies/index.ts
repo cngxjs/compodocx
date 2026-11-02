@@ -16,6 +16,7 @@ import type {
     IFunctionDecDep,
     IInjectableDep,
     IInterfaceDep,
+    INamespaceDep,
     IPipeDep,
     IServiceDep,
     ITypeAliasDecDep
@@ -29,10 +30,19 @@ import { type LegacyFinding, scanLegacy, sortLegacyFindings } from '../legacy-sc
 import { isAngularServiceDecorator, serviceOptions } from './angular-service';
 import { EntityVisitor } from './entity-visitor';
 import { ExpressionFinder } from './expression-finder';
-import { isExportedFromFile, localExportNames } from './file-exports';
+import { hasExportKeyword, isExportedFromFile, localExportNames } from './file-exports';
 import { IoExtractor } from './io-extractor';
 import { JsdocTags } from './jsdoc-tags';
 import { MetadataPredicates } from './metadata-predicates';
+import {
+    enterModule,
+    inAmbientNamespace,
+    type NamespaceScope,
+    namespaceMembers,
+    type OpenedNamespace,
+    qualify,
+    withScope
+} from './namespace-scope';
 import { ProviderDetector } from './provider-detector';
 import { PublicApiFilter } from './public-api-filter';
 
@@ -93,6 +103,7 @@ export class AngularDependencies extends FrameworkDependencies {
             directives: [],
             classes: [],
             interfaces: [],
+            namespaces: [] as INamespaceDep[],
             typescriptImports: [],
             miscellaneous: {
                 variables: [],
@@ -138,19 +149,45 @@ export class AngularDependencies extends FrameworkDependencies {
          * - methods
          */
         deps = ExtendsMerger.merge(deps);
+        deps.namespaces = namespaceMembers(deps.namespaces, [
+            ...deps.components,
+            ...deps.entities,
+            ...deps.injectables,
+            ...deps.services,
+            ...deps.tokens,
+            ...deps.interceptors,
+            ...deps.guards,
+            ...deps.pipes,
+            ...deps.directives,
+            ...deps.classes,
+            ...deps.interfaces,
+            ...deps.miscellaneous.variables,
+            ...deps.miscellaneous.functions,
+            ...deps.miscellaneous.typealiases,
+            ...deps.miscellaneous.enumerations,
+            ...deps.appConfig
+        ]);
         deps.legacyFindings = sortLegacyFindings(deps.legacyFindings);
 
         return deps;
     }
 
-    private processClass(node, file, srcFile, outputSymbols, fileBody, astFile) {
+    private processClass(
+        node,
+        file,
+        srcFile,
+        outputSymbols,
+        fileBody,
+        astFile,
+        scope: NamespaceScope = {}
+    ) {
         const name = this.expressionFinder.getSymboleName(node);
         const IO = this.ioExtractor.getClassIO(file, srcFile, node, fileBody, astFile);
         const sourceCode = srcFile.getText();
         const hash = crypto.createHash('sha512').update(sourceCode).digest('hex');
         const deps: any = {
             name,
-            id: `class-${name}-${hash}`,
+            id: `class-${qualify(scope, name)}-${hash}`,
             file: file,
             deprecated: IO.deprecated,
             deprecationMessage: IO.deprecationMessage,
@@ -217,7 +254,7 @@ export class AngularDependencies extends FrameworkDependencies {
             deps.implements = IO.implements;
         }
         if (typeof IO.ignore === 'undefined') {
-            this.debug(deps);
+            this.debug(withScope(deps, scope));
 
             outputSymbols.classes.push(deps);
         } else {
@@ -310,12 +347,38 @@ export class AngularDependencies extends FrameworkDependencies {
             ) {
                 return;
             }
-            const parseNode = (file, srcFile, node, fileBody, astFile) => {
+            const parseNode = (
+                file,
+                srcFile,
+                node,
+                fileBody,
+                astFile,
+                scope: NamespaceScope = {}
+            ) => {
                 const sourceCode = srcFile.getText();
                 const hash = crypto.createHash('sha512').update(sourceCode).digest('hex');
-                // Only what the file exports is documented; namespace members keep their
-                // own scope and stay as they are.
+                const scoped = <T>(dep: T): T => withScope(dep, scope);
+                // Namespace members by their qualified name; augmentation members by their file.
+                const isAllowed = (name: string): boolean =>
+                    this.publicApiFilter.isSymbolAllowed(
+                        qualify(scope, name),
+                        file,
+                        scope.augments !== undefined
+                    );
+                // Only what the file exports is documented; inside a namespace only what
+                // the namespace exports.
                 const isFileLocal = (declaration: ts.Node, name: string): boolean => {
+                    if (scope.namespace) {
+                        // Members of an ambient namespace (`declare namespace`) are exported
+                        // without the keyword.
+                        if (hasExportKeyword(declaration) || inAmbientNamespace(declaration)) {
+                            return false;
+                        }
+                        logger.debug(
+                            `Skipping ${qualify(scope, name)} (not exported from namespace ${scope.namespace})`
+                        );
+                        return true;
+                    }
                     if (fileBody || isExportedFromFile(declaration, name, srcFile, exportNames)) {
                         return false;
                     }
@@ -332,7 +395,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         const name = this.expressionFinder.getSymboleName(node);
 
                         // Check if this decorated class is allowed by public API filter
-                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                        if (!isAllowed(name)) {
                             logger.debug(`Skipping decorated class ${name} (not in public API)`);
                             return;
                         }
@@ -359,7 +422,7 @@ export class AngularDependencies extends FrameworkDependencies {
                             deps = componentDep;
                             if (typeof IO.ignore === 'undefined') {
                                 ComponentsTreeEngine.addComponent(componentDep);
-                                outputSymbols.components.push(componentDep);
+                                outputSymbols.components.push(scoped(componentDep));
                             }
                         } else if (this.metadataPredicates.isEntity(visitedDecorator)) {
                             const entityDep = new EntityDepFactory().create(
@@ -372,7 +435,7 @@ export class AngularDependencies extends FrameworkDependencies {
                             deps = entityDep;
 
                             if (typeof IO.ignore === 'undefined') {
-                                outputSymbols.entities.push(entityDep);
+                                outputSymbols.entities.push(scoped(entityDep));
                             }
                         } else if (this.metadataPredicates.isInjectable(visitedDecorator)) {
                             const providedIn = this.componentHelper.getInjectableProvidedIn(
@@ -392,7 +455,10 @@ export class AngularDependencies extends FrameworkDependencies {
                             deps = injectableDeps;
                             if (typeof IO.ignore === 'undefined') {
                                 injectableDeps.type = 'injectable';
-                                this.addNewEntityInStore(injectableDeps, outputSymbols.injectables);
+                                this.addNewEntityInStore(
+                                    scoped(injectableDeps),
+                                    outputSymbols.injectables
+                                );
                             }
                         } else if (isAngularServiceDecorator(visitedDecorator, srcFile)) {
                             const serviceDeps: IServiceDep = this.injectableDep(
@@ -408,7 +474,10 @@ export class AngularDependencies extends FrameworkDependencies {
                             deps = serviceDeps;
                             if (typeof IO.ignore === 'undefined') {
                                 serviceDeps.type = 'service';
-                                this.addNewEntityInStore(serviceDeps, outputSymbols.services);
+                                this.addNewEntityInStore(
+                                    scoped(serviceDeps),
+                                    outputSymbols.services
+                                );
                             }
                         } else if (this.metadataPredicates.isPipe(visitedDecorator)) {
                             const pipeDeps: IPipeDep = {
@@ -448,7 +517,7 @@ export class AngularDependencies extends FrameworkDependencies {
                             }
                             deps = pipeDeps;
                             if (typeof IO.ignore === 'undefined') {
-                                outputSymbols.pipes.push(pipeDeps);
+                                outputSymbols.pipes.push(scoped(pipeDeps));
                             }
                         } else if (this.metadataPredicates.isDirective(visitedDecorator)) {
                             const directiveDeps = new DirectiveDepFactory(
@@ -456,7 +525,7 @@ export class AngularDependencies extends FrameworkDependencies {
                             ).create(file, srcFile, name, props, IO, node);
                             deps = directiveDeps;
                             if (typeof IO.ignore === 'undefined') {
-                                outputSymbols.directives.push(directiveDeps);
+                                outputSymbols.directives.push(scoped(directiveDeps));
                             }
                         } else {
                             const hasMultipleDecoratorsWithInternalOne =
@@ -476,12 +545,13 @@ export class AngularDependencies extends FrameworkDependencies {
                                     srcFile,
                                     outputSymbols,
                                     fileBody,
-                                    astFile
+                                    astFile,
+                                    scope
                                 );
                             }
                         }
                         if (typeof IO.ignore === 'undefined') {
-                            this.debug(deps);
+                            this.debug(scoped(deps));
                         } else {
                             this.ignore(deps);
                         }
@@ -508,11 +578,22 @@ export class AngularDependencies extends FrameworkDependencies {
                     if (node.symbol.flags === ts.SymbolFlags.Class) {
                         // Check if class is allowed by public API filter
                         const className = this.expressionFinder.getSymboleName(node);
-                        if (!this.publicApiFilter.isSymbolAllowed(className, file)) {
+                        if (!isAllowed(className)) {
                             logger.debug(`Skipping class ${className} (not in public API)`);
                             return;
                         }
-                        this.processClass(node, file, srcFile, outputSymbols, fileBody, astFile);
+                        if (scope.namespace && isFileLocal(node, className)) {
+                            return;
+                        }
+                        this.processClass(
+                            node,
+                            file,
+                            srcFile,
+                            outputSymbols,
+                            fileBody,
+                            astFile,
+                            scope
+                        );
                     } else if (node.symbol.flags === ts.SymbolFlags.Interface) {
                         const name = this.expressionFinder.getSymboleName(node);
                         if (isFileLocal(node, name)) {
@@ -520,7 +601,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
 
                         // Check if interface is allowed by public API filter
-                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                        if (!isAllowed(name)) {
                             logger.debug(`Skipping interface ${name} (not in public API)`);
                             return;
                         }
@@ -534,7 +615,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         );
                         const interfaceDeps: IInterfaceDep = {
                             name,
-                            id: `interface-${name}-${hash}`,
+                            id: `interface-${qualify(scope, name)}-${hash}`,
                             file: file,
                             deprecated: IO.deprecated,
                             deprecationMessage: IO.deprecationMessage,
@@ -571,8 +652,8 @@ export class AngularDependencies extends FrameworkDependencies {
                             interfaceDeps.extends = IO.extends;
                         }
                         if (typeof IO.ignore === 'undefined') {
-                            this.debug(interfaceDeps);
-                            outputSymbols.interfaces.push(interfaceDeps);
+                            this.debug(scoped(interfaceDeps));
+                            outputSymbols.interfaces.push(scoped(interfaceDeps));
                         } else {
                             this.ignore(interfaceDeps);
                         }
@@ -585,7 +666,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
 
                         // Check if function is allowed by public API filter
-                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                        if (!isAllowed(name)) {
                             logger.debug(`Skipping function ${name} (not in public API)`);
                             return;
                         }
@@ -643,8 +724,8 @@ export class AngularDependencies extends FrameworkDependencies {
                                     Configuration.mainData.disablePrivate
                                 )
                             ) {
-                                this.debug(functionDep);
-                                outputSymbols.miscellaneous.functions.push(functionDep);
+                                this.debug(scoped(functionDep));
+                                outputSymbols.miscellaneous.functions.push(scoped(functionDep));
                             }
                         }
                     } else if (ts.isEnumDeclaration(node)) {
@@ -656,7 +737,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
 
                         // Check if enum is allowed by public API filter
-                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                        if (!isAllowed(name)) {
                             logger.debug(`Skipping enum ${name} (not in public API)`);
                             return;
                         }
@@ -680,8 +761,8 @@ export class AngularDependencies extends FrameworkDependencies {
                         };
 
                         if (!isIgnore(node)) {
-                            this.debug(enumDeps);
-                            outputSymbols.miscellaneous.enumerations.push(enumDeps);
+                            this.debug(scoped(enumDeps));
+                            outputSymbols.miscellaneous.enumerations.push(scoped(enumDeps));
                         }
                     } else if (ts.isTypeAliasDeclaration(node)) {
                         const infos = this.entityVisitor.visitTypeDeclaration(node);
@@ -692,7 +773,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
 
                         // Check if type alias is allowed by public API filter
-                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                        if (!isAllowed(name)) {
                             logger.debug(`Skipping type alias ${name} (not in public API)`);
                             return;
                         }
@@ -733,23 +814,36 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
 
                         if (!isIgnore(node)) {
-                            outputSymbols.miscellaneous.typealiases.push(typeAliasDeps);
+                            outputSymbols.miscellaneous.typealiases.push(scoped(typeAliasDeps));
                         }
 
                         if (typeof infos.ignore === 'undefined') {
-                            this.debug(typeAliasDeps);
+                            this.debug(scoped(typeAliasDeps));
                         }
                     } else if (ts.isModuleDeclaration(node)) {
-                        if (node.body) {
-                            if (
-                                (node.body as any).statements &&
-                                (node.body as any).statements.length > 0
-                            ) {
-                                (node.body as any).statements.forEach(statement =>
-                                    parseNode(file, srcFile, statement, node.body, astFile)
-                                );
-                            }
+                        const entered = enterModule(node, scope);
+                        const [outer] = entered.namespaces;
+                        if (outer && isFileLocal(node, outer.name)) {
+                            return;
                         }
+                        for (const opened of entered.namespaces) {
+                            const qualified = qualify(opened, opened.name);
+                            if (!this.publicApiFilter.isSymbolAllowed(qualified, file)) {
+                                logger.debug(`Skipping namespace ${qualified} (not in public API)`);
+                                return;
+                            }
+                            this.addNamespace(opened, file, outputSymbols.namespaces);
+                        }
+                        entered.body?.statements.forEach(statement =>
+                            parseNode(
+                                file,
+                                srcFile,
+                                statement,
+                                entered.body,
+                                astFile,
+                                entered.scope
+                            )
+                        );
                     }
                 } else {
                     // Every class, function, enum and type alias declaration is bound,
@@ -836,17 +930,17 @@ export class AngularDependencies extends FrameworkDependencies {
                                             zoneless: isZoneless
                                         };
                                         if (!isIgnore(variableNode)) {
-                                            if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                                            if (!isAllowed(name)) {
                                                 logger.debug(
                                                     `Skipping ApplicationConfig ${name} (not in public API)`
                                                 );
                                                 return;
                                             }
-                                            this.debug(appConfigDep);
+                                            this.debug(scoped(appConfigDep));
                                             if (!outputSymbols.appConfig) {
                                                 outputSymbols.appConfig = [];
                                             }
-                                            outputSymbols.appConfig.push(appConfigDep);
+                                            outputSymbols.appConfig.push(scoped(appConfigDep));
                                         }
                                         return;
                                     }
@@ -909,14 +1003,14 @@ export class AngularDependencies extends FrameworkDependencies {
                                                 })
                                         };
                                         if (!isIgnore(variableNode)) {
-                                            if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                                            if (!isAllowed(name)) {
                                                 logger.debug(
                                                     `Skipping InjectionToken ${name} (not in public API)`
                                                 );
                                                 return;
                                             }
-                                            this.debug(tokenDep);
-                                            outputSymbols.tokens.push(tokenDep);
+                                            this.debug(scoped(tokenDep));
+                                            outputSymbols.tokens.push(scoped(tokenDep));
                                         }
                                         return;
                                     }
@@ -933,7 +1027,7 @@ export class AngularDependencies extends FrameworkDependencies {
                                         functionalKind === 'guard' ||
                                         functionalKind === 'interceptor';
                                     if (isFunctionalGuardOrInterceptor && !isIgnore(variableNode)) {
-                                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                                        if (!isAllowed(name)) {
                                             logger.debug(
                                                 `Skipping functional ${functionalKind} ${name} (not in public API)`
                                             );
@@ -980,11 +1074,11 @@ export class AngularDependencies extends FrameworkDependencies {
                                         if (infos.docsUrl) {
                                             guardDep.docsUrl = infos.docsUrl;
                                         }
-                                        this.debug(guardDep);
+                                        this.debug(scoped(guardDep));
                                         if (functionalKind === 'guard') {
-                                            outputSymbols.guards.push(guardDep);
+                                            outputSymbols.guards.push(scoped(guardDep));
                                         } else if (functionalKind === 'interceptor') {
-                                            outputSymbols.interceptors.push(guardDep);
+                                            outputSymbols.interceptors.push(scoped(guardDep));
                                         }
                                         return;
                                     }
@@ -994,14 +1088,14 @@ export class AngularDependencies extends FrameworkDependencies {
 
                                     if (!isIgnore(variableNode)) {
                                         // Check if variable is allowed by public API filter
-                                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                                        if (!isAllowed(name)) {
                                             logger.debug(
                                                 `Skipping variable ${name} (not in public API)`
                                             );
                                             return;
                                         }
-                                        this.debug(deps);
-                                        outputSymbols.miscellaneous.variables.push(deps);
+                                        this.debug(scoped(deps));
+                                        outputSymbols.miscellaneous.variables.push(scoped(deps));
                                     }
                                 }
                             };
@@ -1044,14 +1138,16 @@ export class AngularDependencies extends FrameworkDependencies {
 
                                         if (!isIgnore(destructuredVariables[i])) {
                                             // Check if variable is allowed by public API filter
-                                            if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                                            if (!isAllowed(name)) {
                                                 logger.debug(
                                                     `Skipping destructured variable ${name} (not in public API)`
                                                 );
                                                 continue;
                                             }
-                                            this.debug(deps);
-                                            outputSymbols.miscellaneous.variables.push(deps);
+                                            this.debug(scoped(deps));
+                                            outputSymbols.miscellaneous.variables.push(
+                                                scoped(deps)
+                                            );
                                         }
                                     }
                                 }
@@ -1128,6 +1224,37 @@ export class AngularDependencies extends FrameworkDependencies {
     }
 
     /**
+     * Records a namespace once per qualified name; merged declarations (two
+     * `namespace Ns {}` blocks) share the entry, the first description wins.
+     */
+    private addNamespace(opened: OpenedNamespace, file: string, store: INamespaceDep[]) {
+        const qualified = qualify(opened, opened.name);
+        const known = store.find(entry => qualify(entry, entry.name) === qualified);
+        const jsDoc = (opened.node as { jsDoc?: ts.JSDoc[] }).jsDoc?.[0];
+        const rawdescription = jsDoc?.comment ? this.jsdocParserUtil.parseJSDocNode(jsDoc) : '';
+        if (known) {
+            if (!known.rawdescription && rawdescription) {
+                known.rawdescription = rawdescription;
+                known.description = markedAcl(rawdescription);
+            }
+            return;
+        }
+        const entry: INamespaceDep = {
+            name: opened.name,
+            id: `namespace-${qualified}`,
+            ctype: 'namespace',
+            type: 'namespace',
+            file,
+            description: rawdescription ? markedAcl(rawdescription) : '',
+            rawdescription,
+            members: [],
+            ...(opened.namespace && { namespace: opened.namespace })
+        };
+        this.debug(entry);
+        store.push(entry);
+    }
+
+    /**
      * Function to in a specific store an entity, and check before is there is not the same one
      * in that store : same name, id and file
      * @param entity Entity to store
@@ -1144,7 +1271,7 @@ export class AngularDependencies extends FrameworkDependencies {
 
     private debug(deps: IDep) {
         if (deps) {
-            logger.debug('found', `${deps.name}`);
+            logger.debug('found', qualify(deps, deps.name));
         } else {
             return;
         }
