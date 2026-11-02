@@ -9,6 +9,7 @@ import type {
 } from '../../utils/theme-doc-parser';
 import { groupThemeTokens } from '../../utils/theme-doc-parser';
 import { isThemingSection, t } from '../helpers';
+import { dropLeadingText } from '../helpers/linked-highlight';
 import { themingProse } from '../helpers/theming-prose';
 import { type RelatedEntry, resolveRelated } from './RelatedSection';
 
@@ -152,7 +153,7 @@ const renderTokenRow = (token: ThemeToken, prose: Prose, depth?: number): string
         ? `<div class="cdx-io-member-desc cdx-prose">${prose(token.description)}</div>`
         : '';
     const deprecatedReason = token.deprecated
-        ? `<p class="cdx-theming-deprecated">${prose(token.deprecated)}</p>`
+        ? `<div class="cdx-member-deprecated">${prose(token.deprecated)}</div>`
         : '';
     const defaultHtml = token.defaultValue
         ? `<div class="cdx-io-member-default"><span class="cdx-io-member-default-label">${t(
@@ -162,6 +163,7 @@ const renderTokenRow = (token: ThemeToken, prose: Prose, depth?: number): string
 
     return (
         `<div class="${cls.join(' ')}" id="${id}" data-compodoc="block-theming-token">` +
+        `<div class="cdx-io-member-head">` +
         `<div class="cdx-io-member-title">` +
         `<span class="cdx-io-member-name${
             token.deprecated !== null ? ' cdx-member-name--deprecated' : ''
@@ -169,9 +171,10 @@ const renderTokenRow = (token: ThemeToken, prose: Prose, depth?: number): string
         typeHtml +
         `</div>` +
         (badgesRow ? `<div class="cdx-io-member-badges">${badgesRow}</div>` : '') +
-        defaultHtml +
-        descHtml +
+        `</div>` +
         deprecatedReason +
+        descHtml +
+        defaultHtml +
         renderExamples(token) +
         renderSeeLinks(token) +
         renderRelated(related) +
@@ -246,6 +249,22 @@ const mixinSignature = (mixin: StyleMixin): string =>
         .map(param => `$${param.name}${param.default ? `: ${param.default}` : ''}`)
         .join(', ')})`;
 
+/**
+ * The signature highlighted as SCSS. The grammar needs the `@mixin`/`@function`
+ * keyword to see parameters; it is dropped from the output again.
+ */
+const highlightedMixinSignature = (mixin: StyleMixin): string => {
+    const keyword = `@${mixin.kind} `;
+    const signature = mixinSignature(mixin);
+    const inner = /<code>([\s\S]*?)<\/code>/.exec(
+        highlightCode(`${keyword}${signature}`, { lang: 'scss', mode: 'snippet' })
+    );
+    return inner
+        ? dropLeadingText(inner[1], keyword.length)
+        : (Html.escapeHtml(signature) as string);
+};
+
+/** Parameter rows in the markup of the API `@param` rows (`ParamsTable`). */
 const renderMixinParams = (mixin: StyleMixin, prose: Prose): string => {
     if (mixin.params.length === 0) {
         return '';
@@ -253,20 +272,25 @@ const renderMixinParams = (mixin: StyleMixin, prose: Prose): string => {
     const rows = mixin.params
         .map(param => {
             const type = param.type
-                ? ` <span class="cdx-io-member-type"><code>${Html.escapeHtml(param.type) as string}</code></span>`
+                ? `<span class="cdx-param-type"><code>${Html.escapeHtml(param.type) as string}</code></span>`
                 : '';
             const fallback = param.default
-                ? ` <span class="cdx-io-member-default-label">${t('default-value')}</span> <code>${
+                ? `<span class="cdx-param-default">= <code>${
                       Html.escapeHtml(param.default) as string
-                  }</code>`
+                  }</code></span>`
                 : '';
             const desc = param.description
-                ? `<div class="cdx-prose">${prose(param.description)}</div>`
+                ? `<div class="cdx-param-desc cdx-prose">${prose(param.description)}</div>`
                 : '';
-            return `<li><code>$${Html.escapeHtml(param.name) as string}</code>${type}${fallback}${desc}</li>`;
+            return (
+                `<div class="cdx-param-row"><div class="cdx-param-header">` +
+                `<span class="cdx-param-label">@param</span>` +
+                `<span class="cdx-param-name">$${Html.escapeHtml(param.name) as string}</span>` +
+                `${type}${fallback}</div>${desc}</div>`
+            );
         })
         .join('');
-    return `<div class="cdx-theming-params"><h5>${t('parameters')}</h5>` + `<ul>${rows}</ul></div>`;
+    return `<div class="cdx-io-member-desc"><div class="cdx-params">${rows}</div></div>`;
 };
 
 const renderMixin = (mixin: StyleMixin, prose: Prose, depth?: number): string => {
@@ -292,6 +316,7 @@ const renderMixin = (mixin: StyleMixin, prose: Prose, depth?: number): string =>
         `<div class="cdx-io-member cdx-io-member--theming cdx-io-member--theming-${mixin.kind}${
             deprecated ? ' cdx-io-member--deprecated' : ''
         }" id="${id}" data-compodoc="block-theming-mixin">` +
+        `<div class="cdx-io-member-head">` +
         `<div class="cdx-io-member-title">` +
         `<span class="cdx-io-member-name${deprecated ? ' cdx-member-name--deprecated' : ''}">${
             deprecated ? `<s>${name}</s>` : name
@@ -299,15 +324,14 @@ const renderMixin = (mixin: StyleMixin, prose: Prose, depth?: number): string =>
         `<span class="cdx-io-member-type"><code>@${mixin.kind}</code></span>` +
         `</div>` +
         (badges ? `<div class="cdx-io-member-badges">${badges}</div>` : '') +
-        `<div class="cdx-theming-mixin-signature"><code>${
-            Html.escapeHtml(mixinSignature(mixin)) as string
-        }</code></div>` +
+        `</div>` +
+        (mixin.deprecated
+            ? `<div class="cdx-member-deprecated">${prose(mixin.deprecated)}</div>`
+            : '') +
         (mixin.description
             ? `<div class="cdx-io-member-desc cdx-prose">${prose(mixin.description)}</div>`
             : '') +
-        (mixin.deprecated
-            ? `<p class="cdx-theming-deprecated">${prose(mixin.deprecated)}</p>`
-            : '') +
+        `<pre class="cdx-derived-body"><code>${highlightedMixinSignature(mixin)}</code></pre>` +
         renderMixinParams(mixin, prose) +
         contentHtml +
         returnsHtml +

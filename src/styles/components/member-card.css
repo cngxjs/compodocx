@@ -217,6 +217,12 @@ a.cdx-member-permalink:hover {
     color: var(--color-cdx-text-secondary);
 }
 
+/* A deprecation reason rendered as prose stays on the line of its label. */
+.cdx-member-deprecated > p {
+    display: inline;
+    margin: 0;
+}
+
 .cdx-member-deprecated::before {
     content: '@deprecated';
     display: inline-block;
@@ -417,55 +423,55 @@ a.cdx-member-permalink:hover {
  * name column of .cdx-table), signature, description, params, default and
  * source on the right. Narrow containers stack (below).
  */
-.cdx-io-member:not(.cdx-io-member--theming) {
+.cdx-io-member {
     display: grid;
     grid-template-columns: minmax(0, 30%) minmax(0, 1fr);
     column-gap: var(--spacing-cdx-xl);
     align-items: start;
 }
 
-.cdx-io-member:not(.cdx-io-member--theming) > * {
+.cdx-io-member > * {
     grid-column: 2;
 }
 
-.cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-head {
+.cdx-io-member > .cdx-io-member-head {
     grid-column: 1;
     grid-row: 1 / span 10;
     flex-direction: column;
     align-items: flex-start;
 }
 
-.cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-head .cdx-io-member-title {
+.cdx-io-member > .cdx-io-member-head .cdx-io-member-title {
     flex-direction: column;
     gap: 2px;
 }
 
-.cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-desc {
+.cdx-io-member > .cdx-io-member-desc {
     margin-top: 0;
 }
 
 @container (max-width: 640px) {
-    .cdx-io-member:not(.cdx-io-member--theming) {
+    .cdx-io-member {
         grid-template-columns: minmax(0, 1fr);
     }
 
-    .cdx-io-member:not(.cdx-io-member--theming) > *,
-    .cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-head {
+    .cdx-io-member > *,
+    .cdx-io-member > .cdx-io-member-head {
         grid-column: 1;
         grid-row: auto;
     }
 
-    .cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-head {
+    .cdx-io-member > .cdx-io-member-head {
         flex-direction: row;
         align-items: center;
     }
 
-    .cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-head .cdx-io-member-title {
+    .cdx-io-member > .cdx-io-member-head .cdx-io-member-title {
         flex-direction: row;
         gap: var(--spacing-cdx-sm);
     }
 
-    .cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-desc {
+    .cdx-io-member > .cdx-io-member-desc {
         margin-top: var(--spacing-cdx-sm);
     }
 }
