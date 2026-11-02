@@ -66,6 +66,15 @@ describe('design tokens page', () => {
         expect(html).to.not.include('--card');
     });
 
+    it('renders the hero icon, breadcrumb and counts', () => {
+        Configuration.mainData.symbols = withStyleEntries(table, files);
+        const { groups } = designTokenRows(files, 0);
+        const html = DesignTokensPage({ groups, depth: 0 });
+        expect(html).to.include('cdx-entity-hero-watermark');
+        expect(html).to.match(/aria-current="page"[^>]*>Design tokens</);
+        expect(html).to.match(/cdx-entity-hero-context"[^>]*>Tokens 4 · Style files 2</);
+    });
+
     it('has nothing to show without an unlinked file with documented tokens', () => {
         expect(designTokens(files.filter(file => file.file === 'c/card.css')).groups).toEqual([]);
     });

@@ -58,6 +58,28 @@ describe('StylePage', () => {
         expect(html).to.include('data-pagefind-meta="kind:Style"');
     });
 
+    it('renders the hero icon, kind badge, counts and file line', () => {
+        Configuration.mainData.symbols = table;
+        const html = render(card);
+        expect(html).to.include('cdx-entity-hero-watermark');
+        expect(html).to.match(/cdx-badge--entity-style"[^>]*>Style file</);
+        expect(html).to.match(/cdx-badge--outline"[^>]*>SCSS</);
+        expect(html).to.match(/cdx-entity-hero-context"[^>]*>Mixins 1 · Theming 1</);
+        expect(html).to.include('cdx-entity-hero-file');
+    });
+
+    it('drops the file line with disableFilePath', () => {
+        Configuration.mainData.symbols = table;
+        const entry = entryOf(card);
+        const html = StylePage({
+            style: stylePageData(card, entry, undefined, 1),
+            styleEntry: entry,
+            depth: 1,
+            disableFilePath: true
+        });
+        expect(html).to.not.include('cdx-entity-hero-file');
+    });
+
     it('omits the import line without one', () => {
         Configuration.mainData.symbols = table;
         expect(render(tokens)).to.not.include('@import');
