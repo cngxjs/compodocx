@@ -46,6 +46,15 @@ export class BoxComponent {
     readonly upper = computed(() => this.name().toUpperCase());
 
     async save() {}
+    reset() {
+        this.count.set(0);
+    }
+    firstLabel() {
+        return this.items()[0].name;
+    }
+    total(): number {
+        return this.count();
+    }
 }
 
 export class Queue {
@@ -119,9 +128,20 @@ export class Queue {
         expect(typeOf('upper')).toBeUndefined();
     });
 
-    it('infers the return type of an async method with the lib', () => {
-        const save = deps.components[0].methodsClass.find((m: any) => m.name === 'save');
-        expect(save.returnType).toBe('Promise<void>');
+    const returnTypeOf = (name: string) =>
+        deps.components[0].methodsClass.find((m: any) => m.name === name)?.returnType;
+
+    it('infers the return type of an unannotated method with the lib', () => {
+        expect(returnTypeOf('save')).toBe('Promise<void>');
+        expect(returnTypeOf('reset')).toBe('void');
+    });
+
+    it('leaves an unresolved method return type out instead of writing any', () => {
+        expect(returnTypeOf('firstLabel')).toBeUndefined();
+    });
+
+    it('keeps a declared method return type', () => {
+        expect(returnTypeOf('total')).toBe('number');
     });
 
     it('keeps a declared unknown', () => {

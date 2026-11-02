@@ -958,24 +958,10 @@ export class MemberVisitor {
         };
 
         if (typeof method.type === 'undefined') {
-            // Try to get inferred type
-            if ((method as any).symbol) {
-                const symbol: ts.Symbol = (method as any).symbol;
-                if (symbol.valueDeclaration) {
-                    const symbolType = this.typeChecker.getTypeOfSymbolAtLocation(
-                        symbol,
-                        symbol.valueDeclaration
-                    );
-                    if (symbolType) {
-                        try {
-                            const signature = this.typeChecker.getSignatureFromDeclaration(method);
-                            const returnType = signature.getReturnType();
-                            result.returnType = this.typeChecker.typeToString(returnType);
-                            // tslint:disable-next-line:no-empty
-                        } catch (_error) {}
-                    }
-                }
-            }
+            // inferred, or no return type rather than the `void` placeholder or `any`
+            result.returnType = this.checkedType(() =>
+                this.typeChecker.getSignatureFromDeclaration(method)?.getReturnType()
+            );
         }
 
         if (method.typeParameters && method.typeParameters.length > 0) {
