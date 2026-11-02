@@ -103,6 +103,12 @@ Added (optional): the semantic facts on every symbol entry (`entryPoint`, `expor
 
 - `type` of `providers` and `viewProviders` entries of components and directives is the kind of the symbol the entry names (`service`, `injectable`, `token`, `class`, ...). It was guessed from the name, so an Angular 22 `@Service` class was `injectable` and a service without "Service" in its name had no `type`. Names outside the project keep the guess.
 
+### Changed in 0.15.0
+
+- Added (optional): `namespace` (the dotted chain of the enclosing namespaces, e.g. `Outer.Inner`) on every symbol declared in a TypeScript namespace, `augments` (the module, `global` for `declare global`) on every symbol declared in a module augmentation, and the top-level `namespaces` list (`id`, `name`, `namespace`, `file`, `description`, `members` as qualified names, plus the semantic facts), written only when there are namespaces.
+- `name` stays the bare name; the qualified name is `<namespace>.<name>`. Members a namespace does not export are no longer listed.
+
+
 ## Schema 2
 
 Written by 0.6.0 to 0.8.x. Additive over schema 1, nothing was removed:

@@ -32,6 +32,7 @@ import type {
     ExportTypeAlias,
     ExportVariable
 } from '../app/interfaces/export-data.interface';
+import { qualifiedName } from '../app/links/symbol-id';
 import type { StyleMixin, ThemeToken } from '../utils/theme-doc-parser';
 import {
     collapseDescription,
@@ -130,18 +131,31 @@ const axesSubLine = (axes: Readonly<Record<string, string>> | undefined): string
     return line ? `\n  ${line}` : '';
 };
 
+/** `Namespace: Ns` for a namespace member, `Augments: x` for an augmentation member. */
+const scopeLine = (entity: { readonly namespace?: string; readonly augments?: string }): string => {
+    if (entity.namespace) {
+        return `Namespace: ${escapeMarkdown(entity.namespace)}`;
+    }
+    return entity.augments ? `Augments: ${escapeMarkdown(entity.augments)}` : '';
+};
+
 const heroLines = (
     entity: {
         readonly name: string;
         readonly file?: string;
+        readonly namespace?: string;
+        readonly augments?: string;
         readonly axes?: Readonly<Record<string, string>>;
     },
     extras: ReadonlyArray<string>
 ): string => {
-    const heading = `### ${escapeMarkdown(entity.name)}`;
-    const meta = [fileLine(entity.file), ...extras, axesLine(entity.axes)].filter(
-        s => s.length > 0
-    );
+    const heading = `### ${escapeMarkdown(qualifiedName(entity))}`;
+    const meta = [
+        fileLine(entity.file),
+        scopeLine(entity),
+        ...extras,
+        axesLine(entity.axes)
+    ].filter(s => s.length > 0);
     return meta.length === 0 ? heading : `${heading}\n\n${meta.join('\n')}`;
 };
 
@@ -414,7 +428,7 @@ export const emitInterface = (entity: ExportInterface): string => {
 
 export const emitFunction = (entity: ExportFunction): string => {
     const args = (entity.args ?? []).map(formatArg);
-    const sig = formatMethodSignature(entity.name, args, entity.returnType);
+    const sig = formatMethodSignature(qualifiedName(entity), args, entity.returnType);
     const dep = deprecatedTail(entity.deprecated, entity.deprecationMessage);
     const desc = collapseDescription(entity.description);
     const lines = [`- ${inlineCode(sig)}${dep}`];
@@ -430,7 +444,7 @@ export const emitFunction = (entity: ExportFunction): string => {
 export const emitTypeAlias = (entity: ExportTypeAlias): string => {
     const dep = deprecatedTail(entity.deprecated, entity.deprecationMessage);
     const rhs = entity.rawtype ? ` = ${collapseSignatureWhitespace(entity.rawtype)}` : '';
-    const sig = `type ${entity.name}${rhs}`;
+    const sig = `type ${qualifiedName(entity)}${rhs}`;
     const desc = collapseDescription(entity.description);
     const tail = desc ? ` — ${escapeMarkdown(desc)}` : '';
     return `- ${inlineCode(sig)}${dep}${tail}${axesSubLine(entity.axes)}`;
@@ -438,7 +452,7 @@ export const emitTypeAlias = (entity: ExportTypeAlias): string => {
 
 export const emitEnumeration = (entity: ExportEnumeration): string => {
     const dep = deprecatedTail(entity.deprecated, entity.deprecationMessage);
-    const headerLine = `- ${inlineCode(`enum ${entity.name}`)}${dep}`;
+    const headerLine = `- ${inlineCode(`enum ${qualifiedName(entity)}`)}${dep}`;
     const descCollapsed = collapseDescription(entity.description);
     const desc =
         (descCollapsed ? `${headerLine} — ${escapeMarkdown(descCollapsed)}` : headerLine) +
@@ -453,7 +467,12 @@ export const emitEnumeration = (entity: ExportEnumeration): string => {
 
 export const emitVariable = (entity: ExportVariable): string => {
     const dep = deprecatedTail(entity.deprecated, entity.deprecationMessage);
-    const sig = formatPropertySignature(entity.name, entity.type, false, entity.defaultValue);
+    const sig = formatPropertySignature(
+        qualifiedName(entity),
+        entity.type,
+        false,
+        entity.defaultValue
+    );
     const desc = collapseDescription(entity.description);
     const tail = desc ? ` — ${escapeMarkdown(desc)}` : '';
     const fileTail = entity.file ? `\n  Defined in ${inlineCode(entity.file)}` : '';

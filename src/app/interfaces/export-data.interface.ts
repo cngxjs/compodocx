@@ -367,7 +367,26 @@ export interface ExportAxis {
     unclassified: number;
 }
 
-export interface ExportEntityCommon extends ExportSemanticFacts {
+/** Where a symbol is declared: in a namespace or in a module augmentation. */
+export interface ExportNamespaceScope {
+    /** Dotted chain of the enclosing namespaces (`Outer.Inner`); the symbol is `Outer.Inner.<name>`. */
+    namespace?: string;
+    /** Module a `declare module` block augments, `global` for `declare global`. */
+    augments?: string;
+}
+
+/** A TypeScript namespace; `members` are the qualified names of what it declares. */
+export interface ExportNamespace extends ExportSemanticFacts {
+    id: string;
+    /** Last segment; with `namespace` the parent chain. */
+    name: string;
+    namespace?: string;
+    file: string;
+    description?: string;
+    members: string[];
+}
+
+export interface ExportEntityCommon extends ExportSemanticFacts, ExportNamespaceScope {
     id?: string;
     name: string;
     file?: string;
@@ -554,7 +573,7 @@ export interface ExportInterface extends ExportEntityCommon {
     jsdoctags?: ExportJsdocTag[];
 }
 
-export interface ExportFunction extends ExportSemanticFacts {
+export interface ExportFunction extends ExportSemanticFacts, ExportNamespaceScope {
     name: string;
     file?: string;
     ctype?: string;
@@ -574,7 +593,7 @@ export interface ExportEnumMember {
     deprecationMessage?: string;
 }
 
-export interface ExportEnumeration extends ExportSemanticFacts {
+export interface ExportEnumeration extends ExportSemanticFacts, ExportNamespaceScope {
     name: string;
     file?: string;
     ctype?: string;
@@ -585,7 +604,7 @@ export interface ExportEnumeration extends ExportSemanticFacts {
     childs?: ExportEnumMember[];
 }
 
-export interface ExportTypeAlias extends ExportSemanticFacts {
+export interface ExportTypeAlias extends ExportSemanticFacts, ExportNamespaceScope {
     name: string;
     file?: string;
     ctype?: string;
@@ -597,7 +616,7 @@ export interface ExportTypeAlias extends ExportSemanticFacts {
     kind?: number;
 }
 
-export interface ExportVariable extends ExportSemanticFacts {
+export interface ExportVariable extends ExportSemanticFacts, ExportNamespaceScope {
     name: string;
     file?: string;
     ctype?: string;
@@ -703,6 +722,8 @@ export interface ExportData {
      * content. Their sources are in `styleSources`, keyed by file.
      */
     styleFiles?: ExportStyleFile[];
+    /** TypeScript namespaces, outermost first; written only when there are any. */
+    namespaces?: ExportNamespace[];
     /**
      * Entry points and counts of the semantic analysis. Absent when the
      * analysis did not run (no tsconfig, or the tsconfig could not be read).

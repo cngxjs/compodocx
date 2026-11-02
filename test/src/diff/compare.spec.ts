@@ -156,6 +156,32 @@ describe('diff/compare — engine', () => {
         expect(result.unchanged).toBe(1);
     });
 
+    it('pairs same-name namespace members of one file by their qualified name', () => {
+        const member = (namespace: string, description: string) => ({
+            name: 'Shape',
+            file: 'src/ns.ts',
+            namespace,
+            description
+        });
+        const oldData = baseExport({ interfaces: [member('A', 'a'), member('B', 'b')] });
+        const newData = baseExport({ interfaces: [member('A', 'a'), member('B', 'b2')] });
+        const result = compare(oldData, newData);
+        expect(result.changes).toEqual([
+            expect.objectContaining({ kind: 'interface-changed', name: 'Shape' })
+        ]);
+        expect(result.unchanged).toBe(1);
+    });
+
+    it('pairs a member that moved into a namespace by its unique name', () => {
+        const oldData = baseExport({ interfaces: [{ name: 'Shape', file: 'src/ns.ts' }] });
+        const newData = baseExport({
+            interfaces: [{ name: 'Shape', file: 'src/ns.ts', namespace: 'A' }]
+        });
+        expect(compare(oldData, newData).changes.map(change => change.kind)).not.toContain(
+            'interface-removed'
+        );
+    });
+
     it('reports a symbol that changed kind as removed and added', () => {
         const oldData = baseExport({ classes: [{ name: 'Shape', file: 'src/shape.ts' }] });
         const newData = baseExport({ interfaces: [{ name: 'Shape', file: 'src/shape.ts' }] });

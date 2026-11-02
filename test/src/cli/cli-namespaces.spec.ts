@@ -1,5 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import type { ExportData } from '../../../src/app/interfaces/export-data.interface';
 import type { PageKind } from '../../../src/app/links/layout';
 import { shell, temporaryDir } from '../helpers';
 import { menuOf } from '../helpers/menu';
@@ -116,5 +117,74 @@ describe('CLI namespaces', () => {
         expect(index).to.contain(
             `"Bridge":{"href":"${pages.of('namespace', 'Bridge')}","kind":"namespace"}`
         );
+    });
+});
+
+describe('CLI namespaces in the exports', () => {
+    const jsonFolder = `${tmp.name}-namespaces-json`;
+    const publicFolder = `${tmp.name}-namespaces-public`;
+    const llmFolder = `${tmp.name}-namespaces-llm`;
+    const json = (folder: string): ExportData =>
+        JSON.parse(fs.readFileSync(path.join(folder, 'documentation.json'), 'utf8'));
+    const qualified = (list: { name: string; namespace?: string }[] = []): string[] =>
+        list.map(item => (item.namespace ? `${item.namespace}.${item.name}` : item.name)).sort();
+
+    beforeAll(() => {
+        generate(jsonFolder, '-e', 'json');
+        generate(
+            publicFolder,
+            '-e',
+            'json',
+            '--publicApiOnly',
+            './test/fixtures/semantic-library/ng-packaged'
+        );
+        generate(llmFolder, '-e', 'llm-md');
+    });
+    afterAll(() => {
+        tmp.clean(jsonFolder);
+        tmp.clean(publicFolder);
+        tmp.clean(llmFolder);
+    });
+
+    it('writes namespace and augments on the entries and the namespaces at the top level', () => {
+        const data = json(jsonFolder);
+        expect(qualified(data.namespaces)).toEqual([
+            'Bridge',
+            'Bridge.Dotted',
+            'Bridge.Inner',
+            'Other'
+        ]);
+        const bridge = data.namespaces?.find(entry => entry.name === 'Bridge');
+        expect(bridge?.entryPoint).toBe('@sem/core');
+        expect(bridge?.members).toContain('Bridge.StateSource');
+        expect(qualified(data.interfaces)).toEqual(
+            expect.arrayContaining(['Bridge.StateSource', 'Matchers', 'Other.StateSource'])
+        );
+        const matchers = data.interfaces?.find(entry => entry.name === 'Matchers');
+        expect(matchers?.augments).toBe('some-test-runner');
+        expect(matchers?.namespace).toBeUndefined();
+    });
+
+    it('keeps the namespace members under --publicApiOnly', () => {
+        const data = json(publicFolder);
+        expect(qualified(data.namespaces)).toEqual([
+            'Bridge',
+            'Bridge.Dotted',
+            'Bridge.Inner',
+            'Other'
+        ]);
+        expect(qualified(data.miscellaneous?.variables as never)).toEqual([
+            'Bridge.Dotted.DOTTED',
+            'Bridge.HOST_SELECTOR'
+        ]);
+    });
+
+    it('heads llm-md entries with the qualified name and lists the namespaces', () => {
+        const md = fs.readFileSync(path.join(llmFolder, 'llm-context.md'), 'utf8');
+        expect(md).to.contain('### Bridge.StateSource');
+        expect(md).to.contain('Namespace: Bridge');
+        expect(md).to.contain('Augments: some-test-runner');
+        expect(md).to.contain('## Namespaces');
+        expect(md).not.to.contain('internalOnly');
     });
 });

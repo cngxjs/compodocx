@@ -17,6 +17,7 @@ import type {
     ExportEnumeration,
     ExportFunction,
     ExportInjectable,
+    ExportNamespace,
     ExportSemanticFacts,
     ExportService,
     ExportTypeAlias,
@@ -40,7 +41,7 @@ import {
     emitTypeAlias,
     emitVariable
 } from './emit';
-import { collapseDescription, escapeMarkdown, joinSections } from './format';
+import { collapseDescription, escapeMarkdown, inlineCode, joinSections } from './format';
 import { emitRoutes } from './routes';
 import type { LlmMdEmitOptions, LlmMdInput, LlmMdSnapshotMeta } from './types';
 
@@ -52,6 +53,21 @@ const ADDITIONAL_PAGES_NAME = COMPODOC_DEFAULTS.additionalEntryName;
 const designTokensSection = (files: ExportData['styleFiles']): string => {
     const body = emitDesignTokens(files ?? []);
     return body ? `${sectionHeader('Design tokens')}\n\n${body}` : '';
+};
+
+/** One block per namespace with its qualified members; '' without namespaces. */
+const namespacesSection = (namespaces: ExportData['namespaces']): string => {
+    const blocks = documented<ExportNamespace>(namespaces).map(entry => {
+        const name = entry.namespace ? `${entry.namespace}.${entry.name}` : entry.name;
+        const description = collapseDescription(entry.description ?? '');
+        const meta = [
+            `File: ${inlineCode(entry.file)}`,
+            description ? `Description: ${escapeMarkdown(description)}` : '',
+            entry.members.length > 0 ? `Members: ${escapeMarkdown(entry.members.join(', '))}` : ''
+        ].filter(line => line.length > 0);
+        return `### ${escapeMarkdown(name)}\n\n${meta.join('\n')}`;
+    });
+    return blocks.length > 0 ? `${sectionHeader('Namespaces')}\n\n${blocks.join('\n\n')}` : '';
 };
 
 /** Routers and unmounted route arrays; '' without routes. */
@@ -142,6 +158,7 @@ export const emitLlmMd = (input: LlmMdInput): string => {
         renderSection('Interceptors', data.interceptors, emitInterceptor),
         renderSection('Classes', data.classes, emitClass),
         renderSection('Interfaces', data.interfaces, emitInterface),
+        namespacesSection(data.namespaces),
         renderListSection<ExportFunction>('Public functions', misc?.functions, emitFunction),
         renderSection('Public tokens', data.tokens, emitInjectable),
         renderListSection<ExportTypeAlias>('Public type aliases', misc?.typealiases, emitTypeAlias),
