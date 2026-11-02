@@ -34,7 +34,7 @@ export interface ShowcaseSettings {
 @Component({
     selector: 'app-api-showcase',
     template: '<p>{{ label() }}</p>',
-    styleUrl: './api-showcase.component.scss'
+    styleUrls: ['./api-showcase.component.scss', './api-showcase.tokens.css']
 })
 export class ApiShowcaseComponent {
     /** Default page size of every showcase instance. */
