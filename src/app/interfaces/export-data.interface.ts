@@ -420,7 +420,8 @@ export interface ExportComponent extends ExportEntityCommon {
     templateUrl?: string[];
     styleUrls?: string[];
     styles?: string[];
-    styleUrlsData?: string;
+    /** Content of each `styleUrl`/`styleUrls` file, with the URL it was read from. */
+    styleUrlsData?: ReadonlyArray<{ readonly data: string; readonly styleUrl: string }>;
     stylesData?: string;
     assetsDirs?: string[];
     exportAs?: string;
