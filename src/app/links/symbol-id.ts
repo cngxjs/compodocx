@@ -14,13 +14,14 @@ export interface SymbolRef extends SymbolKey {
 /**
  * The kind a symbol is documented as: the engine kind, or `guard`,
  * `interceptor` or `resolver` for a function or constant that is one
- * (`functionalKind`). The engine keeps those under miscellaneous.
+ * (`functionalKind`). The engine keeps those under miscellaneous. `style`
+ * is a free-standing style file, `namespace` a TypeScript namespace.
  */
-export type TableKind = EntityKind | 'resolver' | 'style';
+export type TableKind = EntityKind | 'resolver' | 'style' | 'namespace';
 
 const FUNCTIONAL_KINDS: ReadonlySet<string> = new Set(['guard', 'interceptor', 'resolver']);
 
-export const presentationKind = (kind: EntityKind, item: unknown): TableKind => {
+export const presentationKind = (kind: EntityKind | 'namespace', item: unknown): TableKind => {
     const functional = (item as { functionalKind?: unknown } | undefined)?.functionalKind;
     const isMisc = kind === 'function' || kind === 'variable';
     return isMisc && typeof functional === 'string' && FUNCTIONAL_KINDS.has(functional)
@@ -47,7 +48,8 @@ const SYMBOL_KINDS: ReadonlySet<string> = new Set<TableKind>([
     'typealias',
     'enumeration',
     'resolver',
-    'style'
+    'style',
+    'namespace'
 ]);
 
 export const isTableKind = (value: string): value is TableKind => SYMBOL_KINDS.has(value);

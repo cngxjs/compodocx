@@ -39,6 +39,9 @@ export interface PageInterface {
     /** Data of a style page (`StylePageData`) and its table entry. */
     style?: unknown;
     styleEntry?: unknown;
+    /** Data of a namespace page (`NamespacePageData`) and its table entry. */
+    namespace?: unknown;
+    namespaceEntry?: unknown;
     /** Token groups of the design tokens page. */
     groups?: unknown;
     markdown?: string;

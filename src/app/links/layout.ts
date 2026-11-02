@@ -25,9 +25,10 @@ export type UtilityKind = 'function' | 'variable' | 'typealias' | 'enumeration';
 /**
  * Every symbol kind has a page of its own; `provider` is the page of a
  * provider without a feature type (a function or constant in the engine),
- * `style` the page of a free-standing style file.
+ * `style` the page of a free-standing style file, `namespace` the page of a
+ * TypeScript namespace.
  */
-export type PageKind = SymbolKind | 'provider' | 'style';
+export type PageKind = SymbolKind | 'provider' | 'style' | 'namespace';
 
 export const KIND_FOLDER = {
     component: 'components',
@@ -47,7 +48,8 @@ export const KIND_FOLDER = {
     typealias: 'typealiases',
     enumeration: 'enumerations',
     provider: 'providers',
-    style: 'stylesheets'
+    style: 'stylesheets',
+    namespace: 'namespaces'
 } as const satisfies Record<PageKind, string>;
 
 /** The redirect map of a version, next to its pages (old page path -> current page path). */

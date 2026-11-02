@@ -46,6 +46,7 @@ export const sectionOf = (
         case 'variable':
             return 'constants';
         case 'interface':
+        case 'namespace':
         case 'typealias':
         case 'enumeration':
             return 'types';

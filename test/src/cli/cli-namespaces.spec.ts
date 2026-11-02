@@ -1,0 +1,120 @@
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import type { PageKind } from '../../../src/app/links/layout';
+import { shell, temporaryDir } from '../helpers';
+import { menuOf } from '../helpers/menu';
+import { pagesIn } from '../helpers/pages';
+
+/** The type layout (the default is the feature layout). */
+const TYPE_LAYOUT = path.resolve('test/fixtures/type-layout.compodocxrc.json');
+const TSCONFIG = './test/fixtures/semantic-library/tsconfig.json';
+
+const tmp = temporaryDir();
+
+const generate = (folder: string, ...flags: string[]): void => {
+    tmp.create(folder);
+    shell('node', [
+        './bin/index-cli.js',
+        ...flags,
+        '-p',
+        TSCONFIG,
+        '--disableSearch',
+        '--no-multiVersion',
+        '-d',
+        folder
+    ]);
+};
+
+describe('CLI namespaces', () => {
+    const featureFolder = `${tmp.name}-namespaces-feature`;
+    const typeFolder = `${tmp.name}-namespaces-type`;
+    const pages = pagesIn(featureFolder);
+    const typePages = pagesIn(typeFolder);
+    const read = (kind: PageKind, name: string): string =>
+        fs.readFileSync(path.join(featureFolder, pages.of(kind, name)), 'utf8');
+    /** Link from the page of `kind`/`name` to the namespace page of `ns`. */
+    const namespaceHref = (kind: PageKind, name: string, ns: string): string =>
+        pages.href('namespace', ns, pages.depthOf(pages.of(kind, name)));
+
+    beforeAll(() => {
+        generate(featureFolder);
+        generate(typeFolder, '-c', TYPE_LAYOUT);
+    });
+    afterAll(() => {
+        tmp.clean(featureFolder);
+        tmp.clean(typeFolder);
+    });
+
+    it('writes a namespace page that lists and links its members', () => {
+        const html = read('namespace', 'Bridge');
+        expect(html).to.contain('<span>Bridge</span>');
+        expect(html).to.contain('cdx-badge--entity-namespace');
+        expect(html).to.contain('Typed access to a third-party private surface.');
+        const depth = pages.depthOf(pages.of('namespace', 'Bridge'));
+        expect(html).to.contain(
+            `<a href="${pages.href('interface', 'Bridge.StateSource', depth)}"><code>Bridge.StateSource</code></a>`
+        );
+        expect(html).to.contain(
+            `<a href="${pages.href('namespace', 'Bridge.Inner', depth)}"><code>Bridge.Inner</code></a>`
+        );
+        expect(html).to.contain(`import { Bridge } from '@sem/core';`);
+    });
+
+    it('titles both same-name members by their qualified name and links their namespace', () => {
+        for (const ns of ['Bridge', 'Other']) {
+            const name = `${ns}.StateSource`;
+            const html = read('interface', name);
+            expect(html).to.contain(
+                `<h1 class="cdx-entity-hero-name"><span class="">${name}</span>`
+            );
+            expect(html).to.contain(
+                `Namespace <a href="${namespaceHref('interface', name, ns)}"><code>${ns}</code></a>`
+            );
+        }
+    });
+
+    it('documents a member of a dotted namespace under its full chain', () => {
+        const html = read('variable', 'Bridge.Dotted.DOTTED');
+        expect(html).to.contain('Bridge.Dotted.DOTTED');
+        expect(html).to.contain(
+            `<a href="${namespaceHref('variable', 'Bridge.Dotted.DOTTED', 'Bridge.Dotted')}"><code>Bridge.Dotted</code></a>`
+        );
+    });
+
+    it('marks a module augmentation with its module', () => {
+        const html = read('interface', 'Matchers');
+        expect(html).to.contain('Augments <code>some-test-runner</code>');
+        expect(html).to.not.contain('data-cdx-namespace=');
+    });
+
+    it('never documents a member that is not exported', () => {
+        expect(() => pages.of('variable', 'Bridge.internalOnly')).toThrow();
+        expect(read('namespace', 'Bridge')).to.not.contain('internalOnly');
+        for (const folder of [featureFolder, typeFolder]) {
+            expect(menuOf(folder)).to.not.contain('internalOnly');
+            expect(fs.readFileSync(path.join(folder, 'js/entities.js'), 'utf8')).to.not.contain(
+                'internalOnly'
+            );
+        }
+    });
+
+    it('lists the namespace in the sidebar under both layouts', () => {
+        const featureMenu = menuOf(featureFolder);
+        expect(featureMenu).to.contain(`href="${pages.of('namespace', 'Bridge')}"`);
+        expect(featureMenu).to.contain('data-cdx-kind="namespace"');
+        expect(featureMenu).to.contain(
+            '<span class="cdx-menu-item-name">Bridge.StateSource</span>'
+        );
+        const typeMenu = menuOf(typeFolder);
+        expect(typeMenu).to.contain('id="namespaces-links"');
+        expect(typeMenu).to.contain(`href="${typePages.of('namespace', 'Bridge')}"`);
+        expect(typeMenu).to.contain('<span class="cdx-menu-item-name">Bridge.Inner</span>');
+    });
+
+    it('indexes the namespace for the command palette', () => {
+        const index = fs.readFileSync(path.join(featureFolder, 'js/entities.js'), 'utf8');
+        expect(index).to.contain(
+            `"Bridge":{"href":"${pages.of('namespace', 'Bridge')}","kind":"namespace"}`
+        );
+    });
+});

@@ -2,12 +2,14 @@ import Html from '@kitajs/html';
 import type { SymbolKey } from '../../app/compiler/semantic/model';
 import Configuration from '../../app/configuration';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
+import { qualifiedName } from '../../app/links/symbol-id';
 import { ExternalLinks } from '../blocks/ExternalLinks';
 import { ReferencedBySection, SymbolChips } from '../blocks/ReferencedBySection';
 import { RelatedSection } from '../blocks/RelatedSection';
 import { AxisBadges, entityAxes } from '../components/AxisBadges';
 import { entityFeature, FeatureCrumbs } from '../components/FeatureCrumbs';
 import { IconToken } from '../components/Icons';
+import { NamespaceLine } from '../components/NamespaceLine';
 import { WcagBadge } from '../components/WcagBadge';
 import {
     codeWrap,
@@ -96,11 +98,11 @@ const Hero = (item: any, depth: number): string => {
                     {FeatureCrumbs(feature, depth) ?? (
                         <li aria-current="page">{breadcrumbLabel}</li>
                     )}
-                    <li aria-current="page">{item.name}</li>
+                    <li aria-current="page">{qualifiedName(item)}</li>
                 </ol>
             </nav>
             <h1 class="cdx-entity-hero-name">
-                <span>{item.name}</span>
+                <span>{qualifiedName(item)}</span>
             </h1>
             <div class="cdx-entity-hero-badges">
                 <span class="cdx-badge cdx-badge--entity-token" title={t('token')}>
@@ -130,6 +132,7 @@ const Hero = (item: any, depth: number): string => {
             ) : (
                 ''
             )}
+            {NamespaceLine({ item, depth })}
             {ExternalLinks({
                 storybookUrl: item.storybookUrl,
                 figmaUrl: item.figmaUrl,

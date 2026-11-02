@@ -1,6 +1,7 @@
 import type { EntityKind } from '../engines/dependencies.engine';
 import {
     presentationKind,
+    qualifiedName,
     type SymbolId,
     symbolFile,
     symbolId,
@@ -74,15 +75,19 @@ export const isHidden = (view: DiView | undefined, id: SymbolId): boolean =>
 export const hiddenFilter = (view: DiView | undefined): ((id: SymbolId) => boolean) | undefined =>
     view && view.hidden.length > 0 ? id => isHidden(view, id) : undefined;
 
-type NamedItem = { readonly name?: unknown; readonly file?: unknown };
+type NamedItem = { readonly name?: unknown; readonly file?: unknown; readonly namespace?: unknown };
 
-/** The table id of the engine object of `kind` (its `name`, read from its `file`). */
+/** The table id of the engine object of `kind` (its qualified name, read from its `file`). */
 export const itemId = (kind: EntityKind | TableKind, item: NamedItem): SymbolId | undefined => {
     if (typeof item.name !== 'string') {
         return undefined;
     }
     const file = typeof item.file === 'string' ? symbolFile(item.file, process.cwd()) : '';
-    return symbolId({ kind: presentationKind(kind as EntityKind, item), file, name: item.name });
+    return symbolId({
+        kind: presentationKind(kind as EntityKind, item),
+        file,
+        name: qualifiedName(item)
+    });
 };
 
 /** The placement of the engine object of `kind`. */

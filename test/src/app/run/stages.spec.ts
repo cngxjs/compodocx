@@ -58,6 +58,7 @@ const ALL_KEYS = [
     'interface',
     'appConfig',
     'utilities',
+    'namespace',
     'feature',
     'style',
     'designTokens',
@@ -89,6 +90,11 @@ const context = (mode: RunMode, mainData: Record<string, unknown> = {}): RunCont
         generators: {}
     }) as unknown as RunContext;
 
+/** A symbol table holding one namespace, as the namespace stage reads it. */
+const WITH_NAMESPACE = {
+    byId: new Map([['namespace:a.ts#Ns', { ref: { kind: 'namespace', file: 'a.ts', name: 'Ns' } }]])
+};
+
 const keys = (ctx: RunContext, counts: SourceCounts) =>
     selectPrepareStages(ctx, counts).map(stage => stage.key);
 
@@ -107,6 +113,11 @@ describe('prepare stage table', () => {
         expect(keys(context('full', { styles: { files: [unlinked] } }), EMPTY)).toContain('style');
     });
 
+    it('runs the namespace stage only when the table holds a namespace', () => {
+        expect(keys(context('full'), EVERY_KIND)).not.toContain('namespace');
+        expect(keys(context('full', { symbols: WITH_NAMESPACE }), EMPTY)).toContain('namespace');
+    });
+
     it('selects only the unconditional stages for an empty full run', () => {
         expect(keys(context('full'), EMPTY)).toEqual([
             'component',
@@ -120,8 +131,9 @@ describe('prepare stage table', () => {
         ]);
     });
 
-    it('selects all 28 stages in table order for a full run with every kind', () => {
+    it('selects all 29 stages in table order for a full run with every kind', () => {
         const ctx = context('full', {
+            symbols: WITH_NAMESPACE,
             unitTestCoverage: 'coverage.json',
             includes: 'docs',
             customLogo: 'brand/logo.svg',
@@ -178,6 +190,7 @@ describe('prepare stage table', () => {
 
     it('never selects unit test coverage or external includes in diff mode', () => {
         const ctx = context('diff', {
+            symbols: WITH_NAMESPACE,
             unitTestCoverage: 'coverage.json',
             includes: 'docs',
             customLogo: 'brand/logo.svg',

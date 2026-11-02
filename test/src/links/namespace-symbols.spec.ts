@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import Configuration from '../../../src/app/configuration';
 import { buildRedirects } from '../../../src/app/links/redirects';
 import {
     buildSymbolTable,
@@ -7,6 +8,7 @@ import {
     lookupName,
     placeInFolders
 } from '../../../src/app/links/symbol-table';
+import { parseDescription } from '../../../src/templates/helpers/parse-description';
 
 const FILE = 'src/bridge.ts';
 
@@ -76,5 +78,45 @@ describe('namespace member symbols', () => {
         const redirects = buildRedirects({ table, features: [], pages: new Set() });
         expect(redirects['core/Deep.html']).toBe('core/Bridge.Inner.Deep.html');
         expect(redirects['core/StateSource.html']).toBe('core/Bridge.StateSource.html');
+    });
+
+    describe('the namespace itself', () => {
+        const withNamespaces = placeInFolders(
+            buildSymbolTable(
+                {
+                    interfaces: [
+                        { name: 'StateSource', file: FILE, namespace: 'Bridge', type: 'interface' }
+                    ],
+                    namespaces: [
+                        { name: 'Bridge', file: FILE, type: 'namespace' },
+                        { name: 'Inner', file: FILE, namespace: 'Bridge', type: 'namespace' }
+                    ]
+                } as never,
+                { cwd: '/repo' }
+            ),
+            () => ['core']
+        );
+
+        afterEach(() => {
+            Configuration.mainData.symbols = undefined;
+        });
+
+        it('is the doc-link target of its name', () => {
+            expect(lookupEntry(withNamespaces, 'Bridge', 'doc-link')?.ref.kind).toBe('namespace');
+            expect(lookupEntry(withNamespaces, 'Bridge.Inner', 'doc-link')?.ref.kind).toBe(
+                'namespace'
+            );
+            expect(lookupEntry(withNamespaces, 'Bridge', 'entity-index')?.fileName).toBe('Bridge');
+        });
+
+        it('resolves {@link Ns} to the namespace page', () => {
+            Configuration.mainData.symbols = withNamespaces;
+            expect(parseDescription('see {@link Bridge}', 1)).toBe(
+                'see <a href="../core/Bridge.html">Bridge</a>'
+            );
+            expect(parseDescription('see {@link Bridge.StateSource}', 1)).toContain(
+                'href="../core/Bridge.StateSource.html"'
+            );
+        });
     });
 });

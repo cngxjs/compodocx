@@ -22,6 +22,10 @@ export { InjectablePageGenerator } from './injectable-page-generator';
 export { InterceptorPageGenerator } from './interceptor-page-generator';
 export { InterfacePageGenerator } from './interface-page-generator';
 export { MiscellaneousPageGenerator } from './miscellaneous-page-generator';
+export {
+    createNamespacePageGenerator,
+    type NamespacePageGenerator
+} from './namespace-page-generator';
 export { NavTabsResolver } from './nav-tabs';
 export { OverviewPageGenerator } from './overview-page-generator';
 export { PackageDependenciesPageGenerator } from './package-dependencies-page-generator';

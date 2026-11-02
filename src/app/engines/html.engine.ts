@@ -26,6 +26,7 @@ import {
     MiscVariablePage,
     renderProviderPage
 } from '../../templates/pages/MiscDetailPage';
+import { NamespacePage } from '../../templates/pages/NamespacePage';
 import { Overview } from '../../templates/pages/Overview';
 import { PackageDependencies } from '../../templates/pages/PackageDependencies';
 import { PackageProperties } from '../../templates/pages/PackageProperties';
@@ -72,6 +73,7 @@ const CONTEXT_TEMPLATE_MAP: Record<string, string> = {
     variable: 'variable',
     typealias: 'typealias',
     enumeration: 'enumeration',
+    namespace: 'namespace',
     coverage: 'coverage-report',
     'unit-test': 'unit-test-report',
     'additional-page': 'additional-page',
@@ -175,6 +177,8 @@ export class HtmlEngine {
                 return MiscTypealiasPage(data);
             case 'enumeration':
                 return MiscEnumerationPage(data);
+            case 'namespace':
+                return NamespacePage(data);
             case 'component':
                 data.relationships = DependenciesEngine.getRelationships(data.component?.name);
                 return ComponentPage(data);

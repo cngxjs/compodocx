@@ -677,11 +677,11 @@ describe('CLI simple generation - big app', () => {
         expect(file).to.contain(
             `href="${pages.of('directive', 'BSBO.Events.DoNothingDirective2')}"`
         );
-        expect(file).to.contain('>DoNothingDirective2');
+        expect(file).to.contain('>BSBO.Events.DoNothingDirective2');
         expect(file).to.contain(`href="${pages.of('injectable', 'EmitterService')}"`);
         expect(file).to.contain('>EmitterService');
         expect(file).to.contain(`href="${pages.of('pipe', 'BSBO.Events.FirstUpperPipe2')}"`);
-        expect(file).to.contain('>FirstUpperPipe2');
+        expect(file).to.contain('>BSBO.Events.FirstUpperPipe2');
     });
 
     it('should support component metadata preserveWhiteSpaces', () => {

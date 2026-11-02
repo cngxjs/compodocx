@@ -65,7 +65,8 @@ export const buildRedirects = (input: RedirectInput): Redirects => {
     const names = legacyNames(input.table);
     for (const entry of input.table.byId.values()) {
         const link = placedLink(input.table, entry, input.di);
-        if (!link) {
+        // Namespace pages are new: no earlier version wrote one.
+        if (!link || entry.ref.kind === 'namespace') {
             continue;
         }
         const to = withHref(hrefFor(link.target, 0, link.anchor));

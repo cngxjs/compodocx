@@ -52,6 +52,7 @@ export interface EngineData {
     readonly pipes?: List;
     readonly classes?: List;
     readonly interfaces?: List;
+    readonly namespaces?: List;
     readonly guards?: List;
     readonly interceptors?: List;
     readonly entities?: List;
@@ -63,7 +64,10 @@ export interface EngineData {
     };
 }
 
-const listOf = (data: EngineData, kind: EntityKind): List => {
+/** An engine list: an entity kind, or the namespaces store. */
+type EngineKind = EntityKind | 'namespace';
+
+const listOf = (data: EngineData, kind: EngineKind): List => {
     switch (kind) {
         case 'component':
             return data.components;
@@ -81,6 +85,8 @@ const listOf = (data: EngineData, kind: EntityKind): List => {
             return data.classes;
         case 'interface':
             return data.interfaces;
+        case 'namespace':
+            return data.namespaces;
         case 'guard':
             return data.guards;
         case 'interceptor':
@@ -99,7 +105,7 @@ const listOf = (data: EngineData, kind: EntityKind): List => {
 };
 
 /** Kind order of the table's `byName` lists. */
-const TABLE_ORDER: readonly EntityKind[] = [
+const TABLE_ORDER: readonly EngineKind[] = [
     'component',
     'directive',
     'injectable',
@@ -108,6 +114,7 @@ const TABLE_ORDER: readonly EntityKind[] = [
     'pipe',
     'class',
     'interface',
+    'namespace',
     'guard',
     'interceptor',
     'entity',
@@ -141,7 +148,7 @@ export interface BuildOptions {
 
 export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): SymbolTable => {
     const cwd = options.cwd ?? process.cwd();
-    const refOf = (kind: EntityKind, item: Named): SymbolRef => ({
+    const refOf = (kind: EngineKind, item: Named): SymbolRef => ({
         kind: presentationKind(kind, item),
         file: typeof item.file === 'string' ? symbolFile(item.file, cwd) : '',
         name: qualifiedName(item)
@@ -294,6 +301,7 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
         'guard',
         'resolver',
         'interface',
+        'namespace',
         'class',
         'component',
         'entity',
@@ -314,6 +322,7 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
         'guard',
         'resolver',
         'interface',
+        'namespace',
         'pipe',
         'class',
         'enumeration',
@@ -331,6 +340,7 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
         'guard',
         'resolver',
         'interface',
+        'namespace',
         'pipe',
         'class',
         'enumeration',
@@ -347,6 +357,7 @@ const POLICY_KINDS: Readonly<Record<LookupPolicy, readonly TableKind[]>> = {
         'pipe',
         'class',
         'interface',
+        'namespace',
         'guard',
         'interceptor',
         'resolver',
