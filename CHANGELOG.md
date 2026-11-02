@@ -25,6 +25,8 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 - **One table style.** Generated tables (feature pages, utilities, dependency injection, routes, namespaces) and markdown tables (README, additional pages, descriptions) share one look: no box and no header strip, a muted small-caps header over one rule and hairlines between rows. The name column of generated tables takes 30 % and does not wrap, so the description columns of the tables on one page line up.
 - **One inline code style.** Inline code in READMEs, additional pages and descriptions shares one chip (a light tint of the code colour, no border); code in headings takes the heading style. Host directive inputs and slot texts use the same chip. The rule has the specificity of a bare `code` selector, so a theme restyles every surface with one rule.
 - **Member blocks.** Properties, inputs, outputs, methods, accessors and derived state are laid out in two columns: name, type and badges on the left, description, code, parameters and source link on the right, with a hairline between members. Below 640 px the columns stack. Host binding and listener tables use the shared table style.
+- **Theming members.** Tokens and mixins on the Theming tab and on style pages use the two-column member layout of the API tab. A mixin signature is highlighted like a method signature, its parameters are `@param` rows, and a deprecation reason reads like the one of an API member.
+- **Stacked source viewers.** Several style files on the Styles tab no longer touch.
 - **Highlighted signatures.** Method, accessor and function signatures are syntax-highlighted like property values and keep their type links. They follow the description and have no copy button.
 
 ### Fixed
@@ -34,6 +36,7 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 - **Multi-line tags in descriptions.** The second and later lines of a block tag (`@slot`, `@deprecated`, ...) showed up in the description of the symbol. The text of a tag now runs until the next tag, code fences included; `@example` and `@see` stay part of the description.
 - **Content slots.** Slot name and text ran together, and markdown in the slot text was shown raw. Every slot is a metadata row now, its text rendered as inline markdown (`{@link}` included).
 - **Link hovers.** The kind icon of an API index entry and the cards under "Used by" are no longer underlined on hover; only the name of an index entry is.
+- **Index signatures.** The index entry and the member row of an index signature were empty, because it has no name. Both show the signature (`[key: string]`) now, the row with the value type below it, and the index group has a translated label.
 - **`@param` descriptions.** A description written as `@param name - text` no longer starts with the dash.
 - **Signal queries.** `contentChild<TemplateRef<unknown>>()`, `contentChildren<...>()` and `viewChild.required<T>()` were documented as plain properties of type `unknown`. Type arguments may nest now and `.required` may stand before them; the members get their query badge and type.
 - **`outputFromObservable`.** Members created with `outputFromObservable()` from `@angular/core/rxjs-interop` are listed as outputs (with their `alias`) instead of properties.
