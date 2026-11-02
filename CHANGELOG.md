@@ -23,12 +23,15 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 - **Module augmentations are marked.** An interface in `declare module 'vitest' { ... }` or `declare global { ... }` is documented with an "Augments `vitest`" line instead of posing as an own interface.
 - **Theming page heros.** The design tokens page and the style file pages show the palette icon, a breadcrumb, a kind badge, a deprecated count and a counts line (tokens, style files, mixins, themed symbols) like the other pages. The file line of a style page gets the file icon and is hidden with `--disableFilePath`.
 - **One table style.** Generated tables (feature pages, utilities, dependency injection, routes, namespaces) and markdown tables (README, additional pages, descriptions) share one look: no box and no header strip, a muted small-caps header over one rule and hairlines between rows. The name column of generated tables takes 30 % and does not wrap, so the description columns of the tables on one page line up.
-- **One inline code style.** Inline code in READMEs, additional pages and descriptions shares one chip (a light tint of the code colour, no border); code in headings takes the heading style. The rule has the specificity of a bare `code` selector, so a theme restyles every surface with one rule.
+- **One inline code style.** Inline code in READMEs, additional pages and descriptions shares one chip (a light tint of the code colour, no border); code in headings takes the heading style. Host directive inputs and slot texts use the same chip. The rule has the specificity of a bare `code` selector, so a theme restyles every surface with one rule.
 
 ### Fixed
 
 - **Dotted namespaces.** `namespace A.B { ... }` was skipped. Its members are documented as `A.B.Member`, and `A` and `A.B` get namespace pages.
 - **`publicApiOnly` with namespaces.** The members of a namespace that the public API exports were dropped, because the declaration files only name the namespace. They are kept now, nested namespaces included. A module augmentation is kept when its file declares a public symbol.
+- **Multi-line tags in descriptions.** The second and later lines of a block tag (`@slot`, `@deprecated`, ...) showed up in the description of the symbol. The text of a tag now runs until the next tag, code fences included; `@example` and `@see` stay part of the description.
+- **Content slots.** Slot name and text ran together, and markdown in the slot text was shown raw. Every slot is a metadata row now, its text rendered as inline markdown (`{@link}` included).
+- **Link hovers.** The kind icon of an API index entry and the cards under "Used by" are no longer underlined on hover; only the name of an index entry is.
 
 ## [0.14.0] - 2026-10-30
 
