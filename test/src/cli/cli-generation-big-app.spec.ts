@@ -346,7 +346,8 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should support indexable for class', () => {
-        expect(todoClassFile).to.contain('<code>[index: number]');
+        expect(todoClassFile).to.match(/class="cdx-io-member" id="index-index-number"/);
+        expect(todoClassFile).to.match(/class="cdx-io-member-name"[^>]*>\[index: number\]/);
     });
 
     it('should have correct links for {@link into main description and constructor}', () => {

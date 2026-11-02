@@ -5,7 +5,7 @@ export type { CoverageStats } from './coverage-stats';
 export { computeCoverageStats } from './coverage-stats';
 export { functionSignature, highlightedSignature } from './function-signature';
 export { t } from './i18n';
-export { indexableSignature } from './indexable-signature';
+export { indexableSignature, indexSignatureAnchor } from './indexable-signature';
 export type { ComponentPlaygroundBlock } from './jsdoc';
 export {
     exampleComments,

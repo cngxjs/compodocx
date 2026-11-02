@@ -1,6 +1,13 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
-import { indexableSignature, isTabEnabled, linkTypeHtml, parseDescription, t } from '../helpers';
+import {
+    indexableSignature,
+    indexSignatureAnchor,
+    isTabEnabled,
+    linkTypeHtml,
+    parseDescription,
+    t
+} from '../helpers';
 
 type BlockIndexSignaturesProps = {
     readonly indexables: any[];
@@ -10,6 +17,10 @@ type BlockIndexSignaturesProps = {
     readonly navTabs?: any[];
 };
 
+/**
+ * Index signatures as member rows: the signature (`[key: string]`) stands in
+ * for the name, the value type below it, as for properties.
+ */
 export const BlockIndexSignatures = (props: BlockIndexSignaturesProps): string => {
     const custom = renderCustomTemplate('block-index-signatures', props);
     if (custom !== null) {
@@ -23,29 +34,41 @@ export const BlockIndexSignatures = (props: BlockIndexSignaturesProps): string =
                     #
                 </a>
             </h3>
-            {props.indexables.map((idx: any) => (
-                <div class="cdx-io-member" id={idx.name ?? ''}>
-                    <pre class="cdx-derived-body">
-                        <code>
-                            {indexableSignature(idx)}:{' '}
-                            {linkTypeHtml(idx.returnType, { depth: props.depth })}
-                        </code>
-                    </pre>
-                    {idx.description && (
-                        <div class="cdx-io-member-desc">
-                            {parseDescription(idx.description, props.depth)}
+            {props.indexables.map((idx: any) => {
+                const anchor = indexSignatureAnchor(idx);
+                return (
+                    <div class="cdx-io-member" id={anchor}>
+                        <div class="cdx-io-member-head">
+                            <div class="cdx-io-member-title">
+                                <span class="cdx-io-member-name">
+                                    {Html.escapeHtml(indexableSignature(idx))}
+                                    <a class="cdx-member-permalink" href={`#${anchor}`}>
+                                        #
+                                    </a>
+                                </span>
+                                {idx.returnType && (
+                                    <span class="cdx-io-member-type">
+                                        {linkTypeHtml(idx.returnType, { depth: props.depth })}
+                                    </span>
+                                )}
+                            </div>
                         </div>
-                    )}
-                    {idx.line && isTabEnabled(props.navTabs, 'source') && (
-                        <div class="cdx-io-member-source">
-                            {/* biome-ignore lint/a11y/useValidAnchor: href rewritten by client JS via data-cdx-line */}
-                            <a href="#" data-cdx-line={String(idx.line)}>
-                                {props.file}:{idx.line}
-                            </a>
-                        </div>
-                    )}
-                </div>
-            ))}
+                        {idx.description && (
+                            <div class="cdx-io-member-desc">
+                                {parseDescription(idx.description, props.depth)}
+                            </div>
+                        )}
+                        {idx.line && isTabEnabled(props.navTabs, 'source') && (
+                            <div class="cdx-io-member-source">
+                                {/* biome-ignore lint/a11y/useValidAnchor: href rewritten by client JS via data-cdx-line */}
+                                <a href="#" data-cdx-line={String(idx.line)}>
+                                    {props.file}:{idx.line}
+                                </a>
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
         </section>
     ) as string;
 };
