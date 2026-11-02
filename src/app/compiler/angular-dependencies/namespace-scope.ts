@@ -2,10 +2,13 @@ import { ts } from 'ts-morph';
 
 /**
  * Where a declaration sits: inside a namespace (`namespace` is the dotted
- * chain, e.g. `Outer.Inner`). Top-level code has none.
+ * chain, e.g. `Outer.Inner`) or inside a module augmentation (`augments` is
+ * the augmented module, `'global'` for `declare global`). Top-level code has
+ * neither.
  */
 export interface NamespaceScope {
     readonly namespace?: string;
+    readonly augments?: string;
 }
 
 /** One namespace a module declaration opens, outermost first. */
@@ -28,15 +31,24 @@ export interface EnteredModule {
 export const qualify = (scope: NamespaceScope, name: string): string =>
     scope.namespace ? `${scope.namespace}.${name}` : name;
 
+const augmentationTarget = (node: ts.ModuleDeclaration): string | undefined => {
+    if (node.flags & ts.NodeFlags.GlobalAugmentation) {
+        return 'global';
+    }
+    return ts.isStringLiteral(node.name) ? node.name.text : undefined;
+};
+
 /**
- * The scope of a module declaration's body. An identifier opens a namespace,
- * a dotted declaration (`namespace A.B {}`) opens one per segment; a
- * string-literal name or `declare global` keeps the scope.
+ * The scope of a module declaration's body. A string-literal name or
+ * `declare global` is an augmentation (its members are not namespaced); an
+ * identifier opens a namespace, a dotted declaration (`namespace A.B {}`)
+ * opens one per segment.
  */
 export const enterModule = (node: ts.ModuleDeclaration, scope: NamespaceScope): EnteredModule => {
-    if (!ts.isIdentifier(node.name) || node.flags & ts.NodeFlags.GlobalAugmentation) {
+    const augments = augmentationTarget(node);
+    if (augments !== undefined) {
         const body = node.body && ts.isModuleBlock(node.body) ? node.body : undefined;
-        return { scope, namespaces: [], body };
+        return { scope: { augments }, namespaces: [], body };
     }
     const namespaces: OpenedNamespace[] = [];
     let parent = scope.namespace;
@@ -50,7 +62,23 @@ export const enterModule = (node: ts.ModuleDeclaration, scope: NamespaceScope): 
         current = current.body;
     }
     const body = current.body && ts.isModuleBlock(current.body) ? current.body : undefined;
-    return { scope: { namespace: parent }, namespaces, body };
+    const inner: NamespaceScope = scope.augments
+        ? { namespace: parent, augments: scope.augments }
+        : { namespace: parent };
+    return { scope: inner, namespaces, body };
+};
+
+/** Whether a declaration sits inside a `declare namespace` (members exported implicitly). */
+export const inAmbientNamespace = (node: ts.Node): boolean => {
+    for (let current = node.parent; current; current = current.parent) {
+        if (
+            ts.isModuleDeclaration(current) &&
+            ts.getCombinedModifierFlags(current) & ts.ModifierFlags.Ambient
+        ) {
+            return true;
+        }
+    }
+    return false;
 };
 
 /** Copies the scope onto an engine object; a no-op at the top level. */
@@ -60,6 +88,9 @@ export const withScope = <T>(dep: T, scope: NamespaceScope): T => {
     }
     if (scope.namespace) {
         (dep as { namespace?: string }).namespace = scope.namespace;
+    }
+    if (scope.augments) {
+        (dep as { augments?: string }).augments = scope.augments;
     }
     return dep;
 };

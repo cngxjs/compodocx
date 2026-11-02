@@ -7,6 +7,8 @@ export interface IDep {
     name: string;
     /** Dotted chain of the enclosing namespaces, e.g. `Outer.Inner`. */
     namespace?: string;
+    /** Module a `declare module 'x'` / `declare global` block augments (`'global'`). */
+    augments?: string;
     wcagLevel?: WcagLevel;
     a11yNote?: string;
     taggedSelector?: string;

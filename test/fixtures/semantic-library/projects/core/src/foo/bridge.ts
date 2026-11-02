@@ -35,3 +35,10 @@ export namespace Other {
         other: true;
     }
 }
+
+declare module 'some-test-runner' {
+    /** Matchers the test runner gains. */
+    interface Matchers<R> {
+        toBeBridged(): R;
+    }
+}

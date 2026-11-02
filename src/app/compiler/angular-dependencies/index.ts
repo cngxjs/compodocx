@@ -36,6 +36,7 @@ import { JsdocTags } from './jsdoc-tags';
 import { MetadataPredicates } from './metadata-predicates';
 import {
     enterModule,
+    inAmbientNamespace,
     type NamespaceScope,
     namespaceMembers,
     type OpenedNamespace,
@@ -361,7 +362,9 @@ export class AngularDependencies extends FrameworkDependencies {
                 // the namespace exports.
                 const isFileLocal = (declaration: ts.Node, name: string): boolean => {
                     if (scope.namespace) {
-                        if (hasExportKeyword(declaration)) {
+                        // Members of an ambient namespace (`declare namespace`) are exported
+                        // without the keyword.
+                        if (hasExportKeyword(declaration) || inAmbientNamespace(declaration)) {
                             return false;
                         }
                         logger.debug(

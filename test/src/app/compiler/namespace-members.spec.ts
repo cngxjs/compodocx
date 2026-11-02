@@ -35,6 +35,9 @@ export namespace Outer.Dotted { export enum Mode { A } }
 export namespace Other { export interface Shape { other: true; } }
 namespace Local { export const NEVER = 1; }
 export const TOP = 1;
+export declare namespace Ambient { const IMPLICIT: number; }
+declare module 'some-runner' { interface Matchers<R> { toRun(): R; } }
+declare global { interface Window { bridge?: unknown; } }
 `
         );
         const deps = new AngularDependencies([path.join(tmpDir, 'module.ts')], {
@@ -57,8 +60,17 @@ export const TOP = 1;
     });
 
     it('keeps the namespace chain on exported members', () => {
-        expect(scoped(result.interfaces)).toEqual(['Outer.Shape', 'Other.Shape']);
-        expect(scoped(result.miscellaneous.variables)).toEqual(['Outer.VALUE', 'TOP']);
+        expect(scoped(result.interfaces)).toEqual([
+            'Outer.Shape',
+            'Other.Shape',
+            'Matchers',
+            'Window'
+        ]);
+        expect(scoped(result.miscellaneous.variables)).toEqual([
+            'Outer.VALUE',
+            'TOP',
+            'Ambient.IMPLICIT'
+        ]);
         expect(scoped(result.miscellaneous.typealiases)).toEqual(['Outer.Inner.Deep']);
         expect(scoped(result.miscellaneous.functions)).toEqual(['Outer.read']);
         expect(scoped(result.miscellaneous.enumerations)).toEqual(['Outer.Dotted.Mode']);
@@ -93,5 +105,14 @@ export const TOP = 1;
             'Outer.read'
         ]);
         expect(members('Outer.Dotted')).toEqual(['Outer.Dotted.Mode']);
+    });
+
+    it('marks module augmentation members with their target, never with a namespace', () => {
+        const byName = (name: string) => result.interfaces.find(item => item.name === name);
+        expect(byName('Matchers').augments).toBe('some-runner');
+        expect(byName('Window').augments).toBe('global');
+        expect(byName('Matchers').namespace).toBeUndefined();
+        expect(scoped(result.namespaces)).not.toContain('some-runner');
+        expect(byName('Shape').augments).toBeUndefined();
     });
 });
