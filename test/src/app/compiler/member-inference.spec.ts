@@ -14,7 +14,7 @@ describe('member inference', () => {
         const file = path.join(tmpDir, 'box.ts');
         fs.writeFileSync(
             file,
-            `import { Component, afterRenderEffect, computed, effect, input, linkedSignal, signal } from '@angular/core';
+            `import { Component, afterRenderEffect, computed, effect, input, linkedSignal, model, signal } from '@angular/core';
 import { Item } from './item';
 
 @Component({ selector: 'app-box', template: '' })
@@ -44,6 +44,17 @@ export class BoxComponent {
     readonly firstName = computed(() => this.items()[0].name);
     readonly name = input('box');
     readonly upper = computed(() => this.name().toUpperCase());
+    readonly hint = input<string>();
+    readonly hintText = computed(() => this.hint());
+    readonly code = input.required<string>();
+    readonly codeLength = computed(() => this.code().length);
+    readonly disabled = input(false, { transform: (v: string | boolean) => v !== 'false' && v !== false });
+    readonly enabled = computed(() => !this.disabled());
+    readonly zoom = model(0);
+    readonly zoomed = computed(() => this.zoom() * 2);
+    readonly selected = model.required<Item>();
+    readonly current = computed(() => this.selected());
+    readonly currentName = computed(() => this.selected().name);
 
     async save() {}
     reset() {
@@ -125,7 +136,27 @@ export class Queue {
 
     it('leaves the type out when a type from another file or an Angular API is needed', () => {
         expect(typeOf('firstName')).toBeUndefined();
-        expect(typeOf('upper')).toBeUndefined();
+    });
+
+    it('reads the value type of input() and model() inside a callback', () => {
+        expect(typeOf('upper')).toBe('string');
+        expect(typeOf('hintText')).toBe('string | undefined');
+        expect(typeOf('codeLength')).toBe('number');
+        expect(typeOf('enabled')).toBe('boolean');
+        expect(typeOf('zoomed')).toBe('number');
+        expect(typeOf('current')).toBe('Item');
+    });
+
+    it('keeps the type of input() and model() members from their type argument', () => {
+        const inputTypeOf = (name: string) =>
+            deps.components[0].inputsClass.find((p: any) => p.name === name)?.type;
+        expect(inputTypeOf('code')).toBe('string');
+        expect(inputTypeOf('selected')).toBe('Item');
+        expect(inputTypeOf('zoom')).toBeUndefined();
+    });
+
+    it('leaves the type out when a model() value of a type from another file is read', () => {
+        expect(typeOf('currentName')).toBeUndefined();
     });
 
     const returnTypeOf = (name: string) =>

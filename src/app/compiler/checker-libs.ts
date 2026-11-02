@@ -38,6 +38,52 @@ const ANGULAR_SIGNALS = `declare module '@angular/core' {
         computation: (source: NoInfer<S>, previous?: { source: NoInfer<S>; value: NoInfer<D> }) => D;
         equal?: unknown;
     }): WritableSignal<D>;
+
+    interface InputOptions<T, TransformT> {
+        alias?: string;
+        transform?: (v: TransformT) => T;
+        debugName?: string;
+    }
+    type InputOptionsWithoutTransform<T> = Omit<InputOptions<T, T>, 'transform'> & {
+        transform?: undefined;
+    };
+    type InputOptionsWithTransform<T, TransformT> = Required<Pick<InputOptions<T, TransformT>, 'transform'>> & InputOptions<T, TransformT>;
+    const INPUT_SIGNAL_BRAND_READ_TYPE: unique symbol;
+    const INPUT_SIGNAL_BRAND_WRITE_TYPE: unique symbol;
+    export interface InputSignalWithTransform<T, TransformT> extends Signal<T> {
+        [INPUT_SIGNAL_BRAND_READ_TYPE]: T;
+        [INPUT_SIGNAL_BRAND_WRITE_TYPE]: TransformT;
+    }
+    export interface InputSignal<T> extends InputSignalWithTransform<T, T> {}
+    interface InputFunction {
+        <T>(): InputSignal<T | undefined>;
+        <T>(initialValue: T, opts?: InputOptionsWithoutTransform<T>): InputSignal<T>;
+        <T>(initialValue: undefined, opts: InputOptionsWithoutTransform<T>): InputSignal<T | undefined>;
+        <T, TransformT>(initialValue: T, opts: InputOptionsWithTransform<T, TransformT>): InputSignalWithTransform<T, TransformT>;
+        <T, TransformT>(initialValue: undefined, opts: InputOptionsWithTransform<T | undefined, TransformT>): InputSignalWithTransform<T | undefined, TransformT>;
+        required: {
+            <T>(opts?: InputOptionsWithoutTransform<T>): InputSignal<T>;
+            <T, TransformT>(opts: InputOptionsWithTransform<T, TransformT>): InputSignalWithTransform<T, TransformT>;
+        };
+    }
+    export const input: InputFunction;
+
+    interface OutputRef<T> {
+        subscribe(callback: (value: T) => void): { unsubscribe(): void };
+    }
+    interface ModelOptions {
+        alias?: string;
+        debugName?: string;
+    }
+    export interface ModelSignal<T> extends WritableSignal<T>, InputSignal<T>, OutputRef<T> {}
+    interface ModelFunction {
+        <T>(): ModelSignal<T | undefined>;
+        <T>(initialValue: T, opts?: ModelOptions): ModelSignal<T>;
+        required: {
+            <T>(opts?: ModelOptions): ModelSignal<T>;
+        };
+    }
+    export const model: ModelFunction;
 }
 `;
 
