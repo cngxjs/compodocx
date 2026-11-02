@@ -35,6 +35,9 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 - **Content slots.** Slot name and text ran together, and markdown in the slot text was shown raw. Every slot is a metadata row now, its text rendered as inline markdown (`{@link}` included).
 - **Link hovers.** The kind icon of an API index entry and the cards under "Used by" are no longer underlined on hover; only the name of an index entry is.
 - **`@param` descriptions.** A description written as `@param name - text` no longer starts with the dash.
+- **Signal queries.** `contentChild<TemplateRef<unknown>>()`, `contentChildren<...>()` and `viewChild.required<T>()` were documented as plain properties of type `unknown`. Type arguments may nest now and `.required` may stand before them; the members get their query badge and type.
+- **`outputFromObservable`.** Members created with `outputFromObservable()` from `@angular/core/rxjs-interop` are listed as outputs (with their `alias`) instead of properties.
+- **`styleUrlsData` in the JSON export.** The schema declared a string, but the export writes the list of style files (`{ data, styleUrl }`). Schema and types now describe the list, and a component without style files gets an empty list instead of an empty string.
 
 ## [0.14.0] - 2026-10-30
 
