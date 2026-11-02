@@ -74,7 +74,8 @@ describe('CLI public-api-only option', () => {
                 '-p',
                 './test/fixtures/library/libs/my-lib/tsconfig.lib.json',
                 '-d',
-                distFolder
+                distFolder,
+                '--verbose'
             ]);
 
             if (hasStderrError(ls.stderr.toString())) {
@@ -133,7 +134,8 @@ describe('CLI public-api-only option', () => {
                 '-d',
                 distFolder,
                 '--publicApiOnly',
-                './test/fixtures/library/dist/libs/my-lib'
+                './test/fixtures/library/dist/libs/my-lib',
+                '--verbose'
             ]);
 
             if (hasStderrError(ls.stderr.toString())) {

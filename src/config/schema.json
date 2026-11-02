@@ -67,6 +67,13 @@
             "default": false,
             "examples": [false]
         },
+        "verbose": {
+            "$id": "/properties/verbose",
+            "type": "boolean",
+            "title": "Also print debug lines (one per symbol found, file scanned, symbol skipped)",
+            "default": false,
+            "examples": [true]
+        },
         "serve": {
             "$id": "/properties/serve",
             "type": "boolean",

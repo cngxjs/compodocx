@@ -40,6 +40,7 @@ describe('defineFlags', () => {
             '--assetsFolder',
             '--open',
             '--silent',
+            '--verbose',
             '--serve',
             '--host',
             '--port',

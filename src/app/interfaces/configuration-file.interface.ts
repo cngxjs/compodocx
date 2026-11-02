@@ -13,6 +13,7 @@ export interface ConfigurationFileInterface {
     includesName: string;
     includesLabels?: string;
     silent: boolean;
+    verbose?: boolean;
     serve;
     host: string;
     port: number;

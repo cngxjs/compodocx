@@ -39,6 +39,11 @@ export function defineFlags(program: Command): Command {
             COMPODOC_DEFAULTS.silent
         )
         .option(
+            '--verbose',
+            'Also print debug lines (one per symbol found, file scanned, symbol skipped)',
+            COMPODOC_DEFAULTS.verbose
+        )
+        .option(
             '-s, --serve',
             'Serve generated documentation (default http://localhost:8080/)',
             COMPODOC_DEFAULTS.serve

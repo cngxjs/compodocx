@@ -29,6 +29,8 @@ const formatArgs = (args: unknown[]): string => {
 
 export type Logger = {
     silent: boolean;
+    /** When true, `debug` lines are printed too (`--verbose`). */
+    verbose: boolean;
     /**
      * When true, every log line (errors included) is routed to stderr so
      * stdout is reserved for the program's machine-readable output. Used by
@@ -42,9 +44,12 @@ export type Logger = {
 };
 
 const createLogger = (): Logger => {
-    const state = { silent: true, routeToStderr: false };
+    const state = { silent: true, verbose: false, routeToStderr: false };
 
     const write = (level: LogLevel, args: unknown[]) => {
+        if (level === 'debug' && !state.verbose) {
+            return;
+        }
         if (!state.silent && level !== 'error') {
             return;
         }
@@ -59,6 +64,12 @@ const createLogger = (): Logger => {
         },
         set silent(v: boolean) {
             state.silent = v;
+        },
+        get verbose() {
+            return state.verbose;
+        },
+        set verbose(v: boolean) {
+            state.verbose = v;
         },
         get routeToStderr() {
             return state.routeToStderr;

@@ -515,6 +515,7 @@ Above the results the palette shows a filter chip for every value of each facet:
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
 | silent | `-t, --silent` | boolean | `false` | Suppress all console output during generation. Useful in CI pipelines where only the exit code matters |
+| verbose | `--verbose` | boolean | `false` | Also print debug lines: one per symbol found, file scanned and symbol skipped (not exported, not in the public API), style file without documented content, routing note and watch event. `--silent` wins |
 
 ## Sub-commands
 
