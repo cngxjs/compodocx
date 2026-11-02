@@ -93,7 +93,7 @@ export class ComponentDepFactory {
             scoped: this.helper.getComponentScoped(props, srcFile),
             assetsDir: this.helper.getComponentAssetsDir(props, srcFile),
             assetsDirs: this.helper.getComponentAssetsDirs(props, srcFile),
-            styleUrlsData: '',
+            styleUrlsData: [],
             stylesData: ''
         };
         if (typeof this.helper.getComponentPreserveWhitespaces(props, srcFile) !== 'undefined') {
@@ -187,7 +187,7 @@ export interface IComponentDep extends IDep {
     moduleId: string;
     selector: string;
     styleUrls: Array<string>;
-    styleUrlsData: string;
+    styleUrlsData: Array<{ data: string; styleUrl: string }>;
     styles: Array<string>;
     stylesData: string;
     template: string;

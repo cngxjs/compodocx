@@ -18,8 +18,8 @@ import {
     codeWrap,
     deriveLibFromBucket,
     exampleComments,
-    functionSignature,
     hasJsdocParams,
+    highlightedSignature,
     linkTypeHtml,
     pagefindFilterBlock,
     pagefindMetaBlock,
@@ -148,7 +148,7 @@ const FunctionApi = (item: any, depth: number): string => {
                   title: t('signature'),
                   children: (
                       <pre class="cdx-derived-body">
-                          <code>{functionSignature(item, depth)}</code>
+                          <code>{highlightedSignature(item, depth)}</code>
                       </pre>
                   ) as string
               })
@@ -198,7 +198,7 @@ const TypealiasApi = (item: any, depth: number): string => {
             <pre class="cdx-derived-body">
                 <code>
                     {isCallSignature
-                        ? functionSignature(item, depth)
+                        ? highlightedSignature(item, depth)
                         : linkTypeHtml(item.rawtype ?? '', { depth })}
                 </code>
             </pre>

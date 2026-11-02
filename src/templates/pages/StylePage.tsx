@@ -6,6 +6,8 @@ import { markedAcl } from '../../utils/marked.acl';
 import { BlockTheming, tokenAnchors } from '../blocks/BlockTheming';
 import { RelatedSection } from '../blocks/RelatedSection';
 import { FeatureCrumbs } from '../components/FeatureCrumbs';
+import { HeroCounts } from '../components/HeroCounts';
+import { IconFile, IconPalette } from '../components/Icons';
 import { isThemingSection, pagefindFilterBlock, pagefindMetaBlock, t } from '../helpers';
 import { featureInfoOf } from '../helpers/feature-info';
 import { themingProse } from '../helpers/theming-prose';
@@ -57,6 +59,7 @@ export const StylePage = (data: any): string => {
     const depth = data.depth as number;
     const feature = featureInfoOf(Configuration.mainData.semantic, entry);
     const tokens = style.groups.flatMap(group => group.tokens);
+    const deprecated = tokens.filter(token => token.deprecated !== null).length;
     const overviewHtml =
         isThemingSection('overview') && style.overview
             ? `<div class="cdx-theming-overview cdx-prose">${themingProse(
@@ -88,6 +91,9 @@ export const StylePage = (data: any): string => {
                     feature: feature?.feature.label,
                     entryPoint: feature?.feature.entryPoint
                 })}
+                <div class="cdx-entity-hero-watermark" aria-hidden="true">
+                    {IconPalette()}
+                </div>
                 <nav aria-label="Breadcrumb">
                     <ol class="cdx-breadcrumb">
                         {FeatureCrumbs(feature, depth) ?? ((<li>{t('style-file')}</li>) as string)}
@@ -98,9 +104,15 @@ export const StylePage = (data: any): string => {
                     <span>{style.name}</span>
                 </h1>
                 <div class="cdx-entity-hero-badges">
-                    <span class="cdx-badge cdx-badge--entity-style">
-                        {style.language.toUpperCase()}
-                    </span>
+                    <span class="cdx-badge cdx-badge--entity-style">{t('style-file')}</span>
+                    <span class="cdx-badge cdx-badge--outline">{style.language.toUpperCase()}</span>
+                    {deprecated > 0 ? (
+                        <span class="cdx-badge cdx-badge--deprecated">
+                            {`${t('deprecated')} ${deprecated}`}
+                        </span>
+                    ) : (
+                        ''
+                    )}
                 </div>
                 {style.importLine ? (
                     <p class="cdx-entity-hero-selector">
@@ -109,9 +121,19 @@ export const StylePage = (data: any): string => {
                 ) : (
                     ''
                 )}
-                <p class="cdx-entity-hero-file" title="Source file">
-                    <span>{style.file}</span>
-                </p>
+                {HeroCounts([
+                    [t('tokens'), tokens.length],
+                    [t('mixins'), style.mixins.length],
+                    [t('theming'), style.themes.length]
+                ])}
+                {data.disableFilePath ? (
+                    ''
+                ) : (
+                    <p class="cdx-entity-hero-file" title="Source file">
+                        {IconFile()}
+                        <span>{style.file}</span>
+                    </p>
+                )}
             </div>
             {Section('overview', t('overview'), overviewHtml)}
             {Section('themes', t('theming'), ThemesList(style.themes))}

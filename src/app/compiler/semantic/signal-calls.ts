@@ -17,6 +17,7 @@ export interface SignalMemberCall {
 }
 
 const ANGULAR_CORE = '@angular/core';
+const RXJS_INTEROP = '@angular/core/rxjs-interop';
 
 const SIGNAL_APIS: ReadonlySet<string> = new Set<SignalApi>(['input', 'output', 'model']);
 
@@ -52,14 +53,30 @@ const signalApiOf = (expression: ts.Expression, imports: AngularImports): Signal
     return undefined;
 };
 
+/** `outputFromObservable` imported from `@angular/core/rxjs-interop` (named or aliased). */
+const isOutputFromObservable = (expression: ts.Expression, imports: AngularImports): boolean => {
+    if (!ts.isIdentifier(expression)) {
+        return false;
+    }
+    const imported = imports.named.get(expression.text);
+    return imported?.module === RXJS_INTEROP && imported.name === 'outputFromObservable';
+};
+
+type Callee = {
+    readonly api: SignalApi;
+    readonly required: boolean;
+    /** `outputFromObservable(source, options)`: the options follow the source. */
+    readonly fromObservable?: boolean;
+};
+
 /** `api(...)` or `api.required(...)`; `output.required` does not exist. */
-const calleeOf = (
-    call: ts.CallExpression,
-    imports: AngularImports
-): { readonly api: SignalApi; readonly required: boolean } | undefined => {
+const calleeOf = (call: ts.CallExpression, imports: AngularImports): Callee | undefined => {
     const direct = signalApiOf(call.expression, imports);
     if (direct) {
         return { api: direct, required: false };
+    }
+    if (isOutputFromObservable(call.expression, imports)) {
+        return { api: 'output', required: false, fromObservable: true };
     }
     const callee = call.expression;
     if (!ts.isPropertyAccessExpression(callee) || callee.name.text !== 'required') {
@@ -95,7 +112,8 @@ const aliasOf = (options: ts.Expression | undefined): string | undefined => {
 /**
  * The signal member call at the root of a property initializer, or undefined:
  * `input`, `input.required`, `output`, `model` or `model.required` imported from
- * `@angular/core` (named, aliased or through a namespace import).
+ * `@angular/core` (named, aliased or through a namespace import), or
+ * `outputFromObservable` from `@angular/core/rxjs-interop`.
  */
 export const signalMemberCall = (
     initializer: ts.Expression,
@@ -113,7 +131,7 @@ export const signalMemberCall = (
     const takesInitialValue = callee.api !== 'output' && !callee.required;
     const [first, second] = call.arguments;
     const initialArgument = takesInitialValue ? first : undefined;
-    const options = takesInitialValue ? second : first;
+    const options = takesInitialValue || callee.fromObservable ? second : first;
     const typeArgument = call.typeArguments?.[0];
     const alias = aliasOf(options);
     return {

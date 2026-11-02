@@ -53,7 +53,18 @@ describe('CLI: multi-line @slot', () => {
     });
 
     it('renders the name and the description in the Content Slots section', () => {
-        expect(page).to.contain('<dt><code>default</code></dt>');
+        expect(page).to.match(
+            /data-cdx-slot="default"><dt class="cdx-metadata-label">default<\/dt>/
+        );
+        expect(page).to.contain('Content of the wrapper <code>div</code>');
         expect(page).to.contain('which carries the highlight and tooltip of the host.');
+    });
+
+    it('keeps the continuation line of @slot out of the description', () => {
+        const description = page.slice(
+            page.indexOf('id="description"'),
+            page.indexOf('</section>', page.indexOf('id="description"'))
+        );
+        expect(description).to.not.contain('which carries');
     });
 });

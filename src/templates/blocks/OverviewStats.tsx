@@ -13,7 +13,7 @@ import {
     IconPipe,
     IconSettings
 } from '../components/Icons';
-import { computeCoverageStats, t } from '../helpers';
+import { computeCoverageStats, isEffectKind, t } from '../helpers';
 import { DonutChart } from './DonutChart';
 
 /* ---- Types ---- */
@@ -113,7 +113,7 @@ function computeAdoption(props: OverviewStatsProps) {
             ...(entity.outputsClass ?? [])
         ];
         for (const prop of properties) {
-            if (prop.signalKind === 'effect') {
+            if (isEffectKind(prop.signalKind)) {
                 continue;
             }
             totalProps++;

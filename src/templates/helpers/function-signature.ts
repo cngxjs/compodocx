@@ -1,9 +1,11 @@
 import Configuration from '../../app/configuration';
 import DependenciesEngine from '../../app/engines/dependencies.engine';
+import { highlightCode } from '../../app/engines/syntax-highlight.engine';
 import { hrefFor, hrefText } from '../../app/links/layout';
 import { placeTarget, targetOfData } from '../../app/links/resolve';
 import BasicTypeUtil from '../../utils/basic-type.util';
 import { escapeHtmlText } from './escape';
+import { dropLeadingText, linkHighlightedTokens, type TextLink } from './linked-highlight';
 
 /** One parameter of a function-typed argument (`arg.function`). */
 type SignatureFunctionParam = {
@@ -38,7 +40,13 @@ function buildHrefForInternalType(
     return link ? hrefText(hrefFor(link.target, depth, link.anchor)) : null;
 }
 
-function resolveTypeLink(typeName: string, depth: number): string | null {
+/** A type name in a signature that links to its page or reference. */
+type TypeLink = { readonly text: string; readonly href: string; readonly target: string };
+
+/** A piece of a signature: plain text or a linked type name. */
+type Segment = string | TypeLink;
+
+function resolveTypeLink(typeName: string, depth: number): TypeLink | null {
     const result = DependenciesEngine.find(typeName);
     if (result) {
         if (result.source === 'internal') {
@@ -46,14 +54,17 @@ function resolveTypeLink(typeName: string, depth: number): string | null {
             if (href === null) {
                 return null;
             }
-            return `<a href="${href}" target="_self">${escapeHtmlText(typeName)}</a>`;
+            return { text: typeName, href, target: '_self' };
         }
-        return `<a href="https://angular.dev/${result.data.path}" target="_blank">${escapeHtmlText(typeName)}</a>`;
+        return {
+            text: typeName,
+            href: `https://angular.dev/${result.data.path}`,
+            target: '_blank'
+        };
     }
     //TODO: go awai from mdn
     if (BasicTypeUtil.isKnownType(typeName)) {
-        const url = BasicTypeUtil.getTypeUrl(typeName);
-        return `<a href="${url}" target="_blank">${escapeHtmlText(typeName)}</a>`;
+        return { text: typeName, href: BasicTypeUtil.getTypeUrl(typeName), target: '_blank' };
     }
     return null;
 }
@@ -62,72 +73,115 @@ function getOptionalString(arg: { readonly optional?: boolean }): string {
     return arg.optional ? '?' : '';
 }
 
-function handleFunction(arg: SignatureArg, depth: number): string {
+function handleFunction(arg: SignatureArg, depth: number): Segment[] {
     if (arg.function.length === 0) {
-        return `${arg.name}${getOptionalString(arg)}: () => void`;
+        return [`${arg.name}${getOptionalString(arg)}: () => void`];
     }
-    const argums = arg.function.map(argu => {
+    const argums = arg.function.map((argu, i): Segment[] => {
+        const separator = i > 0 ? ', ' : '';
         const link = resolveTypeLink(argu.type, depth);
         if (link) {
-            return `${argu.name}${getOptionalString(arg)}: ${link}`;
+            return [`${separator}${argu.name}${getOptionalString(arg)}: `, link];
         }
         if (argu.name && argu.type) {
-            return `${argu.name}${getOptionalString(arg)}: ${argu.type}`;
+            return [`${separator}${argu.name}${getOptionalString(arg)}: ${argu.type}`];
         }
-        return (argu.name as { readonly text?: string })?.text ?? '';
+        return [`${separator}${(argu.name as { readonly text?: string })?.text ?? ''}`];
     });
-    return `${arg.name}${getOptionalString(arg)}: (${argums.join(', ')}) => void`;
+    return [`${arg.name}${getOptionalString(arg)}: (`, ...argums.flat(), ') => void'];
 }
+
+function argSegments(arg: SignatureArg, depth: number): Segment[] {
+    const link = resolveTypeLink(arg.type, depth);
+    if (link) {
+        const rest = arg.dotDotDotToken ? '...' : '';
+        return [`${rest}${arg.name}${getOptionalString(arg)}: `, link];
+    }
+    if (arg.dotDotDotToken) {
+        return [`...${arg.name}: ${arg.type}`];
+    }
+    if (arg.function) {
+        return handleFunction(arg, depth);
+    }
+    if (arg.type) {
+        return [`${arg.name}${getOptionalString(arg)}: ${arg.type}`];
+    }
+    return [`${arg.name}${getOptionalString(arg)}`];
+}
+
+/** The signature as plain text and linked type names, in order. */
+function signatureSegments(method: SignatureSource, depth: number): Segment[] {
+    const args = method.args ?? [];
+    const destructuredCount = args.filter(arg => arg.destructuredParameter).length;
+    let destructuredSeen = 0;
+
+    const argParts = args.flatMap((arg, index): Segment[] => {
+        const parts: Segment[] = [];
+        if (arg.destructuredParameter) {
+            if (destructuredSeen === 0) {
+                parts.push('__namedParameters: {');
+            }
+            destructuredSeen += 1;
+        }
+        parts.push(...argSegments(arg, depth));
+        if (arg.destructuredParameter && destructuredSeen === destructuredCount) {
+            parts.push('}');
+        }
+        if (index < args.length - 1) {
+            parts.push(', ');
+        }
+        return parts;
+    });
+
+    return [`${method.name ?? ''}(`, ...argParts, ')'];
+}
+
+const linkHtml = (link: TypeLink): string =>
+    `<a href="${link.href}" target="${link.target}">${escapeHtmlText(link.text)}</a>`;
 
 /**
  * Render a method's full signature as HTML string with type links.
  * `depth` is the directory depth of the page the signature is rendered on.
  */
-export const functionSignature = (method: SignatureSource, depth: number): string => {
-    let args = '';
-    let destructuredCounterInitial = 0;
-    let destructuredCounterReal = 0;
+export const functionSignature = (method: SignatureSource, depth: number): string =>
+    signatureSegments(method, depth)
+        .map(segment => (typeof segment === 'string' ? segment : linkHtml(segment)))
+        .join('');
 
-    if (method.args) {
-        method.args.forEach(arg => {
-            if (arg.destructuredParameter) {
-                destructuredCounterInitial += 1;
-            }
-        });
+/**
+ * Shiki reads a bare `name(args)` as one expression and leaves the
+ * parameters uncoloured; as a function declaration it sees names and types.
+ */
+const GRAMMAR_PREFIX = 'function ';
 
-        method.args.forEach((arg, index) => {
-            if (arg.destructuredParameter) {
-                if (destructuredCounterReal === 0) {
-                    args += '__namedParameters: {';
-                }
-                destructuredCounterReal += 1;
+/**
+ * The signature syntax-highlighted by Shiki with the type links kept: Shiki
+ * colours the plain text, the links are laid over its tokens afterwards.
+ * Falls back to `functionSignature` while no highlighter is initialised.
+ */
+export const highlightedSignature = (method: SignatureSource, depth: number): string => {
+    const segments = signatureSegments(method, depth);
+    let offset = GRAMMAR_PREFIX.length;
+    const links: TextLink[] = [];
+    const text = segments
+        .map(segment => {
+            const piece = typeof segment === 'string' ? segment : segment.text;
+            if (typeof segment !== 'string') {
+                links.push({
+                    start: offset,
+                    end: offset + piece.length,
+                    href: segment.href,
+                    target: segment.target
+                });
             }
-
-            const link = resolveTypeLink(arg.type, depth);
-            if (link) {
-                const rest = arg.dotDotDotToken ? '...' : '';
-                args += `${rest}${arg.name}${getOptionalString(arg)}: ${link}`;
-            } else if (arg.dotDotDotToken) {
-                args += `...${arg.name}: ${arg.type}`;
-            } else if (arg.function) {
-                args += handleFunction(arg, depth);
-            } else if (arg.type) {
-                args += `${arg.name}${getOptionalString(arg)}: ${arg.type}`;
-            } else {
-                args += `${arg.name}${getOptionalString(arg)}`;
-            }
-
-            if (
-                arg.destructuredParameter &&
-                destructuredCounterReal === destructuredCounterInitial
-            ) {
-                args += '}';
-            }
-            if (index < method.args.length - 1) {
-                args += ', ';
-            }
-        });
+            offset += piece.length;
+            return piece;
+        })
+        .join('');
+    const highlighted = highlightCode(`${GRAMMAR_PREFIX}${text}`, { mode: 'snippet' });
+    const inner = /<code>([\s\S]*?)<\/code>/.exec(highlighted);
+    if (!inner) {
+        return functionSignature(method, depth);
     }
-
-    return method.name ? `${method.name}(${args})` : `(${args})`;
+    return dropLeadingText(linkHighlightedTokens(inner[1], links), GRAMMAR_PREFIX.length);
 };

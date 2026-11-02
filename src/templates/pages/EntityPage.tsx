@@ -52,7 +52,10 @@ import { NamespaceLine } from '../components/NamespaceLine';
 import { WcagBadge } from '../components/WcagBadge';
 import {
     deriveLibFromBucket,
+    indexableSignature,
+    indexSignatureAnchor,
     isApiSection,
+    isEffectKind,
     isInfoSection,
     isInitialTab,
     isTabEnabled,
@@ -459,13 +462,13 @@ const ApiContent = (props: EntityInfoProps): string => {
         (p: any) => p.signalKind === 'computed' || p.signalKind === 'linked-signal'
     );
     const showEffects = Configuration.mainData.showEffects === true;
-    const effectProps = allProps.filter((p: any) => p.signalKind === 'effect');
+    const effectProps = allProps.filter((p: any) => isEffectKind(p.signalKind));
     const regularProps = allProps.filter(
         (p: any) =>
             p.signalKind !== 'computed' &&
             p.signalKind !== 'linked-signal' &&
             p.signalKind !== 'inject' &&
-            (showEffects ? p.signalKind !== 'effect' : true)
+            (showEffects ? !isEffectKind(p.signalKind) : true)
     );
 
     return (
@@ -483,7 +486,11 @@ const ApiContent = (props: EntityInfoProps): string => {
                     hostBindings: e.hostBindings,
                     hostListeners: e.hostListeners,
                     accessors: e.accessors,
-                    indexSignatures: e.indexSignatures
+                    indexSignatures: (e.indexSignatures ?? []).map((idx: any) => ({
+                        name: indexableSignature(idx),
+                        anchor: indexSignatureAnchor(idx),
+                        deprecated: idx.deprecated
+                    }))
                 })}
 
             {/* Inputs */}

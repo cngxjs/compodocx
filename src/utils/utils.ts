@@ -44,13 +44,18 @@ export function exampleMarkdown(raw: string): string {
     return `${caption}\`\`\`html\n${body}\n\`\`\``;
 }
 
+/** Tags of the form `@tag name - text`: the dash separates, it is not a list item. */
+const NAMED_TAGS = new Set(['param', 'template', 'property', 'prop', 'arg', 'argument']);
+
 export function markedtags(tags: Array<any>) {
     const jsdocParserUtil = new JsdocParserUtil();
     const mtags = tags;
     mtags.forEach(tag => {
         // `<example-url>` feeds the Example tab, not the tag text
         const rawComment = stripExampleUrlTags(jsdocParserUtil.parseJSDocNode(tag));
-        const markdown = tag.tagName?.text === 'example' ? exampleMarkdown(rawComment) : rawComment;
+        const tagName = tag.tagName?.text;
+        const text = NAMED_TAGS.has(tagName) ? rawComment.replace(/^\s*-\s+/, '') : rawComment;
+        const markdown = tagName === 'example' ? exampleMarkdown(text) : text;
         // links stay as written; parseDescription resolves them at render time
         tag.comment = markedAcl(markdown);
     });

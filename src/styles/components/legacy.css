@@ -33,9 +33,6 @@ a[href] {
 .content.readme h1:first-of-type {
     margin-top: 0;
 }
-.content table {
-    margin-top: var(--spacing-cdx-xl);
-}
 
 .comment {
     margin: 15px 0;

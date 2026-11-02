@@ -23,6 +23,7 @@ import {
 } from '../../../../semantic/signal-calls';
 import type { DecoratorInspector } from './decorator-inspector';
 import type { JsdocExtractor } from './jsdoc-extractor';
+import { type MethodDeclaration, mergeOverloads } from './overloads';
 import type { TypeRenderer } from './type-renderer';
 
 const SIGNAL_MEMBER_KINDS: Readonly<Record<SignalApi, string>> = {
@@ -53,6 +54,89 @@ const importsOf = (sourceFile: ts.SourceFile): AngularImports => {
     const imports = angularImports(sourceFile);
     importsCache.set(sourceFile, imports);
     return imports;
+};
+
+/** What the effect factories return; the member holds that reference, not a value. */
+const EFFECT_REF_TYPES: Readonly<Record<string, string>> = {
+    effect: 'EffectRef',
+    'after-render-effect': 'AfterRenderRef',
+    'after-every-render': 'AfterRenderRef',
+    'after-next-render': 'AfterRenderRef'
+};
+
+/** Signal kinds whose type is the value they hold, inferred when no type argument is given. */
+const VALUE_SIGNAL_KINDS: ReadonlySet<string> = new Set(['signal', 'computed', 'linked-signal']);
+
+/** `number`, `string` or `boolean` for a literal type (`signal(0)` holds a number, not `0`). */
+const widenedTypeName = (type: ts.Type): string | undefined => {
+    if (type.flags & ts.TypeFlags.NumberLiteral) {
+        return 'number';
+    }
+    if (type.flags & ts.TypeFlags.StringLiteral) {
+        return 'string';
+    }
+    if (type.flags & ts.TypeFlags.BooleanLiteral) {
+        return 'boolean';
+    }
+    return undefined;
+};
+
+/** Signal and query factories recognised by name, with the kind they get. */
+const SIGNAL_CALLEES: ReadonlyArray<readonly [string, string]> = [
+    ['linkedSignal', 'linked-signal'],
+    ['computed', 'computed'],
+    ['signal', 'signal'],
+    ['effect', 'effect'],
+    ['resource', 'resource'],
+    ['rxResource', 'rx-resource'],
+    ['viewChild', 'view-child'],
+    ['viewChildren', 'view-children'],
+    ['contentChild', 'content-child'],
+    ['contentChildren', 'content-children'],
+    ['afterRenderEffect', 'after-render-effect'],
+    ['afterEveryRender', 'after-every-render'],
+    ['afterNextRender', 'after-next-render']
+];
+
+/** Index of the `>` closing the `<` at index 0, or -1; `=>` inside does not count. */
+const closingAngle = (text: string): number => {
+    let depth = 0;
+    for (let i = 0; i < text.length; i++) {
+        if (text[i] === '<') {
+            depth += 1;
+        } else if (text[i] === '>' && text[i - 1] !== '=') {
+            depth -= 1;
+        }
+        if (depth === 0) {
+            return i;
+        }
+    }
+    return -1;
+};
+
+/**
+ * `callee(`, `callee.required(` or either with type arguments at the start of
+ * an initializer. The type arguments may nest (`contentChild<TemplateRef<unknown>>`).
+ */
+export const signalCallOf = (
+    text: string,
+    callee: string
+): { readonly type?: string; readonly required: boolean } | undefined => {
+    const head = new RegExp(`^${callee}(\\.required)?\\s*`).exec(text);
+    if (!head) {
+        return undefined;
+    }
+    let rest = text.slice(head[0].length);
+    let type: string | undefined;
+    if (rest.startsWith('<')) {
+        const end = closingAngle(rest);
+        if (end < 0) {
+            return undefined;
+        }
+        type = rest.slice(1, end).trim();
+        rest = rest.slice(end + 1).trimStart();
+    }
+    return rest.startsWith('(') ? { type, required: head[1] !== undefined } : undefined;
 };
 
 export class MemberVisitor {
@@ -104,57 +188,84 @@ export class MemberVisitor {
             return type ? { kind: imported.kind, signalType: type } : { kind: imported.kind };
         }
 
-        // Order matters: check specific patterns before generic ones
         // input, output and model come from the syntax tree (`signalMemberCall`)
-        const patterns: Array<{ pattern: RegExp; kind: string }> = [
-            {
-                pattern: /^linkedSignal\s*(?:<([^>]+)>)?\s*\(/,
-                kind: 'linked-signal'
-            },
-            { pattern: /^computed\s*(?:<([^>]+)>)?\s*\(/, kind: 'computed' },
-            { pattern: /^signal\s*(?:<([^>]+)>)?\s*\(/, kind: 'signal' },
-            { pattern: /^effect\s*\(/, kind: 'effect' },
-            { pattern: /^resource\s*(?:<([^>]+)>)?\s*\(/, kind: 'resource' },
-            {
-                pattern: /^rxResource\s*(?:<([^>]+)>)?\s*\(/,
-                kind: 'rx-resource'
-            },
-            { pattern: /^viewChild\s*(?:<([^>]+)>)?\s*\(/, kind: 'view-child' },
-            {
-                pattern: /^viewChildren\s*(?:<([^>]+)>)?\s*\(/,
-                kind: 'view-children'
-            },
-            {
-                pattern: /^contentChild\s*(?:<([^>]+)>)?\s*\(/,
-                kind: 'content-child'
-            },
-            {
-                pattern: /^contentChildren\s*(?:<([^>]+)>)?\s*\(/,
-                kind: 'content-children'
-            },
-            { pattern: /^afterRenderEffect\s*\(/, kind: 'after-render-effect' },
-            { pattern: /^afterEveryRender\s*\(/, kind: 'after-every-render' },
-            { pattern: /^afterNextRender\s*\(/, kind: 'after-next-render' }
-        ];
-
-        for (const { pattern, kind } of patterns) {
-            const match = pattern.exec(cleaned);
-            if (match) {
-                const result: {
-                    kind: string;
-                    signalType?: string;
-                    required?: boolean;
-                } = { kind };
-                if (match[1]) {
-                    result.signalType = match[1].trim();
-                }
-                if (cleaned.includes('.required')) {
-                    result.required = true;
-                }
-                return result;
+        for (const [callee, kind] of SIGNAL_CALLEES) {
+            const call = signalCallOf(cleaned, callee);
+            if (call) {
+                return {
+                    kind,
+                    ...(call.type ? { signalType: call.type } : {}),
+                    ...(call.required ? { required: true } : {})
+                };
             }
         }
         return this.detectInject(cleaned, initializer, sourceFile);
+    }
+
+    /**
+     * Type of an unannotated member: the reference an effect returns, the value
+     * type of a signal, or the type of a plain initializer. Angular, the TypeScript
+     * lib and `.d.ts` files are not loaded here, so only literals and project code
+     * resolve; undefined when nothing does.
+     */
+    private inferredType(
+        kind: string | undefined,
+        initializer: ts.Expression | undefined
+    ): string | undefined {
+        if (kind && EFFECT_REF_TYPES[kind]) {
+            return EFFECT_REF_TYPES[kind];
+        }
+        if (kind) {
+            return VALUE_SIGNAL_KINDS.has(kind)
+                ? this.signalValueType(initializer, kind)
+                : undefined;
+        }
+        return initializer ? this.expressionType(initializer) : undefined;
+    }
+
+    /** Value type of `signal(x)`, `computed(() => x)` or `linkedSignal(() => x)`. */
+    private signalValueType(
+        initializer: ts.Expression | undefined,
+        kind: string
+    ): string | undefined {
+        const call = initializer && unwrapExpression(initializer);
+        const first = call && ts.isCallExpression(call) ? call.arguments[0] : undefined;
+        // `linkedSignal({ source, computation })` passes options, not a value
+        if (!first || (kind === 'linked-signal' && ts.isObjectLiteralExpression(first))) {
+            return undefined;
+        }
+        if (!ts.isArrowFunction(first) && !ts.isFunctionExpression(first)) {
+            return this.expressionType(first);
+        }
+        return this.checkedType(() => {
+            const signature = this.typeChecker.getSignatureFromDeclaration(first);
+            return signature && this.typeChecker.getReturnTypeOfSignature(signature);
+        });
+    }
+
+    /** `new X<T>()` as written (`X<T>`), anything else by the checker. */
+    private expressionType(expression: ts.Expression): string | undefined {
+        const root = unwrapExpression(expression);
+        if (ts.isNewExpression(root)) {
+            const typeArguments = root.typeArguments?.map(node => node.getText()).join(', ');
+            return `${root.expression.getText()}${typeArguments ? `<${typeArguments}>` : ''}`;
+        }
+        return this.checkedType(() => this.typeChecker.getTypeAtLocation(root));
+    }
+
+    /** Literal types widened (`0` holds a `number`); `any`, `unknown` and `never` dropped. */
+    private checkedType(resolve: () => ts.Type | undefined): string | undefined {
+        try {
+            const type = resolve();
+            if (!type) {
+                return undefined;
+            }
+            const text = widenedTypeName(type) ?? this.typeChecker.typeToString(type);
+            return /\b(any|unknown|never)\b/.test(text) ? undefined : text;
+        } catch {
+            // a checker without the program (unit tests) or a failed inference
+            return undefined;
+        }
     }
 
     /**
@@ -423,7 +534,7 @@ export class MemberVisitor {
         const outputs = [];
         const hostBindings = [];
         const hostListeners = [];
-        const methods = [];
+        const methodDeclarations: MethodDeclaration<any>[] = [];
         const properties = [];
         const indexSignatures = [];
         let kind;
@@ -467,7 +578,10 @@ export class MemberVisitor {
                         )
                     ) {
                         if (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) {
-                            methods.push(this.visitMethodDeclaration(member, sourceFile));
+                            methodDeclarations.push({
+                                method: this.visitMethodDeclaration(member, sourceFile),
+                                hasBody: ts.isMethodDeclaration(member) && member.body !== undefined
+                            });
                         } else if (
                             ts.isPropertyDeclaration(member) ||
                             ts.isPropertySignature(member)
@@ -502,6 +616,7 @@ export class MemberVisitor {
             }
         }
 
+        const methods = mergeOverloads(methodDeclarations);
         inputs.sort(getNamesCompareFn());
         outputs.sort(getNamesCompareFn());
         hostBindings.sort(getNamesCompareFn());
@@ -685,6 +800,17 @@ export class MemberVisitor {
             }
         }
 
+        // Without an annotation the type renderer only knows `unknown`; infer what
+        // can be inferred and leave the type out otherwise
+        if (result.type === 'unknown' && !property.type) {
+            const inferred = this.inferredType(result.signalKind, initializer);
+            if (inferred) {
+                result.type = inferred;
+            } else {
+                delete result.type;
+            }
+        }
+
         // Extract signal dependency names for computed/linkedSignal.
         // `this.xxx()` → recorded as 'xxx()'; `this.xxx` (plain access) → recorded as 'xxx'.
         if (
@@ -743,6 +869,25 @@ export class MemberVisitor {
         return result;
     }
 
+    /**
+     * A constructor parameter that declares a property (`readonly x`, `protected x`,
+     * `public x`, ...), unless its visibility is excluded like a class member's.
+     */
+    private isDocumentedParameterProperty(
+        parameter: ts.ParameterDeclaration,
+        constr: ts.ConstructorDeclaration
+    ): boolean {
+        if (!ts.isParameterPropertyDeclaration(parameter, constr)) {
+            return false;
+        }
+        const hiddenPrivate =
+            this.decoratorInspector.isPrivate(parameter) && Configuration.mainData.disablePrivate;
+        const hiddenProtected =
+            this.decoratorInspector.isProtected(parameter) &&
+            Configuration.mainData.disableProtected;
+        return !hiddenPrivate && !hiddenProtected;
+    }
+
     private visitConstructorProperties(constr, sourceFile) {
         if (constr.parameters) {
             const _parameters = [];
@@ -759,7 +904,7 @@ export class MemberVisitor {
                 ) {
                     continue;
                 }
-                if (this.decoratorInspector.isPublic(parameterOfConstructor)) {
+                if (this.isDocumentedParameterProperty(parameterOfConstructor, constr)) {
                     _parameters.push(this.visitProperty(constr.parameters[i], sourceFile));
                 }
             }

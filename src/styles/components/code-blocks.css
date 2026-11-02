@@ -101,7 +101,8 @@ pre.line-numbers code {
 .dark :not(.cdx-source-viewer-body) > .shiki span {
     color: var(--shiki-dark) !important;
 }
-.dark code.cdx-shiki-inline span {
+.dark code.cdx-shiki-inline span,
+.dark .cdx-derived-body span {
     color: var(--shiki-dark) !important;
 }
 
@@ -135,6 +136,11 @@ pre.line-numbers code {
     border: 1px solid var(--color-cdx-border);
     border-radius: var(--radius-cdx-lg);
     box-shadow: var(--shadow-cdx-sm);
+}
+
+/* Several files in one tab (Styles: style files plus inline styles) stand apart. */
+.cdx-source-viewer + .cdx-source-viewer {
+    margin-top: var(--spacing-cdx-xl);
 }
 
 .cdx-source-viewer .line {

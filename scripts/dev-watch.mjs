@@ -119,6 +119,11 @@ const generateFixture = () => {
     if (existsSync(resolve(root, fixtureIncludes))) {
         cliArgs.push('--includes', `./${fixtureIncludes}`);
     }
+    // Dev-only options (e.g. showEffects); the CLI specs run without them.
+    const fixtureConfig = resolve(root, `test/fixtures/${fixture}/dev.compodocxrc.json`);
+    if (existsSync(fixtureConfig)) {
+        cliArgs.push('-c', fixtureConfig);
+    }
     return run('./bin/index-cli.js', cliArgs, 'docs', c.green);
 };
 

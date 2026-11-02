@@ -1,0 +1,42 @@
+/// Theme hooks of the API showcase.
+///
+/// @overview
+
+/// Accent colour of the showcase.
+/// @type Color
+/// @default #3f51b5
+/// @group colors
+$showcase-accent: #3f51b5 !default;
+
+/// Row height of the list.
+/// @type Length
+/// @default 40px
+/// @group layout
+/// @since 2.1.0
+$showcase-row-height: 40px !default;
+
+/// Spacing around the list.
+/// @type Length
+/// @default 8px
+/// @group layout
+/// @deprecated Use `$showcase-row-height`.
+$showcase-gap: 8px !default;
+
+/// Emits the showcase tokens for a theme.
+///
+/// @param {Map} $theme - Theme map.
+/// @param {Number} $density [0] - Density step.
+/// @example scss
+///   @include api-showcase.theme($my-theme);
+@mixin theme($theme, $density: 0) {
+    :host {
+        --showcase-accent: #{map-get($theme, 'primary')};
+        --showcase-row-height: #{$showcase-row-height + $density * 4px};
+    }
+}
+
+:host {
+    display: block;
+    padding: $showcase-gap;
+    color: $showcase-accent;
+}

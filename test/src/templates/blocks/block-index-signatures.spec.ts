@@ -26,6 +26,18 @@ describe('BlockIndexSignatures', () => {
         expect(html).to.include('data-compodoc="block-indexables"');
     });
 
+    it('names a row after its signature, with the value type below it', () => {
+        const html = BlockIndexSignatures({
+            depth: 1,
+            indexables: [{ returnType: 'unknown', args: [{ name: 'key', type: 'string' }] }],
+            file: 'foo.ts'
+        });
+        expect(html).to.match(/class="cdx-io-member" id="index-key-string"/);
+        expect(html).to.match(/class="cdx-io-member-name"[^>]*>\[key: string\]/);
+        expect(html).to.include('href="#index-key-string"');
+        expect(html).to.match(/class="cdx-io-member-type"[^>]*>[\s\S]*unknown/);
+    });
+
     it('honours the `block-index-signatures` custom-template override', () => {
         registerCustomTemplate(
             'block-index-signatures',

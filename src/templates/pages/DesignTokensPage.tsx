@@ -1,5 +1,7 @@
 import Html from '@kitajs/html';
 import type { DesignTokenGroup } from '../../app/styles/design-tokens';
+import { HeroCounts } from '../components/HeroCounts';
+import { IconPalette } from '../components/Icons';
 import { pagefindMetaBlock, t } from '../helpers';
 import { themingProse } from '../helpers/theming-prose';
 
@@ -71,16 +73,40 @@ const Group = (group: DesignTokensGroupData, anchors: ReadonlyMap<string, string
  */
 export const DesignTokensPage = (data: any): string => {
     const groups = (data.groups ?? []) as readonly DesignTokensGroupData[];
-    const count = groups.reduce((sum, group) => sum + group.tokens.length, 0);
-    const anchors = new Map(groups.flatMap(group => group.tokens.map(row => [row.name, row.id])));
+    const rows = groups.flatMap(group => group.tokens);
+    const files = new Set(rows.map(row => row.file)).size;
+    const deprecated = rows.filter(row => row.deprecated !== null).length;
+    const anchors = new Map(rows.map(row => [row.name, row.id]));
     return (
         <>
             <div class="cdx-entity-hero" style="--cdx-hero-color: var(--color-cdx-entity-style)">
                 {pagefindMetaBlock({ kind: 'style' })}
-                <h1 class="cdx-entity-hero-name">{t('design-tokens')}</h1>
-                <div class="cdx-entity-hero-badges">
-                    <span class="cdx-badge cdx-badge--entity-style">{String(count)}</span>
+                <div class="cdx-entity-hero-watermark" aria-hidden="true">
+                    {IconPalette()}
                 </div>
+                <nav aria-label="Breadcrumb">
+                    <ol class="cdx-breadcrumb">
+                        <li>{t('theming')}</li>
+                        <li aria-current="page">{t('design-tokens')}</li>
+                    </ol>
+                </nav>
+                <h1 class="cdx-entity-hero-name">
+                    <span>{t('design-tokens')}</span>
+                </h1>
+                <div class="cdx-entity-hero-badges">
+                    <span class="cdx-badge cdx-badge--entity-style">{t('theming')}</span>
+                    {deprecated > 0 ? (
+                        <span class="cdx-badge cdx-badge--deprecated">
+                            {`${t('deprecated')} ${deprecated}`}
+                        </span>
+                    ) : (
+                        ''
+                    )}
+                </div>
+                {HeroCounts([
+                    [t('tokens'), rows.length],
+                    [t('style-files'), files]
+                ])}
             </div>
             {groups.map(group => Group(group, anchors)).join('')}
         </>

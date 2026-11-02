@@ -98,10 +98,29 @@ export class JsdocParserUtil {
         let inCode = false;
         let inExample = false; // first line with @example, end line with empty string or string or */
         let exampleHasCodeFence = false; // track if the example already has code fences
+        // Inside the text of a block tag the description does not show: the
+        // text of a tag runs until the next tag, over several lines and code
+        // fences (@example and @see stay part of the description).
+        let inTag = false;
+        let inTagCode = false;
         function readLine(line: string, index: number) {
             const _originalLine = line;
             line = line.replace(/^\s*\*? ?/, '');
             line = line.replace(/\s*$/, '');
+
+            const blockTag = inCode || inTagCode ? undefined : /^@(\S+)/.exec(line)?.[1];
+            if (blockTag !== undefined) {
+                inTag = blockTag !== 'example' && blockTag !== 'see';
+            }
+            if (inTag) {
+                if (CODE_FENCE.test(line)) {
+                    inTagCode = !inTagCode;
+                }
+                if (line === '' && !inTagCode) {
+                    readBareLine(line);
+                }
+                return;
+            }
 
             if (CODE_FENCE.test(line)) {
                 inCode = !inCode;

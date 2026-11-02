@@ -3,9 +3,9 @@ import Html from '@kitajs/html';
 export { capitalize } from './capitalize';
 export type { CoverageStats } from './coverage-stats';
 export { computeCoverageStats } from './coverage-stats';
-export { functionSignature } from './function-signature';
+export { functionSignature, highlightedSignature } from './function-signature';
 export { t } from './i18n';
-export { indexableSignature } from './indexable-signature';
+export { indexableSignature, indexSignatureAnchor } from './indexable-signature';
 export type { ComponentPlaygroundBlock } from './jsdoc';
 export {
     exampleComments,
@@ -34,7 +34,7 @@ export { parseProperty } from './parse-property';
 export { formatProvidedIn } from './provided-in';
 export { relativeUrl } from './relative-url';
 export { shortPath, shortUrl } from './short-url';
-export { signalKindLabel } from './signal-kind';
+export { isEffectKind, signalKindLabel } from './signal-kind';
 export {
     isApiSection,
     isInfoSection,

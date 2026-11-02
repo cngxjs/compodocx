@@ -1,0 +1,35 @@
+/**
+ * Surface of a showcase row.
+ *
+ * @type <color>
+ * @group surface
+ */
+@property --showcase-row-bg {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #ffffff;
+}
+
+:host {
+    /**
+     * Border colour between rows.
+     *
+     * @type <color>
+     * @default #e0e0e0
+     * @group surface
+     */
+    --showcase-row-border: #e0e0e0;
+
+    /**
+     * Corner radius of a row.
+     *
+     * @type <length>
+     * @default 4px
+     * @group surface
+     * @deprecated Rows are square now.
+     */
+    --showcase-row-radius: 4px;
+
+    background: var(--showcase-row-bg);
+    border-bottom: 1px solid var(--showcase-row-border);
+}

@@ -302,8 +302,8 @@ describe('BlockTheming', () => {
         const html = BlockTheming({ tokens: [makeToken()], mixins: [mixin] });
         expect(html).to.include('data-compodoc="block-theming-mixins"');
         expect(html).to.include('id="theme-mixin-theme"');
-        expect(html).to.include('theme($theme)');
-        expect(html).to.include('<code>$theme</code>');
+        expect(html.replace(/<[^>]+>/g, '')).to.include('theme($theme)');
+        expect(html).to.match(/class="cdx-param-name"[^>]*>\$theme</);
         expect(html.indexOf('block-theming-token')).to.be.lessThan(
             html.indexOf('block-theming-mixins')
         );

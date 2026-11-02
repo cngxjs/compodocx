@@ -8,6 +8,8 @@ type IndexItem = {
     readonly deprecated?: boolean;
     readonly optional?: boolean;
     readonly modifierKind?: number[];
+    /** Element id of the member when it is not derived from the name (index signatures). */
+    readonly anchor?: string;
 };
 
 type BlockIndexProps = {
@@ -61,7 +63,7 @@ const IndexGroup = (props: { title: string; items: IndexItem[]; kind: IndicatorK
             <div class="cdx-index-entries">
                 {props.items.map(item => (
                     <a
-                        href={`#${memberAnchor(item.name)}`}
+                        href={`#${item.anchor ?? memberAnchor(item.name)}`}
                         class={`cdx-index-entry${item.deprecated ? ' cdx-index-entry--deprecated' : ''}`}
                     >
                         <span
@@ -139,7 +141,7 @@ export const BlockIndex = (props: BlockIndexProps): string => {
                     kind: 'hostlistener'
                 })}
                 {IndexGroup({
-                    title: 'index-signatures',
+                    title: 'indexable',
                     items: props.indexSignatures ?? [],
                     kind: 'indexsignature'
                 })}

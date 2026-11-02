@@ -39,12 +39,6 @@
 }
 
 /* Token-row extras that don't have a direct counterpart in the API blocks */
-.cdx-theming-deprecated {
-    margin-top: var(--spacing-cdx-xs);
-    color: var(--color-cdx-text-muted);
-    font-size: 0.8125rem;
-}
-
 .cdx-theming-example {
     margin-top: var(--spacing-cdx-sm);
 }

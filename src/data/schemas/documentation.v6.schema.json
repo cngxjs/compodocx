@@ -546,7 +546,24 @@
                     }
                 },
                 "styleUrlsData": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "type": "string"
+                            },
+                            "styleUrl": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "data",
+                            "styleUrl"
+                        ],
+                        "additionalProperties": true
+                    },
+                    "description": "Content of each `styleUrl`/`styleUrls` file, with the URL it was read from."
                 },
                 "stylesData": {
                     "type": "string"
@@ -2334,6 +2351,13 @@
                     "items": {
                         "$ref": "#/$defs/ExportJsdocTag"
                     }
+                },
+                "overloads": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportMethod"
+                    },
+                    "description": "The further signatures of an overloaded method; the entry itself is the first one."
                 }
             },
             "required": [
