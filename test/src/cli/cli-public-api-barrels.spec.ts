@@ -110,13 +110,40 @@ describe('CLI public-api-only option with barrel re-exports', () => {
         afterAll(() => tmp.clean(out));
 
         it('keeps the names the exports[*].types files list, followed through the source barrels', () => {
-            expect(functionNames(data)).toEqual(['formatFoo', 'normalizeLabel', 'provideFoo']);
+            expect(functionNames(data)).toEqual([
+                'formatFoo',
+                'normalizeLabel',
+                'provideFoo',
+                'read'
+            ]);
             expect(data.tokens?.map(item => item.name)).toEqual(['FOO_CONFIG']);
             expect(data.interfaces?.map(item => item.name).sort()).toEqual([
                 'FooConfig',
-                'FooFeature'
+                'FooFeature',
+                'Matchers',
+                'StateSource',
+                'StateSource'
             ]);
             expect(data.classes?.map(item => item.name)).toEqual(['SemButton']);
+        });
+
+        it('keeps the members of a public namespace and the augmentations of its file', () => {
+            const qualified = (list: { name: string; namespace?: string }[] = []) =>
+                list.map(item => (item.namespace ? `${item.namespace}.${item.name}` : item.name));
+            expect(qualified(data.interfaces as never).sort()).toEqual([
+                'Bridge.StateSource',
+                'FooConfig',
+                'FooFeature',
+                'Matchers',
+                'Other.StateSource'
+            ]);
+            expect(qualified(data.miscellaneous?.variables as never).sort()).toEqual([
+                'Bridge.Dotted.DOTTED',
+                'Bridge.HOST_SELECTOR'
+            ]);
+            expect(qualified(data.miscellaneous?.typealiases as never)).toContain(
+                'Bridge.Inner.Deep'
+            );
         });
 
         it('drops what the dist does not export, including a whole entry point', () => {

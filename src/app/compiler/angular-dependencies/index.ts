@@ -358,6 +358,13 @@ export class AngularDependencies extends FrameworkDependencies {
                 const sourceCode = srcFile.getText();
                 const hash = crypto.createHash('sha512').update(sourceCode).digest('hex');
                 const scoped = <T>(dep: T): T => withScope(dep, scope);
+                // Namespace members by their qualified name; augmentation members by their file.
+                const isAllowed = (name: string): boolean =>
+                    this.publicApiFilter.isSymbolAllowed(
+                        qualify(scope, name),
+                        file,
+                        scope.augments !== undefined
+                    );
                 // Only what the file exports is documented; inside a namespace only what
                 // the namespace exports.
                 const isFileLocal = (declaration: ts.Node, name: string): boolean => {
@@ -388,7 +395,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         const name = this.expressionFinder.getSymboleName(node);
 
                         // Check if this decorated class is allowed by public API filter
-                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                        if (!isAllowed(name)) {
                             logger.debug(`Skipping decorated class ${name} (not in public API)`);
                             return;
                         }
@@ -571,7 +578,7 @@ export class AngularDependencies extends FrameworkDependencies {
                     if (node.symbol.flags === ts.SymbolFlags.Class) {
                         // Check if class is allowed by public API filter
                         const className = this.expressionFinder.getSymboleName(node);
-                        if (!this.publicApiFilter.isSymbolAllowed(className, file)) {
+                        if (!isAllowed(className)) {
                             logger.debug(`Skipping class ${className} (not in public API)`);
                             return;
                         }
@@ -594,7 +601,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
 
                         // Check if interface is allowed by public API filter
-                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                        if (!isAllowed(name)) {
                             logger.debug(`Skipping interface ${name} (not in public API)`);
                             return;
                         }
@@ -659,7 +666,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
 
                         // Check if function is allowed by public API filter
-                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                        if (!isAllowed(name)) {
                             logger.debug(`Skipping function ${name} (not in public API)`);
                             return;
                         }
@@ -730,7 +737,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
 
                         // Check if enum is allowed by public API filter
-                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                        if (!isAllowed(name)) {
                             logger.debug(`Skipping enum ${name} (not in public API)`);
                             return;
                         }
@@ -766,7 +773,7 @@ export class AngularDependencies extends FrameworkDependencies {
                         }
 
                         // Check if type alias is allowed by public API filter
-                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                        if (!isAllowed(name)) {
                             logger.debug(`Skipping type alias ${name} (not in public API)`);
                             return;
                         }
@@ -820,6 +827,11 @@ export class AngularDependencies extends FrameworkDependencies {
                             return;
                         }
                         for (const opened of entered.namespaces) {
+                            const qualified = qualify(opened, opened.name);
+                            if (!this.publicApiFilter.isSymbolAllowed(qualified, file)) {
+                                logger.debug(`Skipping namespace ${qualified} (not in public API)`);
+                                return;
+                            }
                             this.addNamespace(opened, file, outputSymbols.namespaces);
                         }
                         entered.body?.statements.forEach(statement =>
@@ -918,7 +930,7 @@ export class AngularDependencies extends FrameworkDependencies {
                                             zoneless: isZoneless
                                         };
                                         if (!isIgnore(variableNode)) {
-                                            if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                                            if (!isAllowed(name)) {
                                                 logger.debug(
                                                     `Skipping ApplicationConfig ${name} (not in public API)`
                                                 );
@@ -991,7 +1003,7 @@ export class AngularDependencies extends FrameworkDependencies {
                                                 })
                                         };
                                         if (!isIgnore(variableNode)) {
-                                            if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                                            if (!isAllowed(name)) {
                                                 logger.debug(
                                                     `Skipping InjectionToken ${name} (not in public API)`
                                                 );
@@ -1015,7 +1027,7 @@ export class AngularDependencies extends FrameworkDependencies {
                                         functionalKind === 'guard' ||
                                         functionalKind === 'interceptor';
                                     if (isFunctionalGuardOrInterceptor && !isIgnore(variableNode)) {
-                                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                                        if (!isAllowed(name)) {
                                             logger.debug(
                                                 `Skipping functional ${functionalKind} ${name} (not in public API)`
                                             );
@@ -1076,7 +1088,7 @@ export class AngularDependencies extends FrameworkDependencies {
 
                                     if (!isIgnore(variableNode)) {
                                         // Check if variable is allowed by public API filter
-                                        if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                                        if (!isAllowed(name)) {
                                             logger.debug(
                                                 `Skipping variable ${name} (not in public API)`
                                             );
@@ -1126,7 +1138,7 @@ export class AngularDependencies extends FrameworkDependencies {
 
                                         if (!isIgnore(destructuredVariables[i])) {
                                             // Check if variable is allowed by public API filter
-                                            if (!this.publicApiFilter.isSymbolAllowed(name, file)) {
+                                            if (!isAllowed(name)) {
                                                 logger.debug(
                                                     `Skipping destructured variable ${name} (not in public API)`
                                                 );

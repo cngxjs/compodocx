@@ -32,11 +32,34 @@ const declarationsOf = (
     return target?.declarations ?? [];
 };
 
+/** A namespace that merges with no class, function or enum. */
+const isNamespaceOnly = (symbol: ts.Symbol): boolean =>
+    (symbol.flags & (ts.SymbolFlags.ValueModule | ts.SymbolFlags.NamespaceModule)) !== 0 &&
+    (symbol.flags & (ts.SymbolFlags.Class | ts.SymbolFlags.Function | ts.SymbolFlags.Enum)) === 0;
+
+/** Every member of a namespace, nested namespaces included, as `Ns.Member`. */
+const addNamespaceMembers = (
+    resolved: Map<string, Set<string>>,
+    symbol: ts.Symbol,
+    prefix: string
+): void => {
+    symbol.exports?.forEach(member => {
+        const name = `${prefix}.${member.name}`;
+        for (const declaration of member.declarations ?? []) {
+            add(resolved, name, path.resolve(declaration.getSourceFile().fileName));
+        }
+        if (isNamespaceOnly(member)) {
+            addNamespaceMembers(resolved, member, name);
+        }
+    });
+};
+
 /**
  * The public API map with every recorded (name, file) pair followed to the
  * declarations it exports: a name recorded against a barrel also allows the
  * declaring file and the declared name (re-exports, `export *`, aliases,
- * nested barrels). Recorded pairs are kept as they are.
+ * nested barrels), and a public namespace allows its members (`Ns.Member`).
+ * Recorded pairs are kept as they are.
  */
 export const resolvePublicApi = (
     program: ts.Program,
@@ -49,11 +72,14 @@ export const resolvePublicApi = (
             const absolute = path.resolve(file);
             add(resolved, name, absolute);
             for (const declaration of declarationsOf(program, checker, name, absolute)) {
-                add(
-                    resolved,
-                    declaredName(declaration, name),
-                    path.resolve(declaration.getSourceFile().fileName)
-                );
+                const declared = declaredName(declaration, name);
+                add(resolved, declared, path.resolve(declaration.getSourceFile().fileName));
+                const symbol =
+                    ts.isModuleDeclaration(declaration) &&
+                    checker.getSymbolAtLocation(declaration.name);
+                if (symbol && isNamespaceOnly(symbol)) {
+                    addNamespaceMembers(resolved, symbol, declared);
+                }
             }
         }
     }

@@ -82,7 +82,14 @@ describe('parsePackageTypesExports', () => {
         expect(
             Object.fromEntries([...parsed.byImportPath].map(([k, v]) => [k, [...v].sort()]))
         ).toEqual({
-            '@sem/core': ['FooFeature', 'formatFoo', 'normalizeLabel', 'provideFoo'],
+            '@sem/core': [
+                'Bridge',
+                'FooFeature',
+                'Other',
+                'formatFoo',
+                'normalizeLabel',
+                'provideFoo'
+            ],
             '@sem/core/tokens': ['FOO_CONFIG', 'FooConfig'],
             '@sem/ui': ['SemButton'],
             '@sem/ui/legacy': ['SemLegacy']
