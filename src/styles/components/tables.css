@@ -1,48 +1,75 @@
-.cdx-table {
+/*
+ * One table grammar for generated tables (.cdx-table) and markdown tables
+ * (README, additional pages, prose): no box and no header strip, a muted
+ * small-caps header over one rule, hairlines between rows, whitespace for the
+ * rest. Host tables keep their own code-font variant (below).
+ */
+.cdx-table:not(.cdx-host-table),
+.cdx-readme table,
+.cdx-prose table {
+    --cdx-table-rule: color-mix(in srgb, var(--color-cdx-border) 70%, transparent);
     @apply w-full text-sm;
     border-collapse: collapse;
-    border: 1px solid var(--color-cdx-border);
-    border-radius: var(--radius-cdx-md);
+    margin-block: var(--spacing-cdx-md);
 }
 
-.cdx-table thead {
-    background: var(--color-cdx-bg-alt);
-    font-weight: 600;
-    color: var(--color-cdx-text);
-}
-
-.cdx-table th,
-.cdx-table td {
-    padding: var(--spacing-cdx-sm) var(--spacing-cdx-md);
-    border: 1px solid var(--color-cdx-border);
+.cdx-table:not(.cdx-host-table) th,
+.cdx-readme table th,
+.cdx-prose table th,
+.cdx-table:not(.cdx-host-table) td,
+.cdx-readme table td,
+.cdx-prose table td {
+    padding: 12px 24px 12px 0;
+    border: none;
+    border-bottom: 1px solid var(--cdx-table-rule);
     text-align: left;
+    vertical-align: top;
+    line-height: 1.5;
 }
 
-.cdx-table th {
-    font-size: 0.8125rem;
-    letter-spacing: 0.01em;
+.cdx-table:not(.cdx-host-table) th,
+.cdx-readme table th,
+.cdx-prose table th {
+    padding-top: 0;
+    padding-bottom: 8px;
+    background: none;
+    border-bottom-color: var(--color-cdx-border);
+    color: var(--color-cdx-text-muted);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
-.cdx-table tbody tr:hover {
-    background: var(--color-cdx-bg-alt);
+.cdx-table:not(.cdx-host-table) th:last-child,
+.cdx-readme table th:last-child,
+.cdx-prose table th:last-child,
+.cdx-table:not(.cdx-host-table) td:last-child,
+.cdx-readme table td:last-child,
+.cdx-prose table td:last-child {
+    padding-right: 0;
 }
 
-.dark .cdx-table {
-    border-color: var(--color-cdx-border);
+/*
+ * Generated tables: the name column takes 30% (longer names widen it, they
+ * never wrap), so the description columns of the tables on one page line up.
+ */
+.cdx-table:not(.cdx-host-table):not(.cdx-routes-table) td:first-child {
+    width: 30%;
+    white-space: nowrap;
 }
 
-.dark .cdx-table thead {
-    background: var(--color-cdx-bg-alt);
-    color: var(--color-cdx-text);
-}
-
-.dark .cdx-table th,
-.dark .cdx-table td {
-    border-color: var(--color-cdx-border);
+.cdx-table:not(.cdx-host-table) tbody tr:last-child td,
+.cdx-readme table tbody tr:last-child td,
+.cdx-prose table tbody tr:last-child td {
+    border-bottom: none;
 }
 
 /* Host bindings/listeners: borderless table with row separators */
 .cdx-host-table {
+    @apply w-full text-sm;
+    border-collapse: collapse;
     border: none;
     border-radius: 0;
 }

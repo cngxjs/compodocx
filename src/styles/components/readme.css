@@ -187,26 +187,7 @@
     margin: 2rem 0;
 }
 
-/* --- Tables (reuse the same visual grammar as cdx-table) --- */
-
-.cdx-readme table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1rem;
-    font-size: 0.875rem;
-}
-
-.cdx-readme th,
-.cdx-readme td {
-    border: 1px solid var(--color-cdx-border);
-    padding: 0.5rem 0.75rem;
-    text-align: left;
-}
-
-.cdx-readme th {
-    background: var(--color-cdx-bg-alt);
-    font-weight: 600;
-}
+/* --- Tables: shared grammar in tables.css --- */
 
 /* --- Images --- */
 
