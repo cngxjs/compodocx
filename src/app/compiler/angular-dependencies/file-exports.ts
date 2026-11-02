@@ -1,6 +1,7 @@
 import { ts } from 'ts-morph';
 
-const hasExportKeyword = (node: ts.Node): boolean =>
+/** Whether the declaration itself carries `export`. */
+export const hasExportKeyword = (node: ts.Node): boolean =>
     !!ts.canHaveModifiers(node) &&
     !!ts.getModifiers(node)?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword);
 
