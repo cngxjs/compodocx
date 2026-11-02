@@ -1,6 +1,11 @@
 import * as path from 'node:path';
 import * as fs from 'fs-extra';
 import { ts } from 'ts-morph';
+import {
+    CHECKER_DEFAULT_LIB,
+    CHECKER_LIB_FOLDER,
+    checkerLibFile
+} from '../app/compiler/checker-libs';
 import { AngularLifecycleHooks } from './angular-lifecycles-hooks';
 import { stripExampleUrlTags } from './example-urls';
 import { JsdocParserUtil } from './jsdoc-parser.util';
@@ -336,7 +341,8 @@ export function findMainSourceFolder(files: string[]) {
 }
 
 // Create a compilerHost object to allow the compiler to read and write files.
-// `sharedSourceFile` hands back files another program already parsed.
+// `sharedSourceFile` hands back files another program already parsed. The
+// TypeScript lib and the signal declarations come from `checker-libs`.
 export function compilerHost(
     transpileOptions: any,
     sharedSourceFile?: (fileName: string) => ts.SourceFile | undefined
@@ -346,6 +352,10 @@ export function compilerHost(
 
     const toReturn: ts.CompilerHost = {
         getSourceFile: (fileName: string) => {
+            const lib = checkerLibFile(fileName);
+            if (lib) {
+                return lib;
+            }
             if (fileName.lastIndexOf('.ts') !== -1 || fileName.lastIndexOf('.js') !== -1) {
                 if (fileName === 'lib.d.ts') {
                     return undefined;
@@ -383,7 +393,8 @@ export function compilerHost(
             return undefined;
         },
         writeFile: (_name, _text) => {},
-        getDefaultLibFileName: () => 'lib.d.ts',
+        getDefaultLibFileName: () => CHECKER_DEFAULT_LIB,
+        getDefaultLibLocation: () => CHECKER_LIB_FOLDER,
         useCaseSensitiveFileNames: () => false,
         getCanonicalFileName: fileName => fileName,
         getCurrentDirectory: () => '',

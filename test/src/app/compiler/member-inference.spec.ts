@@ -14,7 +14,8 @@ describe('member inference', () => {
         const file = path.join(tmpDir, 'box.ts');
         fs.writeFileSync(
             file,
-            `import { Component, afterRenderEffect, computed, effect, signal } from '@angular/core';
+            `import { Component, afterRenderEffect, computed, effect, input, linkedSignal, signal } from '@angular/core';
+import { Item } from './item';
 
 @Component({ selector: 'app-box', template: '' })
 export class BoxComponent {
@@ -29,6 +30,22 @@ export class BoxComponent {
     readonly locked = false;
     readonly cache = new Map<string, Queue>();
     readonly declared: unknown = null;
+    readonly tags = signal<string[]>([]);
+    readonly tagCount = computed(() => this.tags().length);
+    readonly year = computed(() => new Date().getFullYear());
+    readonly heading = computed(() => (this.open() ? this.label() : \`\${this.label()} [closed]\`));
+    readonly refreshed = linkedSignal(() => {
+        this.count();
+        return new Date();
+    });
+    readonly dark = computed(() => window.matchMedia('(prefers-color-scheme: dark)').matches);
+    readonly items = signal<Item[]>([]);
+    readonly first = computed(() => this.items()[0]);
+    readonly firstName = computed(() => this.items()[0].name);
+    readonly name = input('box');
+    readonly upper = computed(() => this.name().toUpperCase());
+
+    async save() {}
 }
 
 export class Queue {
@@ -81,8 +98,30 @@ export class Queue {
         expect(typeOf('cache')).toBe('Map<string, Queue>');
     });
 
-    it('leaves the type out when only Angular types could tell it', () => {
-        expect(typeOf('size')).toBeUndefined();
+    it('reads the value type of a signal of the same class inside a callback', () => {
+        expect(typeOf('size')).toBe('number');
+        expect(typeOf('tagCount')).toBe('number');
+        expect(typeOf('heading')).toBe('string');
+    });
+
+    it('resolves the TypeScript and DOM lib inside a callback', () => {
+        expect(typeOf('year')).toBe('number');
+        expect(typeOf('refreshed')).toBe('Date');
+        expect(typeOf('dark')).toBe('boolean');
+    });
+
+    it('keeps a type name from another file as written', () => {
+        expect(typeOf('first')).toBe('Item');
+    });
+
+    it('leaves the type out when a type from another file or an Angular API is needed', () => {
+        expect(typeOf('firstName')).toBeUndefined();
+        expect(typeOf('upper')).toBeUndefined();
+    });
+
+    it('infers the return type of an async method with the lib', () => {
+        const save = deps.components[0].methodsClass.find((m: any) => m.name === 'save');
+        expect(save.returnType).toBe('Promise<void>');
     });
 
     it('keeps a declared unknown', () => {

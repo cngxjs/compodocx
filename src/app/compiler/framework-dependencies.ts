@@ -2,6 +2,7 @@ import { ts } from 'ts-morph';
 import { compilerHost } from '../../utils';
 import { ClassHelper } from './angular/deps/helpers/class-helper';
 import { ComponentHelper } from './angular/deps/helpers/component-helper';
+import { ANGULAR_SIGNALS_FILE } from './checker-libs';
 
 export class FrameworkDependencies {
     public files: string[];
@@ -20,7 +21,7 @@ export class FrameworkDependencies {
             allowJs: true
         };
         this.program = ts.createProgram(
-            this.files,
+            [...this.files, ANGULAR_SIGNALS_FILE],
             transpileOptions,
             compilerHost(transpileOptions, options.sharedSourceFile)
         );
