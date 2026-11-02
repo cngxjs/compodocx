@@ -49,11 +49,17 @@ export default defineConfig({
         // firefox + webkit run on a nightly cron (.github/workflows/e2e-cross-browser.yml),
         // not on every push. Cross-engine bugs in static-HTML output are rare;
         // keeping them out of the per-push matrix saves ~6 minutes per CI run.
-        {
-            name: 'firefox',
-            use: { ...devices['Desktop Firefox'] },
-            testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts', '**/di-chapter.spec.ts', '**/feature-urls.spec.ts', '**/style-files.spec.ts', '**/routes.spec.ts', '**/sidebar-tree.spec.ts', '**/file-protocol.spec.ts'],
-        },
+        // firefox is registered on CI only: the Playwright Firefox builds do not
+        // launch on macOS 27, so local runs leave it out.
+        ...(process.env.CI
+            ? [
+                  {
+                      name: 'firefox',
+                      use: { ...devices['Desktop Firefox'] },
+                      testIgnore: ['**/empty-states.spec.ts', '**/standalone-features.spec.ts', '**/entity-hero.spec.ts', '**/content-sections.spec.ts', '**/coverage-report.spec.ts', '**/utilities-index.spec.ts', '**/overview-dashboard.spec.ts', '**/source-viewer.spec.ts', '**/tab-routing.spec.ts', '**/theming-tab.spec.ts', '**/version-switcher.spec.ts', '**/playground-tab.spec.ts', '**/additional-pages.spec.ts', '**/menu-layout.spec.ts', '**/di-chapter.spec.ts', '**/feature-urls.spec.ts', '**/style-files.spec.ts', '**/routes.spec.ts', '**/sidebar-tree.spec.ts', '**/file-protocol.spec.ts'],
+                  }
+              ]
+            : []),
 
         {
             name: 'webkit',
