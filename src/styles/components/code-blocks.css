@@ -138,6 +138,11 @@ pre.line-numbers code {
     box-shadow: var(--shadow-cdx-sm);
 }
 
+/* Several files in one tab (Styles: style files plus inline styles) stand apart. */
+.cdx-source-viewer + .cdx-source-viewer {
+    margin-top: var(--spacing-cdx-xl);
+}
+
 .cdx-source-viewer .line {
     scroll-margin-top: 120px;
 }
