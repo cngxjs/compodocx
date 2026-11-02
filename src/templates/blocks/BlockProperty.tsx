@@ -52,34 +52,41 @@ export const BlockProperty = (props: BlockPropertyProps): string => {
                 }
                 return (
                     <div class={cls.join(' ')} id={memberAnchor(p.name)}>
-                        <div class="cdx-io-member-title">
-                            <span
-                                class={`cdx-io-member-name${p.deprecated ? ' cdx-member-name--deprecated' : ''}`}
-                            >
-                                {p.name}
-                                <a class="cdx-member-permalink" href={`#${memberAnchor(p.name)}`}>
-                                    #
-                                </a>
-                            </span>
-                            {p.type && (
-                                <span class="cdx-io-member-type">
-                                    {linkTypeHtml(p.type, { depth: props.depth })}
+                        <div class="cdx-io-member-head">
+                            <div class="cdx-io-member-title">
+                                <span
+                                    class={`cdx-io-member-name${p.deprecated ? ' cdx-member-name--deprecated' : ''}`}
+                                >
+                                    {p.name}
+                                    <a
+                                        class="cdx-member-permalink"
+                                        href={`#${memberAnchor(p.name)}`}
+                                    >
+                                        #
+                                    </a>
                                 </span>
-                            )}
-                        </div>
-                        <div class="cdx-io-member-badges">
-                            {p.signalKind && (
-                                <span class={`cdx-badge cdx-badge--${p.signalKind}`}>
-                                    {signalKindLabel(p.signalKind)}
-                                </span>
-                            )}
-                            {(p.modifierKind ?? []).map((k: number) => (
-                                <span class="cdx-member-modifier">{modifKind(k)}</span>
-                            ))}
-                            {p.optional && <span class="cdx-member-modifier">{t('optional')}</span>}
-                            {p.required && (
-                                <span class="cdx-badge cdx-badge--factory">Required</span>
-                            )}
+                                {p.type && (
+                                    <span class="cdx-io-member-type">
+                                        {linkTypeHtml(p.type, { depth: props.depth })}
+                                    </span>
+                                )}
+                            </div>
+                            <div class="cdx-io-member-badges">
+                                {p.signalKind && (
+                                    <span class={`cdx-badge cdx-badge--${p.signalKind}`}>
+                                        {signalKindLabel(p.signalKind)}
+                                    </span>
+                                )}
+                                {(p.modifierKind ?? []).map((k: number) => (
+                                    <span class="cdx-member-modifier">{modifKind(k)}</span>
+                                ))}
+                                {p.optional && (
+                                    <span class="cdx-member-modifier">{t('optional')}</span>
+                                )}
+                                {p.required && (
+                                    <span class="cdx-badge cdx-badge--factory">Required</span>
+                                )}
+                            </div>
                         </div>
                         {p.decorators?.length > 0 && (
                             <div class="cdx-member-decorators">

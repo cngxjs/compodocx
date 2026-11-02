@@ -2,6 +2,7 @@ import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
 import { menuOf } from '../helpers/menu';
 import { pagesIn } from '../helpers/pages';
+import { textOf } from '../helpers/text';
 import { hasKindPages, readKindPages } from './paths';
 
 /** The type layout this suite asserts (the default is the feature layout). */
@@ -306,13 +307,14 @@ describe('CLI simple generation - big app', () => {
         expect(todoClassFile).to.contain(
             'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/boolean'
         );
+        expect(textOf(todoClassFile)).to.contain('testCommentFunction(dig: number');
         expect(todoClassFile).to.contain(
-            'testCommentFunction(dig: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number'
+            '<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/number'
         );
     });
 
     it('should have correct spread support', () => {
-        expect(todoStoreFile).to.contain('...theArgs');
+        expect(textOf(todoStoreFile)).to.contain('...theArgs');
     });
 
     it('should have an example tab', () => {
@@ -752,7 +754,7 @@ describe('CLI simple generation - big app', () => {
 
     it('correct support function with empty typed arguments', () => {
         expect(appComponentFile).to.contain('cdx-io-member-name">openSomeDialog');
-        expect(appComponentFile).to.contain('model: unknown');
+        expect(textOf(appComponentFile)).to.contain('model: unknown');
     });
 
     it('correct support unnamed function', () => {
@@ -838,10 +840,11 @@ describe('CLI simple generation - big app', () => {
         expect(file).to.contain('cdx-io-member-name">getData');
         // The function foo holds the bare file name in the folder, so the
         // interface Foo gets the kind suffix.
+        expect(textOf(file)).to.contain('getData(foo: Foo');
         expect(file).to.contain(
-            `foo: <a href="${pages.href('interface', 'Foo', 1, { file: 'Foo-interface' })}"`
+            `<a href="${pages.href('interface', 'Foo', 1, { file: 'Foo-interface' })}"`
         );
-        expect(file).to.contain('Foo&lt;object&gt;');
+        expect(textOf(file)).to.contain('getData(foo: Foo&lt;object&gt;)');
     });
 
     it('should support inheritance between component and directive', () => {

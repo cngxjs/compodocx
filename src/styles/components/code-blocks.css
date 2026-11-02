@@ -101,7 +101,8 @@ pre.line-numbers code {
 .dark :not(.cdx-source-viewer-body) > .shiki span {
     color: var(--shiki-dark) !important;
 }
-.dark code.cdx-shiki-inline span {
+.dark code.cdx-shiki-inline span,
+.dark .cdx-derived-body span {
     color: var(--shiki-dark) !important;
 }
 

@@ -162,11 +162,8 @@ a.cdx-member-permalink:hover {
 }
 
 .cdx-param-row {
-    padding: var(--spacing-cdx-sm) 0;
-}
-
-.cdx-param-row + .cdx-param-row {
-    border-top: 1px solid var(--color-cdx-border);
+    /* No rule between params: rules separate members (see .cdx-io-member). */
+    padding: var(--spacing-cdx-xs) 0;
 }
 
 .cdx-param-header {
@@ -404,6 +401,121 @@ a.cdx-member-permalink:hover {
     padding: var(--spacing-cdx-xl) 0;
 }
 
+/*
+ * Header of a member: title (name, type) and badges. One line in the
+ * one-column layout (narrow containers).
+ */
+.cdx-io-member-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--spacing-cdx-xs) var(--spacing-cdx-sm);
+}
+
+/*
+ * Two columns like the generated tables: the header on the left (30 %, the
+ * name column of .cdx-table), signature, description, params, default and
+ * source on the right. Narrow containers stack (below).
+ */
+.cdx-io-member:not(.cdx-io-member--theming) {
+    display: grid;
+    grid-template-columns: minmax(0, 30%) minmax(0, 1fr);
+    column-gap: var(--spacing-cdx-xl);
+    align-items: start;
+}
+
+.cdx-io-member:not(.cdx-io-member--theming) > * {
+    grid-column: 2;
+}
+
+.cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-head {
+    grid-column: 1;
+    grid-row: 1 / span 10;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-head .cdx-io-member-title {
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-desc {
+    margin-top: 0;
+}
+
+@container (max-width: 640px) {
+    .cdx-io-member:not(.cdx-io-member--theming) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .cdx-io-member:not(.cdx-io-member--theming) > *,
+    .cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-head {
+        grid-column: 1;
+        grid-row: auto;
+    }
+
+    .cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-head {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-head .cdx-io-member-title {
+        flex-direction: row;
+        gap: var(--spacing-cdx-sm);
+    }
+
+    .cdx-io-member:not(.cdx-io-member--theming) > .cdx-io-member-desc {
+        margin-top: var(--spacing-cdx-sm);
+    }
+}
+
+/* Type links in a highlighted signature keep the token colour; a quiet
+   underline marks them as links. */
+.cdx-derived-body a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+    text-underline-offset: 2px;
+}
+
+.cdx-derived-body a:hover {
+    text-decoration-color: currentColor;
+}
+
+/* A signature sits under the description, as a property value does; without a
+   description it opens the right column on the name line. */
+.cdx-io-member-head + .cdx-derived-body {
+    margin-top: 0;
+}
+
+.cdx-io-member > .cdx-io-member-desc + .cdx-derived-body {
+    margin-top: var(--spacing-cdx-lg);
+}
+
+.cdx-io-member > .cdx-derived-body + .cdx-io-member-desc {
+    margin-top: var(--spacing-cdx-sm);
+}
+
+/* Same rhythm for every member: the last paragraph of a description adds no gap. */
+.cdx-io-member-desc > :last-child {
+    margin-bottom: 0;
+}
+
+/* A default value reads inline (`default []`), not as a code block. */
+.cdx-io-member-default code.cdx-shiki-inline {
+    display: inline !important;
+    margin: 0 !important;
+    padding: 1px 6px !important;
+    border: none;
+    font-size: inherit;
+}
+
+/* A hairline between members of one section, like the rows of a table. */
+.cdx-io-member + .cdx-io-member {
+    border-top: 1px solid color-mix(in srgb, var(--color-cdx-border) 70%, transparent);
+}
+
 
 .cdx-io-member--method {
     --cdx-io-color: hsl(230 45% 45%);
@@ -486,7 +598,6 @@ a.cdx-member-permalink:hover {
     display: flex;
     align-items: center;
     gap: var(--spacing-cdx-sm);
-    margin-top: var(--spacing-cdx-xs);
     flex-wrap: wrap;
 }
 
@@ -543,7 +654,12 @@ a.cdx-member-permalink:hover {
 }
 
 .cdx-io-member-source {
-    margin-top: 0;
+    /* Long paths wrap in the right column; the line box follows the small
+       link text, not the body text (the link itself stays theme-styled). */
+    margin-top: var(--spacing-cdx-sm);
+    font-size: 0.6875rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 .cdx-io-member-source a {
@@ -570,10 +686,12 @@ a.cdx-member-permalink:hover {
 }
 
 .cdx-derived-body {
-    background: var(--color-cdx-bg-alt);
-    border: 1px solid var(--color-cdx-border);
-    border-radius: var(--radius-cdx-md);
-    padding: var(--spacing-cdx-md) var(--spacing-cdx-lg);
+    /* Same surface as the highlighted snippets (code.cdx-shiki-inline), so a
+       method signature and a property value read as the same kind of block. */
+    background: var(--color-cdx-snippet-bg);
+    border: 1px solid var(--color-cdx-snippet-border);
+    border-radius: var(--color-cdx-snippet-radius, var(--radius-cdx-md));
+    padding: var(--spacing-cdx-sm) var(--spacing-cdx-md);
     margin-top: var(--spacing-cdx-sm);
     overflow-x: auto;
 }

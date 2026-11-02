@@ -17,6 +17,7 @@ import { DiBadges } from '../components/DiBadges';
 import { IconFile, IconInjectable } from '../components/Icons';
 import {
     functionSignature,
+    highlightedSignature,
     linkTypeHtml,
     pagefindFilterBlock,
     pagefindMetaBlock,
@@ -139,7 +140,7 @@ const MemberSection = (item: any, owner: string, depth: number): string => {
             <pre class="cdx-derived-body">
                 <code>
                     {kind === 'function'
-                        ? functionSignature(item, depth)
+                        ? highlightedSignature(item, depth)
                         : constantShape(item, depth)}
                 </code>
             </pre>

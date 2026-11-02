@@ -90,8 +90,9 @@ const initCopyButtons = () => {
             }
         );
 
-        // Source-viewer blocks have their own copy button in the header.
-        if (pre.closest('.cdx-source-viewer')) {
+        // Source-viewer blocks have their own copy button in the header;
+        // signatures and definitions are read, not copied.
+        if (pre.closest('.cdx-source-viewer') || pre.classList.contains('cdx-derived-body')) {
             return;
         }
         // Idempotency: skip if either the button or its wrapping container

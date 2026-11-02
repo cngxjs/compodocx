@@ -5,6 +5,7 @@ import path from 'node:path';
 import { exists, hasStderrError, read, shell, temporaryDir } from '../helpers';
 import { menuOf } from '../helpers/menu';
 import { pagesIn } from '../helpers/pages';
+import { textOf } from '../helpers/text';
 
 const BIN = path.resolve('./bin/index-cli.js');
 const TSCONFIG_SIMPLE = path.resolve('./test/fixtures/sample-files/tsconfig.simple.json');
@@ -216,7 +217,7 @@ describe('CLI simple generation', () => {
             // Function-type parameters are now rendered as a `function` link
             // to the MDN reference instead of expanding the `(arg: T) => U`
             // shape inline. Assert on the parameter name + the MDN link.
-            expect(fooServiceFile).to.contain('<code>close(work: ');
+            expect(textOf(fooServiceFile)).to.contain('close(work: ');
             expect(fooServiceFile).to.contain(
                 'href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/function"'
             );

@@ -2,8 +2,8 @@ import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { memberAnchor } from '../../app/links/layout';
 import {
-    functionSignature,
     hasJsdocParams,
+    highlightedSignature,
     isTabEnabled,
     linkTypeHtml,
     parseDescription,
@@ -44,24 +44,26 @@ export const BlockAccessors = (props: BlockAccessorsProps): string => {
 
                 return (
                     <div class={cls.join(' ')} id={memberAnchor(key)}>
-                        <div class="cdx-io-member-title">
-                            <span
-                                class={`cdx-io-member-name${isDeprecated ? ' cdx-member-name--deprecated' : ''}`}
-                            >
-                                {key}
-                                <a class="cdx-member-permalink" href={`#${memberAnchor(key)}`}>
-                                    #
-                                </a>
-                            </span>
-                            {returnType && (
-                                <span class="cdx-io-member-type">
-                                    {linkTypeHtml(returnType, { depth: props.depth })}
+                        <div class="cdx-io-member-head">
+                            <div class="cdx-io-member-title">
+                                <span
+                                    class={`cdx-io-member-name${isDeprecated ? ' cdx-member-name--deprecated' : ''}`}
+                                >
+                                    {key}
+                                    <a class="cdx-member-permalink" href={`#${memberAnchor(key)}`}>
+                                        #
+                                    </a>
                                 </span>
-                            )}
-                        </div>
-                        <div class="cdx-io-member-badges">
-                            {acc.getSignature && <span class="cdx-member-modifier">get</span>}
-                            {acc.setSignature && <span class="cdx-member-modifier">set</span>}
+                                {returnType && (
+                                    <span class="cdx-io-member-type">
+                                        {linkTypeHtml(returnType, { depth: props.depth })}
+                                    </span>
+                                )}
+                            </div>
+                            <div class="cdx-io-member-badges">
+                                {acc.getSignature && <span class="cdx-member-modifier">get</span>}
+                                {acc.setSignature && <span class="cdx-member-modifier">set</span>}
+                            </div>
                         </div>
                         {isDeprecated && (
                             <div class="cdx-member-deprecated">
@@ -69,16 +71,6 @@ export const BlockAccessors = (props: BlockAccessorsProps): string => {
                                     acc.setSignature?.deprecationMessage ||
                                     t('deprecated')}
                             </div>
-                        )}
-                        {acc.getSignature?.args?.length > 0 && (
-                            <pre class="cdx-derived-body">
-                                <code>{functionSignature(acc.getSignature, props.depth)}</code>
-                            </pre>
-                        )}
-                        {acc.setSignature?.args?.length > 0 && (
-                            <pre class="cdx-derived-body">
-                                <code>{functionSignature(acc.setSignature, props.depth)}</code>
-                            </pre>
                         )}
                         {acc.getSignature?.description && (
                             <div class="cdx-io-member-desc">
@@ -91,6 +83,16 @@ export const BlockAccessors = (props: BlockAccessorsProps): string => {
                                     {parseDescription(acc.setSignature.description, props.depth)}
                                 </div>
                             )}
+                        {acc.getSignature?.args?.length > 0 && (
+                            <pre class="cdx-derived-body">
+                                <code>{highlightedSignature(acc.getSignature, props.depth)}</code>
+                            </pre>
+                        )}
+                        {acc.setSignature?.args?.length > 0 && (
+                            <pre class="cdx-derived-body">
+                                <code>{highlightedSignature(acc.setSignature, props.depth)}</code>
+                            </pre>
+                        )}
                         {acc.getSignature?.jsdoctags &&
                             hasJsdocParams(acc.getSignature.jsdoctags) && (
                                 <div class="cdx-io-member-desc">

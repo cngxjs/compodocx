@@ -33,30 +33,35 @@ export const BlockOutput = (props: BlockOutputProps): string => {
                 }
                 return (
                     <div class={cls.join(' ')} id={memberAnchor(out.name)}>
-                        <div class="cdx-io-member-title">
-                            <span
-                                class={`cdx-io-member-name${out.deprecated ? ' cdx-member-name--deprecated' : ''}`}
-                            >
-                                {out.name}
-                                <a class="cdx-member-permalink" href={`#${memberAnchor(out.name)}`}>
-                                    #
-                                </a>
-                            </span>
-                            {out.type && (
-                                <span class="cdx-io-member-type">
-                                    {linkTypeHtml(out.type, { depth: props.depth })}
+                        <div class="cdx-io-member-head">
+                            <div class="cdx-io-member-title">
+                                <span
+                                    class={`cdx-io-member-name${out.deprecated ? ' cdx-member-name--deprecated' : ''}`}
+                                >
+                                    {out.name}
+                                    <a
+                                        class="cdx-member-permalink"
+                                        href={`#${memberAnchor(out.name)}`}
+                                    >
+                                        #
+                                    </a>
                                 </span>
-                            )}
-                        </div>
-                        <div class="cdx-io-member-badges">
-                            {out.signalKind && (
-                                <span class={`cdx-badge cdx-badge--${out.signalKind}`}>
-                                    {signalKindLabel(out.signalKind)}
-                                </span>
-                            )}
-                            {out.alias && (
-                                <span class="cdx-member-modifier">alias: {out.alias}</span>
-                            )}
+                                {out.type && (
+                                    <span class="cdx-io-member-type">
+                                        {linkTypeHtml(out.type, { depth: props.depth })}
+                                    </span>
+                                )}
+                            </div>
+                            <div class="cdx-io-member-badges">
+                                {out.signalKind && (
+                                    <span class={`cdx-badge cdx-badge--${out.signalKind}`}>
+                                        {signalKindLabel(out.signalKind)}
+                                    </span>
+                                )}
+                                {out.alias && (
+                                    <span class="cdx-member-modifier">alias: {out.alias}</span>
+                                )}
+                            </div>
                         </div>
                         {out.description && (
                             <div class="cdx-io-member-desc">
