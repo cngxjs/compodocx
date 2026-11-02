@@ -60,7 +60,8 @@ jobs:
               run: npm run typecheck
 
     e2e:
-        runs-on: ubuntu-latest
+        # Playwright 1.59 cannot install browsers on ubuntu 26.04 (ubuntu-latest).
+        runs-on: ubuntu-24.04
 
         steps:
             - uses: actions/checkout@v5

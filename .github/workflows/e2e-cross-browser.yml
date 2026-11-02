@@ -15,7 +15,8 @@ on:
 
 jobs:
     e2e-cross-browser:
-        runs-on: ubuntu-latest
+        # Playwright 1.59 cannot install browsers on ubuntu 26.04 (ubuntu-latest).
+        runs-on: ubuntu-24.04
 
         strategy:
             fail-fast: false
