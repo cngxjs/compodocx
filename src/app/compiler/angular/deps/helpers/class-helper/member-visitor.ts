@@ -56,6 +56,23 @@ const importsOf = (sourceFile: ts.SourceFile): AngularImports => {
     return imports;
 };
 
+/** Signal kinds whose type is the value they hold, inferred when no type argument is given. */
+const VALUE_SIGNAL_KINDS: ReadonlySet<string> = new Set(['signal', 'computed', 'linked-signal']);
+
+/** `number`, `string` or `boolean` for a literal type (`signal(0)` holds a number, not `0`). */
+const widenedTypeName = (type: ts.Type): string | undefined => {
+    if (type.flags & ts.TypeFlags.NumberLiteral) {
+        return 'number';
+    }
+    if (type.flags & ts.TypeFlags.StringLiteral) {
+        return 'string';
+    }
+    if (type.flags & ts.TypeFlags.BooleanLiteral) {
+        return 'boolean';
+    }
+    return undefined;
+};
+
 /** Signal and query factories recognised by name, with the kind they get. */
 const SIGNAL_CALLEES: ReadonlyArray<readonly [string, string]> = [
     ['linkedSignal', 'linked-signal'],
@@ -175,6 +192,38 @@ export class MemberVisitor {
             }
         }
         return this.detectInject(cleaned, initializer, sourceFile);
+    }
+
+    /**
+     * Value type of `signal(x)`, `computed(() => x)` or `linkedSignal(() => x)`
+     * without type arguments, from the initial value or the callback's return.
+     * Angular itself is not resolved here, so only types of literals and project
+     * code come back; anything with `any` or `unknown` in it is dropped.
+     */
+    private signalValueType(
+        initializer: ts.Expression | undefined,
+        kind: string
+    ): string | undefined {
+        const call = initializer && unwrapExpression(initializer);
+        const first = call && ts.isCallExpression(call) ? call.arguments[0] : undefined;
+        // `linkedSignal({ source, computation })` passes options, not a value
+        if (!first || (kind === 'linked-signal' && ts.isObjectLiteralExpression(first))) {
+            return undefined;
+        }
+        const isCallback = ts.isArrowFunction(first) || ts.isFunctionExpression(first);
+        try {
+            const signature = isCallback
+                ? this.typeChecker.getSignatureFromDeclaration(first)
+                : undefined;
+            const type = signature
+                ? this.typeChecker.getReturnTypeOfSignature(signature)
+                : this.typeChecker.getTypeAtLocation(first);
+            const text = widenedTypeName(type) ?? this.typeChecker.typeToString(type);
+            return /\b(any|unknown|never)\b/.test(text) ? undefined : text;
+        } catch {
+            // a checker without the program (unit tests) or a failed inference
+            return undefined;
+        }
     }
 
     /**
@@ -702,6 +751,8 @@ export class MemberVisitor {
                 result.signalKind = signalKind.kind;
                 if (signalKind.signalType) {
                     result.type = signalKind.signalType;
+                } else if (VALUE_SIGNAL_KINDS.has(signalKind.kind)) {
+                    result.type = this.signalValueType(initializer, signalKind.kind) ?? result.type;
                 }
                 if (signalKind.required) {
                     result.required = true;
