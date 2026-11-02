@@ -67,6 +67,15 @@ Useful flags:
 
 Re-running `ng add @cngxjs/compodocx` is idempotent (zero diff on the second pass). CI workflow files that invoke `compodoc -p ...` directly are not rewritten - update those manually, or rely on the `compodoc` bin alias the new package still ships. The schematic does not touch your sources, templates or config file: the warnings of the first run still apply.
 
+## Changes in 0.15.0
+
+No flag or config key was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.14:
+
+- **Per-symbol log lines need `--verbose`.** The `found`, `Including`, `Skipping` and "Style file without documented content" lines are debug output and only printed with `--verbose` (or `"verbose": true` in the config file). Scripts that grep the log for them need the flag.
+- **Namespace member URLs.** A namespace member's page is named after its qualified name (`Bridge.StateSource.html` instead of `StateSource.html`). `redirects.json` maps the old page to the new one, and the version switcher follows it; hand-written links to the old page are rewritten. Bookmarks keep working through the redirect.
+- **Non-exported namespace members are gone.** A member without `export` inside a namespace, and every member of a namespace the file does not export, is no longer documented. Add `export` where the member is meant to be documented.
+- **`documentation.json` entries of namespace members.** `name` stays the bare name; the new `namespace` field holds the chain, so the qualified name is `<namespace>.<name>`. Module augmentation members carry `augments`, and the top-level `namespaces` list is new. Tools that key entries by `name` and file see same-name members of two namespaces as two entries now. `compodocx diff` pairs entries by the qualified name.
+
 ## Changes in 0.14.0
 
 No flag or config key was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.13:
