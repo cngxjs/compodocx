@@ -45,12 +45,14 @@ describe('signal query detection', () => {
         fs.writeFileSync(
             file,
             `import { Component, ElementRef, TemplateRef, contentChild, contentChildren, viewChild } from '@angular/core';
+import { outputFromObservable } from '@angular/core/rxjs-interop';
 
 @Component({ selector: 'app-card', template: '' })
 export class CardComponent {
     readonly header = contentChild<TemplateRef<unknown>>('header');
     readonly actions = contentChildren<TemplateRef<unknown>>('action');
     readonly root = viewChild.required<ElementRef>('root');
+    readonly tick = outputFromObservable(source, { alias: 'ticked' });
 }
 `
         );
@@ -72,5 +74,11 @@ export class CardComponent {
 
     it('recognises a required view query', () => {
         expect(member('root')).toMatchObject({ signalKind: 'view-child', required: true });
+    });
+
+    it('lists outputFromObservable as an output with its alias', () => {
+        const tick = component.outputsClass.find((p: any) => p.name === 'tick');
+        expect(tick).toMatchObject({ alias: 'ticked' });
+        expect(member('tick')).toBeUndefined();
     });
 });
