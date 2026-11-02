@@ -21,6 +21,47 @@ type BlockMethodProps = {
     readonly navTabs?: any[];
 };
 
+/**
+ * Description, signature, parameters and returns of one signature. An
+ * overloaded method renders these once per overload; an overload repeats the
+ * description only when it has its own.
+ */
+const SignatureParts = (
+    sig: any,
+    opts: {
+        readonly depth: number;
+        readonly showDescription: boolean;
+        readonly showSignature: boolean;
+    }
+): string =>
+    (
+        <>
+            {opts.showDescription && sig.description && (
+                <div class="cdx-io-member-desc">
+                    {parseDescription(sig.description, opts.depth)}
+                </div>
+            )}
+            {opts.showSignature && (
+                <pre class="cdx-derived-body">
+                    <code>{highlightedSignature(sig, opts.depth)}</code>
+                </pre>
+            )}
+            {sig.jsdoctags && hasJsdocParams(sig.jsdoctags) && (
+                <div class="cdx-io-member-desc">
+                    {ParamsTable({
+                        jsdocTags: sig.jsdoctags,
+                        depth: opts.depth,
+                        showOptional: true,
+                        showDefaultValue: true
+                    })}
+                </div>
+            )}
+            {sig.returnType && sig.jsdoctags && (
+                <div class="cdx-io-member-desc">{returnsHtml(sig.jsdoctags, opts.depth)}</div>
+            )}
+        </>
+    ) as string;
+
 export const BlockMethod = (props: BlockMethodProps): string => {
     const custom = renderCustomTemplate('block-method', props);
     if (custom !== null) {
@@ -93,30 +134,12 @@ export const BlockMethod = (props: BlockMethodProps): string => {
                         {m.deprecated && m.deprecationMessage && (
                             <div class="cdx-member-deprecated">{m.deprecationMessage}</div>
                         )}
-                        {m.description && (
-                            <div class="cdx-io-member-desc">
-                                {parseDescription(m.description, props.depth)}
-                            </div>
-                        )}
-                        {m.args?.length > 0 && (
-                            <pre class="cdx-derived-body">
-                                <code>{highlightedSignature(m, props.depth)}</code>
-                            </pre>
-                        )}
-                        {m.jsdoctags && hasJsdocParams(m.jsdoctags) && (
-                            <div class="cdx-io-member-desc">
-                                {ParamsTable({
-                                    jsdocTags: m.jsdoctags,
-                                    depth: props.depth,
-                                    showOptional: true,
-                                    showDefaultValue: true
-                                })}
-                            </div>
-                        )}
-                        {m.returnType && m.jsdoctags && (
-                            <div class="cdx-io-member-desc">
-                                {returnsHtml(m.jsdoctags, props.depth)}
-                            </div>
+                        {[m, ...(m.overloads ?? [])].map((sig: any, i: number) =>
+                            SignatureParts(sig, {
+                                depth: props.depth,
+                                showDescription: i === 0 || sig.description !== m.description,
+                                showSignature: sig.args?.length > 0 || m.overloads?.length > 0
+                            })
                         )}
                         {m.line && isTabEnabled(props.navTabs, 'source') && (
                             <div class="cdx-io-member-source">

@@ -26,6 +26,34 @@ describe('BlockMethod', () => {
         expect(html).to.include('doThing');
     });
 
+    it('renders an overloaded method once, with a signature per overload', () => {
+        const html = BlockMethod({
+            depth: 1,
+            methods: [
+                {
+                    name: 'select',
+                    description: '<p>Selects by id.</p>',
+                    args: [{ name: 'id', type: 'number' }],
+                    overloads: [
+                        {
+                            name: 'select',
+                            description: '<p>Selects a row.</p>',
+                            args: [{ name: 'row', type: 'Row' }]
+                        }
+                    ]
+                }
+            ],
+            file: 'foo.ts'
+        });
+        expect(html.match(/class="cdx-io-member cdx-io-member--method"/g)).toHaveLength(1);
+        expect(html.match(/<pre class="cdx-derived-body"/g)).toHaveLength(2);
+        expect(html).to.include('Selects by id.');
+        expect(html).to.include('Selects a row.');
+        const text = html.replace(/<[^>]+>/g, '');
+        expect(text).to.include('select(id: number)');
+        expect(text).to.include('select(row: Row)');
+    });
+
     it('honours the `block-method` custom-template override', () => {
         registerCustomTemplate(
             'block-method',

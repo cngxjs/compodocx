@@ -227,6 +227,8 @@ export interface ExportMethod {
     rawdescription?: string;
     modifierKind?: number[];
     jsdoctags?: ExportJsdocTag[];
+    /** The further signatures of an overloaded method; the entry itself is the first one. */
+    overloads?: ExportMethod[];
 }
 
 export interface ExportAccessor {

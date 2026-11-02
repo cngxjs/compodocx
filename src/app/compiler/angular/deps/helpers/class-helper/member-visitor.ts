@@ -23,6 +23,7 @@ import {
 } from '../../../../semantic/signal-calls';
 import type { DecoratorInspector } from './decorator-inspector';
 import type { JsdocExtractor } from './jsdoc-extractor';
+import { type MethodDeclaration, mergeOverloads } from './overloads';
 import type { TypeRenderer } from './type-renderer';
 
 const SIGNAL_MEMBER_KINDS: Readonly<Record<SignalApi, string>> = {
@@ -442,7 +443,7 @@ export class MemberVisitor {
         const outputs = [];
         const hostBindings = [];
         const hostListeners = [];
-        const methods = [];
+        const methodDeclarations: MethodDeclaration<any>[] = [];
         const properties = [];
         const indexSignatures = [];
         let kind;
@@ -486,7 +487,10 @@ export class MemberVisitor {
                         )
                     ) {
                         if (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) {
-                            methods.push(this.visitMethodDeclaration(member, sourceFile));
+                            methodDeclarations.push({
+                                method: this.visitMethodDeclaration(member, sourceFile),
+                                hasBody: ts.isMethodDeclaration(member) && member.body !== undefined
+                            });
                         } else if (
                             ts.isPropertyDeclaration(member) ||
                             ts.isPropertySignature(member)
@@ -521,6 +525,7 @@ export class MemberVisitor {
             }
         }
 
+        const methods = mergeOverloads(methodDeclarations);
         inputs.sort(getNamesCompareFn());
         outputs.sort(getNamesCompareFn());
         hostBindings.sort(getNamesCompareFn());

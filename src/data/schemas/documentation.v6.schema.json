@@ -2351,6 +2351,13 @@
                     "items": {
                         "$ref": "#/$defs/ExportJsdocTag"
                     }
+                },
+                "overloads": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportMethod"
+                    },
+                    "description": "The further signatures of an overloaded method; the entry itself is the first one."
                 }
             },
             "required": [

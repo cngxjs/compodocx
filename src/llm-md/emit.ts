@@ -116,8 +116,12 @@ const renderExamples = (urls: ReadonlyArray<string> | undefined): string =>
 const renderProperties = (heading: string, props: ReadonlyArray<ExportProperty>): string =>
     renderList(heading, props.map(renderProperty));
 
+/** One line per signature: an overloaded method lists each overload. */
 const renderMethods = (heading: string, methods: ReadonlyArray<ExportMethod>): string =>
-    renderList(heading, methods.map(renderMethod));
+    renderList(
+        heading,
+        methods.flatMap(method => [method, ...(method.overloads ?? [])]).map(renderMethod)
+    );
 
 /** `Axes: stability=stable, level=atom`; empty without axis values. */
 const axesLine = (axes: Readonly<Record<string, string>> | undefined): string => {
