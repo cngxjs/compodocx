@@ -146,16 +146,24 @@
     margin-bottom: 0.375rem;
 }
 
-/* --- Inline code (give it the pill treatment the global rule strips) --- */
+/* --- Inline code: one chip for READMEs, additional pages and descriptions.
+       `:where()` keeps the specificity of a bare `:not(pre) > code`, so a
+       theme restyles every surface with one rule. Code in headings reads as
+       part of the heading (no chip). --- */
 
-.cdx-readme :not(pre) > code {
-    background: var(--color-cdx-bg-elevated);
-    border: 1px solid var(--color-cdx-border);
+:where(.cdx-readme, .cdx-prose) :not(pre) > code {
+    background: color-mix(in srgb, var(--color-cdx-code-inline) 8%, transparent);
     border-radius: var(--radius-cdx-sm);
-    padding: 0.125rem 0.375rem;
+    padding: 1px 5px;
     font-family: var(--font-code);
-    font-size: 0.8125rem;
-    color: var(--color-cdx-text);
+    font-size: 0.875em;
+    color: var(--color-cdx-code-inline);
+}
+
+:where(.cdx-readme, .cdx-prose) :is(h1, h2, h3, h4, h5, h6) > code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
 }
 
 /* --- Block code: the shared `pre` rule in code-blocks.css handles
