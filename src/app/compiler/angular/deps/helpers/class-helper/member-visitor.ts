@@ -767,6 +767,25 @@ export class MemberVisitor {
         return result;
     }
 
+    /**
+     * A constructor parameter that declares a property (`readonly x`, `protected x`,
+     * `public x`, ...), unless its visibility is excluded like a class member's.
+     */
+    private isDocumentedParameterProperty(
+        parameter: ts.ParameterDeclaration,
+        constr: ts.ConstructorDeclaration
+    ): boolean {
+        if (!ts.isParameterPropertyDeclaration(parameter, constr)) {
+            return false;
+        }
+        const hiddenPrivate =
+            this.decoratorInspector.isPrivate(parameter) && Configuration.mainData.disablePrivate;
+        const hiddenProtected =
+            this.decoratorInspector.isProtected(parameter) &&
+            Configuration.mainData.disableProtected;
+        return !hiddenPrivate && !hiddenProtected;
+    }
+
     private visitConstructorProperties(constr, sourceFile) {
         if (constr.parameters) {
             const _parameters = [];
@@ -783,7 +802,7 @@ export class MemberVisitor {
                 ) {
                     continue;
                 }
-                if (this.decoratorInspector.isPublic(parameterOfConstructor)) {
+                if (this.isDocumentedParameterProperty(parameterOfConstructor, constr)) {
                     _parameters.push(this.visitProperty(constr.parameters[i], sourceFile));
                 }
             }
