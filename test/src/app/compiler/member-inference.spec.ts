@@ -14,7 +14,7 @@ describe('member inference', () => {
         const file = path.join(tmpDir, 'box.ts');
         fs.writeFileSync(
             file,
-            `import { Component, computed, signal } from '@angular/core';
+            `import { Component, afterRenderEffect, computed, effect, signal } from '@angular/core';
 
 @Component({ selector: 'app-box', template: '' })
 export class BoxComponent {
@@ -23,6 +23,12 @@ export class BoxComponent {
     readonly open = signal(false);
     readonly empty = computed(() => this.count() === 0);
     readonly config = signal({ size: 1 });
+    readonly size = computed(() => this.config().size);
+    readonly log = effect(() => this.count());
+    readonly paint = afterRenderEffect(() => this.count());
+    readonly locked = false;
+    readonly cache = new Map<string, Queue>();
+    readonly declared: unknown = null;
 }
 
 export class Queue {
@@ -63,5 +69,23 @@ export class Queue {
         const names = deps.classes[0].properties.map((p: any) => p.name);
         expect(names).toEqual(expect.arrayContaining(['name', 'capacity', 'secret']));
         expect(names).not.toContain('plain');
+    });
+
+    it('gives effects the reference type they return', () => {
+        expect(typeOf('log')).toBe('EffectRef');
+        expect(typeOf('paint')).toBe('AfterRenderRef');
+    });
+
+    it('infers plain initializers: literals widened, new expressions as written', () => {
+        expect(typeOf('locked')).toBe('boolean');
+        expect(typeOf('cache')).toBe('Map<string, Queue>');
+    });
+
+    it('leaves the type out when only Angular types could tell it', () => {
+        expect(typeOf('size')).toBeUndefined();
+    });
+
+    it('keeps a declared unknown', () => {
+        expect(typeOf('declared')).toBe('unknown');
     });
 });

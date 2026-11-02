@@ -56,6 +56,14 @@ const importsOf = (sourceFile: ts.SourceFile): AngularImports => {
     return imports;
 };
 
+/** What the effect factories return; the member holds that reference, not a value. */
+const EFFECT_REF_TYPES: Readonly<Record<string, string>> = {
+    effect: 'EffectRef',
+    'after-render-effect': 'AfterRenderRef',
+    'after-every-render': 'AfterRenderRef',
+    'after-next-render': 'AfterRenderRef'
+};
+
 /** Signal kinds whose type is the value they hold, inferred when no type argument is given. */
 const VALUE_SIGNAL_KINDS: ReadonlySet<string> = new Set(['signal', 'computed', 'linked-signal']);
 
@@ -195,11 +203,27 @@ export class MemberVisitor {
     }
 
     /**
-     * Value type of `signal(x)`, `computed(() => x)` or `linkedSignal(() => x)`
-     * without type arguments, from the initial value or the callback's return.
-     * Angular itself is not resolved here, so only types of literals and project
-     * code come back; anything with `any` or `unknown` in it is dropped.
+     * Type of an unannotated member: the reference an effect returns, the value
+     * type of a signal, or the type of a plain initializer. Angular, the TypeScript
+     * lib and `.d.ts` files are not loaded here, so only literals and project code
+     * resolve; undefined when nothing does.
      */
+    private inferredType(
+        kind: string | undefined,
+        initializer: ts.Expression | undefined
+    ): string | undefined {
+        if (kind && EFFECT_REF_TYPES[kind]) {
+            return EFFECT_REF_TYPES[kind];
+        }
+        if (kind) {
+            return VALUE_SIGNAL_KINDS.has(kind)
+                ? this.signalValueType(initializer, kind)
+                : undefined;
+        }
+        return initializer ? this.expressionType(initializer) : undefined;
+    }
+
+    /** Value type of `signal(x)`, `computed(() => x)` or `linkedSignal(() => x)`. */
     private signalValueType(
         initializer: ts.Expression | undefined,
         kind: string
@@ -210,14 +234,32 @@ export class MemberVisitor {
         if (!first || (kind === 'linked-signal' && ts.isObjectLiteralExpression(first))) {
             return undefined;
         }
-        const isCallback = ts.isArrowFunction(first) || ts.isFunctionExpression(first);
+        if (!ts.isArrowFunction(first) && !ts.isFunctionExpression(first)) {
+            return this.expressionType(first);
+        }
+        return this.checkedType(() => {
+            const signature = this.typeChecker.getSignatureFromDeclaration(first);
+            return signature && this.typeChecker.getReturnTypeOfSignature(signature);
+        });
+    }
+
+    /** `new X<T>()` as written (`X<T>`), anything else by the checker. */
+    private expressionType(expression: ts.Expression): string | undefined {
+        const root = unwrapExpression(expression);
+        if (ts.isNewExpression(root)) {
+            const typeArguments = root.typeArguments?.map(node => node.getText()).join(', ');
+            return `${root.expression.getText()}${typeArguments ? `<${typeArguments}>` : ''}`;
+        }
+        return this.checkedType(() => this.typeChecker.getTypeAtLocation(root));
+    }
+
+    /** Literal types widened (`0` holds a `number`); `any`, `unknown` and `never` dropped. */
+    private checkedType(resolve: () => ts.Type | undefined): string | undefined {
         try {
-            const signature = isCallback
-                ? this.typeChecker.getSignatureFromDeclaration(first)
-                : undefined;
-            const type = signature
-                ? this.typeChecker.getReturnTypeOfSignature(signature)
-                : this.typeChecker.getTypeAtLocation(first);
+            const type = resolve();
+            if (!type) {
+                return undefined;
+            }
             const text = widenedTypeName(type) ?? this.typeChecker.typeToString(type);
             return /\b(any|unknown|never)\b/.test(text) ? undefined : text;
         } catch {
@@ -751,12 +793,21 @@ export class MemberVisitor {
                 result.signalKind = signalKind.kind;
                 if (signalKind.signalType) {
                     result.type = signalKind.signalType;
-                } else if (VALUE_SIGNAL_KINDS.has(signalKind.kind)) {
-                    result.type = this.signalValueType(initializer, signalKind.kind) ?? result.type;
                 }
                 if (signalKind.required) {
                     result.required = true;
                 }
+            }
+        }
+
+        // Without an annotation the type renderer only knows `unknown`; infer what
+        // can be inferred and leave the type out otherwise
+        if (result.type === 'unknown' && !property.type) {
+            const inferred = this.inferredType(result.signalKind, initializer);
+            if (inferred) {
+                result.type = inferred;
+            } else {
+                delete result.type;
             }
         }
 
