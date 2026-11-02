@@ -56,6 +56,7 @@ import {
     deriveLibFromBucket,
     extractReadmeHeadings,
     isApiSection,
+    isEffectKind,
     isInfoSection,
     isInitialTab,
     isReadmeEmpty,
@@ -281,13 +282,13 @@ const ApiContent = (data: any): string => {
         (p: any) => p.signalKind === 'computed' || p.signalKind === 'linked-signal'
     );
     const showEffects = Configuration.mainData.showEffects === true;
-    const effectProps = allProps.filter((p: any) => p.signalKind === 'effect');
+    const effectProps = allProps.filter((p: any) => isEffectKind(p.signalKind));
     const regularProps = allProps.filter(
         (p: any) =>
             p.signalKind !== 'computed' &&
             p.signalKind !== 'linked-signal' &&
             p.signalKind !== 'inject' &&
-            (showEffects ? p.signalKind !== 'effect' : true)
+            (showEffects ? !isEffectKind(p.signalKind) : true)
     );
 
     return (

@@ -24,3 +24,15 @@ const SIGNAL_KIND_LABELS: Record<string, string> = {
 
 /** Map a signalKind string to its display label. Falls back to the raw kind. */
 export const signalKindLabel = (kind: string): string => SIGNAL_KIND_LABELS[kind] || kind;
+
+/** Member kinds that run side effects: listed under Effects, not under Properties. */
+const EFFECT_KINDS: ReadonlySet<string> = new Set([
+    'effect',
+    'after-render-effect',
+    'after-every-render',
+    'after-next-render'
+]);
+
+/** Whether a member's signalKind is one of the effect kinds. */
+export const isEffectKind = (kind: string | undefined): boolean =>
+    kind !== undefined && EFFECT_KINDS.has(kind);
