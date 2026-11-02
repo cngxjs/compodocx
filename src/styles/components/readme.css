@@ -151,7 +151,8 @@
        theme restyles every surface with one rule. Code in headings reads as
        part of the heading (no chip). --- */
 
-:where(.cdx-readme, .cdx-prose) :not(pre) > code {
+:where(.cdx-readme, .cdx-prose) :not(pre) > code,
+:where(.cdx-readme, .cdx-prose) > code {
     background: color-mix(in srgb, var(--color-cdx-code-inline) 8%, transparent);
     border-radius: var(--radius-cdx-sm);
     padding: 1px 5px;

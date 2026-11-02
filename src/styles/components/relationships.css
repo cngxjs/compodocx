@@ -139,6 +139,7 @@
 
 .cdx-rel-row:hover {
     color: var(--color-cdx-text);
+    text-decoration: none;
 }
 
 /* ── Entity-type color tokens ──────────────────────────── */
