@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { markedAcl } from '../../utils/marked.acl';
 import { parseDescription } from '../helpers/parse-description';
 
 export type SlotEntry = { name: string; description: string };
@@ -32,12 +33,18 @@ export const ContentSlotsSection = (slots: SlotEntry[] | undefined, depth: numbe
             </h3>
             <dl class="cdx-metadata-card">
                 {slots.map(slot => (
-                    <>
-                        <dt>
-                            <code>{slot.name}</code>
-                        </dt>
-                        <dd>{parseDescription(slot.description, depth)}</dd>
-                    </>
+                    <div class="cdx-metadata-row" data-cdx-slot={slot.name}>
+                        <dt class="cdx-metadata-label">{Html.escapeHtml(slot.name)}</dt>
+                        <dd class="cdx-metadata-value">
+                            {/* one span: the value is a flex row, the text must flow as one item */}
+                            <span class="cdx-prose">
+                                {parseDescription(
+                                    markedAcl.parseInline(slot.description) as string,
+                                    depth
+                                )}
+                            </span>
+                        </dd>
+                    </div>
                 ))}
             </dl>
         </section>

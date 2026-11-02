@@ -81,7 +81,9 @@ describe('CLI links in JSDoc tag comments', () => {
         it('renders the link of a slot description', () => {
             const { html, depth } = page('CardComponent');
             const foo = pages.href('class', 'Foo', depth);
-            expect(html).toContain(`<dd>the <a href="${foo}">Foo</a> header</dd>`);
+            expect(html).toContain(
+                `<span class="cdx-prose">the <a href="${foo}">Foo</a> header</span></dd>`
+            );
         });
 
         it('links a @relatedTo target given as a link', () => {
