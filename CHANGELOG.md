@@ -24,6 +24,8 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 - **Theming page heros.** The design tokens page and the style file pages show the palette icon, a breadcrumb, a kind badge, a deprecated count and a counts line (tokens, style files, mixins, themed symbols) like the other pages. The file line of a style page gets the file icon and is hidden with `--disableFilePath`.
 - **One table style.** Generated tables (feature pages, utilities, dependency injection, routes, namespaces) and markdown tables (README, additional pages, descriptions) share one look: no box and no header strip, a muted small-caps header over one rule and hairlines between rows. The name column of generated tables takes 30 % and does not wrap, so the description columns of the tables on one page line up.
 - **One inline code style.** Inline code in READMEs, additional pages and descriptions shares one chip (a light tint of the code colour, no border); code in headings takes the heading style. Host directive inputs and slot texts use the same chip. The rule has the specificity of a bare `code` selector, so a theme restyles every surface with one rule.
+- **Member blocks.** Properties, inputs, outputs, methods, accessors and derived state are laid out in two columns: name, type and badges on the left, description, code, parameters and source link on the right, with a hairline between members. Below 640 px the columns stack. Host binding and listener tables use the shared table style.
+- **Highlighted signatures.** Method, accessor and function signatures are syntax-highlighted like property values and keep their type links. They follow the description and have no copy button.
 
 ### Fixed
 
@@ -32,6 +34,7 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 - **Multi-line tags in descriptions.** The second and later lines of a block tag (`@slot`, `@deprecated`, ...) showed up in the description of the symbol. The text of a tag now runs until the next tag, code fences included; `@example` and `@see` stay part of the description.
 - **Content slots.** Slot name and text ran together, and markdown in the slot text was shown raw. Every slot is a metadata row now, its text rendered as inline markdown (`{@link}` included).
 - **Link hovers.** The kind icon of an API index entry and the cards under "Used by" are no longer underlined on hover; only the name of an index entry is.
+- **`@param` descriptions.** A description written as `@param name - text` no longer starts with the dash.
 
 ## [0.14.0] - 2026-10-30
 
