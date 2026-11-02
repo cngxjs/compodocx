@@ -64,6 +64,23 @@ describe('semantic entry points', () => {
         expect(normalize?.entryPoint).toBe('@sem/core/tokens');
     });
 
+    it('gives namespace members the entry point of their namespace', () => {
+        const bridge = 'projects/core/src/foo/bridge.ts';
+        expect(facts(bridge, 'Bridge')?.entryPoint).toBe('@sem/core');
+        expect(facts(bridge, 'Bridge.StateSource', 'type:')?.entryPoint).toBe('@sem/core');
+        expect(facts(bridge, 'Bridge.Inner.Deep', 'type:')?.entryPoint).toBe('@sem/core');
+        expect(facts(bridge, 'Bridge.Dotted.DOTTED')?.exportedBy).toEqual(['@sem/core']);
+        expect(facts(bridge, 'Bridge.Dotted')?.notExported).toBe(false);
+        expect(facts(bridge, 'Other.StateSource', 'type:')?.notExported).toBe(false);
+    });
+
+    it('records no facts for members a namespace does not export', () => {
+        const bridge = 'projects/core/src/foo/bridge.ts';
+        expect(facts(bridge, 'Bridge.internalOnly')?.entryPoint).toBeUndefined();
+        expect(facts(bridge, 'Bridge.internalOnly')?.exportedBy ?? []).toEqual([]);
+        expect(facts(bridge, 'Matchers', 'type:')).toBeUndefined();
+    });
+
     it('follows export * chains', () => {
         const format = facts('projects/core/src/foo/foo.ts', 'formatFoo');
         expect(format?.exportedBy).toEqual(['@sem/core']);

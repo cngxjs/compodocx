@@ -4,7 +4,7 @@ import { ts } from 'ts-morph';
 
 import type { DeclarationSpace, SymbolKey } from './model';
 
-/** A named top-level declaration of a root file. */
+/** A named top-level declaration of a root file, or a member of a top-level namespace. */
 export interface Declaration {
     readonly key: SymbolKey;
     readonly node: ts.Node;
@@ -16,6 +16,11 @@ export interface Declaration {
     readonly cls?: ts.ClassDeclaration;
     /** Initializer of a variable declaration, unwrapped from `as`/`satisfies`/parentheses. */
     readonly initializer?: ts.Expression;
+    /**
+     * Symbol of the outermost namespace of a namespace member (key name
+     * `Ns.Member`): barrels export the namespace, the member shares its facts.
+     */
+    readonly exportSymbol?: ts.Symbol;
 }
 
 /** Relative to `cwd`, forward slashes. */
@@ -76,16 +81,94 @@ const isNamedStatement = (statement: ts.Statement): statement is NamedStatement 
     ts.isTypeAliasDeclaration(statement) ||
     ts.isEnumDeclaration(statement);
 
+/** The namespaces around a member: dotted prefix, outermost symbol, visibility. */
+interface NamespaceScope {
+    readonly prefix: string;
+    readonly root: ts.Symbol | undefined;
+    /** Whether the namespace chain is exported from its file. */
+    readonly exported: boolean;
+    /** `declare namespace`: members are exported without the keyword. */
+    readonly ambient: boolean;
+}
+
+const qualified = (scope: NamespaceScope | undefined, name: string): string =>
+    scope ? `${scope.prefix}.${name}` : name;
+
+const isExported = (statement: ts.Statement, scope: NamespaceScope | undefined): boolean =>
+    scope
+        ? scope.exported && (scope.ambient || hasExportKeyword(statement))
+        : hasExportKeyword(statement);
+
+/**
+ * A namespace (`namespace A.B {}` opens one per segment) and its members.
+ * Module augmentations (`declare module 'x'`, `declare global`) are skipped.
+ */
+const fromNamespace = (
+    statement: ts.ModuleDeclaration,
+    file: string,
+    checker: ts.TypeChecker,
+    scope: NamespaceScope | undefined
+): readonly Declaration[] => {
+    if (!ts.isIdentifier(statement.name) || statement.flags & ts.NodeFlags.GlobalAugmentation) {
+        return [];
+    }
+    const declarations: Declaration[] = [];
+    const exported = isExported(statement, scope);
+    let current: ts.ModuleDeclaration = statement;
+    let inner: NamespaceScope = {
+        prefix: qualified(scope, statement.name.text),
+        root: scope?.root ?? checker.getSymbolAtLocation(statement.name),
+        exported,
+        ambient:
+            (scope?.ambient ?? false) ||
+            (ts.getCombinedModifierFlags(statement) & ts.ModifierFlags.Ambient) !== 0
+    };
+    for (;;) {
+        declarations.push({
+            key: { name: inner.prefix, file },
+            node: current,
+            symbol: checker.getSymbolAtLocation(current.name),
+            exported,
+            // Every segment but a top-level namespace itself shares the root's facts.
+            ...((scope || current !== statement) && { exportSymbol: inner.root })
+        });
+        if (!current.body || !ts.isModuleDeclaration(current.body)) {
+            break;
+        }
+        current = current.body;
+        inner = { ...inner, prefix: `${inner.prefix}.${current.name.text}` };
+    }
+    const body = current.body && ts.isModuleBlock(current.body) ? current.body : undefined;
+    // A member the namespace does not export is not part of any API.
+    for (const member of body?.statements ?? []) {
+        declarations.push(...fromStatement(member, file, checker, inner).filter(d => d.exported));
+    }
+    return declarations;
+};
+
 const fromStatement = (
     statement: ts.Statement,
     file: string,
-    checker: ts.TypeChecker
+    checker: ts.TypeChecker,
+    scope?: NamespaceScope
 ): readonly Declaration[] => {
+    if (ts.isModuleDeclaration(statement)) {
+        return fromNamespace(statement, file, checker, scope);
+    }
+    const inScope = (declaration: Declaration): Declaration =>
+        scope
+            ? {
+                  ...declaration,
+                  key: { ...declaration.key, name: qualified(scope, declaration.key.name) },
+                  exportSymbol: scope.root
+              }
+            : declaration;
     if (ts.isVariableStatement(statement)) {
-        const exported = hasExportKeyword(statement);
+        const exported = isExported(statement, scope);
         return statement.declarationList.declarations
             .map(declaration => fromVariable(declaration, file, exported, checker))
-            .filter((d): d is Declaration => d !== undefined);
+            .filter((d): d is Declaration => d !== undefined)
+            .map(inScope);
     }
     if (!isNamedStatement(statement) || !statement.name) {
         return [];
@@ -96,20 +179,23 @@ const fromStatement = (
     }
     const isType = ts.isInterfaceDeclaration(statement) || ts.isTypeAliasDeclaration(statement);
     return [
-        {
+        inScope({
             key: isType
                 ? { name: statement.name.text, file, space: 'type' }
                 : { name: statement.name.text, file },
             node: statement,
             symbol: checker.getSymbolAtLocation(statement.name),
-            exported: hasExportKeyword(statement),
+            exported: isExported(statement, scope),
             fn: ts.isFunctionDeclaration(statement) ? statement : undefined,
             cls: ts.isClassDeclaration(statement) ? statement : undefined
-        }
+        })
     ];
 };
 
-/** Every named top-level declaration of the given source files, in file order. */
+/**
+ * Every named top-level declaration of the given source files, in file order,
+ * with namespaces and their members (`Ns.Member`) right after the namespace.
+ */
 export const collectDeclarations = (
     sourceFiles: readonly ts.SourceFile[],
     checker: ts.TypeChecker,
