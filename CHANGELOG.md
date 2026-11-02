@@ -23,6 +23,7 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 - **Module augmentations are marked.** An interface in `declare module 'vitest' { ... }` or `declare global { ... }` is documented with an "Augments `vitest`" line instead of posing as an own interface.
 - **Theming page heros.** The design tokens page and the style file pages show the palette icon, a breadcrumb, a kind badge, a deprecated count and a counts line (tokens, style files, mixins, themed symbols) like the other pages. The file line of a style page gets the file icon and is hidden with `--disableFilePath`.
 - **One table style.** Generated tables (feature pages, utilities, dependency injection, routes, namespaces) and markdown tables (README, additional pages, descriptions) share one look: no box and no header strip, a muted small-caps header over one rule and hairlines between rows. The name column of generated tables takes 30 % and does not wrap, so the description columns of the tables on one page line up.
+- **One inline code style.** Inline code in READMEs, additional pages and descriptions shares one chip (a light tint of the code colour, no border); code in headings takes the heading style. The rule has the specificity of a bare `code` selector, so a theme restyles every surface with one rule.
 
 ### Fixed
 
