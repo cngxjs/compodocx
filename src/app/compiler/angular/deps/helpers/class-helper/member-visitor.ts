@@ -55,6 +55,64 @@ const importsOf = (sourceFile: ts.SourceFile): AngularImports => {
     return imports;
 };
 
+/** Signal and query factories recognised by name, with the kind they get. */
+const SIGNAL_CALLEES: ReadonlyArray<readonly [string, string]> = [
+    ['linkedSignal', 'linked-signal'],
+    ['computed', 'computed'],
+    ['signal', 'signal'],
+    ['effect', 'effect'],
+    ['resource', 'resource'],
+    ['rxResource', 'rx-resource'],
+    ['viewChild', 'view-child'],
+    ['viewChildren', 'view-children'],
+    ['contentChild', 'content-child'],
+    ['contentChildren', 'content-children'],
+    ['afterRenderEffect', 'after-render-effect'],
+    ['afterEveryRender', 'after-every-render'],
+    ['afterNextRender', 'after-next-render']
+];
+
+/** Index of the `>` closing the `<` at index 0, or -1; `=>` inside does not count. */
+const closingAngle = (text: string): number => {
+    let depth = 0;
+    for (let i = 0; i < text.length; i++) {
+        if (text[i] === '<') {
+            depth += 1;
+        } else if (text[i] === '>' && text[i - 1] !== '=') {
+            depth -= 1;
+        }
+        if (depth === 0) {
+            return i;
+        }
+    }
+    return -1;
+};
+
+/**
+ * `callee(`, `callee.required(` or either with type arguments at the start of
+ * an initializer. The type arguments may nest (`contentChild<TemplateRef<unknown>>`).
+ */
+export const signalCallOf = (
+    text: string,
+    callee: string
+): { readonly type?: string; readonly required: boolean } | undefined => {
+    const head = new RegExp(`^${callee}(\\.required)?\\s*`).exec(text);
+    if (!head) {
+        return undefined;
+    }
+    let rest = text.slice(head[0].length);
+    let type: string | undefined;
+    if (rest.startsWith('<')) {
+        const end = closingAngle(rest);
+        if (end < 0) {
+            return undefined;
+        }
+        type = rest.slice(1, end).trim();
+        rest = rest.slice(end + 1).trimStart();
+    }
+    return rest.startsWith('(') ? { type, required: head[1] !== undefined } : undefined;
+};
+
 export class MemberVisitor {
     private jsdocParserUtil = new JsdocParserUtil();
 
@@ -104,54 +162,15 @@ export class MemberVisitor {
             return type ? { kind: imported.kind, signalType: type } : { kind: imported.kind };
         }
 
-        // Order matters: check specific patterns before generic ones
         // input, output and model come from the syntax tree (`signalMemberCall`)
-        const patterns: Array<{ pattern: RegExp; kind: string }> = [
-            {
-                pattern: /^linkedSignal\s*(?:<([^>]+)>)?\s*\(/,
-                kind: 'linked-signal'
-            },
-            { pattern: /^computed\s*(?:<([^>]+)>)?\s*\(/, kind: 'computed' },
-            { pattern: /^signal\s*(?:<([^>]+)>)?\s*\(/, kind: 'signal' },
-            { pattern: /^effect\s*\(/, kind: 'effect' },
-            { pattern: /^resource\s*(?:<([^>]+)>)?\s*\(/, kind: 'resource' },
-            {
-                pattern: /^rxResource\s*(?:<([^>]+)>)?\s*\(/,
-                kind: 'rx-resource'
-            },
-            { pattern: /^viewChild\s*(?:<([^>]+)>)?\s*\(/, kind: 'view-child' },
-            {
-                pattern: /^viewChildren\s*(?:<([^>]+)>)?\s*\(/,
-                kind: 'view-children'
-            },
-            {
-                pattern: /^contentChild\s*(?:<([^>]+)>)?\s*\(/,
-                kind: 'content-child'
-            },
-            {
-                pattern: /^contentChildren\s*(?:<([^>]+)>)?\s*\(/,
-                kind: 'content-children'
-            },
-            { pattern: /^afterRenderEffect\s*\(/, kind: 'after-render-effect' },
-            { pattern: /^afterEveryRender\s*\(/, kind: 'after-every-render' },
-            { pattern: /^afterNextRender\s*\(/, kind: 'after-next-render' }
-        ];
-
-        for (const { pattern, kind } of patterns) {
-            const match = pattern.exec(cleaned);
-            if (match) {
-                const result: {
-                    kind: string;
-                    signalType?: string;
-                    required?: boolean;
-                } = { kind };
-                if (match[1]) {
-                    result.signalType = match[1].trim();
-                }
-                if (cleaned.includes('.required')) {
-                    result.required = true;
-                }
-                return result;
+        for (const [callee, kind] of SIGNAL_CALLEES) {
+            const call = signalCallOf(cleaned, callee);
+            if (call) {
+                return {
+                    kind,
+                    ...(call.type ? { signalType: call.type } : {}),
+                    ...(call.required ? { required: true } : {})
+                };
             }
         }
         return this.detectInject(cleaned, initializer, sourceFile);
