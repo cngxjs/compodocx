@@ -6,6 +6,7 @@ import minimist from 'minimist';
 import pkg from '../package.json';
 import { printBanner } from './app/cli/banner';
 import { applyConfigToMainData, loadConfigFile } from './app/cli/config-loader';
+import { type DiscoveryInput, discoverSourceFiles } from './app/cli/discover-files';
 import { defineFlags, REMOVED_FLAG_REASONS, stripRemovedFlags } from './app/cli/flags';
 import Configuration from './app/configuration';
 import FileEngine from './app/engines/file.engine';
@@ -17,17 +18,9 @@ import { logger } from './utils/logger';
 import { parsePackageTypesExports } from './utils/package-exports-parser.util';
 import { parsePublicApi } from './utils/public-api-parser.util';
 import { createSourcePathMapper } from './utils/source-path-mapper.util';
-import {
-    EXCLUDE_PATTERNS,
-    INCLUDE_PATTERNS,
-    readConfig,
-    resolveTsconfigPaths
-} from './utils/utils';
+import { readConfig, resolveTsconfigPaths } from './utils/utils';
 import { resolveVersion } from './utils/version-resolver.util';
 
-let scannedFiles = [];
-let excludeFiles = EXCLUDE_PATTERNS;
-let includeFiles = [];
 let cwd = process.cwd();
 
 process.setMaxListeners(0);
@@ -133,16 +126,6 @@ export async function runCli(argv: string[]): Promise<void> {
 
     if (!configExplorerResult) {
         logger.warn(`No configuration file found, switching to CLI flags.`);
-    }
-
-    if (configFile.files) {
-        scannedFiles = configFile.files;
-    }
-    if (configFile.exclude) {
-        excludeFiles = configFile.exclude;
-    }
-    if (configFile.include) {
-        includeFiles = configFile.include;
     }
 
     /**
@@ -280,51 +263,23 @@ export async function runCli(argv: string[]): Promise<void> {
                     Configuration.mainData.multiVersion = false;
                 }
 
-                if (tsConfigFile.files) {
-                    scannedFiles = tsConfigFile.files;
-                    // Normalize path of these files
-                    scannedFiles = scannedFiles.map(scannedFile => {
-                        return cwd + path.sep + scannedFile;
-                    });
-                }
-
-                // even if files are supplied with "files" attributes, enhance the array with includes
-                excludeFiles = [...excludeFiles, ...(tsConfigFile.exclude || [])];
-                includeFiles = [...includeFiles, ...(tsConfigFile.include || [])];
-
-                if (scannedFiles.length > 0) {
-                    includeFiles = [...includeFiles, ...scannedFiles];
-                }
-
-                if (!includeFiles.length) {
-                    includeFiles = INCLUDE_PATTERNS;
-                }
-
                 // If publicApiOnly is set, parse the public API exports first
                 if (Configuration.mainData.publicApiOnly) {
                     await processPublicApi(Configuration.mainData.publicApiOnly, cwd);
                 }
 
-                const stream = fg.stream(includeFiles, {
-                    cwd: sourceFolder || cwd,
-                    ignore: excludeFiles,
-                    absolute: true
+                const projectDir = cwd;
+                const discovery = (tsconfig: DiscoveryInput['tsconfig']): DiscoveryInput => ({
+                    projectDir,
+                    sourceFolder,
+                    config: {
+                        files: configFile.files,
+                        include: configFile.include,
+                        exclude: configFile.exclude
+                    },
+                    tsconfig
                 });
-
-                stream.on('data', file => {
-                    if (path.extname(file) === '.ts' || path.extname(file) === '.tsx') {
-                        logger.debug('Including', file);
-                        scannedFiles.push(file);
-                    } else {
-                        logger.warn('Excluding', file);
-                    }
-                });
-
-                await new Promise(resolve => stream.on('end', resolve));
-
-                // fast-glob streams files in non-deterministic order; sort so crawl order,
-                // duplicate suffixes and tie order in name sorts are stable between runs.
-                const sortedFiles = [...scannedFiles].sort();
+                const sortedFiles = await discoverSourceFiles(discovery(tsConfigFile));
                 if (programOptions.coverageTest || programOptions.coverageTestPerFile) {
                     logger.info('Run documentation coverage test');
                     exitOnHalt(await runSession(session(sortedFiles), 'coverage'));
