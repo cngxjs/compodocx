@@ -1,6 +1,7 @@
 import * as crypto from 'node:crypto';
 import * as path from 'node:path';
 import { Project, SyntaxKind, ts } from 'ts-morph';
+import { isNonNull } from '../../../lib';
 import { isIgnore, JsdocParserUtil } from '../../../utils';
 import ExtendsMerger from '../../../utils/extends-merger.util';
 import ImportsUtil from '../../../utils/imports.util';
@@ -115,7 +116,13 @@ export class AngularDependencies extends FrameworkDependencies {
             legacyFindings: [] as readonly LegacyFinding[]
         };
 
-        const sourceFiles = this.program.getSourceFiles() || [];
+        // only the root files, in their order: files an import resolves to are
+        // read by the checker but not documented from here
+        const sourceFiles = [
+            ...new Set(
+                this.files.map(fileName => this.program.getSourceFile(fileName)).filter(isNonNull)
+            )
+        ];
 
         sourceFiles.map((file: ts.SourceFile) => {
             const filePath = file.fileName;

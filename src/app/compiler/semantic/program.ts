@@ -5,7 +5,9 @@ import { err, isErr, ok, type Result } from '../../../lib';
 /** "No inputs were found": the root files come from the caller, not from the tsconfig. */
 const NO_INPUTS = 18003;
 
-const isInNodeModules = (fileName: string): boolean => /[\\/]node_modules[\\/]/.test(fileName);
+/** A path inside a `node_modules` folder; such files are never loaded. */
+export const isInNodeModules = (fileName: string): boolean =>
+    /[\\/]node_modules[\\/]/.test(fileName);
 
 const formatDiagnostic = (diagnostic: ts.Diagnostic): string =>
     ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
