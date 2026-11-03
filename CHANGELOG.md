@@ -48,6 +48,7 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 - **`styleUrlsData` in the JSON export.** The schema declared a string, but the export writes the list of style files (`{ data, styleUrl }`). Schema and types now describe the list, and a component without style files gets an empty list instead of an empty string.
 - **Anchor links on the same page.** A click on an API index entry or another `#anchor` link of the current page scrolls to the target instead of fetching and swapping the whole page again. Back and forward between two anchors of one page no longer reload it either.
 - **API index without dead links.** A section switched off with `apiTabSections` (for example `derivedState`) is also left out of the index, so every index entry points at a member that is on the page.
+- **Watch mode with new and deleted files.** A file created or deleted while `--watch` runs is picked up: the sources are scanned again with the tsconfig `include`/`exclude`, a new component gets its page, and the page and menu entry of a deleted one are removed. A new file outside the tsconfig selection no longer starts a rebuild.
 
 ## [0.14.0] - 2026-10-30
 

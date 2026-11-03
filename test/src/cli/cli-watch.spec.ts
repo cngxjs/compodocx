@@ -2,6 +2,7 @@ import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { menuOf } from '../helpers/menu';
 import { pagesIn } from '../helpers/pages';
 
 // Characterises watch-mode rebuilds end to end: a real `-s -w` process on a
@@ -252,7 +253,7 @@ describe('CLI watch mode', () => {
                 { cwd: projectDir }
             );
             expect(fresh.status).to.equal(0);
-            // The watched file list is fixed at start, so only the page content is compared.
+            // Only the page content is compared (the inlined entity index and menu left out).
             const routes = mainContent(readOut('out', 'routes.html'));
             expect(routes).to.contain('id="route-0"');
             expect(routes).to.equal(mainContent(readOut('out-fresh-2', 'routes.html')));
@@ -390,6 +391,184 @@ describe('CLI watch mode with paths outside the current folder', () => {
                 1
             );
             await waitForLog('Documentation generated in', 3);
+        },
+        IT_TIMEOUT
+    );
+});
+
+describe('CLI watch mode with files added or removed after the start', () => {
+    let workDir = '';
+    let projectDir = '';
+    let child: ChildProcess | undefined;
+    let log = '';
+
+    const ADDED_FILE = 'src/app/features/watch-added/watch-added.component.ts';
+    const EXCLUDED_FOLDER = 'src/app/watch-excluded';
+    const RESCANNED = 'Source files changed';
+    const UNCHANGED = 'No source file of the tsconfig selection was added or removed';
+
+    const component = (name: string, selector: string) =>
+        [
+            "import { Component } from '@angular/core';",
+            '',
+            '/**',
+            ` * ${name}, created by the watch spec while watching.`,
+            ' */',
+            '@Component({',
+            `    selector: '${selector}',`,
+            "    template: '<p>watch</p>'",
+            '})',
+            `export class ${name} {}`,
+            ''
+        ].join('\n');
+
+    /** Resolve once `pattern` has appeared `count` times; reject with the log on timeout. */
+    const waitForLog = (pattern: string, count: number, timeoutMs = WAIT_TIMEOUT) =>
+        new Promise<void>((resolve, reject) => {
+            const started = Date.now();
+            const poll = setInterval(() => {
+                if (countMatches(log, pattern) >= count) {
+                    clearInterval(poll);
+                    resolve();
+                } else if (Date.now() - started > timeoutMs) {
+                    clearInterval(poll);
+                    reject(new Error(`Timed out waiting for "${pattern}" x${count}:\n${log}`));
+                }
+            }, 100);
+        });
+
+    /** Re-apply `edit` until `pattern` shows up (chokidar may miss an edit before `ready`). */
+    const editUntilLogged = async (edit: () => void, pattern: string, count: number) => {
+        const deadline = Date.now() + WAIT_TIMEOUT;
+        for (;;) {
+            edit();
+            try {
+                await waitForLog(pattern, count, 8000);
+                return;
+            } catch (error) {
+                if (Date.now() > deadline) {
+                    throw error;
+                }
+            }
+        }
+    };
+
+    const generated = () => countMatches(log, 'Documentation generated in');
+    const out = () => path.join(projectDir, 'out');
+    const pageCount = (name: string) => {
+        try {
+            pagesIn(out()).of('component', name);
+            return 1;
+        } catch {
+            return 0;
+        }
+    };
+
+    beforeAll(async () => {
+        workDir = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'compodocx-watch-'));
+        projectDir = path.join(workDir, 'ks');
+        fs.cpSync(FIXTURE, projectDir, { recursive: true });
+        // The copy's tsconfig excludes one folder; the fixture itself stays untouched.
+        const tsconfigFile = path.join(projectDir, 'tsconfig.json');
+        const tsconfig = JSON.parse(fs.readFileSync(tsconfigFile, 'utf8'));
+        tsconfig.exclude = [`${EXCLUDED_FOLDER}/**`];
+        fs.writeFileSync(tsconfigFile, JSON.stringify(tsconfig, null, 4));
+        fs.mkdirSync(path.join(projectDir, EXCLUDED_FOLDER));
+
+        child = spawn(
+            'node',
+            [
+                BIN,
+                '-p',
+                'tsconfig.json',
+                '-d',
+                'out',
+                '-s',
+                '-w',
+                '--port',
+                String(PORT + 2),
+                '--disableSearch',
+                '--no-multiVersion'
+            ],
+            { cwd: projectDir }
+        );
+        const collect = (chunk: Buffer) => {
+            log += stripAnsi(chunk.toString());
+        };
+        child.stdout?.on('data', collect);
+        child.stderr?.on('data', collect);
+
+        await waitForLog('Watching sources in', 1);
+    });
+
+    afterAll(() => {
+        child?.kill();
+        if (workDir) {
+            fs.rmSync(workDir, { recursive: true, force: true });
+        }
+    });
+
+    it(
+        'does not rebuild for a new file the tsconfig excludes',
+        async () => {
+            const before = generated();
+            let attempt = 0;
+            // A new file per attempt, so a retry is an add and never a change.
+            await editUntilLogged(
+                () => {
+                    attempt += 1;
+                    fs.writeFileSync(
+                        path.join(projectDir, EXCLUDED_FOLDER, `excluded-${attempt}.component.ts`),
+                        component(
+                            `WatchExcluded${attempt}Component`,
+                            `app-watch-excluded-${attempt}`
+                        )
+                    );
+                },
+                UNCHANGED,
+                1
+            );
+
+            expect(generated()).to.equal(before);
+            expect(log).not.to.contain(RESCANNED);
+        },
+        IT_TIMEOUT
+    );
+
+    it(
+        'writes the page of a component created while watching',
+        async () => {
+            const before = generated();
+            const file = path.join(projectDir, ADDED_FILE);
+            fs.mkdirSync(path.dirname(file), { recursive: true });
+            fs.writeFileSync(file, component('WatchAddedComponent', 'app-watch-added'));
+
+            await waitForLog('Documentation generated in', before + 1);
+
+            expect(pageCount('WatchAddedComponent')).to.equal(1);
+            expect(menuOf(out())).to.contain('WatchAddedComponent');
+            // The excluded files of the first case stay out of the rebuilt documentation.
+            expect(pageCount('WatchExcluded1Component')).to.equal(0);
+            expect(menuOf(out())).not.to.contain('WatchExcluded');
+        },
+        IT_TIMEOUT
+    );
+
+    it(
+        'removes the page and the menu entry of a deleted component',
+        async () => {
+            const page = path.join(out(), pagesIn(out()).of('component', 'WatchAddedComponent'));
+            expect(fs.existsSync(page)).to.equal(true);
+            const before = generated();
+
+            fs.rmSync(path.join(projectDir, ADDED_FILE));
+
+            await waitForLog('Documentation generated in', before + 1);
+
+            expect(fs.existsSync(page)).to.equal(false);
+            expect(menuOf(out())).not.to.contain('WatchAddedComponent');
+            // Pages of files that still exist are kept.
+            expect(pageCount('DashboardComponent')).to.equal(1);
         },
         IT_TIMEOUT
     );

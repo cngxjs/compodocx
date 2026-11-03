@@ -32,6 +32,10 @@ const outputPath = (file: string): string => {
 };
 
 export class PageWriter {
+    /** Output files of the pages written by the current run. */
+    private readonly written = new Set<string>();
+    /** Output files written by earlier runs since the last `takeStalePages`. */
+    private readonly earlier = new Set<string>();
     private legacy?: { readonly redirects: Redirects; readonly pages: ReadonlySet<string> };
 
     /**
@@ -76,8 +80,21 @@ export class PageWriter {
             redirects,
             pages
         );
-        FileEngine.writeSync(outputPath(pageOutputPath(page)), htmlData);
+        const file = outputPath(pageOutputPath(page));
+        FileEngine.writeSync(file, htmlData);
+        this.written.add(file);
         return Promise.resolve();
+    }
+
+    /**
+     * Output files that earlier runs of this process wrote and the current
+     * run did not; the record of earlier runs starts over. Files this
+     * process never wrote are never listed.
+     */
+    public takeStalePages(): string[] {
+        const stale = [...this.earlier].filter(file => !this.written.has(file));
+        this.earlier.clear();
+        return stale;
     }
 
     /** Render the sidebar once and write it as the shared script every page loads. */
@@ -89,6 +106,10 @@ export class PageWriter {
 
     public async processPages(): Promise<void> {
         this.legacy = undefined;
+        for (const file of this.written) {
+            this.earlier.add(file);
+        }
+        this.written.clear();
         await this.writeGraph();
         this.buildEntityIndex();
         Configuration.mainData.generatedAt = new Date().toISOString();
