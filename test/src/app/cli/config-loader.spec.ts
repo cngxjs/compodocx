@@ -47,6 +47,7 @@ const makeMainData = (): MainDataInterface => {
         includes: '',
         includesName: 'Additional documentation',
         includesLabels: '',
+        includesTooltips: false,
         coverageTest: false,
         coverageTestThreshold: 70,
         coverageTestPerFile: false,
@@ -125,6 +126,7 @@ const makeProgram = (argv: readonly string[] = []): Command => {
         .option('-d, --output [folder]', '', './documentation/')
         .option('--theme [theme]')
         .option('--includesLabels [path]')
+        .option('--includesTooltips', '', false)
         .option('--port [port]', '', '8080')
         .option('--exportFormat [format]', '', 'html')
         .option('--jsonIndent <spaces>', '', '0')
@@ -379,6 +381,28 @@ describe('applyConfigToMainData', () => {
             cwd: '/tmp/test'
         });
         expect(mainData.includesLabels).toBe('cli.json');
+    });
+
+    it('includesTooltips defaults to false', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(mainData, {}, makeProgram(), { cwd: '/tmp/test' });
+        expect(mainData.includesTooltips).toBe(false);
+    });
+
+    it('config-file includesTooltips sets mainData.includesTooltips', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(mainData, { includesTooltips: true }, makeProgram(), {
+            cwd: '/tmp/test'
+        });
+        expect(mainData.includesTooltips).toBe(true);
+    });
+
+    it('--includesTooltips from CLI sets mainData.includesTooltips', () => {
+        const mainData = makeMainData();
+        applyConfigToMainData(mainData, {}, makeProgram(['--includesTooltips']), {
+            cwd: '/tmp/test'
+        });
+        expect(mainData.includesTooltips).toBe(true);
     });
 
     it('--port from CLI overrides config-file port', () => {

@@ -1074,6 +1074,7 @@ const AdditionalParent = (props: {
                 href={pageFile(props.page.path, props.page.filename)}
                 data-context={props.nested ? 'sub-entity' : undefined}
                 data-context-id="additional"
+                title={props.page.tooltip}
             >
                 <span class="link-name" id={`${id}-label`}>
                     {Html.escapeHtml(props.page.name) as string}
@@ -1095,6 +1096,7 @@ const AdditionalNode = (node: AdditionalTreeNode<any>): string =>
                       data-type="entity-link"
                       data-context="sub-entity"
                       data-context-id="additional"
+                      title={node.page.tooltip}
                   >
                       {Html.escapeHtml(node.page.name) as string}
                   </a>
@@ -1143,6 +1145,7 @@ const AdditionalEntry = (page: any): string => {
                 href={pageFile(page.path, page.filename)}
                 data-type="entity-link"
                 data-context-id="additional"
+                title={page.tooltip}
             >
                 {Html.escapeHtml(page.name) as string}
             </a>

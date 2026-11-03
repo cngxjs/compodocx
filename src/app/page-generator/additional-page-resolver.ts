@@ -14,6 +14,7 @@ const isValidSegment = (segment: string): boolean =>
 export interface LabelEntry {
     readonly label?: string;
     readonly title?: string;
+    readonly tooltip?: string;
 }
 
 export type LabelMap = Readonly<Record<string, LabelEntry>>;
@@ -29,6 +30,8 @@ export interface ResolvedAdditionalPage {
     readonly domId: string;
     readonly depth: number;
     readonly childrenLength: number;
+    /** Tooltip set on the node or in the labels file, trimmed; `''` turns it off. */
+    readonly tooltip?: string;
 }
 
 /** A depth-1 node without a file: a sidebar group for the pages below it. */
@@ -48,6 +51,7 @@ interface SummaryNode {
     readonly title?: unknown;
     readonly slug?: unknown;
     readonly label?: unknown;
+    readonly tooltip?: unknown;
     readonly heading?: unknown;
     readonly aliases?: unknown;
     readonly file?: unknown;
@@ -86,7 +90,8 @@ const resolvePage = (
     segments: readonly string[],
     explicitSlug: boolean,
     childrenLength: number,
-    aliases: readonly string[]
+    aliases: readonly string[],
+    tooltip: string | undefined
 ): ResolvedAdditionalPage => ({
     nodePath,
     file,
@@ -97,7 +102,8 @@ const resolvePage = (
     aliases,
     domId: explicitSlug ? segments.join('/') : domIdOf(title, file),
     depth: segments.length,
-    childrenLength
+    childrenLength,
+    ...(tooltip !== undefined && { tooltip: tooltip.trim() })
 });
 
 interface LabelContext {
@@ -207,6 +213,7 @@ const visit = (
         const derivedEntry = explicitSlug ? entry : labelEntryOf(context, slug);
         const labelFromFile = derivedEntry?.label;
         const label = typeof node.label === 'string' ? node.label : (labelFromFile ?? title);
+        const tooltip = typeof node.tooltip === 'string' ? node.tooltip : derivedEntry?.tooltip;
         const heading = node.heading === true;
         const segments = [...parentSegments, slug];
         const children = childrenOf(node);
@@ -249,7 +256,8 @@ const visit = (
                     segments,
                     explicitSlug,
                     children.length,
-                    aliases
+                    aliases,
+                    tooltip
                 )
             );
         }
@@ -295,7 +303,10 @@ const checkLabelKeys = (context: LabelContext, source: string): Result<void, str
  * no title (on the node or in the labels file) aborts the resolution; the
  * title is the node's `title`, else the labels file title of its slug, and
  * the label is the node's `label`, else the labels file label, else the
- * title; the derived slug always comes from the node's own `title`. A labels
+ * title; the tooltip is the node's string `tooltip`, else the labels file
+ * tooltip, trimmed, and absent without either (only an override: the link
+ * tooltip itself is chosen when the pages are built); the derived slug always
+ * comes from the node's own `title`. A labels
  * file key is the effective slug (last segment): a key matching several
  * pages aborts the resolution, a key matching no page logs a warning.
  * `heading` is true only for the boolean `true`; an explicit `slug` replaces the
@@ -350,8 +361,8 @@ const isOptionalString = (value: unknown): value is string | undefined =>
 
 /**
  * Parses the content of a labels file: an object whose values are objects
- * with an optional string `label` and an optional string `title`. Other
- * properties of an entry are ignored.
+ * with an optional string `label`, `title` and `tooltip`. Other properties of
+ * an entry are ignored.
  */
 export const parseLabelMap = (raw: string, source: string): Result<LabelMap, string> => {
     let parsed: unknown;
@@ -369,14 +380,17 @@ export const parseLabelMap = (raw: string, source: string): Result<LabelMap, str
         if (!isRecord(value)) {
             return err(labelsFileMessage(source, `entry "${key}" is not an object`));
         }
-        const { label, title } = value;
+        const { label, title, tooltip } = value;
         if (!isOptionalString(label)) {
             return err(labelsFileMessage(source, `entry "${key}": "label" must be a string`));
         }
         if (!isOptionalString(title)) {
             return err(labelsFileMessage(source, `entry "${key}": "title" must be a string`));
         }
-        entries.push([key, { label, title }]);
+        if (!isOptionalString(tooltip)) {
+            return err(labelsFileMessage(source, `entry "${key}": "tooltip" must be a string`));
+        }
+        entries.push([key, { label, title, tooltip }]);
     }
     return ok(Object.fromEntries(entries));
 };

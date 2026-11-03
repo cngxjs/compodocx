@@ -15,6 +15,7 @@ import {
 import {
     type AdditionalPageContent,
     buildAdditionalPages,
+    ignoredTooltipsNotice,
     isAdditionalGroup,
     skippedPageMessage
 } from './additional-page-tree';
@@ -67,10 +68,16 @@ export class AdditionalPageGenerator {
                         reject(resolved.message);
                         return;
                     }
+                    const tooltips = Configuration.mainData.includesTooltips;
+                    const notice = ignoredTooltipsNotice(resolved.value, tooltips);
+                    if (notice !== undefined) {
+                        logger.info(notice);
+                    }
                     const { pages, aliases, skipped } = buildAdditionalPages(
                         resolved.value,
                         file => this.readPage(file),
-                        segments => this.locationOf(segments)
+                        segments => this.locationOf(segments),
+                        tooltips
                     );
                     for (const page of skipped) {
                         logger.warn(skippedPageMessage(page));

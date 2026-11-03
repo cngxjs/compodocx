@@ -1,4 +1,5 @@
 import { isErr, type Result } from '../../lib';
+import { escapeHtmlText } from '../../templates/helpers/escape';
 import { detectAiGeneratedMarker } from '../../utils/ai-generated.util';
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import type { AdditionalAlias } from '../interfaces/main-data.interface';
@@ -9,6 +10,7 @@ import type {
     ResolvedAdditionalPage,
     ResolvedAdditionalPages
 } from './additional-page-resolver';
+import { linkTooltip } from './page-tooltip';
 
 /** Content of a page file: the rendered HTML and the Markdown as written. */
 export interface AdditionalPageContent {
@@ -52,14 +54,31 @@ const groupOf = (group: ResolvedAdditionalGroup): PageInterface => ({
     children: []
 });
 
+/** The link tooltip of a page as escaped attribute text, if any. */
+const tooltipOf = (
+    resolved: ResolvedAdditionalPage,
+    content: AdditionalPageContent,
+    enabled: boolean
+): string | undefined => {
+    const text = linkTooltip({
+        enabled,
+        override: resolved.tooltip,
+        raw: content.raw,
+        label: resolved.label
+    });
+    return text === undefined ? undefined : escapeHtmlText(text);
+};
+
 const pageOf = (
     resolved: ResolvedAdditionalPage,
     content: AdditionalPageContent,
-    location: PageLocation
+    location: PageLocation,
+    tooltip: string | undefined
 ): PageInterface => ({
     name: resolved.label,
     ...(resolved.title !== resolved.label && { displayName: resolved.title }),
     ...(resolved.heading && { pageHeading: resolved.title }),
+    ...(tooltip !== undefined && { tooltip }),
     id: resolved.domId,
     filename: location.filename,
     context: 'additional-page',
@@ -86,12 +105,14 @@ const pageOf = (
  * top-level summary node gives one entry: its page, or a group when it has no
  * page (no file, or a missing one); a group without pages below it is left
  * out. A page deeper than 1 is stored in the children of the entry of its
- * top-level node.
+ * top-level node. With `tooltips` a page carries the `tooltip` of its link
+ * (`linkTooltip`, escaped for an attribute) when there is one.
  */
 export const buildAdditionalPages = (
     resolved: ResolvedAdditionalPages,
     read: (file: string) => Result<AdditionalPageContent>,
-    locate: (segments: readonly string[]) => PageLocation
+    locate: (segments: readonly string[]) => PageLocation,
+    tooltips = false
 ): AdditionalPageTree => {
     const entries = new Map<string, PageInterface>(
         resolved.groups.map(group => [rootOf(group.nodePath), groupOf(group)])
@@ -115,7 +136,12 @@ export const buildAdditionalPages = (
                 title: resolvedPage.title
             });
         }
-        const page = pageOf(resolvedPage, content.value, locate(resolvedPage.segments));
+        const page = pageOf(
+            resolvedPage,
+            content.value,
+            locate(resolvedPage.segments),
+            tooltipOf(resolvedPage, content.value, tooltips)
+        );
         if (resolvedPage.depth === 1) {
             entries.set(root, page);
         } else {
@@ -127,4 +153,18 @@ export const buildAdditionalPages = (
         .map(([, entry]) => entry)
         .filter(entry => !isAdditionalGroup(entry) || entry.children.length > 0);
     return { pages, aliases, skipped };
+};
+
+/**
+ * The notice for the tooltips set in summary.json or the labels file while
+ * `includesTooltips` is off; none when it is on or nothing is set.
+ */
+export const ignoredTooltipsNotice = (
+    resolved: ResolvedAdditionalPages,
+    tooltips: boolean
+): string | undefined => {
+    const count = tooltips ? 0 : resolved.pages.filter(page => page.tooltip !== undefined).length;
+    return count === 0
+        ? undefined
+        : `Additional pages: ${count} tooltip key(s) ignored, enable includesTooltips`;
 };

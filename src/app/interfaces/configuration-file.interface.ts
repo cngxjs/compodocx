@@ -12,6 +12,7 @@ export interface ConfigurationFileInterface {
     includes;
     includesName: string;
     includesLabels?: string;
+    includesTooltips?: boolean;
     silent: boolean;
     verbose?: boolean;
     serve;

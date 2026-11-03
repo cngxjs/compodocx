@@ -1,0 +1,22 @@
+[
+    { "title": "Overview", "slug": "overview", "file": "overview.md" },
+    {
+        "title": "Error reference",
+        "slug": "errors",
+        "file": "errors/index.md",
+        "children": [
+            { "slug": "e0100", "file": "errors/e0100.md" },
+            { "title": "E0101", "slug": "e0101", "label": "E0101: Value out of range", "file": "errors/e0101.md" },
+            { "title": "E0102", "slug": "e0102", "file": "errors/e0102.md" },
+            { "title": "E0103", "slug": "e0103", "tooltip": "Custom description", "file": "errors/e0103.md" },
+            { "title": "E0104", "slug": "e0104", "tooltip": "", "file": "errors/e0104.md" },
+            { "title": "E0105", "slug": "e0105", "file": "errors/e0105.md" }
+        ]
+    },
+    {
+        "title": "Reference",
+        "slug": "reference",
+        "children": [{ "title": "Limits", "slug": "limits", "file": "reference/limits.md" }]
+    },
+    { "title": "Guide", "slug": "guide", "file": "guide.md" }
+]

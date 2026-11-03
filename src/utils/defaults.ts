@@ -53,6 +53,8 @@ export const COMPODOC_DEFAULTS = {
     /** Base that relative `<example-url>` tags are appended to; `''` keeps them as written. */
     exampleUrlBase: '',
     showEffects: false,
+    /** Subtitles of the additional pages as tooltips of their sidebar links. */
+    includesTooltips: false,
     hideGenerator: false,
     hideDarkModeToggle: false,
     hideAiGeneratedBadge: false,
