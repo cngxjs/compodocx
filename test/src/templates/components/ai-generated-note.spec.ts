@@ -4,6 +4,7 @@ import I18nEngine from '../../../../src/app/engines/i18n.engine';
 import * as locales from '../../../../src/locales';
 import {
     AiGeneratedBadge,
+    AiGeneratedBanner,
     AiGeneratedNote
 } from '../../../../src/templates/components/AiGeneratedBadge';
 import {
@@ -158,5 +159,31 @@ describe('AiGeneratedBadge / AiGeneratedNote', () => {
         expect(html).toContain('cdx-badge--ai-generated');
         expect(html).toContain('class="cdx-ai-generated-note"');
         expect(html).toContain('>Drafted with AI assistance (Claude).</p>');
+    });
+});
+
+describe('hideAiGeneratedBadge', () => {
+    beforeAll(() => {
+        I18nEngine.init('en-US');
+    });
+
+    afterEach(() => {
+        Configuration.mainData.hideAiGeneratedBadge = false;
+    });
+
+    it('renders chip, note and banner by default', () => {
+        expect(AiGeneratedBadge({ aiGenerated: 'x' })).not.toBe('');
+        expect(AiGeneratedNote({ aiGenerated: 'x', class: 'n' })).not.toBe('');
+        expect(AiGeneratedBanner({ aiGenerated: 'x' })).not.toBe('');
+    });
+
+    it('renders none of them when set', () => {
+        Configuration.mainData.hideAiGeneratedBadge = true;
+        expect(AiGeneratedBadge({ aiGenerated: 'x' })).toBe('');
+        expect(AiGeneratedNote({ aiGenerated: 'x', class: 'n' })).toBe('');
+        expect(AiGeneratedBanner({ aiGenerated: 'x' })).toBe('');
+        expect(AdditionalPage({ additionalPage: '<p>Body</p>', aiGenerated: true })).not.toContain(
+            'cdx-ai-generated'
+        );
     });
 });

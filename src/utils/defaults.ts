@@ -55,6 +55,7 @@ export const COMPODOC_DEFAULTS = {
     showEffects: false,
     hideGenerator: false,
     hideDarkModeToggle: false,
+    hideAiGeneratedBadge: false,
     minimal: false,
     silent: false,
     verbose: false,

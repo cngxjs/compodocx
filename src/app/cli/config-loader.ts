@@ -669,6 +669,13 @@ export function applyConfigToMainData(
         mainData.hideDarkModeToggle = programOptions.hideDarkModeToggle;
     }
 
+    if (configFile.hideAiGeneratedBadge) {
+        mainData.hideAiGeneratedBadge = configFile.hideAiGeneratedBadge;
+    }
+    if (programOptions.hideAiGeneratedBadge) {
+        mainData.hideAiGeneratedBadge = programOptions.hideAiGeneratedBadge;
+    }
+
     if (isCoverageOn(configFile.coverageTest)) {
         mainData.coverageTest = true;
         mainData.coverageTestThreshold = coverageValue(

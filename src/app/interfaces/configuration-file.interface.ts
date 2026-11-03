@@ -26,6 +26,7 @@ export interface ConfigurationFileInterface {
     maxVersionsShown: number;
     hideGenerator: boolean;
     hideDarkModeToggle: boolean;
+    hideAiGeneratedBadge: boolean;
     coverageTest: number | string | boolean;
     coverageMinimumPerFile: number | string | boolean;
     coverageTestThresholdFail: boolean | string;

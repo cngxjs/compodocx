@@ -34,6 +34,8 @@ export interface MainDataInterface {
     documentationMainDescription: string;
     hideGenerator: boolean;
     hideDarkModeToggle: boolean;
+    /** Hide chip, note and banner of `@aiGenerated` content in the HTML output. */
+    hideAiGeneratedBadge: boolean;
     hasFilesToCoverage: boolean;
     readme: boolean;
     readmeAiGenerated?: string | true;

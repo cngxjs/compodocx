@@ -130,6 +130,13 @@
             "default": false,
             "examples": [false]
         },
+        "hideAiGeneratedBadge": {
+            "$id": "/properties/hideAiGeneratedBadge",
+            "type": "boolean",
+            "title": "Do not show the AI generated chip, note and banner of @aiGenerated content (exports keep the marker)",
+            "default": false,
+            "examples": [false]
+        },
         "toggleMenuItems": {
             "$id": "/properties/toggleMenuItems",
             "type": "array",
