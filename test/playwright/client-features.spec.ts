@@ -19,38 +19,33 @@ test.describe('Sidebar', () => {
     });
 
     test('desktop: expand/collapse persists to localStorage', async ({ page }) => {
-        // Flaky across every engine: localStorage.getItem returns null after
-        // the toggler click + 300ms wait, even though the write itself is
-        // synchronous. Originally observed on WebKit (commit fc36b147), now
-        // reproduces intermittently on Chromium too (CI run 25743890161 on
-        // develop, all 3 retries red). Not a regression in the persistence
-        // layer — the dom-mutation path is identical across engines — but
-        // the 300ms-then-read pattern is not a reliable synchronization
-        // primitive. Re-enable once the test waits on a deterministic
-        // signal (storage event, MutationObserver, or polled getItem)
-        // instead of a sleep.
-        test.fixme();
-
         await page.goto('/');
         await page.evaluate(() => localStorage.removeItem('compodocx-sidebar-state'));
         await page.reload();
 
         const toggler = page.locator('#sidebar [data-cdx-toggle="collapse"]').first();
-        await toggler.click();
-        await page.waitForTimeout(300);
+        const target = (await toggler.getAttribute('data-cdx-target'))?.replace(/^#/, '');
+        expect(target).toBeTruthy();
+        await expect(page.locator(`[id="${target}"]`)).toHaveClass(/\bin\b/);
 
-        const saved = await page.evaluate(() => localStorage.getItem('compodocx-sidebar-state'));
-        expect(saved).toBeTruthy();
-        const state = JSON.parse(saved!);
-        const hasOpenEntry = Object.values(state).some(v => v === true);
-        expect(hasOpenEntry).toBe(true);
+        await toggler.click();
+
+        // The sidebar saves after its collapse animation, so poll the stored
+        // state instead of sleeping for a fixed time.
+        const savedState = () =>
+            page.evaluate(() => {
+                const saved = localStorage.getItem('compodocx-sidebar-state');
+                return saved ? (JSON.parse(saved) as Record<string, boolean>) : null;
+            });
+        await expect.poll(async () => (await savedState())?.[target!]).toBe(false);
+        expect(Object.values((await savedState()) ?? {})).toContain(true);
     });
 });
 
 test.describe('Mobile menu', () => {
     test.use({ viewport: { width: 375, height: 812 } });
 
-    test.skip('hamburger button toggles mobile sidebar', async ({ page }) => {
+    test('hamburger button toggles mobile sidebar', async ({ page }) => {
         await page.goto('/');
 
         const sidebar = page.locator('#sidebar');
@@ -61,7 +56,6 @@ test.describe('Mobile menu', () => {
 
         // Close via backdrop (force: true avoids intercepted pointer from sidebar overlay)
         await page.locator('.cdx-backdrop').click({ force: true });
-        await page.waitForTimeout(300);
         await expect(sidebar).not.toHaveClass(/cdx-sidebar--open/);
     });
 
