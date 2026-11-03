@@ -525,6 +525,13 @@ export function applyConfigToMainData(
         mainData.includesLabels = programOptions.includesLabels;
     }
 
+    if (configFile.includesTooltips) {
+        mainData.includesTooltips = configFile.includesTooltips;
+    }
+    if (programOptions.includesTooltips) {
+        mainData.includesTooltips = programOptions.includesTooltips;
+    }
+
     if (configFile.silent) {
         logger.silent = false;
     }

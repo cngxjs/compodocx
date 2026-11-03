@@ -145,6 +145,11 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
             'JSON file with label and title per additional-page slug'
         )
         .option(
+            '--includesTooltips',
+            'Show the subtitle of each additional page as the tooltip of its sidebar link',
+            COMPODOC_DEFAULTS.includesTooltips
+        )
+        .option(
             '--coverageTest [threshold]',
             'Test command of documentation coverage with a threshold (default 70)'
         )

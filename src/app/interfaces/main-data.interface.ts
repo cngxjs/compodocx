@@ -72,6 +72,7 @@ export interface MainDataInterface {
     includes: string;
     includesName: string;
     includesLabels: string;
+    includesTooltips: boolean;
     includesFolder: string;
     disableSourceCode: boolean;
     disableDomTree: boolean;

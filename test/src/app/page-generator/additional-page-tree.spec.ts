@@ -14,6 +14,7 @@ import {
 import {
     type AdditionalPageContent,
     buildAdditionalPages,
+    ignoredTooltipsNotice,
     isAdditionalGroup,
     skippedPageMessage
 } from '../../../../src/app/page-generator/additional-page-tree';
@@ -288,5 +289,62 @@ describe('buildAdditionalPages', () => {
             ['group Group', 'additional-documentation/group/inner/deep']
         ]);
         expect(pages[0].children[0].depth).toBe(3);
+    });
+});
+
+describe('buildAdditionalPages tooltips', () => {
+    const summary = [
+        {
+            title: 'Errors',
+            slug: 'errors',
+            file: 'errors.md',
+            children: [
+                { title: 'E0100', slug: 'e0100', file: 'e0100.md' },
+                { title: 'E0103', slug: 'e0103', file: 'e0103.md', tooltip: 'A & "B"' },
+                { title: 'E0104', slug: 'e0104', file: 'e0104.md', tooltip: '' }
+            ]
+        },
+        { title: 'Guide', file: 'guide.md' }
+    ];
+    const raws: Record<string, string> = {
+        'errors.md': '# Errors\n\nIntro.\n',
+        'e0100.md': '<!-- @aiGenerated -->\n# E0100\n\n## Unknown `<option>`\n',
+        'e0103.md': '# E0103\n## Ignored heading\n',
+        'e0104.md': '# E0104\n## Suppressed heading\n',
+        'guide.md': '# Guide\n### Guide\n'
+    };
+    const readRaw = (file: string): Result<AdditionalPageContent> =>
+        ok({ html: '', raw: raws[file] });
+
+    const build = (tooltips: boolean) =>
+        buildAdditionalPages(resolvedOf(summary), readRaw, locate, tooltips).pages;
+
+    it('sets the escaped tooltip only where there is one', () => {
+        const [errors, guide] = build(true);
+        const [e0100, e0103, e0104] = errors.children;
+
+        expect(e0100.tooltip).toBe('Unknown &lt;option&gt;');
+        expect(e0103.tooltip).toBe('A &amp; &quot;B&quot;');
+        expect(Object.hasOwn(e0104, 'tooltip')).toBe(false);
+        expect(Object.hasOwn(errors, 'tooltip')).toBe(false);
+        expect(Object.hasOwn(guide, 'tooltip')).toBe(false);
+    });
+
+    it('sets no tooltip without the switch', () => {
+        const pages = build(false);
+        const all = [...pages, ...pages.flatMap(page => page.children)];
+
+        expect(all.some(page => Object.hasOwn(page, 'tooltip'))).toBe(false);
+        expect(buildAdditionalPages(resolvedOf(summary), readRaw, locate).pages).toEqual(pages);
+    });
+
+    it('notices the tooltip keys that are ignored without the switch', () => {
+        expect(ignoredTooltipsNotice(resolvedOf(summary), false)).toBe(
+            'Additional pages: 2 tooltip key(s) ignored, enable includesTooltips'
+        );
+        expect(ignoredTooltipsNotice(resolvedOf(summary), true)).toBeUndefined();
+        expect(ignoredTooltipsNotice(resolvedOf([{ title: 'A', file: 'a.md' }]), false)).toBe(
+            undefined
+        );
     });
 });

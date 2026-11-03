@@ -14,6 +14,8 @@ export interface PageInterface {
     displayName?: string;
     /** Heading rendered before the markdown of an additional page. */
     pageHeading?: string;
+    /** Tooltip of the sidebar link of an additional page, escaped attribute text. */
+    tooltip?: string;
     id: string;
     navTabs?: any[];
     filename?: string;

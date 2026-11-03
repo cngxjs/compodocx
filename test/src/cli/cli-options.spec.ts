@@ -129,6 +129,10 @@ Note: Certain tabs will only be shown if applicable to a given dependency`
             expect(runHelp.stdout.toString()).to.contain('--includesLabels [path]');
         });
 
+        it(`--includesTooltips`, () => {
+            expect(runHelp.stdout.toString()).to.contain('--includesTooltips');
+        });
+
         it(`--includesName`, () => {
             expect(runHelp.stdout.toString()).to.contain('--includesName [name]');
             expect(runHelp.stdout.toString()).to.contain(

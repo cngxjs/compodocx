@@ -65,6 +65,7 @@ describe('defineFlags', () => {
             '--includes',
             '--includesName',
             '--includesLabels',
+            '--includesTooltips',
             '--coverageTest',
             '--coverageMinimumPerFile',
             '--coverageTestThresholdFail',

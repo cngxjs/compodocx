@@ -200,6 +200,13 @@
             "default": "",
             "examples": [""]
         },
+        "includesTooltips": {
+            "$id": "/properties/includesTooltips",
+            "type": "boolean",
+            "title": "Show the subtitle of each additional page (or its tooltip key) as the tooltip of its sidebar link",
+            "default": false,
+            "examples": [false]
+        },
         "coverageTest": {
             "$id": "/properties/coverageTest",
             "type": "integer",

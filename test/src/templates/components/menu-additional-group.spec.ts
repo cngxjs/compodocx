@@ -141,3 +141,50 @@ describe('Menu additional pages group', () => {
         expect(entry).to.not.include('menu-toggler');
     });
 });
+
+describe('Menu additional pages tooltips', () => {
+    const withTooltip = <T extends object>(page: T, tooltip: string): T => ({ ...page, tooltip });
+    const parent = {
+        ...withTooltip(first, 'Parent tip'),
+        id: 'parent',
+        filename: 'parent',
+        childrenLength: 2,
+        children: [
+            withTooltip(child('Nested', 'parent/nested'), 'Nested tip'),
+            withTooltip(child('Deep', 'parent/nested/deep', 3), 'A &amp; &quot;B&quot;'),
+            child('Plain', 'parent/plain')
+        ]
+    };
+    const leaf = withTooltip({ ...first, id: 'leaf', filename: 'leaf' }, 'Leaf tip');
+    const anchorOf = (html: string, href: string): string => {
+        const start = html.lastIndexOf('<a', html.indexOf(`href="${href}"`));
+        return html.slice(start, html.indexOf('>', start) + 1);
+    };
+
+    it('puts the tooltip after the existing attributes of each page link', () => {
+        const html = Menu({ data: dataWith([parent, leaf, group]) });
+
+        expect(anchorOf(html, 'additional-documentation/parent.html')).toMatch(
+            /data-type="chapter-link"[^>]*data-context-id="additional" title="Parent tip"/
+        );
+        expect(anchorOf(html, 'additional-documentation/parent/nested.html')).toMatch(
+            /data-type="entity-link"[^>]*data-context-id="additional" title="Nested tip"/
+        );
+        expect(anchorOf(html, 'additional-documentation/parent/nested/deep.html')).toContain(
+            'title="A &amp; &quot;B&quot;"'
+        );
+        expect(anchorOf(html, 'additional-documentation/leaf.html')).toMatch(
+            /data-context-id="additional" title="Leaf tip"/
+        );
+    });
+
+    it('renders no title without a tooltip and none on a group', () => {
+        const html = Menu({ data: dataWith([parent, first, group]) });
+
+        expect(anchorOf(html, 'additional-documentation/parent/plain.html')).not.toContain(
+            'title='
+        );
+        expect(anchorOf(html, 'additional-documentation/first.html')).not.toContain('title=');
+        expect(entryOf(html, 'additional-group-group')).not.toContain('title=');
+    });
+});
