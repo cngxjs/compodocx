@@ -1,6 +1,12 @@
 import * as path from 'node:path';
 import * as fs from 'fs-extra';
 import { ts } from 'ts-morph';
+import {
+    CHECKER_DEFAULT_LIB,
+    CHECKER_LIB_FOLDER,
+    checkerLibFile
+} from '../app/compiler/checker-libs';
+import { isInNodeModules } from '../app/compiler/semantic/program';
 import { AngularLifecycleHooks } from './angular-lifecycles-hooks';
 import { stripExampleUrlTags } from './example-urls';
 import { JsdocParserUtil } from './jsdoc-parser.util';
@@ -335,17 +341,40 @@ export function findMainSourceFolder(files: string[]) {
     return mainFolder;
 }
 
+/**
+ * File system access for module resolution: real for project files, while
+ * everything under `node_modules` is reported missing.
+ */
+const projectResolutionHost = (): Pick<
+    ts.CompilerHost,
+    'fileExists' | 'readFile' | 'directoryExists' | 'realpath'
+> => ({
+    fileExists: fileName => !isInNodeModules(fileName) && ts.sys.fileExists(fileName),
+    readFile: fileName => (isInNodeModules(fileName) ? undefined : ts.sys.readFile(fileName)),
+    directoryExists: directoryName =>
+        !isInNodeModules(directoryName) && ts.sys.directoryExists(directoryName),
+    realpath: fileName => ts.sys.realpath?.(fileName) ?? fileName
+});
+
 // Create a compilerHost object to allow the compiler to read and write files.
-// `sharedSourceFile` hands back files another program already parsed.
+// `sharedSourceFile` hands back files another program already parsed. The
+// TypeScript lib and the signal declarations come from `checker-libs`. With
+// `resolveProjectImports` imports between project files resolve; `.d.ts`
+// files and `node_modules` stay out.
 export function compilerHost(
     transpileOptions: any,
-    sharedSourceFile?: (fileName: string) => ts.SourceFile | undefined
+    sharedSourceFile?: (fileName: string) => ts.SourceFile | undefined,
+    resolveProjectImports = false
 ): ts.CompilerHost {
     const inputFileName =
         transpileOptions.fileName || (transpileOptions.jsx ? 'module.tsx' : 'module.ts');
 
     const toReturn: ts.CompilerHost = {
         getSourceFile: (fileName: string) => {
+            const lib = checkerLibFile(fileName);
+            if (lib) {
+                return lib;
+            }
             if (fileName.lastIndexOf('.ts') !== -1 || fileName.lastIndexOf('.js') !== -1) {
                 if (fileName === 'lib.d.ts') {
                     return undefined;
@@ -383,7 +412,8 @@ export function compilerHost(
             return undefined;
         },
         writeFile: (_name, _text) => {},
-        getDefaultLibFileName: () => 'lib.d.ts',
+        getDefaultLibFileName: () => CHECKER_DEFAULT_LIB,
+        getDefaultLibLocation: () => CHECKER_LIB_FOLDER,
         useCaseSensitiveFileNames: () => false,
         getCanonicalFileName: fileName => fileName,
         getCurrentDirectory: () => '',
@@ -391,7 +421,8 @@ export function compilerHost(
         fileExists: (fileName): boolean => fileName === inputFileName,
         readFile: () => '',
         directoryExists: () => true,
-        getDirectories: () => []
+        getDirectories: () => [],
+        ...(resolveProjectImports ? projectResolutionHost() : {})
     };
 
     return toReturn;

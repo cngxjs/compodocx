@@ -204,29 +204,32 @@ export class MemberVisitor {
 
     /**
      * Type of an unannotated member: the reference an effect returns, the value
-     * type of a signal, or the type of a plain initializer. Angular, the TypeScript
-     * lib and `.d.ts` files are not loaded here, so only literals and project code
-     * resolve; undefined when nothing does.
+     * type of a signal, or the type of a plain initializer. Angular and `.d.ts`
+     * files are not loaded here, so only literals, the TypeScript lib and project
+     * code resolve; undefined when nothing does. `member` is the scope type names
+     * are written for.
      */
     private inferredType(
         kind: string | undefined,
-        initializer: ts.Expression | undefined
+        initializer: ts.Expression | undefined,
+        member: ts.Node
     ): string | undefined {
         if (kind && EFFECT_REF_TYPES[kind]) {
             return EFFECT_REF_TYPES[kind];
         }
         if (kind) {
             return VALUE_SIGNAL_KINDS.has(kind)
-                ? this.signalValueType(initializer, kind)
+                ? this.signalValueType(initializer, kind, member)
                 : undefined;
         }
-        return initializer ? this.expressionType(initializer) : undefined;
+        return initializer ? this.expressionType(initializer, member) : undefined;
     }
 
     /** Value type of `signal(x)`, `computed(() => x)` or `linkedSignal(() => x)`. */
     private signalValueType(
         initializer: ts.Expression | undefined,
-        kind: string
+        kind: string,
+        member: ts.Node
     ): string | undefined {
         const call = initializer && unwrapExpression(initializer);
         const first = call && ts.isCallExpression(call) ? call.arguments[0] : undefined;
@@ -235,33 +238,48 @@ export class MemberVisitor {
             return undefined;
         }
         if (!ts.isArrowFunction(first) && !ts.isFunctionExpression(first)) {
-            return this.expressionType(first);
+            return this.expressionType(first, member);
         }
-        return this.checkedType(() => {
+        return this.checkedType(member, () => {
             const signature = this.typeChecker.getSignatureFromDeclaration(first);
             return signature && this.typeChecker.getReturnTypeOfSignature(signature);
         });
     }
 
     /** `new X<T>()` as written (`X<T>`), anything else by the checker. */
-    private expressionType(expression: ts.Expression): string | undefined {
+    private expressionType(expression: ts.Expression, member: ts.Node): string | undefined {
         const root = unwrapExpression(expression);
         if (ts.isNewExpression(root)) {
             const typeArguments = root.typeArguments?.map(node => node.getText()).join(', ');
             return `${root.expression.getText()}${typeArguments ? `<${typeArguments}>` : ''}`;
         }
-        return this.checkedType(() => this.typeChecker.getTypeAtLocation(root));
+        return this.checkedType(member, () => this.typeChecker.getTypeAtLocation(root));
     }
 
-    /** Literal types widened (`0` holds a `number`); `any`, `unknown` and `never` dropped. */
-    private checkedType(resolve: () => ts.Type | undefined): string | undefined {
+    /**
+     * Literal types widened (`0` holds a `number`), names as the type alias they
+     * were declared with, written for `member`. `any`, `unknown` and `never` are
+     * dropped, as are `import("...")` qualified names and types the checker cut
+     * short with `...`.
+     */
+    private checkedType(member: ts.Node, resolve: () => ts.Type | undefined): string | undefined {
         try {
             const type = resolve();
             if (!type) {
                 return undefined;
             }
-            const text = widenedTypeName(type) ?? this.typeChecker.typeToString(type);
-            return /\b(any|unknown|never)\b/.test(text) ? undefined : text;
+            const text =
+                widenedTypeName(type) ??
+                this.typeChecker.typeToString(
+                    type,
+                    member,
+                    ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope
+                );
+            const unusable =
+                /\b(any|unknown|never)\b/.test(text) ||
+                text.includes('import(') ||
+                text.includes('...');
+            return unusable ? undefined : text;
         } catch {
             // a checker without the program (unit tests) or a failed inference
             return undefined;
@@ -770,6 +788,9 @@ export class MemberVisitor {
             result.defaultValue = '() => {...}';
         }
 
+        // a written type argument (`computed<unknown>(...)`) is kept, never inferred over
+        let typeArgumentWritten = false;
+
         // input/output/model calls imported from @angular/core; the type is the
         // first type argument, the default value the initial value argument
         const signalCall =
@@ -782,6 +803,7 @@ export class MemberVisitor {
                 result.required = true;
             }
             result.type = signalCall.type;
+            typeArgumentWritten = signalCall.type !== undefined;
             result.defaultValue = signalCall.initialValue;
             if (signalCall.alias !== undefined) {
                 result.alias = signalCall.alias;
@@ -793,6 +815,7 @@ export class MemberVisitor {
                 result.signalKind = signalKind.kind;
                 if (signalKind.signalType) {
                     result.type = signalKind.signalType;
+                    typeArgumentWritten = true;
                 }
                 if (signalKind.required) {
                     result.required = true;
@@ -802,8 +825,8 @@ export class MemberVisitor {
 
         // Without an annotation the type renderer only knows `unknown`; infer what
         // can be inferred and leave the type out otherwise
-        if (result.type === 'unknown' && !property.type) {
-            const inferred = this.inferredType(result.signalKind, initializer);
+        if (result.type === 'unknown' && !property.type && !typeArgumentWritten) {
+            const inferred = this.inferredType(result.signalKind, initializer, property);
             if (inferred) {
                 result.type = inferred;
             } else {
@@ -958,24 +981,10 @@ export class MemberVisitor {
         };
 
         if (typeof method.type === 'undefined') {
-            // Try to get inferred type
-            if ((method as any).symbol) {
-                const symbol: ts.Symbol = (method as any).symbol;
-                if (symbol.valueDeclaration) {
-                    const symbolType = this.typeChecker.getTypeOfSymbolAtLocation(
-                        symbol,
-                        symbol.valueDeclaration
-                    );
-                    if (symbolType) {
-                        try {
-                            const signature = this.typeChecker.getSignatureFromDeclaration(method);
-                            const returnType = signature.getReturnType();
-                            result.returnType = this.typeChecker.typeToString(returnType);
-                            // tslint:disable-next-line:no-empty
-                        } catch (_error) {}
-                    }
-                }
-            }
+            // inferred, or no return type rather than the `void` placeholder or `any`
+            result.returnType = this.checkedType(method, () =>
+                this.typeChecker.getSignatureFromDeclaration(method)?.getReturnType()
+            );
         }
 
         if (method.typeParameters && method.typeParameters.length > 0) {

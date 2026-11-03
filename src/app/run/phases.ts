@@ -390,7 +390,8 @@ const crawl: Stage = async current => {
 
     const dependenciesData = crawlDependencies(ctx.files, {
         tsconfigDirectory: path.dirname(mainData.tsconfig),
-        sharedSourceFile: sharedSourceFiles(ctx)
+        sharedSourceFile: sharedSourceFiles(ctx),
+        resolution: ctx.semantic?.program.getCompilerOptions()
     });
 
     for (const line of formatLegacyNotice(dependenciesData.legacyFindings)) {
@@ -438,7 +439,8 @@ const microCrawl: Stage = async current => {
 
     const diff = crawlMicroDependencies(ctx.updatedFiles, {
         tsconfigDirectory: path.dirname(ctx.config.mainData.tsconfig),
-        sharedSourceFile: sharedSourceFiles(ctx)
+        sharedSourceFile: sharedSourceFiles(ctx),
+        resolution: ctx.semantic?.program.getCompilerOptions()
     });
 
     DependenciesEngine.update(diff);
