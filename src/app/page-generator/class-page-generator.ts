@@ -1,12 +1,11 @@
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
-import { markedAcl } from '../../utils/marked.acl';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
-import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
 import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
+import { attachNeighbourReadme } from './neighbour-readme';
 
 export class ClassPageGenerator {
     constructor(private readonly navTabs: NavTabsResolver) {}
@@ -23,11 +22,7 @@ export class ClassPageGenerator {
             const loop = () => {
                 if (i < len) {
                     const classe = Configuration.mainData.classes[i];
-                    if (MarkdownEngine.hasNeighbourReadmeFile(classe.file)) {
-                        logger.info(` ${classe.name} has a README file, include it`);
-                        const readme = MarkdownEngine.readNeighbourReadmeFile(classe.file);
-                        classe.readme = markedAcl(readme);
-                    }
+                    const readmeFields = attachNeighbourReadme(classe);
                     const location = pageLocation(
                         itemTarget(Configuration.mainData.symbols, 'class', classe)
                     );
@@ -40,7 +35,8 @@ export class ClassPageGenerator {
                         context: 'class',
                         class: classe,
                         depth: location.depth,
-                        pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
+                        pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL,
+                        ...readmeFields
                     };
                     Configuration.addPage(page);
                     i++;

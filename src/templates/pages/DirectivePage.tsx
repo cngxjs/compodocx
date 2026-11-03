@@ -65,6 +65,7 @@ export const DirectivePage = (data: any): string =>
         breadcrumbLabel: 'directives',
         depth: data.depth,
         navTabs: data.navTabs,
+        readmeAiGenerated: data.symbolReadmeAiGenerated,
         disableFilePath: data.disableFilePath,
         metadataHtml: DirectiveMetadata(data.directive, data.depth),
         themingHtml: DirectiveTheming(data.directive, data.depth),

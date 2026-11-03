@@ -1,12 +1,11 @@
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
-import { markedAcl } from '../../utils/marked.acl';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
-import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
 import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
+import { attachNeighbourReadme } from './neighbour-readme';
 
 /**
  * Emits one HTML page per `InjectionToken` / `HttpContextToken`
@@ -26,11 +25,7 @@ export class TokenPageGenerator {
         return new Promise(resolve => {
             const tokens = Configuration.mainData.tokens ?? [];
             for (const token of tokens) {
-                if (MarkdownEngine.hasNeighbourReadmeFile(token.file)) {
-                    logger.info(` ${token.name} has a README file, include it`);
-                    const readme = MarkdownEngine.readNeighbourReadmeFile(token.file);
-                    token.readme = markedAcl(readme);
-                }
+                const readmeFields = attachNeighbourReadme(token);
                 const location = pageLocation(
                     itemTarget(Configuration.mainData.symbols, 'token', token)
                 );
@@ -43,7 +38,8 @@ export class TokenPageGenerator {
                     context: 'token',
                     token,
                     depth: location.depth,
-                    pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
+                    pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL,
+                    ...readmeFields
                 };
                 Configuration.addPage(page);
             }

@@ -1,12 +1,11 @@
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
-import { markedAcl } from '../../utils/marked.acl';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
-import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
 import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
+import { attachNeighbourReadme } from './neighbour-readme';
 
 /** Pages of the classes decorated with Angular's `@Service`. */
 export class ServicePageGenerator {
@@ -18,10 +17,7 @@ export class ServicePageGenerator {
         Configuration.mainData.services = someServices ?? DependenciesEngine.getServices();
 
         for (const service of Configuration.mainData.services) {
-            if (MarkdownEngine.hasNeighbourReadmeFile(service.file)) {
-                logger.info(` ${service.name} has a README file, include it`);
-                service.readme = markedAcl(MarkdownEngine.readNeighbourReadmeFile(service.file));
-            }
+            const readmeFields = attachNeighbourReadme(service);
             const location = pageLocation(
                 itemTarget(Configuration.mainData.symbols, 'service', service)
             );
@@ -34,7 +30,8 @@ export class ServicePageGenerator {
                 context: 'service',
                 service,
                 depth: location.depth,
-                pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
+                pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL,
+                ...readmeFields
             });
         }
         return Promise.resolve();

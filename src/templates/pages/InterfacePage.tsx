@@ -8,6 +8,7 @@ export const InterfacePage = (data: any): string =>
         breadcrumbLabel: 'interfaces',
         depth: data.depth,
         navTabs: data.navTabs,
+        readmeAiGenerated: data.symbolReadmeAiGenerated,
         disableFilePath: data.disableFilePath,
         showExtends: true,
         showIndex: true,
