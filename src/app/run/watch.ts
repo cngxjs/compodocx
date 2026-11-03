@@ -1,3 +1,4 @@
+import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import { err, isErr, ok, type Result } from '../../lib';
@@ -7,6 +8,7 @@ import type { SemanticState } from '../compiler/semantic';
 import MarkdownEngine from '../engines/markdown.engine';
 import { startWebServer } from '../services/serve';
 import { createRunContext, type RunBase, type RunContext, type RunMode } from './context';
+import { fileListChange, isUnchanged } from './file-list-change';
 import { type Halt, halt } from './halt';
 import { runPhases } from './phases';
 
@@ -18,7 +20,12 @@ const cwd = process.cwd();
  */
 export interface Session extends Omit<RunBase, 'files' | 'semantic'> {
     /** Undefined when only serving an existing folder (`-s` without `-p`). */
-    readonly files: readonly string[] | undefined;
+    files: readonly string[] | undefined;
+    /**
+     * Scans the sources again, with the discovery of the start scan. Without
+     * it a file added or removed rebuilds with the current list.
+     */
+    readonly discoverFiles?: () => Promise<readonly string[]>;
     isWatching: boolean;
     /** Semantic state of the last finished run; the next rebuild reuses its program. */
     semantic?: SemanticState;
@@ -82,6 +89,42 @@ const hasTsFiles = (files: readonly string[]): boolean =>
 const hasRootMarkdownFiles = (files: readonly string[]): boolean =>
     files.some(file => path.extname(file) === '.md' && path.dirname(file) === cwd);
 
+/**
+ * Scan the sources again and store the new list on the session. False when
+ * the list is unchanged (a file outside the tsconfig selection) or the scan
+ * failed; the run is skipped then.
+ */
+const rescanFiles = async (session: Session): Promise<boolean> => {
+    if (!session.discoverFiles) {
+        return true;
+    }
+    let files: readonly string[];
+    try {
+        files = await session.discoverFiles();
+    } catch (error) {
+        logger.error(`Scanning the source files again failed: ${String(error)}`);
+        return false;
+    }
+    const change = fileListChange(session.files ?? [], files);
+    if (isUnchanged(change)) {
+        logger.info('No source file of the tsconfig selection was added or removed');
+        return false;
+    }
+    logger.info(
+        `Source files changed (${change.added.length} added, ${change.removed.length} removed), rebuilding`
+    );
+    session.files = files;
+    return true;
+};
+
+/** Remove the pages that an earlier run of this session wrote and the last one did not. */
+const removeStalePages = (session: Session): void => {
+    for (const file of session.generators.pageWriter.takeStalePages()) {
+        logger.info(`Removing page ${file}`);
+        fs.rmSync(file, { force: true });
+    }
+};
+
 /** Watch the sources, root markdown files and includes; rebuild on change. */
 const startWatch = async (session: Session): Promise<WatchHandle> => {
     const files = session.files ?? [];
@@ -114,6 +157,7 @@ const startWatch = async (session: Session): Promise<WatchHandle> => {
         if (isErr(result) && haltEndsWatch(mode, result.message)) {
             session.onWatchHalt(result.message);
         }
+        return result;
     };
     const clearChangedFiles = () => {
         watchChangedFiles = [];
@@ -127,13 +171,22 @@ const startWatch = async (session: Session): Promise<WatchHandle> => {
     });
     let timerAddAndRemoveRef: ReturnType<typeof setTimeout> | undefined;
     let timerChangeRef: ReturnType<typeof setTimeout> | undefined;
-    const runnerAddAndRemove = () => {
-        // Re-runs with the file list of the initial scan; new files are not picked up.
-        void rebuild('full');
+    const runnerAddAndRemove = async () => {
+        // Scans the sources again with the start discovery (tsconfig include/exclude);
+        // the next run builds the semantic program over the new list.
+        if (!(await rescanFiles(session))) {
+            return;
+        }
+        // The full run queues every page anew, so pages of removed files drop out.
+        session.config.resetPages();
+        const result = await rebuild('full');
+        if (!isErr(result)) {
+            removeStalePages(session);
+        }
     };
     const waiterAddAndRemove = () => {
         clearTimeout(timerAddAndRemoveRef);
-        timerAddAndRemoveRef = setTimeout(runnerAddAndRemove, 1000);
+        timerAddAndRemoveRef = setTimeout(() => void runnerAddAndRemove(), 1000);
     };
     const runnerChange = () => {
         const updatedFiles = [...watchChangedFiles];

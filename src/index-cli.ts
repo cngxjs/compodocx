@@ -141,8 +141,10 @@ export async function runCli(argv: string[]): Promise<void> {
             files = parsedArgv.files;
         }
     }
-    const session = (scanned: string[] | undefined) =>
-        createSession(scanned, stopped => process.exit(stopped.exitCode));
+    const session = (
+        scanned: string[] | undefined,
+        discoverFiles?: () => Promise<readonly string[]>
+    ) => createSession(scanned, stopped => process.exit(stopped.exitCode), discoverFiles);
 
     if (programOptions.serve && !Configuration.mainData.tsconfig && programOptions.output) {
         // if -s & -d, serve it
@@ -280,13 +282,15 @@ export async function runCli(argv: string[]): Promise<void> {
                     tsconfig
                 });
                 const sortedFiles = await discoverSourceFiles(discovery(tsConfigFile));
+                // Watch mode scans again with the same input, the tsconfig read anew.
+                const rediscover = () => discoverSourceFiles(discovery(readConfig(_file)));
                 if (programOptions.coverageTest || programOptions.coverageTestPerFile) {
                     logger.info('Run documentation coverage test');
                     exitOnHalt(await runSession(session(sortedFiles), 'coverage'));
                 } else {
                     process.on('unhandledRejection', unhandledRejectionListener);
                     process.on('uncaughtException', uncaughtExceptionListener);
-                    exitOnHalt(await runSession(session(sortedFiles), 'full'));
+                    exitOnHalt(await runSession(session(sortedFiles, rediscover), 'full'));
                 }
             }
         } else {

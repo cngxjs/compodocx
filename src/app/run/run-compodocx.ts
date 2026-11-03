@@ -48,14 +48,17 @@ export const applyRunOptions = (
 
 /**
  * One session per process: the generators are created once and shared by
- * the initial run and every watch rebuild.
+ * the initial run and every watch rebuild. `discoverFiles` scans the
+ * sources again when watch mode sees a file added or removed.
  */
 export const createSession = (
     files: readonly string[] | undefined,
-    onWatchHalt: (stopped: Halt) => void
+    onWatchHalt: (stopped: Halt) => void,
+    discoverFiles?: () => Promise<readonly string[]>
 ): Session => ({
     config: Configuration,
     files,
+    discoverFiles,
     generators: createGenerators(),
     isWatching: false,
     onWatchHalt
