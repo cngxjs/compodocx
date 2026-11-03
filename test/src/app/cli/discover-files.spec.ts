@@ -60,6 +60,10 @@ describe('discoveryPlan', () => {
 describe('discoverSourceFiles', () => {
     let dir = '';
 
+    // fast-glob returns `/` separators, also on Windows.
+    const scan = async (input: Parameters<typeof discoverSourceFiles>[0]) =>
+        (await discoverSourceFiles(input)).map(file => path.normalize(file));
+
     const write = (file: string) => {
         fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
         fs.writeFileSync(path.join(dir, file), '');
@@ -84,7 +88,7 @@ describe('discoverSourceFiles', () => {
     });
 
     it('returns the selected .ts and .tsx files sorted, without the excluded ones', async () => {
-        const files = await discoverSourceFiles({
+        const files = await scan({
             projectDir: dir,
             config: {},
             tsconfig: { include: ['src/**/*'], exclude: ['src/skip/**'] }
@@ -95,10 +99,10 @@ describe('discoverSourceFiles', () => {
 
     it('sees a file created after an earlier scan', async () => {
         const input = { projectDir: dir, config: {}, tsconfig: { include: ['src/*.ts'] } };
-        const before = await discoverSourceFiles(input);
+        const before = await scan(input);
         write('src/added.ts');
 
-        const after = await discoverSourceFiles(input);
+        const after = await scan(input);
 
         expect(after).toEqual([...before, path.join(dir, 'src/added.ts')].sort());
     });
