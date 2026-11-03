@@ -217,6 +217,13 @@ a.cdx-member-permalink:hover {
     color: var(--color-cdx-text-secondary);
 }
 
+/* Note of a member marked @aiGenerated, below its head. */
+.cdx-member-ai-note {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-cdx-text-secondary);
+}
+
 /* A deprecation reason rendered as prose stays on the line of its label. */
 .cdx-member-deprecated > p {
     display: inline;

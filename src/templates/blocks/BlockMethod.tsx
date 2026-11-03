@@ -1,6 +1,7 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { memberAnchor } from '../../app/links/layout';
+import { AiGeneratedBadge, AiGeneratedNote } from '../components/AiGeneratedBadge';
 import {
     hasJsdocParams,
     highlightedSignature,
@@ -116,8 +117,13 @@ export const BlockMethod = (props: BlockMethodProps): string => {
                                 {m.optional && (
                                     <span class="cdx-member-modifier">{t('optional')}</span>
                                 )}
+                                {AiGeneratedBadge({ aiGenerated: m.aiGenerated })}
                             </div>
                         </div>
+                        {AiGeneratedNote({
+                            aiGenerated: m.aiGenerated,
+                            class: 'cdx-member-ai-note'
+                        })}
                         {m.decorators?.length > 0 && (
                             <div class="cdx-member-decorators">
                                 <code>

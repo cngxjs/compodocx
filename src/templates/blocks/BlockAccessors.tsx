@@ -1,6 +1,7 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { memberAnchor } from '../../app/links/layout';
+import { AiGeneratedBadge, AiGeneratedNote } from '../components/AiGeneratedBadge';
 import {
     hasJsdocParams,
     highlightedSignature,
@@ -37,6 +38,7 @@ export const BlockAccessors = (props: BlockAccessorsProps): string => {
                     acc.getSignature?.deprecated || acc.setSignature?.deprecated
                 );
                 const returnType = acc.getSignature?.returnType;
+                const aiGenerated = acc.getSignature?.aiGenerated || acc.setSignature?.aiGenerated;
                 const cls = ['cdx-io-member'];
                 if (isDeprecated) {
                     cls.push('cdx-io-member--deprecated');
@@ -63,8 +65,13 @@ export const BlockAccessors = (props: BlockAccessorsProps): string => {
                             <div class="cdx-io-member-badges">
                                 {acc.getSignature && <span class="cdx-member-modifier">get</span>}
                                 {acc.setSignature && <span class="cdx-member-modifier">set</span>}
+                                {AiGeneratedBadge({ aiGenerated })}
                             </div>
                         </div>
+                        {AiGeneratedNote({
+                            aiGenerated,
+                            class: 'cdx-member-ai-note'
+                        })}
                         {isDeprecated && (
                             <div class="cdx-member-deprecated">
                                 {acc.getSignature?.deprecationMessage ||

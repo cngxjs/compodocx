@@ -8,6 +8,13 @@ import { Component, input } from '@angular/core';
     template: '<p>{{ label() }}</p>'
 })
 export class MarkedCardComponent {
-    /** Text inside the card. */
+    /**
+     * Text inside the card.
+     *
+     * @aigen model=claude-opus-4.7 date=2026-11
+     */
     readonly label = input('');
+
+    /** Accent colour of the card. */
+    readonly accent = input('blue');
 }

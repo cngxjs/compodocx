@@ -12,6 +12,14 @@ const readmePanel = (html: string): string => {
     return html.slice(start, next === -1 ? undefined : next);
 };
 
+/** The member card with the given id, up to the next member card. */
+const memberCard = (html: string, id: string): string => {
+    const start = html.indexOf(`id="${id}"`);
+    expect(start).to.be.greaterThan(-1);
+    const next = html.slice(start).search(/class="cdx-io-member[ "]|<\/section>/);
+    return html.slice(start, next === -1 ? undefined : start + next);
+};
+
 /**
  * `<!-- @aiGenerated [value] -->` as the first line of a neighbour README
  * (`marked-card.component.md`, `marked-store.service.md`) shows the banner
@@ -69,5 +77,23 @@ describe('CLI @aiGenerated in the neighbour README', () => {
     it('keeps the hero free of the chip when only the README is marked', () => {
         const hero = markedCard.slice(0, markedCard.indexOf('cdx-tab-bar'));
         expect(hero).not.to.contain('cdx-badge--ai-generated');
+    });
+
+    it('shows chip and note with the joined key=value fields on a marked input (@aigen)', () => {
+        const card = memberCard(markedCard, 'label');
+        expect(card).to.contain('cdx-badge--ai-generated');
+        expect(card).to.contain(
+            '<p class="cdx-member-ai-note">Drafted with AI assistance (claude-opus-4.7, 2026-11).</p>'
+        );
+        expect(memberCard(markedCard, 'accent')).not.to.contain('cdx-badge--ai-generated');
+    });
+
+    it('shows chip and note on a marked method (@ai)', () => {
+        const card = memberCard(markedStore, 'increment');
+        expect(card).to.contain('cdx-badge--ai-generated');
+        expect(card).to.contain(
+            '<p class="cdx-member-ai-note">Drafted with AI assistance (2026-11).</p>'
+        );
+        expect(memberCard(markedStore, 'reset')).not.to.contain('cdx-badge--ai-generated');
     });
 });

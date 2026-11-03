@@ -1,6 +1,7 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { memberAnchor } from '../../app/links/layout';
+import { AiGeneratedBadge, AiGeneratedNote } from '../components/AiGeneratedBadge';
 import {
     highlightedCodeWrap,
     isTabEnabled,
@@ -86,8 +87,13 @@ export const BlockProperty = (props: BlockPropertyProps): string => {
                                 {p.required && (
                                     <span class="cdx-badge cdx-badge--factory">Required</span>
                                 )}
+                                {AiGeneratedBadge({ aiGenerated: p.aiGenerated })}
                             </div>
                         </div>
+                        {AiGeneratedNote({
+                            aiGenerated: p.aiGenerated,
+                            class: 'cdx-member-ai-note'
+                        })}
                         {p.decorators?.length > 0 && (
                             <div class="cdx-member-decorators">
                                 <code>
