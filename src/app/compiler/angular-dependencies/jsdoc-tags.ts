@@ -1,4 +1,5 @@
 import type { JsdocParserUtil } from '../../../utils';
+import { isAiGeneratedTagName } from '../../../utils/ai-generated.util';
 import { stripExampleUrlTags } from '../../../utils/example-urls';
 import { warnOnce } from '../../../utils/jsdoc-tag-warn';
 
@@ -46,6 +47,10 @@ export class JsdocTags {
             const name = tag.tagName.text;
             // tag.comment is a NodeArray when it holds an inline {@link}
             const comment = (this.jsdocParserUtil.parseJSDocNode(tag) || '').trim();
+            if (isAiGeneratedTagName(name)) {
+                result.aiGenerated = comment.split('\n')[0].trim() || true;
+                continue;
+            }
 
             switch (name) {
                 case 'signal':
@@ -68,9 +73,6 @@ export class JsdocTags {
                     break;
                 case 'breaking':
                     result.breaking = comment.split('\n')[0].trim();
-                    break;
-                case 'aiGenerated':
-                    result.aiGenerated = comment.split('\n')[0].trim() || true;
                     break;
                 case 'route':
                     result.route = comment.split('\n')[0].trim();

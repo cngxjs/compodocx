@@ -1,18 +1,31 @@
+/** Tag names that mark AI-assisted content; `@aiGenerated` is the documented form. */
+export const AI_GENERATED_TAG_NAMES = ['aiGenerated', 'aigen', 'ai'] as const;
+
+const TAG_NAMES = new Set(AI_GENERATED_TAG_NAMES.map(name => name.toLowerCase()));
+
+/** True for `aiGenerated` and its synonyms `aigen` and `ai`, in any case. */
+export const isAiGeneratedTagName = (name: string | undefined): boolean =>
+    name !== undefined && TAG_NAMES.has(name.toLowerCase());
+
 /**
- * Detects an `@aiGenerated` marker inside an HTML comment at the top of a
- * markdown file. Accepts an optional value (model name, date, etc.) that
- * surfaces in the badge tooltip.
+ * Detects an `@aiGenerated` marker (or a synonym) inside an HTML comment at
+ * the top of a markdown file. Accepts an optional value (model name, date,
+ * `model=... date=...`) shown in the visible note.
  *
  * Recognised forms:
  *   <!-- @aiGenerated -->
  *   <!-- @aiGenerated claude-opus-4.7 -->
- *   <!-- @aiGenerated 2026-05 -->
+ *   <!-- @ai 2026-05 -->
+ *   <!-- @aigen model=claude-opus-4.7 date=2026-05 -->
  *
  * Returns the trimmed value when found, `true` when the bare marker is
  * present, or `false` when absent. The marker must appear before any
  * non-whitespace, non-comment content.
  */
-const AI_GENERATED_MARKER = /^\s*<!--\s*@aiGenerated\s*([^>]*?)\s*-->/i;
+const AI_GENERATED_MARKER = new RegExp(
+    `^\\s*<!--\\s*@(?:${AI_GENERATED_TAG_NAMES.join('|')})(?:\\s+([^>]*?))?\\s*-->`,
+    'i'
+);
 
 export const detectAiGeneratedMarker = (
     markdown: string | undefined | null

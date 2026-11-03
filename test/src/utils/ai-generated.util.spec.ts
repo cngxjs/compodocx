@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { detectAiGeneratedMarker } from '../../../src/utils/ai-generated.util';
+import {
+    detectAiGeneratedMarker,
+    isAiGeneratedTagName
+} from '../../../src/utils/ai-generated.util';
 
 describe('detectAiGeneratedMarker', () => {
     it('returns true for the bare marker', () => {
@@ -29,5 +32,30 @@ describe('detectAiGeneratedMarker', () => {
 
     it('ignores a marker after other content', () => {
         expect(detectAiGeneratedMarker('# Title\n<!-- @aiGenerated -->')).toBe(false);
+    });
+
+    it('accepts the synonyms @ai and @aigen in any case', () => {
+        expect(detectAiGeneratedMarker('<!-- @ai 2026-05 -->')).toBe('2026-05');
+        expect(detectAiGeneratedMarker('<!-- @AIGEN -->')).toBe(true);
+        expect(detectAiGeneratedMarker('<!-- @aigen model=x date=y -->')).toBe('model=x date=y');
+    });
+
+    it('does not read a longer tag name as a synonym', () => {
+        expect(detectAiGeneratedMarker('<!-- @ai-generated -->')).toBe(false);
+        expect(detectAiGeneratedMarker('<!-- @aiNotes x -->')).toBe(false);
+    });
+});
+
+describe('isAiGeneratedTagName', () => {
+    it('matches aiGenerated, aigen and ai in any case', () => {
+        for (const name of ['aiGenerated', 'aigenerated', 'aigen', 'AI', 'ai']) {
+            expect(isAiGeneratedTagName(name)).toBe(true);
+        }
+    });
+
+    it('rejects other names', () => {
+        for (const name of [undefined, '', 'aiNotes', 'generated', 'a']) {
+            expect(isAiGeneratedTagName(name)).toBe(false);
+        }
     });
 });
