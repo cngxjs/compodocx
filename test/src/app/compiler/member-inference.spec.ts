@@ -55,6 +55,10 @@ export class BoxComponent {
     readonly selected = model.required<Item>();
     readonly current = computed(() => this.selected());
     readonly currentName = computed(() => this.selected().name);
+    readonly loose = computed<unknown>(() => this.count());
+    readonly opaque = signal<unknown>(null);
+    readonly linked = linkedSignal<unknown>(() => this.label());
+    readonly raw = input<unknown>();
 
     async save() {}
     reset() {
@@ -173,6 +177,14 @@ export class Queue {
 
     it('keeps a declared method return type', () => {
         expect(returnTypeOf('total')).toBe('number');
+    });
+
+    it('keeps a written unknown type argument instead of inferring over it', () => {
+        expect(typeOf('loose')).toBe('unknown');
+        expect(typeOf('opaque')).toBe('unknown');
+        expect(typeOf('linked')).toBe('unknown');
+        const raw = deps.components[0].inputsClass.find((p: any) => p.name === 'raw');
+        expect(raw?.type).toBe('unknown');
     });
 
     it('keeps a declared unknown', () => {

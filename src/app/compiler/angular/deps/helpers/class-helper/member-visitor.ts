@@ -770,6 +770,9 @@ export class MemberVisitor {
             result.defaultValue = '() => {...}';
         }
 
+        // a written type argument (`computed<unknown>(...)`) is kept, never inferred over
+        let typeArgumentWritten = false;
+
         // input/output/model calls imported from @angular/core; the type is the
         // first type argument, the default value the initial value argument
         const signalCall =
@@ -782,6 +785,7 @@ export class MemberVisitor {
                 result.required = true;
             }
             result.type = signalCall.type;
+            typeArgumentWritten = signalCall.type !== undefined;
             result.defaultValue = signalCall.initialValue;
             if (signalCall.alias !== undefined) {
                 result.alias = signalCall.alias;
@@ -793,6 +797,7 @@ export class MemberVisitor {
                 result.signalKind = signalKind.kind;
                 if (signalKind.signalType) {
                     result.type = signalKind.signalType;
+                    typeArgumentWritten = true;
                 }
                 if (signalKind.required) {
                     result.required = true;
@@ -802,7 +807,7 @@ export class MemberVisitor {
 
         // Without an annotation the type renderer only knows `unknown`; infer what
         // can be inferred and leave the type out otherwise
-        if (result.type === 'unknown' && !property.type) {
+        if (result.type === 'unknown' && !property.type && !typeArgumentWritten) {
             const inferred = this.inferredType(result.signalKind, initializer);
             if (inferred) {
                 result.type = inferred;
