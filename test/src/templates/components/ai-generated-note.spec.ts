@@ -6,7 +6,10 @@ import {
     AiGeneratedBadge,
     AiGeneratedNote
 } from '../../../../src/templates/components/AiGeneratedBadge';
-import { aiGeneratedNoteText } from '../../../../src/templates/helpers/ai-generated-note';
+import {
+    aiGeneratedFields,
+    aiGeneratedNoteText
+} from '../../../../src/templates/helpers/ai-generated-note';
 import { t } from '../../../../src/templates/helpers/i18n';
 import { AdditionalPage } from '../../../../src/templates/pages/AdditionalPage';
 
@@ -48,6 +51,68 @@ describe('aiGeneratedNoteText', () => {
             expect(strings['ai-generated-note'], name).toBeTruthy();
             expect(strings['ai-generated-note-value'], name).toContain('{{value}}');
         }
+    });
+});
+
+describe('aiGeneratedFields', () => {
+    it('reads key=value pairs, quoted values with spaces too', () => {
+        expect(aiGeneratedFields('model=claude-opus-4.7 date=2026-05')).toEqual({
+            model: 'claude-opus-4.7',
+            date: '2026-05'
+        });
+        expect(aiGeneratedFields('model="Claude Opus" reviewer=ana')).toEqual({
+            model: 'Claude Opus',
+            reviewer: 'ana'
+        });
+    });
+
+    it('treats anything else as free text', () => {
+        expect(aiGeneratedFields('claude-opus-4.7')).toBeUndefined();
+        expect(aiGeneratedFields('model=x and more')).toBeUndefined();
+        expect(aiGeneratedFields('see https://x.dev/?a=b')).toBeUndefined();
+        expect(aiGeneratedFields(true)).toBeUndefined();
+    });
+});
+
+describe('aiGeneratedNoteText - structured value', () => {
+    beforeAll(() => {
+        I18nEngine.init('en-US');
+    });
+
+    it('joins the values in the default text', () => {
+        expect(aiGeneratedNoteText('model=claude-opus-4.7 date=2026-05', '', t)).toBe(
+            'Drafted with AI assistance (claude-opus-4.7, 2026-05).'
+        );
+    });
+
+    it('fills {key} placeholders and {value} in the configured text', () => {
+        expect(
+            aiGeneratedNoteText(
+                'model=claude-opus-4.7 date=2026-05',
+                'Drafted with {model} on {date} [{value}].',
+                t
+            )
+        ).toBe('Drafted with claude-opus-4.7 on 2026-05 [claude-opus-4.7, 2026-05].');
+    });
+
+    it('fills a field the marker lacks with nothing when it has another one', () => {
+        expect(aiGeneratedNoteText('model=x', 'By {model}, {reviewer}.', t)).toBe('By x, .');
+    });
+
+    it('uses the default text when the marker has none of the fields of the configured text', () => {
+        const configured = 'Written with {model} on {date} ({value}).';
+        expect(aiGeneratedNoteText('Claude', configured, t)).toBe(
+            'Drafted with AI assistance (Claude).'
+        );
+        expect(aiGeneratedNoteText(true, configured, t)).toBe('Drafted with AI assistance.');
+        expect(aiGeneratedNoteText('reviewer=ana', configured, t)).toBe(
+            'Drafted with AI assistance (ana).'
+        );
+    });
+
+    it('keeps a configured text without field placeholders for every marker', () => {
+        expect(aiGeneratedNoteText(true, 'AI draft ({value}).', t)).toBe('AI draft ().');
+        expect(aiGeneratedNoteText('model=x', 'AI draft ({value}).', t)).toBe('AI draft (x).');
     });
 });
 
