@@ -126,3 +126,67 @@ test.describe('Cross-panel hash-only links (original bug)', () => {
         }
     });
 });
+
+test.describe('Same-page hash links do not refetch the page', () => {
+    const pageRequests = (page: import('@playwright/test').Page, name: string): string[] => {
+        const seen: string[] = [];
+        page.on('request', request => {
+            if (new URL(request.url()).pathname.endsWith(`/${name}.html`)) {
+                seen.push(request.url());
+            }
+        });
+        return seen;
+    };
+
+    const markContent = (page: import('@playwright/test').Page) =>
+        page.evaluate(() => {
+            const marker = document.createElement('span');
+            marker.id = 'cdx-test-content-marker';
+            document.querySelector('.content-data')?.prepend(marker);
+        });
+
+    test('index entry click scrolls to the member without a fetch', async ({ page }) => {
+        await page.goto(`${COMPONENT_PAGE()}#api`);
+        const requests = pageRequests(page, 'UserListComponent');
+        await markContent(page);
+
+        await page.locator('#api a.cdx-index-entry[href="#ngOnInit"]').click();
+
+        await expect(page).toHaveURL(/#ngOnInit$/);
+        await expect(page.locator('#ngOnInit.cdx-io-member')).toBeInViewport();
+        await page.waitForTimeout(300);
+        expect(requests).toEqual([]);
+        await expect(page.locator('#cdx-test-content-marker')).toHaveCount(1);
+    });
+
+    test('back after a hash click stays on the page without a fetch', async ({ page }) => {
+        await page.goto(`${COMPONENT_PAGE()}#api`);
+        const requests = pageRequests(page, 'UserListComponent');
+        await markContent(page);
+
+        await page.locator('#api a.cdx-index-entry[href="#ngOnInit"]').click();
+        await expect(page).toHaveURL(/#ngOnInit$/);
+        await page.goBack();
+        await expect(page).toHaveURL(/#api$/);
+        await page.goForward();
+        await expect(page).toHaveURL(/#ngOnInit$/);
+
+        await page.waitForTimeout(300);
+        expect(requests).toEqual([]);
+        await expect(page.locator('#cdx-test-content-marker')).toHaveCount(1);
+    });
+
+    test('back after navigating to another page loads the previous page', async ({ page }) => {
+        await page.goto(OTHER_PAGE());
+        await page.locator('.menu a[data-type="entity-link"][href*="UserListComponent"]').click();
+        await page.waitForURL(/UserListComponent/);
+        await markContent(page);
+        const requests = pageRequests(page, 'AppComponent');
+
+        await page.goBack();
+
+        await page.waitForURL(/AppComponent/);
+        await expect(page.locator('#cdx-test-content-marker')).toHaveCount(0);
+        expect(requests.length).toBeGreaterThan(0);
+    });
+});

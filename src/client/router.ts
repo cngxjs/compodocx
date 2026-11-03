@@ -201,6 +201,16 @@ const isInternalLink = (anchor: HTMLAnchorElement): boolean => {
     return true;
 };
 
+/** Page identity of a URL: everything but the hash. */
+const pageKeyOf = (url: string): string => {
+    const { pathname, search } = new URL(url, window.location.href);
+    return pathname + search;
+};
+
+/** Page currently shown in the content area. A history entry that differs
+ *  from it only by hash is a same-page anchor: `hashchange` handles it. */
+let shownPage = '';
+
 /** Progress bar helpers */
 const progressBar = () => document.querySelector<HTMLElement>('.cdx-progress-bar');
 
@@ -266,6 +276,7 @@ const navigate = async (
                 currentContent.innerHTML = newContent.innerHTML;
             }
             document.title = doc.title;
+            shownPage = pageKeyOf(url);
         };
 
         const supportsViewTransition = typeof (document as any).startViewTransition === 'function';
@@ -331,6 +342,8 @@ const navigate = async (
 };
 
 export const initRouter = () => {
+    shownPage = pageKeyOf(window.location.href);
+
     // Fix sidebar links and set active link on initial page load. The sidebar
     // initialised before the active link was known, so open its ancestors now.
     fixMenuLinks();
@@ -360,6 +373,9 @@ export const initRouter = () => {
 
     // Handle browser back/forward
     window.addEventListener('popstate', () => {
+        if (pageKeyOf(window.location.href) === shownPage) {
+            return;
+        }
         navigate(window.location.href, false);
     });
 };

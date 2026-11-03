@@ -40,7 +40,8 @@ export {
     isInfoSection,
     isInitialTab,
     isTabEnabled,
-    isThemingSection
+    isThemingSection,
+    renderedApiSections
 } from './tab-helpers';
 
 const codeTag = (text: string): 'pre' | 'code' =>

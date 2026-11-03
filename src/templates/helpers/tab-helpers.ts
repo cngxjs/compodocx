@@ -37,6 +37,15 @@ export const isApiSection = (sectionId: string): boolean => {
     return DEFAULT_API_SECTIONS.includes(sectionId);
 };
 
+/**
+ * Keeps only the entries whose key is an API section id that renders, so a list
+ * keyed by section (the API index) never links to a block that is switched off.
+ */
+export const renderedApiSections = <T extends object>(sections: T): Partial<T> =>
+    Object.fromEntries(
+        Object.entries(sections).filter(([sectionId]) => isApiSection(sectionId))
+    ) as Partial<T>;
+
 /** Check if a section belongs to the **Theming** tab. */
 export const isThemingSection = (sectionId: string): boolean => {
     const theming = Configuration.mainData.themingTabSections;

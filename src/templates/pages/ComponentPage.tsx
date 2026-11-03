@@ -65,6 +65,7 @@ import {
     pagefindMetaBlock,
     parseDescription,
     relativeUrl,
+    renderedApiSections,
     t
 } from '../helpers';
 import { routedAt } from '../helpers/routed-at';
@@ -294,17 +295,19 @@ const ApiContent = (data: any): string => {
     return (
         <>
             {isApiSection('index') &&
-                BlockIndex({
-                    properties: regularProps,
-                    methods: c.methodsClass,
-                    inputs: c.inputsClass,
-                    outputs: c.outputsClass,
-                    derivedState: derivedProps,
-                    effects: showEffects ? effectProps : [],
-                    hostBindings: c.hostBindings,
-                    hostListeners: c.hostListeners,
-                    accessors: c.accessors
-                })}
+                BlockIndex(
+                    renderedApiSections({
+                        properties: regularProps,
+                        methods: c.methodsClass,
+                        inputs: c.inputsClass,
+                        outputs: c.outputsClass,
+                        derivedState: derivedProps,
+                        effects: showEffects ? effectProps : [],
+                        hostBindings: c.hostBindings,
+                        hostListeners: c.hostListeners,
+                        accessors: c.accessors
+                    })
+                )}
 
             {isApiSection('inputs') &&
                 c.inputsClass?.length > 0 &&

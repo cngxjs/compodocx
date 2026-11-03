@@ -45,6 +45,8 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 - **Signal queries.** `contentChild<TemplateRef<unknown>>()`, `contentChildren<...>()` and `viewChild.required<T>()` were documented as plain properties of type `unknown`. Type arguments may nest now and `.required` may stand before them; the members get their query badge and type.
 - **`outputFromObservable`.** Members created with `outputFromObservable()` from `@angular/core/rxjs-interop` are listed as outputs (with their `alias`) instead of properties.
 - **`styleUrlsData` in the JSON export.** The schema declared a string, but the export writes the list of style files (`{ data, styleUrl }`). Schema and types now describe the list, and a component without style files gets an empty list instead of an empty string.
+- **Anchor links on the same page.** A click on an API index entry or another `#anchor` link of the current page scrolls to the target instead of fetching and swapping the whole page again. Back and forward between two anchors of one page no longer reload it either.
+- **API index without dead links.** A section switched off with `apiTabSections` (for example `derivedState`) is also left out of the index, so every index entry points at a member that is on the page.
 
 ## [0.14.0] - 2026-10-30
 
