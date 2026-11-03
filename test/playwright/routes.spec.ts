@@ -48,6 +48,25 @@ test.describe('Routes page', () => {
         await expect(links.first()).toContainText('/admin/audit');
     });
 
+    test('a guard links the routes using it, with the role', async ({ page }) => {
+        await page.goto(pageUrl('guard', 'rtaAuthGuard'));
+        const links = page.locator('[data-compodoc="routed-at"] a.cdx-chip');
+        await expect(page.locator('#used-in-routes')).toContainText('Used in routes');
+        await expect(links).toHaveCount(1);
+        await expect(links.first()).toHaveText('/account - canActivate');
+        await links.first().click();
+        await expect(page).toHaveURL(/routes\.html#route-0-4$/);
+        await expect(page.locator('#route-0-4')).toBeVisible();
+    });
+
+    test('a resolver links its route with the resolve key', async ({ page }) => {
+        await page.goto(pageUrl('resolver', 'rtaUserResolver'));
+        const links = page.locator('[data-compodoc="routed-at"] a.cdx-chip');
+        await expect(links).toHaveCount(1);
+        await expect(links.first()).toHaveText('/account/profile - resolve: user');
+        await expect(links.first()).toHaveAttribute('href', /routes\.html#route-0-4-0$/);
+    });
+
     test('a feature page lists the routes of its members', async ({ page }) => {
         await page.goto(featureUrl(['admin']));
         const section = page.locator('[data-compodoc="feature-routes"]');

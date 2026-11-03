@@ -205,6 +205,7 @@ export const TRANSLATION_KA_GE = {
     'router-features': 'როუტერის ფუნქციები',
     'routed-at': 'მარშრუტი',
     'mounted-at': 'მიერთებულია',
+    'used-in-routes': 'გამოიყენება მარშრუტებში',
     'route-resolve': 'Resolve',
     'route-title': 'სათაური',
     'route-data': 'მონაცემები',

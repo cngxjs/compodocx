@@ -205,6 +205,7 @@ export const TRANSLATION_JA_JP = {
     'router-features': 'ルーター機能',
     'routed-at': 'ルート',
     'mounted-at': 'マウント先',
+    'used-in-routes': '使用しているルート',
     'route-resolve': 'Resolve',
     'route-title': 'タイトル',
     'route-data': 'データ',

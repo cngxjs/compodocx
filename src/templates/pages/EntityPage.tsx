@@ -7,7 +7,7 @@ import type {
     FileRefBundle,
     VendorPackage
 } from '../../app/engines/stackblitz';
-import { qualifiedName } from '../../app/links/symbol-id';
+import { qualifiedName, type TableKind } from '../../app/links/symbol-id';
 import { BlockAccessors } from '../blocks/BlockAccessors';
 import { BlockConstructor } from '../blocks/BlockConstructor';
 import { BlockDerivedState } from '../blocks/BlockDerivedState';
@@ -20,6 +20,7 @@ import { BlockMethod } from '../blocks/BlockMethod';
 import { BlockOutput } from '../blocks/BlockOutput';
 import { BlockProperty } from '../blocks/BlockProperty';
 import { BlockRelationshipGraph } from '../blocks/BlockRelationshipGraph';
+import { BlockRoutedAt } from '../blocks/BlockRoutedAt';
 import { DependenciesSection, isDependencyMember } from '../blocks/DependenciesSection';
 import { EntityTabs } from '../blocks/EntityTabs';
 import { ExternalLinks } from '../blocks/ExternalLinks';
@@ -67,6 +68,7 @@ import {
     t
 } from '../helpers';
 import type { ComponentPlaygroundBlock } from '../helpers/jsdoc';
+import { routedAt } from '../helpers/routed-at';
 import { providedByEntries, usedByEntries } from '../helpers/used-by';
 
 /** Map entity key to CSS color variable, badge class, and watermark icon */
@@ -291,8 +293,10 @@ const ExtendsMetadataCard = (e: any, depth: number): string => {
  */
 const InfoContent = (props: EntityInfoProps): string => {
     const e = props.entity;
+    // The routes using a functional guard or interceptor declared as a constant.
+    const routes = routedAt(Configuration.mainData, props.entityKey as TableKind, e, props.depth);
 
-    if (!hasMembers(e)) {
+    if (!hasMembers(e) && !routes) {
         return EmptyState({
             icon: EmptyIconDocument(),
             title: t('empty-entity-title'),
@@ -303,7 +307,7 @@ const InfoContent = (props: EntityInfoProps): string => {
         }) as string;
     }
 
-    if (!hasInfoContent(e, props)) {
+    if (!hasInfoContent(e, props) && !routes) {
         return EmptyState({
             icon: EmptyIconDocument(),
             title: t('no-overview'),
@@ -314,6 +318,8 @@ const InfoContent = (props: EntityInfoProps): string => {
 
     return (
         <>
+            {BlockRoutedAt(routes)}
+
             {/* Used-by backlinks from the semantic analysis */}
             {ReferencedBySection({
                 entries: usedByEntries(Configuration.mainData, props.entityKey as EntityKind, e),

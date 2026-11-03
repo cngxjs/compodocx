@@ -206,6 +206,7 @@ export const TRANSLATION_HU_HU = {
     'router-features': 'Router-funkciók',
     'routed-at': 'Útvonal',
     'mounted-at': 'Beillesztve',
+    'used-in-routes': 'Útvonalakban használva',
     'route-resolve': 'Resolve',
     'route-title': 'Cím',
     'route-data': 'Adatok',

@@ -207,6 +207,7 @@ export const TRANSLATION_RU_RU = {
     'router-features': 'Функции маршрутизатора',
     'routed-at': 'Маршрут',
     'mounted-at': 'Подключено в',
+    'used-in-routes': 'Используется в маршрутах',
     'route-resolve': 'Resolve',
     'route-title': 'Заголовок',
     'route-data': 'Данные',

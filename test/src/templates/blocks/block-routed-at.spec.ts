@@ -14,6 +14,17 @@ beforeAll(() => {
 const PAGE = 'component:src/page.ts#Page' as SymbolId;
 const ROUTES = 'variable:src/routes.ts#routes' as SymbolId;
 const PARTNERS = 'variable:src/partners.ts#PARTNERS' as SymbolId;
+const AUTH = 'guard:src/guards.ts#authGuard' as SymbolId;
+const USER = 'resolver:src/guards.ts#userResolver' as SymbolId;
+const AUTH_ITEM = { name: 'authGuard', file: 'src/guards.ts', functionalKind: 'guard' };
+const USER_ITEM = { name: 'userResolver', file: 'src/guards.ts', functionalKind: 'resolver' };
+
+const ref = (name: string, symbol: SymbolId, source = name) => ({
+    name,
+    symbol,
+    source,
+    call: source !== name
+});
 
 const node = (id: string, fullPath: string, fields: Partial<RouteNode> = {}): RouteNode => ({
     id,
@@ -35,8 +46,10 @@ const data = {
             variables: [
                 { name: 'routes', file: 'src/routes.ts' },
                 { name: 'PARTNERS', file: 'src/partners.ts' },
-                { name: 'other', file: 'src/other.ts' }
-            ]
+                { name: 'other', file: 'src/other.ts' },
+                AUTH_ITEM
+            ],
+            functions: [USER_ITEM]
         }
     }),
     routing: indexRouting(
@@ -57,7 +70,19 @@ const data = {
                             source: 'Page'
                         }
                     }),
-                    node('0-1', '/b', { array: ROUTES })
+                    node('0-1', '/b', {
+                        array: ROUTES,
+                        guards: { ...emptyGuards(), canActivate: [ref('authGuard', AUTH)] },
+                        children: [
+                            node('0-1-0', '/b/c', {
+                                guards: {
+                                    ...emptyGuards(),
+                                    canMatch: [ref('authGuard', AUTH, 'authGuard()')]
+                                },
+                                resolve: [{ key: 'user', ref: ref('userResolver', USER) }]
+                            })
+                        ]
+                    })
                 ]
             },
             {
@@ -73,7 +98,7 @@ const data = {
     )
 };
 
-describe('Routed at / Mounted at', () => {
+describe('Routed at / Mounted at / Used in routes', () => {
     it('links the routes rendering a component', () => {
         const html = BlockRoutedAt(
             routedAt(data, 'component', { name: 'Page', file: 'src/page.ts' }, 1)
@@ -95,6 +120,35 @@ describe('Routed at / Mounted at', () => {
         );
         expect(unmounted).toContain('href="./routes.html#route-1"');
         expect(unmounted).toContain('>Unmounted routes</code>');
+    });
+
+    it('links the routes using a guard, each with its role', () => {
+        const html = BlockRoutedAt(routedAt(data, 'variable', AUTH_ITEM, 1));
+        expect(html).toContain('id="used-in-routes"');
+        expect(html).toContain('Used in routes');
+        expect(html).toContain('href="../routes.html#route-0-1"');
+        expect(html).toContain('>/b - canActivate</code>');
+        expect(html).toContain('href="../routes.html#route-0-1-0"');
+        expect(html).toContain('>/b/c - canMatch</code>');
+    });
+
+    it('names the resolve key of a resolver', () => {
+        const html = BlockRoutedAt(routedAt(data, 'function', USER_ITEM, 0));
+        expect(html).toContain('href="./routes.html#route-0-1-0"');
+        expect(html).toContain('>/b/c - resolve: user</code>');
+    });
+
+    it('passes the role to an override only for Used in routes', () => {
+        const guard = routedAt(data, 'variable', AUTH_ITEM, 0);
+        expect(guard?.links.map(link => link.role)).toEqual(['canActivate', 'canMatch']);
+        const page = routedAt(data, 'component', { name: 'Page', file: 'src/page.ts' }, 0);
+        expect(page?.links.every(link => link.role === undefined)).toBe(true);
+    });
+
+    it('renders nothing for a guard with routes disabled', () => {
+        expect(
+            BlockRoutedAt(routedAt({ ...data, disableRoutes: true }, 'variable', AUTH_ITEM, 0))
+        ).toBe('');
     });
 
     it('renders nothing for a symbol outside every route, or with routes disabled', () => {

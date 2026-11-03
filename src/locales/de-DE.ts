@@ -207,6 +207,7 @@ export const TRANSLATION_DE_DE = {
     'router-features': 'Router-Features',
     'routed-at': 'Geroutet unter',
     'mounted-at': 'Eingebunden unter',
+    'used-in-routes': 'Verwendet in Routen',
     'route-resolve': 'Resolve',
     'route-title': 'Titel',
     'route-data': 'Daten',

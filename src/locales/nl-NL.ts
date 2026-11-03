@@ -206,6 +206,7 @@ export const TRANSLATION_NL_NL = {
     'router-features': 'Routerfuncties',
     'routed-at': 'Gerouteerd op',
     'mounted-at': 'Gekoppeld op',
+    'used-in-routes': 'Gebruikt in routes',
     'route-resolve': 'Resolve',
     'route-title': 'Titel',
     'route-data': 'Gegevens',

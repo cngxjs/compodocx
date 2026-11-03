@@ -204,6 +204,7 @@ export const TRANSLATION_ZH_CN = {
     'router-features': '路由器功能',
     'routed-at': '路由于',
     'mounted-at': '挂载于',
+    'used-in-routes': '使用它的路由',
     'route-resolve': 'Resolve',
     'route-title': '标题',
     'route-data': '数据',

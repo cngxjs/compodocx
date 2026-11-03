@@ -206,6 +206,7 @@ export const TRANSLATION_BG_BG = {
     'router-features': 'Функции на рутера',
     'routed-at': 'Маршрутизиран на',
     'mounted-at': 'Монтиран на',
+    'used-in-routes': 'Използва се в маршрути',
     'route-resolve': 'Resolve',
     'route-title': 'Заглавие',
     'route-data': 'Данни',

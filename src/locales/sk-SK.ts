@@ -205,6 +205,7 @@ export const TRANSLATION_SK_SK = {
     'router-features': 'Funkcie routera',
     'routed-at': 'Trasa',
     'mounted-at': 'Pripojené pod',
+    'used-in-routes': 'Použité v trasách',
     'route-resolve': 'Resolve',
     'route-title': 'Názov',
     'route-data': 'Údaje',

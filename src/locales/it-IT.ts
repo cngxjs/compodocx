@@ -206,6 +206,7 @@ export const TRANSLATION_IT_IT = {
     'router-features': 'Funzionalità del router',
     'routed-at': 'Instradato a',
     'mounted-at': 'Montato a',
+    'used-in-routes': 'Usato nelle route',
     'route-resolve': 'Resolve',
     'route-title': 'Titolo',
     'route-data': 'Dati',

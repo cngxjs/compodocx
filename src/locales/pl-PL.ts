@@ -205,6 +205,7 @@ export const TRANSLATION_PL_PL = {
     'router-features': 'Funkcje routera',
     'routed-at': 'Trasa',
     'mounted-at': 'Podłączone pod',
+    'used-in-routes': 'Używane w trasach',
     'route-resolve': 'Resolve',
     'route-title': 'Tytuł',
     'route-data': 'Dane',
