@@ -3,7 +3,16 @@ import { ts } from 'ts-morph';
 import { relativeFile, unwrapExpression } from '../compiler/semantic/declarations';
 import type { SymbolId } from '../links/symbol-id';
 import { declarationOf, extractRoutes, type RouteEnv, routeRef } from './extract';
-import type { RouteBootstrap, RouteNode, RouteNote, RouteRoot, RoutingModel } from './model';
+import {
+    GUARD_KEYS,
+    type RouteBootstrap,
+    type RouteNode,
+    type RouteNote,
+    type RouteRef,
+    type RouteRoot,
+    type RouteUse,
+    type RoutingModel
+} from './model';
 import { importedName, ROUTER_MODULE, routeArrayDeclarations } from './recognise';
 
 const BROWSER_MODULE = '@angular/platform-browser';
@@ -148,6 +157,26 @@ const pushUnique = <K, V>(map: Map<K, V[]>, key: K, value: V): void => {
     map.set(key, list);
 };
 
+/** The guard, resolve and title references of a node that name a symbol. */
+const usesOf = (node: RouteNode): { symbol: SymbolId; use: RouteUse }[] => {
+    const uses: { ref: RouteRef; use: RouteUse }[] = [
+        ...GUARD_KEYS.flatMap(role =>
+            node.guards[role].map(ref => ({ ref, use: { node: node.id, role } }))
+        ),
+        ...node.resolve.map(({ key, ref }) => ({
+            ref,
+            use: { node: node.id, role: 'resolve' as const, key }
+        })),
+        ...(node.title && 'call' in node.title
+            ? [{ ref: node.title, use: { node: node.id, role: 'title' as const } }]
+            : [])
+    ];
+    return uses.flatMap(({ ref, use }) => (ref.symbol ? [{ symbol: ref.symbol, use }] : []));
+};
+
+const sameUse = (a: RouteUse, b: RouteUse): boolean =>
+    a.node === b.node && a.role === b.role && a.key === b.key;
+
 /** Input of `buildRouting`: the program files to scan and how to name symbols. */
 export interface RoutingInput {
     readonly program: ts.Program;
@@ -291,6 +320,7 @@ export const indexRouting = (
 ): RoutingModel => {
     const byTarget = new Map<SymbolId, string[]>();
     const mountedAt = new Map<SymbolId, string[]>();
+    const usedIn = new Map<SymbolId, RouteUse[]>();
     for (const root of roots) {
         walkNodes(root.routes, '/', (node, parent) => {
             if (node.component?.symbol) {
@@ -299,6 +329,10 @@ export const indexRouting = (
             if (root.kind === 'router' && node.array) {
                 pushUnique(mountedAt, node.array, parent);
             }
+            for (const { symbol, use } of usesOf(node)) {
+                const list = usedIn.get(symbol) ?? [];
+                usedIn.set(symbol, list.some(known => sameUse(known, use)) ? list : [...list, use]);
+            }
         });
     }
     return {
@@ -306,6 +340,7 @@ export const indexRouting = (
         count: roots.reduce((sum, root) => sum + countNodes(root.routes), 0),
         byTarget,
         mountedAt,
+        usedIn,
         notes
     };
 };

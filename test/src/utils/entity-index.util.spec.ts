@@ -86,6 +86,7 @@ describe('buildEntityIndex — route entries', () => {
         count: 3,
         byTarget: new Map(),
         mountedAt: new Map(),
+        usedIn: new Map(),
         notes: []
     };
 
