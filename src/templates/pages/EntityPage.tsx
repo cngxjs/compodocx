@@ -63,6 +63,7 @@ import {
     pagefindFilterBlock,
     pagefindMetaBlock,
     parseDescription,
+    renderedApiSections,
     t
 } from '../helpers';
 import type { ComponentPlaygroundBlock } from '../helpers/jsdoc';
@@ -476,22 +477,24 @@ const ApiContent = (props: EntityInfoProps): string => {
             {/* Index */}
             {isApiSection('index') &&
                 props.showIndex !== false &&
-                BlockIndex({
-                    properties: regularProps,
-                    methods: e.methodsClass ?? e.methods,
-                    inputs: e.inputsClass,
-                    outputs: e.outputsClass,
-                    derivedState: derivedProps,
-                    effects: showEffects ? effectProps : [],
-                    hostBindings: e.hostBindings,
-                    hostListeners: e.hostListeners,
-                    accessors: e.accessors,
-                    indexSignatures: (e.indexSignatures ?? []).map((idx: any) => ({
-                        name: indexableSignature(idx),
-                        anchor: indexSignatureAnchor(idx),
-                        deprecated: idx.deprecated
-                    }))
-                })}
+                BlockIndex(
+                    renderedApiSections({
+                        properties: regularProps,
+                        methods: e.methodsClass ?? e.methods,
+                        inputs: e.inputsClass,
+                        outputs: e.outputsClass,
+                        derivedState: derivedProps,
+                        effects: showEffects ? effectProps : [],
+                        hostBindings: e.hostBindings,
+                        hostListeners: e.hostListeners,
+                        accessors: e.accessors,
+                        indexSignatures: (e.indexSignatures ?? []).map((idx: any) => ({
+                            name: indexableSignature(idx),
+                            anchor: indexSignatureAnchor(idx),
+                            deprecated: idx.deprecated
+                        }))
+                    })
+                )}
 
             {/* Inputs */}
             {isApiSection('inputs') &&
