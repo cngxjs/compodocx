@@ -5,6 +5,7 @@ import type {
     FileRefBundle,
     VendorPackage
 } from '../../app/engines/stackblitz';
+import { AiGeneratedBanner } from '../components/AiGeneratedBadge';
 import { EmptyState } from '../components/EmptyState';
 import { EmptyIconBook, EmptyIconFile } from '../components/EmptyStateIcons';
 import { extractReadmeHeadings, isInitialTab, isReadmeEmpty, isTabEnabled, t } from '../helpers';
@@ -24,6 +25,8 @@ type EntityTabsProps = {
     readonly infoContent: string;
     readonly apiContent?: string;
     readonly readme?: string;
+    /** `<!-- @aiGenerated [value] -->` marker of the neighbour README. */
+    readonly readmeAiGenerated?: string | true;
     readonly sourceCode?: string;
     readonly filePath?: string;
     readonly exampleUrls?: string[];
@@ -101,6 +104,7 @@ export const EntityTabs = (props: EntityTabsProps): string =>
                         role="tabpanel"
                         aria-labelledby="readme-tab"
                     >
+                        {AiGeneratedBanner({ aiGenerated: props.readmeAiGenerated })}
                         {isReadmeEmpty(props.readme) ? (
                             <>
                                 {extractReadmeHeadings(props.readme)}

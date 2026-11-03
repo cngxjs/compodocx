@@ -51,6 +51,7 @@ export class Configuration implements ConfigurationInterface {
         documentationMainDescription: '',
         hideGenerator: false,
         hideDarkModeToggle: false,
+        hideAiGeneratedBadge: false,
         hasFilesToCoverage: false,
         readme: false,
         changelog: '',

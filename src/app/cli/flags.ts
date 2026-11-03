@@ -112,6 +112,11 @@ export function defineFlags(program: Command): Command {
             COMPODOC_DEFAULTS.hideDarkModeToggle
         )
         .option(
+            '--hideAiGeneratedBadge',
+            'Do not show the AI generated chip, note and banner of @aiGenerated content (exports keep the marker)',
+            COMPODOC_DEFAULTS.hideAiGeneratedBadge
+        )
+        .option(
             '--toggleMenuItems <items>',
             `Sidebar chapters that start open. Default ['all'] keeps every chapter collapsed ('all' anywhere in the list does the same). Chapter keys: ${MENU_TOGGLE_KEYS.join(', ')} (features under menuLayout: 'feature', styles under menuLayout: 'type')`,
             splitCommaList,

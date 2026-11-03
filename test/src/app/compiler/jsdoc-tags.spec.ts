@@ -110,3 +110,27 @@ export class Old {}`);
         expect(memberTags(tags)).toEqual(result);
     });
 });
+
+describe('JsdocTags - @aiGenerated and its synonyms', () => {
+    const marker = (tag: string) => classTags(tagsOf(`/**\n * ${tag}\n */\nexport class X {}`));
+
+    it('sets true for the bare tag and the value for a tag with text', () => {
+        expect(marker('@aiGenerated').aiGenerated).toBe(true);
+        expect(marker('@aiGenerated claude-opus-4.7').aiGenerated).toBe('claude-opus-4.7');
+    });
+
+    it('accepts @ai and @aigen in any case', () => {
+        expect(marker('@ai 2026-05').aiGenerated).toBe('2026-05');
+        expect(marker('@aigen').aiGenerated).toBe(true);
+        expect(marker('@AIGen model=x').aiGenerated).toBe('model=x');
+    });
+
+    it('ignores other tags that start with ai', () => {
+        expect(marker('@aiNotes something').aiGenerated).toBeUndefined();
+    });
+
+    it('gives the same result through the member entry point', () => {
+        const tags = tagsOf(`/**\n * @ai 2026-05\n */\nexport class X {}`);
+        expect(memberTags(tags).aiGenerated).toBe('2026-05');
+    });
+});

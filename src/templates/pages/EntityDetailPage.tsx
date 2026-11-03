@@ -9,6 +9,7 @@ export const EntityDetailPage = (data: any): string =>
         breadcrumbLabel: 'entities',
         depth: data.depth,
         navTabs: data.navTabs,
+        readmeAiGenerated: data.symbolReadmeAiGenerated,
         disableFilePath: data.disableFilePath,
         contextLine: undefined,
         showProperties: true,

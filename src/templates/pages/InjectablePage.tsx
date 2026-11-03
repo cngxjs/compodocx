@@ -24,6 +24,7 @@ export const InjectablePage = (data: any): string =>
         breadcrumbLabel: 'injectables',
         depth: data.depth,
         navTabs: data.navTabs,
+        readmeAiGenerated: data.symbolReadmeAiGenerated,
         disableFilePath: data.disableFilePath,
         showExtends: true,
         showIndex: true,

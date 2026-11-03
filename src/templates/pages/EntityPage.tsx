@@ -168,6 +168,8 @@ export type EntityInfoProps = {
     readonly showTokenBadge?: boolean;
     readonly showJsdocBadges?: boolean;
     readonly contextLine?: string;
+    /** `<!-- @aiGenerated [value] -->` marker of the neighbour README (page data). */
+    readonly readmeAiGenerated?: string | true;
     /** Rendered Theming tab content (directives). */
     readonly themingHtml?: string;
     readonly relationships?: {
@@ -707,6 +709,7 @@ export const renderEntityPage = (props: EntityInfoProps): string => {
                 infoContent: InfoContent(props),
                 apiContent: ApiContent(props),
                 readme: e.readme,
+                readmeAiGenerated: props.readmeAiGenerated,
                 sourceCode: e.sourceCode,
                 filePath: e.file,
                 exampleUrls: e.exampleUrls,

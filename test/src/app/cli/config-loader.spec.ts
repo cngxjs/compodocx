@@ -107,6 +107,7 @@ const makeMainData = (): MainDataInterface => {
         tsconfig: '',
         hideGenerator: false,
         hideDarkModeToggle: false,
+        hideAiGeneratedBadge: false,
         infoTabSections: [],
         apiTabSections: [],
         themingTabSections: [],

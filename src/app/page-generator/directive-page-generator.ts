@@ -1,12 +1,11 @@
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
-import { markedAcl } from '../../utils/marked.acl';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
-import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
 import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
+import { attachNeighbourReadme } from './neighbour-readme';
 
 export class DirectivePageGenerator {
     constructor(private readonly navTabs: NavTabsResolver) {}
@@ -24,11 +23,7 @@ export class DirectivePageGenerator {
             const loop = () => {
                 if (i < len) {
                     const directive = Configuration.mainData.directives[i];
-                    if (MarkdownEngine.hasNeighbourReadmeFile(directive.file)) {
-                        logger.info(` ${directive.name} has a README file, include it`);
-                        const readme = MarkdownEngine.readNeighbourReadmeFile(directive.file);
-                        directive.readme = markedAcl(readme);
-                    }
+                    const readmeFields = attachNeighbourReadme(directive);
                     const location = pageLocation(
                         itemTarget(Configuration.mainData.symbols, 'directive', directive)
                     );
@@ -41,7 +36,8 @@ export class DirectivePageGenerator {
                         context: 'directive',
                         directive: directive,
                         depth: location.depth,
-                        pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
+                        pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL,
+                        ...readmeFields
                     };
                     Configuration.addPage(page);
                     i++;

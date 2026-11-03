@@ -1,6 +1,7 @@
 import Html from '@kitajs/html';
 import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import { memberAnchor } from '../../app/links/layout';
+import { AiGeneratedBadge, AiGeneratedNote } from '../components/AiGeneratedBadge';
 import { isTabEnabled, linkTypeHtml, parseDescription, signalKindLabel, t } from '../helpers';
 
 type BlockOutputProps = {
@@ -61,8 +62,13 @@ export const BlockOutput = (props: BlockOutputProps): string => {
                                 {out.alias && (
                                     <span class="cdx-member-modifier">alias: {out.alias}</span>
                                 )}
+                                {AiGeneratedBadge({ aiGenerated: out.aiGenerated })}
                             </div>
                         </div>
+                        {AiGeneratedNote({
+                            aiGenerated: out.aiGenerated,
+                            class: 'cdx-member-ai-note'
+                        })}
                         {out.description && (
                             <div class="cdx-io-member-desc">
                                 {parseDescription(out.description, props.depth)}

@@ -22,6 +22,7 @@ export const ServicePage = (data: any): string =>
         breadcrumbLabel: 'services',
         depth: data.depth,
         navTabs: data.navTabs,
+        readmeAiGenerated: data.symbolReadmeAiGenerated,
         disableFilePath: data.disableFilePath,
         showExtends: true,
         showIndex: true,

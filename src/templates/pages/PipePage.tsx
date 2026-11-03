@@ -27,6 +27,7 @@ export const PipePage = (data: any): string =>
         breadcrumbLabel: 'pipes',
         depth: data.depth,
         navTabs: data.navTabs,
+        readmeAiGenerated: data.symbolReadmeAiGenerated,
         disableFilePath: data.disableFilePath,
         metadataHtml: PipeMetadata(data.pipe),
         showMethods: true,

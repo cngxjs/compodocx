@@ -58,6 +58,7 @@ describe('defineFlags', () => {
             '--shikiTheme',
             '--hideGenerator',
             '--hideDarkModeToggle',
+            '--hideAiGeneratedBadge',
             '--toggleMenuItems',
             '--navTabConfig',
             '--templates',

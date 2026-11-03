@@ -128,6 +128,7 @@ Compodocx ships with multiple built-in themes and supports custom CSS. All theme
 | logoLayout | `--logoLayout` | `'auto' \| 'icon' \| 'wordmark'` | `'auto'` | How the sidebar shows `customLogo`. `'wordmark'`: the logo alone, the project name as its alt text. `'icon'`: the logo next to the project name. `'auto'` reads the aspect ratio of an SVG (`viewBox`, else `width` and `height`) or PNG: 2:1 and wider is a wordmark, narrower an icon; other formats and unreadable files are a wordmark. Another value warns and keeps `'auto'` |
 | hideGenerator | `--hideGenerator` | boolean | `false` | Remove the "Built with compodocx" link in the page footer |
 | hideDarkModeToggle | `--hideDarkModeToggle` | boolean | `false` | Remove the light/dark mode toggle button from the top-right header area |
+| hideAiGeneratedBadge | `--hideAiGeneratedBadge` | boolean | `false` | Hide the "AI generated" chip, its sentence and the banner of content marked `@aiGenerated` on every page (entity heroes, members, README tabs, Markdown and additional pages). The JSON and llm-md exports keep the `aiGenerated` fields |
 
 The [dependency graph](#dependency-graph) colours each node kind with its own token, so a theme can recolour one kind without touching the entity badges:
 
@@ -238,7 +239,7 @@ Include external documentation, static assets, or supply custom templates.
 | includes | `--includes` | string | -- | Path to a folder of external markdown files, absolute or relative to the working directory (also in a config file). A folder that does not exist is reported with a warning. Each `.md` file becomes a page in the documentation, accessible via a dedicated sidebar section. Supports nested folders for sub-navigation |
 | includesName | `--includesName` | string | `'Additional documentation'` | Sidebar label for the external markdown pages section |
 | includesLabels | `--includesLabels` | string | -- | Path to a JSON file keyed by page slug, each entry with an optional `label` (sidebar text) and `title` (page title). Read only when `includes` is set. See [Additional pages](additional-pages.md) |
-| aiGeneratedNote | _config-only_ | string | `''` (i18n default) | Sentence shown next to the "AI generated" chip of a page or symbol marked `@aiGenerated` (Markdown pages with `<!-- @aiGenerated [value] -->` as their first line, symbols with the JSDoc tag). `{value}` is replaced by the marker value, or by nothing for a bare marker. Empty uses the translated default, "Drafted with AI assistance." or, with a value, "Drafted with AI assistance (value)." |
+| aiGeneratedNote | _config-only_ | string | `''` (i18n default) | Sentence shown next to the "AI generated" chip of a page or symbol marked `@aiGenerated` (Markdown pages with `<!-- @aiGenerated [value] -->` as their first line, symbols with the JSDoc tag). `{value}` is replaced by the marker value, or by nothing for a bare marker. A value made of `key=value` pairs (`model=claude-opus-4.7 date=2026-05`, a value with spaces in double quotes) fills `{value}` with the values joined by `, ` and `{model}`, `{date}` or any other `{key}` with that field; a placeholder without a field stays empty. A text that names fields of which the marker has none (a bare marker, a free-text value, other keys) shows the default text instead. Empty uses the translated default, "Drafted with AI assistance." or, with a value, "Drafted with AI assistance (value)." |
 | assetsFolder | `-a, --assetsFolder` | string | -- | Path to a folder of static assets (images, files) copied into the output directory. Referenced from markdown or custom templates via relative paths |
 | templates | `--templates` | string | -- | Path to a directory containing JS template overrides. Each file exports a function `(data, helpers) => string` that replaces the corresponding built-in template. See [Custom Templates](custom-templates.md) for the full API. Handlebars `.hbs` files in `partials/` are skipped with one warning. The removed `--templatePlayground` / `templatePlayground` are ignored with a warning |
 
@@ -703,7 +704,7 @@ Compodocx recognizes these custom JSDoc tags on any entity or member:
 |-|-|
 | `@since <version>` | Adds a version badge to the entity hero |
 | `@beta` | Adds a "Beta" badge |
-| `@aiGenerated [value]` | Adds an "AI generated" chip and, below the hero badges, a sentence with the value (for example a model name or a date); the text is set with `aiGeneratedNote`. The JSON export carries `aiGenerated` |
+| `@aiGenerated [value]` | Adds an "AI generated" chip and a sentence with the value (a model name, a date, or `key=value` pairs such as `model=claude-opus-4.7 date=2026-05`): below the hero badges on an entity, below the member head on a method, property, input, output or accessor. `@ai` and `@aigen` are synonyms. The text is set with `aiGeneratedNote`, `--hideAiGeneratedBadge` hides it. The JSON export carries `aiGenerated` |
 | `@breaking <version>` | Adds a "Breaking" badge with version |
 | `@internal` | Hides the member when `--disableInternal` is set |
 | `@feature <key>` | Puts the symbol into the feature `<key>` of its entry point (or app), above the detected feature; the `features` config wins over the tag. One segment of lower-case letters, digits and dashes |
@@ -722,3 +723,5 @@ Compodocx recognizes these custom JSDoc tags on any entity or member:
 | `@group <name>` (on a CSS / SCSS token) | Groups the token under this heading on the Theming tab |
 | `@themes <Name>` (in a CSS / SCSS style file) | Links the file to the components and directives it themes, see [Style files](#style-files) |
 | `@relatedTo <Name>` (in CSS / SCSS) | Related-symbol links on a token, mixin or style page |
+
+A README next to a source file (`card.component.md` beside `card.component.ts`) fills the README tab of the symbol's page. With `<!-- @aiGenerated [value] -->` (or `@ai`, `@aigen`) as its first line, the tab shows the same banner as a Markdown page above the README. The marker of a README is not part of the JSON or llm-md export.

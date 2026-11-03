@@ -1,0 +1,138 @@
+import { hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { pagesIn } from '../helpers/pages';
+
+const tmp = temporaryDir();
+const FIXTURE = './test/fixtures/ai-generated';
+
+/** The README panel of a rendered page, up to the next panel. */
+const readmePanel = (html: string): string => {
+    const start = html.indexOf('id="readme"');
+    expect(start).to.be.greaterThan(-1);
+    const next = html.indexOf('class="cdx-tab-panel', start);
+    return html.slice(start, next === -1 ? undefined : next);
+};
+
+/** The member card with the given id, up to the next member card. */
+const memberCard = (html: string, id: string): string => {
+    const start = html.indexOf(`id="${id}"`);
+    expect(start).to.be.greaterThan(-1);
+    const next = html.slice(start).search(/class="cdx-io-member[ "]|<\/section>/);
+    return html.slice(start, next === -1 ? undefined : start + next);
+};
+
+const generate = (distFolder: string, extra: string[] = []): void => {
+    tmp.create(distFolder);
+    const ls = shell('node', [
+        './bin/index-cli.js',
+        '--no-multiVersion',
+        '--disableSearch',
+        '-p',
+        `${FIXTURE}/tsconfig.json`,
+        '-d',
+        distFolder,
+        ...extra
+    ]);
+    if (hasStderrError(ls.stderr.toString())) {
+        console.error(`shell error: ${ls.stderr.toString()}`);
+        throw new Error('error');
+    }
+};
+
+/**
+ * `<!-- @aiGenerated [value] -->` as the first line of a neighbour README
+ * (`marked-card.component.md`, `marked-store.service.md`) shows the banner
+ * in the README tab; `plain-card.component.md` has no marker.
+ */
+describe('CLI @aiGenerated in the neighbour README', () => {
+    const distFolder = `${tmp.name}-ai-readme`;
+    const pages = pagesIn(distFolder);
+    let markedCard: string;
+    let plainCard: string;
+    let markedStore: string;
+
+    beforeAll(() => {
+        generate(distFolder);
+        markedCard = read(`${distFolder}/${pages.of('component', 'MarkedCardComponent')}`);
+        plainCard = read(`${distFolder}/${pages.of('component', 'PlainCardComponent')}`);
+        markedStore = read(`${distFolder}/${pages.of('injectable', 'MarkedStore')}`);
+    });
+    afterAll(() => tmp.clean(distFolder));
+
+    it('shows the banner with the value in the README tab of a component', () => {
+        const panel = readmePanel(markedCard);
+        expect(panel).to.contain('cdx-ai-generated-banner');
+        expect(panel).to.contain(
+            '<p class="cdx-ai-generated-note">Drafted with AI assistance (2026-11).</p>'
+        );
+    });
+
+    it('shows the banner in the README tab of an injectable', () => {
+        const panel = readmePanel(markedStore);
+        expect(panel).to.contain('cdx-ai-generated-banner');
+        expect(panel).to.contain(
+            '<p class="cdx-ai-generated-note">Drafted with AI assistance.</p>'
+        );
+    });
+
+    it('renders no banner for a README without the marker', () => {
+        expect(readmePanel(plainCard)).to.contain('Usage notes written for the plain card.');
+        expect(plainCard).not.to.contain('cdx-ai-generated-banner');
+    });
+
+    it('keeps the hero free of the chip when only the README is marked', () => {
+        const hero = markedCard.slice(0, markedCard.indexOf('cdx-tab-bar'));
+        expect(hero).not.to.contain('cdx-badge--ai-generated');
+    });
+
+    it('shows chip and note with the joined key=value fields on a marked input (@aigen)', () => {
+        const card = memberCard(markedCard, 'label');
+        expect(card).to.contain('cdx-badge--ai-generated');
+        expect(card).to.contain(
+            '<p class="cdx-member-ai-note">Drafted with AI assistance (claude-opus-4.7, 2026-11).</p>'
+        );
+        expect(memberCard(markedCard, 'accent')).not.to.contain('cdx-badge--ai-generated');
+    });
+
+    it('shows chip and note on a marked method (@ai)', () => {
+        const card = memberCard(markedStore, 'increment');
+        expect(card).to.contain('cdx-badge--ai-generated');
+        expect(card).to.contain(
+            '<p class="cdx-member-ai-note">Drafted with AI assistance (2026-11).</p>'
+        );
+        expect(memberCard(markedStore, 'reset')).not.to.contain('cdx-badge--ai-generated');
+    });
+});
+
+describe('CLI --hideAiGeneratedBadge', () => {
+    const htmlDist = `${tmp.name}-ai-hidden`;
+    const jsonDist = `${tmp.name}-ai-hidden-json`;
+    const pages = pagesIn(htmlDist);
+
+    beforeAll(() => {
+        generate(htmlDist, ['--hideAiGeneratedBadge']);
+        generate(jsonDist, ['--hideAiGeneratedBadge', '--exportFormat', 'json']);
+    });
+    afterAll(() => {
+        tmp.clean(htmlDist);
+        tmp.clean(jsonDist);
+    });
+
+    it('renders no chip, note or banner on any marked page', () => {
+        for (const html of [
+            read(`${htmlDist}/${pages.of('component', 'MarkedCardComponent')}`),
+            read(`${htmlDist}/${pages.of('injectable', 'MarkedStore')}`)
+        ]) {
+            expect(html).to.contain('id="readme"');
+            expect(html).not.to.contain('cdx-ai-generated');
+            expect(html).not.to.contain('cdx-member-ai-note');
+            expect(html).not.to.contain('Drafted with AI assistance');
+        }
+    });
+
+    it('keeps the member markers in the JSON export', () => {
+        const json = JSON.parse(read(`${jsonDist}/documentation.json`));
+        const store = json.injectables.find((entry: any) => entry.name === 'MarkedStore');
+        const increment = store.methods.find((method: any) => method.name === 'increment');
+        expect(increment.aiGenerated).to.equal('2026-11');
+    });
+});

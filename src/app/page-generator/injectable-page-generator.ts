@@ -1,12 +1,11 @@
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
-import { markedAcl } from '../../utils/marked.acl';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
-import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
 import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
+import { attachNeighbourReadme } from './neighbour-readme';
 
 export class InjectablePageGenerator {
     constructor(private readonly navTabs: NavTabsResolver) {}
@@ -24,11 +23,7 @@ export class InjectablePageGenerator {
             const loop = () => {
                 if (i < len) {
                     const injec = Configuration.mainData.injectables[i];
-                    if (MarkdownEngine.hasNeighbourReadmeFile(injec.file)) {
-                        logger.info(` ${injec.name} has a README file, include it`);
-                        const readme = MarkdownEngine.readNeighbourReadmeFile(injec.file);
-                        injec.readme = markedAcl(readme);
-                    }
+                    const readmeFields = attachNeighbourReadme(injec);
                     const location = pageLocation(
                         itemTarget(Configuration.mainData.symbols, 'injectable', injec)
                     );
@@ -41,7 +36,8 @@ export class InjectablePageGenerator {
                         context: 'injectable',
                         injectable: injec,
                         depth: location.depth,
-                        pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
+                        pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL,
+                        ...readmeFields
                     };
                     Configuration.addPage(page);
                     i++;

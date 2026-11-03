@@ -26,6 +26,7 @@ export interface ConfigurationFileInterface {
     maxVersionsShown: number;
     hideGenerator: boolean;
     hideDarkModeToggle: boolean;
+    hideAiGeneratedBadge: boolean;
     coverageTest: number | string | boolean;
     coverageMinimumPerFile: number | string | boolean;
     coverageTestThresholdFail: boolean | string;
@@ -91,7 +92,10 @@ export interface ConfigurationFileInterface {
     /** Role -> placement; validated (warn and drop) by the config loader. */
     menuFeatureSections: Record<string, unknown>;
     featuresName: string;
-    /** Visible text for `@aiGenerated` markers; `{value}` is the marker value. */
+    /**
+     * Visible text for `@aiGenerated` markers; `{value}` is the marker value,
+     * `{key}` a field of a `key=value` marker value.
+     */
     aiGeneratedNote: string;
     /** Base for relative `<example-url>` tags. */
     exampleUrlBase: string;

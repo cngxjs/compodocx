@@ -2,15 +2,14 @@ import * as path from 'node:path';
 
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
-import { markedAcl } from '../../utils/marked.acl';
 import { collectThemeTokens } from '../../utils/theme-doc-parser';
 import Configuration from '../configuration';
 import DependenciesEngine from '../engines/dependencies.engine';
 import FileEngine from '../engines/file.engine';
-import MarkdownEngine from '../engines/markdown.engine';
 import { pageLocation } from '../links/layout';
 import { itemTarget } from '../links/resolve';
 import type { NavTabsResolver } from './nav-tabs';
+import { attachNeighbourReadme } from './neighbour-readme';
 
 export class ComponentPageGenerator {
     constructor(private readonly navTabs: NavTabsResolver) {}
@@ -27,11 +26,7 @@ export class ComponentPageGenerator {
             const loop = () => {
                 if (i <= len - 1) {
                     const component = Configuration.mainData.components[i];
-                    if (MarkdownEngine.hasNeighbourReadmeFile(component.file)) {
-                        logger.info(` ${component.name} has a README file, include it`);
-                        const readmeFile = MarkdownEngine.readNeighbourReadmeFile(component.file);
-                        component.readme = markedAcl(readmeFile);
-                    }
+                    const readmeFields = attachNeighbourReadme(component);
                     const themeResult = collectThemeTokens({
                         entityFile: component.file,
                         styleUrls: component.styleUrls,
@@ -53,7 +48,8 @@ export class ComponentPageGenerator {
                         context: 'component',
                         component: component,
                         depth: location.depth,
-                        pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL
+                        pageType: COMPODOC_DEFAULTS.PAGE_TYPES.INTERNAL,
+                        ...readmeFields
                     };
                     Configuration.addPage(page);
 

@@ -39,7 +39,11 @@ import { ProvidersSection } from '../blocks/ProvidersSection';
 import { RelatedSection } from '../blocks/RelatedSection';
 import { RouteChip } from '../blocks/RouteChip';
 import { SourceViewer } from '../blocks/SourceViewer';
-import { AiGeneratedBadge, AiGeneratedNote } from '../components/AiGeneratedBadge';
+import {
+    AiGeneratedBadge,
+    AiGeneratedBanner,
+    AiGeneratedNote
+} from '../components/AiGeneratedBadge';
 import { AxisBadges, entityAxes } from '../components/AxisBadges';
 import { EmptyState } from '../components/EmptyState';
 import {
@@ -557,6 +561,7 @@ export const ComponentPage = (data: any): string => {
                         role="tabpanel"
                         aria-labelledby="readme-tab"
                     >
+                        {AiGeneratedBanner({ aiGenerated: data.symbolReadmeAiGenerated })}
                         {isReadmeEmpty(c.readme) ? (
                             <>
                                 {extractReadmeHeadings(c.readme)}

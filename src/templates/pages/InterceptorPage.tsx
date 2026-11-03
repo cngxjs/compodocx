@@ -11,6 +11,7 @@ export const InterceptorPage = (data: any): string =>
               breadcrumbLabel: 'interceptors',
               depth: data.depth,
               navTabs: data.navTabs,
+              readmeAiGenerated: data.symbolReadmeAiGenerated,
               disableFilePath: data.disableFilePath,
               showExtends: true,
               showIndex: true,
