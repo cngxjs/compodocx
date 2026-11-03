@@ -530,6 +530,53 @@ describe('resolveAdditionalPages', () => {
     });
 });
 
+describe('resolveAdditionalPages tooltip overrides', () => {
+    const page = (node: Record<string, unknown>, labels?: LabelMap): ResolvedAdditionalPage =>
+        resolvedOf([{ title: 'E0100', slug: 'e0100', file: 'e0100.md', ...node }], labels)[0];
+
+    it('carries the node tooltip, trimmed', () => {
+        expect(page({ tooltip: '  Unknown option ' }).tooltip).toBe('Unknown option');
+    });
+
+    it('takes the labels file tooltip of the slug', () => {
+        expect(page({}, { e0100: { tooltip: 'From the file' } }).tooltip).toBe('From the file');
+    });
+
+    it('lets the node tooltip beat the labels file', () => {
+        expect(page({ tooltip: 'Node' }, { e0100: { tooltip: 'File' } }).tooltip).toBe('Node');
+    });
+
+    it('keeps an empty or blank tooltip as an empty string', () => {
+        expect(page({ tooltip: '' }).tooltip).toBe('');
+        expect(page({ tooltip: '   ' }, { e0100: { tooltip: 'File' } }).tooltip).toBe('');
+    });
+
+    it('ignores a non-string node tooltip and falls back to the labels file', () => {
+        expect(Object.hasOwn(page({ tooltip: 7 }), 'tooltip')).toBe(false);
+        expect(page({ tooltip: 7 }, { e0100: { tooltip: 'File' } }).tooltip).toBe('File');
+    });
+
+    it('leaves the field out without a tooltip key', () => {
+        expect(Object.hasOwn(page({}), 'tooltip')).toBe(false);
+        expect(Object.hasOwn(page({}, { e0100: { label: 'E' } }), 'tooltip')).toBe(false);
+    });
+
+    it('never touches slug, DOM id or label', () => {
+        const plain = page({});
+        const withTooltip = page({ tooltip: 'Unknown option' });
+        const { tooltip, ...rest } = withTooltip;
+        expect(tooltip).toBe('Unknown option');
+        expect(rest).toEqual(plain);
+    });
+
+    it('reads the labels file tooltip of a derived slug', () => {
+        const [resolved] = resolvedOf([{ title: 'Guide', file: 'guide.md' }], {
+            guide: { tooltip: 'Short form' }
+        });
+        expect(resolved.tooltip).toBe('Short form');
+    });
+});
+
 describe('parseLabelMap', () => {
     const messageOf = (raw: string): string => {
         const result = parseLabelMap(raw, 'labels.json');
@@ -566,6 +613,21 @@ describe('parseLabelMap', () => {
     it('rejects an entry that is not an object', () => {
         expect(messageOf('{"a":"text"}')).toBe(
             'Additional pages: labels file labels.json: entry "a" is not an object'
+        );
+    });
+
+    it('parses an optional tooltip', () => {
+        const result = parseLabelMap('{"a":{"tooltip":"T"},"b":{}}', 'labels.json');
+        if (!isOk(result)) {
+            throw new Error(result.message);
+        }
+        expect(result.value.a.tooltip).toBe('T');
+        expect(result.value.b.tooltip).toBeUndefined();
+    });
+
+    it('rejects a non-string tooltip', () => {
+        expect(messageOf('{"a":{"tooltip":true}}')).toBe(
+            'Additional pages: labels file labels.json: entry "a": "tooltip" must be a string'
         );
     });
 
