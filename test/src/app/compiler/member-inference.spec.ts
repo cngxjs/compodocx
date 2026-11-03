@@ -325,3 +325,100 @@ export class BoxComponent {
         expect(deps.interfaces.map((i: any) => i.name)).not.toContain('Item');
     });
 });
+
+/** Module resolution cases of the crawler checker beyond `baseUrl` + `paths`. */
+describe('member inference across project files: rootDirs and built paths', () => {
+    let tmpDir: string;
+    let deps: any;
+
+    const write = (relative: string, text: string): string => {
+        const file = path.join(tmpDir, relative);
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        fs.writeFileSync(file, text);
+        return file;
+    };
+
+    beforeAll(() => {
+        tmpDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'cdx-member-roots-')));
+        // `./model` of src/app lives in generated/app, merged by rootDirs.
+        write(
+            'generated/app/model.ts',
+            `import { signal } from '@angular/core';
+
+export class Model {
+    readonly names = signal<string[]>([]);
+}
+`
+        );
+        // A built library: package.json pointing at a .d.ts and an FESM bundle.
+        write(
+            'dist/built-lib/package.json',
+            '{ "name": "built-lib", "types": "index.d.ts", "module": "fesm2022/built-lib.mjs" }'
+        );
+        write(
+            'dist/built-lib/index.d.ts',
+            'export declare class Built {\n    count(): number;\n}\n'
+        );
+        write(
+            'dist/built-lib/fesm2022/built-lib.mjs',
+            'export class Built {\n    count() {\n        return 1;\n    }\n}\n'
+        );
+        // A path that points straight at a declaration file.
+        write('typings/plain.d.ts', 'export declare const plainValue: number;\n');
+        const component = write(
+            'src/app/roots.component.ts',
+            `import { Component, computed } from '@angular/core';
+import { Model } from './model';
+import { Built } from '@built/lib';
+import { plainValue } from '@typings/plain';
+
+@Component({ selector: 'app-roots', template: '' })
+export class RootsComponent {
+    readonly model = new Model();
+    readonly nameCount = computed(() => this.model.names().length);
+    readonly built = new Built();
+    readonly builtCount = computed(() => this.built.count());
+    readonly plain = computed(() => plainValue);
+}
+`
+        );
+        deps = new AngularDependencies([component], {
+            tsconfigDirectory: tmpDir,
+            resolution: {
+                baseUrl: tmpDir,
+                rootDirs: [path.join(tmpDir, 'src'), path.join(tmpDir, 'generated')],
+                paths: {
+                    '@built/lib': ['dist/built-lib'],
+                    '@typings/*': ['typings/*']
+                },
+                moduleResolution: ts.ModuleResolutionKind.Bundler,
+                module: ts.ModuleKind.ESNext
+            }
+        }).getDependencies();
+    });
+
+    afterAll(() => {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    const member = (name: string) =>
+        deps.components[0].propertiesClass.find((p: any) => p.name === name);
+
+    it('resolves a relative import merged by rootDirs', () => {
+        expect(member('model')?.type).toBe('Model');
+        expect(member('nameCount')?.type).toBe('number');
+    });
+
+    it('leaves a path to a built dist/ library without a type', () => {
+        // `new Built()` is named after its class without the checker; what the
+        // library declares (the return type of `count()`) stays unread.
+        expect(member('built')?.type).toBe('Built');
+        expect(member('builtCount')).toBeDefined();
+        expect(member('builtCount').type).toBeUndefined();
+    });
+
+    it('leaves a path to a .d.ts file without a type', () => {
+        expect(member('plain')).toBeDefined();
+        expect(member('plain').type).toBeUndefined();
+    });
+});
