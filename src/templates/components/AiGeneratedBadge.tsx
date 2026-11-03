@@ -44,3 +44,20 @@ export const AiGeneratedNote = (props: AiGeneratedNoteProps): string => {
     );
     return (<p class={props.class}>{escapeHtmlText(text)}</p>) as string;
 };
+
+/**
+ * Banner above Markdown content marked `<!-- @aiGenerated [value] -->`:
+ * the chip and the note. Used by root Markdown pages, additional pages and
+ * the README tab of entity pages.
+ */
+export const AiGeneratedBanner = (props: AiGeneratedBadgeProps): string => {
+    if (!props.aiGenerated) {
+        return '' as string;
+    }
+    return (
+        <div class="cdx-ai-generated-banner">
+            {AiGeneratedBadge({ aiGenerated: props.aiGenerated })}
+            {AiGeneratedNote({ aiGenerated: props.aiGenerated, class: 'cdx-ai-generated-note' })}
+        </div>
+    ) as string;
+};
