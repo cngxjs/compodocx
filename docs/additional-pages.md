@@ -15,8 +15,9 @@ Two CLI flags drive it:
 | `--includes <path>` | Folder containing `summary.json` and the referenced Markdown files | - (feature off) |
 | `--includesName <name>` | Sidebar group label | `Additional documentation` |
 | `--includesLabels <path>` | JSON file with a sidebar label and a title per page slug (see [Labels and titles from a file](#labels-and-titles-from-a-file)) | - |
+| `--includesTooltips` | Show each page's subtitle (or its `tooltip` key) as the tooltip of its sidebar link (see [Link tooltips](#link-tooltips)) | `false` |
 
-All three can also be set via the config file (`.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml`, or the `compodocx` property in `package.json`) as `includes` / `includesName` / `includesLabels`.
+All four can also be set via the config file (`.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml`, or the `compodocx` property in `package.json`) as `includes` / `includesName` / `includesLabels` / `includesTooltips`.
 
 ## File layout
 
@@ -93,6 +94,7 @@ Here "Guides" is a group without a page, and the page is written to `additional-
 | `slug` | string | The last segment of the page URL; for the node's children it is also the folder segment | the `title`, lowercased, spaces replaced by `-` |
 | `label` | string | Sidebar text | the labels file, then the title |
 | `heading` | boolean | `true` renders the title as an `<h1>` above the Markdown | `false` |
+| `tooltip` | string | Tooltip of the sidebar link with `includesTooltips`; `""` turns it off for this node | the labels file, then the page's subtitle |
 | `aliases` | string[] | Old page paths this page replaces, see [Renaming a page with an alias](#renaming-a-page-with-an-alias) | none |
 
 Rules:
@@ -178,7 +180,7 @@ When the sidebar text comes from a generated manifest, keep it out of `summary.j
         "label": "E0001: Expression changed",
         "title": "Expression changed after it was checked"
     },
-    "e0002": { "label": "E0002: Value changed" }
+    "e0002": { "label": "E0002: Value changed", "tooltip": "A bound value changed during the check" }
 }
 ```
 
@@ -192,7 +194,7 @@ Or `"includesLabels": "./labels.json"` in the config file. The path is resolved 
 { "slug": "e0001", "file": "errors/e0001.md" }
 ```
 
-Precedence for both values is: the node, then the labels file, then the default (the label defaults to the title). A node with a `slug` but no title anywhere is an error. The key is the page's slug, that is the last segment of its path.
+Precedence for each value (`label`, `title` and `tooltip`) is: the node, then the labels file, then the default (the label defaults to the title, the tooltip to the subtitle, see [Link tooltips](#link-tooltips)). A node with a `slug` but no title anywhere is an error. The key is the page's slug, that is the last segment of its path.
 
 - A key that matches no page logs `Additional pages: labels file <path>: key "<key>" matches no page` and the build continues, so one manifest can serve several documentation sets.
 - A key that matches several pages (the same last segment in different folders) stops the build and names all matches.
@@ -206,6 +208,36 @@ The sidebar shows the label, the browser tab shows the title, and the page body 
 ```
 
 The page then starts with `<h1>Value changed</h1>` (escaped) before the Markdown. Without `heading: true` nothing is added.
+
+### Link tooltips
+
+With `--includesTooltips` (or `"includesTooltips": true`) each sidebar link of an additional page gets a tooltip: its subtitle, the heading that directly follows the page's first-level heading. Blank lines and HTML comments (such as the `<!-- @aiGenerated -->` marker) before the first heading and blank lines between the two headings are skipped. Inline code, emphasis and links count with their text, images and inline HTML are left out.
+
+```markdown
+# E0100
+
+## Unknown option
+
+The option name is not recognised.
+```
+
+The link to this page shows "Unknown option" on hover. A page with a paragraph between its first two headings, or one that does not start with a first-level heading, has no subtitle:
+
+```markdown
+# Guide
+
+A short walk through the setup.
+
+## Install
+```
+
+- A `tooltip` key on the node or in the labels file sets the text instead; `""` turns the tooltip off for that page.
+- No tooltip is shown when its text is already part of the link text (case and spacing ignored), so `"label": "E0101: Value out of range"` with the subtitle "Value out of range" gets none.
+- A heading that only starts the first section (`# API Reference` followed by `## Services`) becomes a tooltip too. Set `"tooltip": ""` on such a page.
+- The tooltip is the link's `title` attribute. Browsers do not show it on keyboard focus or touch, so put the words that tell the pages apart into the `label`.
+- Without the flag no tooltip is rendered, and `tooltip` keys are ignored with one line in the log: `Additional pages: <n> tooltip key(s) ignored, enable includesTooltips`.
+
+Tooltips are not part of the JSON and llm-md exports.
 
 ### Renaming a page with an alias
 
@@ -293,7 +325,7 @@ These problems stop the build with exit code 1. The message names the position i
 | `Additional pages: alias "<alias>" at summary.json<path> (<file>) is the path of its own page` | An alias equals the path of the page it belongs to |
 | `Additional pages: no title for summary.json<path> (<file>); set "title" on the node or in the labels file` | A node with a `slug` has no title on the node and none in the labels file |
 | `Additional pages: "<path>.html" is claimed by summary.json<path> (<file>) and summary.json<path> (<file>)` | Two pages, or a page and an alias (the alias side is marked `as alias`), end up at the same path |
-| `Additional pages: labels file <path>: <reason>` | The labels file is unreadable, not valid JSON, not an object, has an entry that is not an object, or has a `label` or `title` that is not a string |
+| `Additional pages: labels file <path>: <reason>` | The labels file is unreadable, not valid JSON, not an object, has an entry that is not an object, or has a `label`, `title` or `tooltip` that is not a string |
 | `Additional pages: labels file <path>: key "<key>" matches several pages: ...` | A labels key matches more than one page |
 
 ## What you cannot do
