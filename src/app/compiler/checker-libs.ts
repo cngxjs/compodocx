@@ -17,10 +17,12 @@ export const CHECKER_DEFAULT_LIB = `${CHECKER_LIB_FOLDER}/lib.es2022.full.d.ts`;
 export const ANGULAR_SIGNALS_FILE = `${CHECKER_LIB_FOLDER}/angular-signals.d.ts`;
 
 /**
- * The public signatures of `signal`, `computed` and `linkedSignal`, so that
- * `this.count()` inside a `computed()` callback has the value type of
- * `count`. An ambient module needs no module resolution; other imports from
- * `@angular/core` stay unresolved, as without this file.
+ * The public signatures of `signal`, `computed`, `linkedSignal`, `input`,
+ * `model` and `inject`, so that `this.count()` inside a `computed()` callback
+ * has the value type of `count` and `this.store.items()` the value type of
+ * `items` of an injected `Store`. An ambient module needs no module
+ * resolution; other imports from `@angular/core` stay unresolved, as without
+ * this file.
  */
 const ANGULAR_SIGNALS = `declare module '@angular/core' {
     const SIGNAL: unique symbol;
@@ -84,6 +86,50 @@ const ANGULAR_SIGNALS = `declare module '@angular/core' {
         };
     }
     export const model: ModelFunction;
+
+    export interface AbstractType<T> extends Function {
+        prototype: T;
+    }
+    export const Type: FunctionConstructor;
+    export interface Type<T> extends Function {
+        new (...args: any[]): T;
+    }
+    export class InjectionToken<T> {
+        protected _desc: string;
+        constructor(_desc: string, options: {
+            providedIn: Type<any> | 'any';
+            factory: () => T;
+        });
+        constructor(_desc: string, options?: {
+            providedIn?: Type<any> | 'root' | 'platform' | 'any' | null;
+            factory: () => T;
+        });
+        toString(): string;
+    }
+    export class HostAttributeToken {
+        private attributeName;
+        constructor(attributeName: string);
+        toString(): string;
+    }
+    export interface InjectOptions {
+        optional?: boolean;
+        skipSelf?: boolean;
+        self?: boolean;
+        host?: boolean;
+    }
+    export type ProviderToken<T> = Type<T> | AbstractType<T> | InjectionToken<T>;
+    export function inject<T>(token: ProviderToken<T>): T;
+    export function inject<T>(token: ProviderToken<T>, options: InjectOptions & {
+        optional?: false;
+    }): T;
+    export function inject<T>(token: ProviderToken<T>, options: InjectOptions): T | null;
+    export function inject(token: HostAttributeToken): string;
+    export function inject(token: HostAttributeToken, options: {
+        optional: true;
+    }): string | null;
+    export function inject(token: HostAttributeToken, options: {
+        optional: false;
+    }): string;
 }
 `;
 

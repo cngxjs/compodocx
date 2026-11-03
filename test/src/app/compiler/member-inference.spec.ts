@@ -241,13 +241,20 @@ export class Store {
         const big = Array.from({ length: 40 }, (_, i) => `field${i}: ${i}`).join(', ');
         const component = write(
             'app/box.component.ts',
-            `import { Component, computed } from '@angular/core';
+            `import { Component, computed, inject, InjectionToken } from '@angular/core';
 import { pkgValue } from 'pkg';
 import { Store } from '@lib/store';
 
 @Component({ selector: 'app-box', template: '' })
 export class BoxComponent {
     readonly store = new Store();
+    readonly injected = inject(Store);
+    readonly injectedCount = computed(() => this.injected.count());
+    readonly optionalStore = inject(Store, { optional: true });
+    readonly optionalCount = computed(() => this.optionalStore?.count());
+    readonly sizeToken = new InjectionToken<number>('size');
+    readonly size = inject(this.sizeToken);
+    readonly sizeValue = computed(() => this.size);
     readonly total = computed(() => this.store.count());
     readonly firstName = computed(() => this.store.items()[0].name);
     readonly fromPackage = computed(() => pkgValue);
@@ -279,6 +286,17 @@ export class BoxComponent {
         expect(typeOf('store')).toBe('Store');
         expect(typeOf('total')).toBe('number');
         expect(typeOf('firstName')).toBe('string');
+    });
+
+    it('reads the class of an imported project file through inject()', () => {
+        expect(typeOf('injected')).toBe('Store');
+        expect(typeOf('injectedCount')).toBe('number');
+        expect(typeOf('optionalCount')).toBe('number | undefined');
+    });
+
+    it('reads the value type of an InjectionToken through inject()', () => {
+        expect(typeOf('sizeToken')).toBe('InjectionToken<number>');
+        expect(typeOf('sizeValue')).toBe('number');
     });
 
     it('leaves a value of a package in node_modules without a type', () => {
