@@ -60,6 +60,7 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 - **API index without dead links.** A section switched off with `apiTabSections` (for example `derivedState`) is also left out of the index, so every index entry points at a member that is on the page.
 - **Watch mode with new and deleted files.** A file created or deleted while `--watch` runs is picked up: the sources are scanned again with the tsconfig `include`/`exclude`, a new component gets its page, and the page and menu entry of a deleted one are removed. A new file outside the tsconfig selection no longer starts a rebuild.
 - **Inline component styles.** `styles` written as a template literal with a `${...}` substitution stopped the run with `Cannot read properties of undefined (reading 'length')`; the styles are shown as written now. `styles: SHARED` and array entries with a substitution showed the name of the const (`SHARED`, `COLOR`) as CSS; a const of the same file is read, also when spread into the array, and a value that cannot be read (a function call) is left out.
+- **Links in running text.** Links in READMEs, additional pages and descriptions are underlined without hovering. In the default theme the link colour is the text colour, so a link was only recognisable on hover. Heading permalinks, chips and pills keep their look.
 
 ## [0.14.0] - 2026-10-30
 
