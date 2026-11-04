@@ -43,25 +43,25 @@ describe('printBanner', () => {
 
     it('emits nothing when isWatching is true', () => {
         const { log, lines } = captureLines();
-        printBanner(ctx, { loggerSilent: true, isWatching: true, isLlmMdStdoutMode: false }, log);
+        printBanner(ctx, { quiet: false, isWatching: true, isLlmMdStdoutMode: false }, log);
         expect(lines).toEqual([]);
     });
 
     it('emits nothing when isLlmMdStdoutMode is true', () => {
         const { log, lines } = captureLines();
-        printBanner(ctx, { loggerSilent: true, isWatching: false, isLlmMdStdoutMode: true }, log);
+        printBanner(ctx, { quiet: false, isWatching: false, isLlmMdStdoutMode: true }, log);
         expect(lines).toEqual([]);
     });
 
-    it('emits the one-liner when loggerSilent is false (verbose path)', () => {
+    it('emits the one-liner when quiet', () => {
         const { log, lines } = captureLines();
-        printBanner(ctx, { loggerSilent: false, isWatching: false, isLlmMdStdoutMode: false }, log);
+        printBanner(ctx, { quiet: true, isWatching: false, isLlmMdStdoutMode: false }, log);
         expect(lines).toEqual(['compodocx v9.9.9']);
     });
 
-    it('emits the full banner block when loggerSilent is true (default state)', () => {
+    it('emits the full banner block when not quiet (default)', () => {
         const { log, lines } = captureLines();
-        printBanner(ctx, { loggerSilent: true, isWatching: false, isLlmMdStdoutMode: false }, log);
+        printBanner(ctx, { quiet: false, isWatching: false, isLlmMdStdoutMode: false }, log);
         // First line is the ASCII banner text (or '' if banner file missing on
         // this disk). What matters is the version + TS + Node + OS lines.
         expect(lines).toContain('9.9.9');
@@ -78,7 +78,7 @@ describe('printBanner', () => {
             JSON.stringify({ devDependencies: { typescript: '~5.3.2' } })
         );
         const { log, lines } = captureLines();
-        printBanner(ctx, { loggerSilent: true, isWatching: false, isLlmMdStdoutMode: false }, log);
+        printBanner(ctx, { quiet: false, isWatching: false, isLlmMdStdoutMode: false }, log);
         expect(lines).toContain('TypeScript version of current project : 5.3.2');
     });
 
@@ -86,22 +86,22 @@ describe('printBanner', () => {
         vi.mocked(FileEngine.existsSync).mockReturnValue(true);
         vi.mocked(FileEngine.getSync).mockReturnValue(JSON.stringify({ devDependencies: {} }));
         const { log, lines } = captureLines();
-        printBanner(ctx, { loggerSilent: true, isWatching: false, isLlmMdStdoutMode: false }, log);
+        printBanner(ctx, { quiet: false, isWatching: false, isLlmMdStdoutMode: false }, log);
         expect(lines.some(l => l.includes('TypeScript version of current project'))).toBe(false);
     });
 
     it('emits blank-line separators between version sections', () => {
         const { log, lines } = captureLines();
-        printBanner(ctx, { loggerSilent: true, isWatching: false, isLlmMdStdoutMode: false }, log);
+        printBanner(ctx, { quiet: false, isWatching: false, isLlmMdStdoutMode: false }, log);
         // Each version section ends with a blank line; the banner block emits
         // at minimum 4 blank lines (one after version, ts, node, os).
         const blanks = lines.filter(l => l === '').length;
         expect(blanks).toBeGreaterThanOrEqual(4);
     });
 
-    it('isWatching wins over loggerSilent', () => {
+    it('isWatching wins over quiet', () => {
         const { log, lines } = captureLines();
-        printBanner(ctx, { loggerSilent: false, isWatching: true, isLlmMdStdoutMode: false }, log);
+        printBanner(ctx, { quiet: true, isWatching: true, isLlmMdStdoutMode: false }, log);
         expect(lines).toEqual([]);
     });
 });

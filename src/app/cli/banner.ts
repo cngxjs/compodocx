@@ -13,8 +13,8 @@ export interface BannerContext {
 }
 
 export interface BannerDisplayOptions {
-    /** Mirrors `logger.silent`. When `true` (default state), the full banner prints; when `false`, the one-liner. */
-    readonly loggerSilent: boolean;
+    /** Mirrors `logger.quiet`. When `false` (default), the full banner prints; when `true`, the one-liner. */
+    readonly quiet: boolean;
     readonly isWatching: boolean;
     readonly isLlmMdStdoutMode: boolean;
 }
@@ -42,11 +42,11 @@ const readBannerText = (): string => {
 /**
  * Print the version block at the start of a doc-generation run.
  *
- * Dispatch matches the legacy `if (!logger.silent)` branch verbatim:
+ * Dispatch:
  *  - `isWatching` or `isLlmMdStdoutMode` → suppress entirely (downstream
  *    tools / SPA rebuilds never want it).
- *  - `loggerSilent === false` → one-liner `compodocx v<version>`.
- *  - `loggerSilent === true` (the default state) → full banner with TS, Node,
+ *  - `quiet === true` → one-liner `compodocx v<version>`.
+ *  - `quiet === false` (the default) → full banner with TS, Node,
  *    and OS versions.
  *
  * The `log` injection point exists so tests can capture lines without
@@ -60,7 +60,7 @@ export function printBanner(
     if (opts.isWatching || opts.isLlmMdStdoutMode) {
         return;
     }
-    if (!opts.loggerSilent) {
+    if (opts.quiet) {
         log(`compodocx v${ctx.pkgVersion}`);
         return;
     }

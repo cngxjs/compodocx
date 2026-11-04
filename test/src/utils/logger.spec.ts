@@ -12,7 +12,7 @@ describe('logger verbose gate', () => {
     });
 
     afterEach(() => {
-        logger.silent = true;
+        logger.quiet = false;
         logger.verbose = false;
         vi.restoreAllMocks();
     });
@@ -28,9 +28,9 @@ describe('logger verbose gate', () => {
         expect(lines.join('')).to.contain('Foo');
     });
 
-    it('lets silent win over verbose', () => {
+    it('lets quiet win over verbose', () => {
         logger.verbose = true;
-        logger.silent = false;
+        logger.quiet = true;
         logger.debug('found', 'Foo');
         logger.info('generated');
         expect(lines).to.have.length(0);

@@ -28,7 +28,8 @@ const formatArgs = (args: unknown[]): string => {
 };
 
 export type Logger = {
-    silent: boolean;
+    /** When true, only errors are printed (`--silent`). */
+    quiet: boolean;
     /** When true, `debug` lines are printed too (`--verbose`). */
     verbose: boolean;
     /**
@@ -44,13 +45,13 @@ export type Logger = {
 };
 
 const createLogger = (): Logger => {
-    const state = { silent: true, verbose: false, routeToStderr: false };
+    const state = { quiet: false, verbose: false, routeToStderr: false };
 
     const write = (level: LogLevel, args: unknown[]) => {
         if (level === 'debug' && !state.verbose) {
             return;
         }
-        if (!state.silent && level !== 'error') {
+        if (state.quiet && level !== 'error') {
             return;
         }
         const msg = colorize(level, formatArgs(args));
@@ -59,11 +60,11 @@ const createLogger = (): Logger => {
     };
 
     return {
-        get silent() {
-            return state.silent;
+        get quiet() {
+            return state.quiet;
         },
-        set silent(v: boolean) {
-            state.silent = v;
+        set quiet(v: boolean) {
+            state.quiet = v;
         },
         get verbose() {
             return state.verbose;
