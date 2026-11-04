@@ -63,7 +63,7 @@ export class MarkdownEngine {
         };
 
         renderer.image = (href: string, title: string, text: string) => {
-            let out = `<img src="${href}" alt="${text}" class="img-responsive"`;
+            let out = `<img src="${href}" alt="${text}" class="cdx-img-responsive"`;
             if (title) {
                 out += ` title="${title}"`;
             }

@@ -30,7 +30,6 @@
 @import "./components/readme.css";
 @import "./components/api-reference.css";
 @import "./components/routes.css";
-@import "./components/legacy.css";
 
 @source "../templates/**/*.tsx";
 
@@ -275,4 +274,29 @@ a:hover {
 }
 .dark a {
     color: var(--color-cdx-primary);
+}
+
+/* Element typography: heading scale, pointer on links, italic <i>. */
+h1 {
+    font-size: 26px;
+}
+h2 {
+    font-size: 22px;
+}
+h3 {
+    font-size: 20px;
+    font-weight: bold;
+}
+h4,
+h5 {
+    font-size: 18px;
+}
+h6 {
+    font-size: 16px;
+}
+a[href] {
+    cursor: pointer;
+}
+i {
+    font-style: italic;
 }
