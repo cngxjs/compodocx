@@ -55,6 +55,20 @@
     color: var(--color-cdx-primary);
 }
 
+/* Links in running text are underlined without hover: in the default
+   greyscale theme the link colour equals the text colour, so colour alone
+   does not mark them (WCAG 1.4.1). cdx- links (permalinks, chips, pills)
+   keep their own look. */
+:is(.cdx-readme, .cdx-prose) a:not([class*="cdx-"]) {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+}
+
+:is(.cdx-readme, .cdx-prose) a:not([class*="cdx-"]):hover {
+    text-decoration-thickness: 2px;
+}
+
 .cdx-readme > :first-child {
     margin-top: 0;
 }
