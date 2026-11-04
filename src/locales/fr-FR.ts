@@ -211,6 +211,7 @@ export const TRANSLATION_FR_FR = {
     'routed-at': 'Routé à',
     'mounted-at': 'Monté à',
     'used-in-routes': 'Utilisé dans les routes',
+    'view-on-routes-page': 'Voir sur la page des routes',
     'route-resolve': 'Resolve',
     'route-title': 'Titre',
     'route-data': 'Données',

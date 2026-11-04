@@ -209,6 +209,7 @@ export const TRANSLATION_PL_PL = {
     'routed-at': 'Trasa',
     'mounted-at': 'Podłączone pod',
     'used-in-routes': 'Używane w trasach',
+    'view-on-routes-page': 'Zobacz na stronie tras',
     'route-resolve': 'Resolve',
     'route-title': 'Tytuł',
     'route-data': 'Dane',

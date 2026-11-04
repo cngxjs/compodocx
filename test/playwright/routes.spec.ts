@@ -71,11 +71,27 @@ test.describe('Routes page', () => {
         await expect(links.first()).toHaveAttribute('href', /routes\.html#route-0-4-0$/);
     });
 
-    test('a feature page lists the routes of its members', async ({ page }) => {
+    test('a feature page shows the routes of its members as a tree', async ({ page }) => {
         await page.goto(featureUrl(['admin']));
         const section = page.locator('[data-compodoc="feature-routes"]');
-        await expect(section).toContainText('/admin/users');
-        await expect(section.locator('a[href*="routes.html#route-0-10-1"]')).toHaveCount(1);
+        const parent = section.locator('[data-cdx-route="0-10"]');
+        await expect(parent).toHaveClass(/cdx-routes-row--context/);
+        await expect(parent.locator('[data-cdx-route-fact="canMatch"]')).toContainText(
+            'rtaAdminMatch'
+        );
+        const users = section.locator('[data-cdx-route="0-10-1"]');
+        await expect(users).toHaveClass(/cdx-routes-depth-1/);
+        await expect(users.locator('.cdx-routes-path')).toHaveAttribute('title', '/admin/users');
+        await expect(users.locator('.cdx-routes-path-own')).toHaveText('users');
+        await users.locator('a.cdx-routes-path-link').click();
+        await expect(page).toHaveURL(/routes\.html#route-0-10-1$/);
+    });
+
+    test('a feature page links its route tree to the routes page', async ({ page }) => {
+        await page.goto(featureUrl(['admin']));
+        const link = page.locator('.cdx-feature-routes-link a');
+        await expect(link).toHaveText('View on the routes page');
+        await expect(link).toHaveAttribute('href', /routes\.html#route-0-10$/);
     });
 
     test('the command palette finds a route by its path and opens its row', async ({ page }) => {

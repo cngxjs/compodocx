@@ -6,7 +6,7 @@ import { hrefFor, hrefText, routeAnchor } from '../../app/links/layout';
 import { placedLink, symbolTarget } from '../../app/links/resolve';
 import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
 import type { FeatureCard, FeaturePageData } from '../../app/page-generator/feature-page-generator';
-import type { RouteNode, RouteTarget, RoutingModel } from '../../app/routing/model';
+import type { RoutingModel } from '../../app/routing/model';
 import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
 import { isDocumentedToken, type StyleFile } from '../../app/styles/model';
 import { markedAcl } from '../../utils/marked.acl';
@@ -16,6 +16,7 @@ import { firstSentence, t } from '../helpers';
 import type { FeatureMembers } from '../helpers/feature-sections';
 import { entryFacts } from '../helpers/symbol-facts';
 import { hasTheming, themingFor } from '../helpers/theming';
+import { featureRouteRows, RouteTree } from './Routes';
 
 /**
  * The page of a feature (`features/<entry point>/<key>.html`): import path,
@@ -212,69 +213,28 @@ const StyleRow = (entry: SymbolEntry, ctx: Context): string => {
     ) as string;
 };
 
-/** The routes whose component, or whose lazily loaded route array, is a member of the feature. */
-const routesOf = (members: FeatureMembers, model: RoutingModel): RouteNode[] => {
-    const ids = new Set(Object.values(members).flatMap(list => list.map(entry => entry.id)));
-    const isMember = (target: RouteTarget | undefined) =>
-        target?.symbol !== undefined && ids.has(target.symbol);
-    const found: RouteNode[] = [];
-    const walk = (nodes: readonly RouteNode[]): void => {
-        for (const node of nodes) {
-            if (isMember(node.component) || isMember(node.childrenFrom)) {
-                found.push(node);
-            }
-            walk(node.children);
-        }
-    };
-    for (const root of model.roots) {
-        walk(root.routes);
-    }
-    return found;
-};
-
-const routeTargetName = (node: RouteNode): string => {
-    const target = node.component ?? node.childrenFrom;
-    return target ? `${target.name}${target.lazy ? ` (${t('lazy')})` : ''}` : '';
-};
-
+/**
+ * The routes whose component or lazily loaded route array is a member of the
+ * feature, as a tree with the routes above them as context, each linked to
+ * its row on the routes page.
+ */
 const FeatureRoutes = (members: FeatureMembers, ctx: Context): string => {
-    const nodes = ctx.routing ? routesOf(members, ctx.routing) : [];
-    if (nodes.length === 0) {
+    const ids = new Set(Object.values(members).flatMap(list => list.map(entry => entry.id)));
+    const rows = ctx.routing ? featureRouteRows(ctx.routing.roots, id => ids.has(id)) : [];
+    const own = rows.filter(row => !row.context);
+    if (own.length === 0) {
         return '';
     }
+    const routesPage = hrefText(
+        hrefFor({ type: 'root', page: 'routes' }, ctx.depth, routeAnchor(rows[0].node.id))
+    );
     return (
-        <section class="cdx-content-section" data-compodoc="feature-routes">
-            {Heading('routes', t('routes'), nodes.length)}
-            <table class="cdx-table">
-                <thead>
-                    <tr>
-                        <th scope="col">{t('full-path')}</th>
-                        <th scope="col">{t('route-target')}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {nodes.map(node => (
-                        <tr>
-                            <td>
-                                <a
-                                    href={hrefText(
-                                        hrefFor(
-                                            { type: 'root', page: 'routes' },
-                                            ctx.depth,
-                                            routeAnchor(node.id)
-                                        )
-                                    )}
-                                >
-                                    <code>{Html.escapeHtml(node.fullPath)}</code>
-                                </a>
-                            </td>
-                            <td>
-                                <code>{Html.escapeHtml(routeTargetName(node))}</code>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+        <section class="cdx-content-section cdx-routes-root" data-compodoc="feature-routes">
+            {Heading('routes', t('routes'), own.length)}
+            <p class="cdx-feature-routes-link">
+                <a href={routesPage}>{t('view-on-routes-page')}</a>
+            </p>
+            {RouteTree(rows, { depth: ctx.depth, table: ctx.table, di: ctx.di, linkRows: true })}
         </section>
     ) as string;
 };

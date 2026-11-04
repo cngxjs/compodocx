@@ -209,6 +209,7 @@ export const TRANSLATION_KA_GE = {
     'routed-at': 'მარშრუტი',
     'mounted-at': 'მიერთებულია',
     'used-in-routes': 'გამოიყენება მარშრუტებში',
+    'view-on-routes-page': 'ნახვა მარშრუტების გვერდზე',
     'route-resolve': 'Resolve',
     'route-title': 'სათაური',
     'route-data': 'მონაცემები',

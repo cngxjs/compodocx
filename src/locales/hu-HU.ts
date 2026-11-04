@@ -210,6 +210,7 @@ export const TRANSLATION_HU_HU = {
     'routed-at': 'Útvonal',
     'mounted-at': 'Beillesztve',
     'used-in-routes': 'Útvonalakban használva',
+    'view-on-routes-page': 'Megtekintés az útvonalak oldalán',
     'route-resolve': 'Resolve',
     'route-title': 'Cím',
     'route-data': 'Adatok',

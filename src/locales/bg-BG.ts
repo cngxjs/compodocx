@@ -210,6 +210,7 @@ export const TRANSLATION_BG_BG = {
     'routed-at': 'Маршрутизиран на',
     'mounted-at': 'Монтиран на',
     'used-in-routes': 'Използва се в маршрути',
+    'view-on-routes-page': 'Вижте на страницата с маршрути',
     'route-resolve': 'Resolve',
     'route-title': 'Заглавие',
     'route-data': 'Данни',
