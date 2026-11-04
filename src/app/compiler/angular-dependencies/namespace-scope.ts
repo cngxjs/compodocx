@@ -1,5 +1,7 @@
 import { ts } from 'ts-morph';
 
+import type { INamespaceAlias, INamespaceDep } from '../angular/dependencies.interfaces';
+
 /**
  * Where a declaration sits: inside a namespace (`namespace` is the dotted
  * chain, e.g. `Outer.Inner`) or inside a module augmentation (`augments` is
@@ -114,4 +116,68 @@ export const namespaceMembers = <T extends Member & { members: string[] }>(
             .filter(item => item.namespace === qualified)
             .map(item => qualify(item, item.name));
         return { ...entry, members: [...new Set(members)].sort() };
+    });
+
+/** The namespace chain a declaration sits in (`Outer.Inner`), undefined at the top level. */
+const namespaceChainOf = (node: ts.Node): string | undefined => {
+    const names: string[] = [];
+    for (let current = node.parent; current; current = current.parent) {
+        if (ts.isModuleDeclaration(current) && ts.isIdentifier(current.name)) {
+            names.unshift(current.name.text);
+        }
+    }
+    return names.length > 0 ? names.join('.') : undefined;
+};
+
+/** What an alias points to: the qualified name and file of the target, as written when unresolved. */
+export interface AliasTarget {
+    readonly target: string;
+    readonly targetFile?: string;
+}
+
+/**
+ * The target of `import X = Ns.Y`, followed through import renames to its
+ * declaration. `relativeFile` turns a source file name into the engine's
+ * cwd-relative form. Undefined for `import X = require('...')`.
+ */
+export const aliasTarget = (
+    checker: ts.TypeChecker,
+    node: ts.ImportEqualsDeclaration,
+    relativeFile: (fileName: string) => string
+): AliasTarget | undefined => {
+    const reference = node.moduleReference;
+    if (ts.isExternalModuleReference(reference)) {
+        return undefined;
+    }
+    const written = reference.getText();
+    // The alias's own symbol resolves through local import aliases (`import G = Geometry`).
+    const own = checker.getSymbolAtLocation(node.name);
+    let symbol =
+        own && own.flags & ts.SymbolFlags.Alias
+            ? checker.getAliasedSymbol(own)
+            : checker.getSymbolAtLocation(reference);
+    if (symbol && symbol.flags & ts.SymbolFlags.Alias) {
+        symbol = checker.getAliasedSymbol(symbol);
+    }
+    const declaration = symbol?.declarations?.[0];
+    if (!symbol || !declaration) {
+        return { target: written };
+    }
+    return {
+        target: qualify({ namespace: namespaceChainOf(declaration) }, symbol.name),
+        targetFile: relativeFile(declaration.getSourceFile().fileName)
+    };
+};
+
+/** Each namespace with the aliases it declares (in name order); the others unchanged. */
+export const withNamespaceAliases = (
+    namespaces: readonly INamespaceDep[],
+    aliases: readonly INamespaceAlias[]
+): INamespaceDep[] =>
+    namespaces.map(entry => {
+        const qualified = qualify(entry, entry.name);
+        const own = aliases
+            .filter(alias => alias.namespace === qualified)
+            .sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+        return own.length > 0 ? { ...entry, aliases: own } : entry;
     });

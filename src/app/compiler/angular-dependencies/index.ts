@@ -17,6 +17,7 @@ import type {
     IFunctionDecDep,
     IInjectableDep,
     IInterfaceDep,
+    INamespaceAlias,
     INamespaceDep,
     IPipeDep,
     IServiceDep,
@@ -36,12 +37,14 @@ import { IoExtractor } from './io-extractor';
 import { JsdocTags } from './jsdoc-tags';
 import { MetadataPredicates } from './metadata-predicates';
 import {
+    aliasTarget,
     enterModule,
     inAmbientNamespace,
     type NamespaceScope,
     namespaceMembers,
     type OpenedNamespace,
     qualify,
+    withNamespaceAliases,
     withScope
 } from './namespace-scope';
 import { ProviderDetector } from './provider-detector';
@@ -105,6 +108,7 @@ export class AngularDependencies extends FrameworkDependencies {
             classes: [],
             interfaces: [],
             namespaces: [] as INamespaceDep[],
+            namespaceAliases: [] as INamespaceAlias[],
             typescriptImports: [],
             miscellaneous: {
                 variables: [],
@@ -174,6 +178,7 @@ export class AngularDependencies extends FrameworkDependencies {
             ...deps.miscellaneous.enumerations,
             ...deps.appConfig
         ]);
+        deps.namespaces = withNamespaceAliases(deps.namespaces, deps.namespaceAliases);
         deps.legacyFindings = sortLegacyFindings(deps.legacyFindings);
 
         return deps;
@@ -851,6 +856,25 @@ export class AngularDependencies extends FrameworkDependencies {
                                 entered.scope
                             )
                         );
+                    } else if (ts.isImportEqualsDeclaration(node)) {
+                        // `export import X = Ns.Y`: listed with its namespace, no page of its own.
+                        const name = node.name.text;
+                        if (node.isTypeOnly || isFileLocal(node, name) || isIgnore(node)) {
+                            return;
+                        }
+                        if (!isAllowed(name)) {
+                            logger.debug(
+                                `Skipping alias ${qualify(scope, name)} (not in public API)`
+                            );
+                            return;
+                        }
+                        this.addNamespaceAlias(
+                            node,
+                            name,
+                            file,
+                            scope,
+                            outputSymbols.namespaceAliases
+                        );
                     }
                 } else {
                     // Every class, function, enum and type alias declaration is bound,
@@ -1259,6 +1283,38 @@ export class AngularDependencies extends FrameworkDependencies {
         };
         this.debug(entry);
         store.push(entry);
+    }
+
+    private addNamespaceAlias(
+        node: ts.ImportEqualsDeclaration,
+        name: string,
+        file: string,
+        scope: NamespaceScope,
+        store: INamespaceAlias[]
+    ) {
+        const cleaner = (process.cwd() + path.sep).replace(/\\/g, '/');
+        const target = aliasTarget(this.program.getTypeChecker(), node, fileName =>
+            fileName.replace(cleaner, '')
+        );
+        if (!target) {
+            return;
+        }
+        const jsDoc = (node as { jsDoc?: ts.JSDoc[] }).jsDoc?.[0];
+        const rawdescription = jsDoc?.comment ? this.jsdocParserUtil.parseJSDocNode(jsDoc) : '';
+        const qualified = qualify(scope, name);
+        if (store.some(alias => qualify(alias, alias.name) === qualified && alias.file === file)) {
+            return;
+        }
+        const alias: INamespaceAlias = {
+            name,
+            ...(scope.namespace && { namespace: scope.namespace }),
+            ...target,
+            file,
+            description: rawdescription ? markedAcl(rawdescription) : '',
+            rawdescription
+        };
+        this.debug(alias);
+        store.push(alias);
     }
 
     /**

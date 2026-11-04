@@ -12,7 +12,9 @@
  * code path needs to change.
  */
 
+import { documentedNamespaces } from '../app/compiler/angular-dependencies/namespace-content';
 import type {
+    ExportAlias,
     ExportData,
     ExportEnumeration,
     ExportFunction,
@@ -55,20 +57,32 @@ const designTokensSection = (files: ExportData['styleFiles']): string => {
     return body ? `${sectionHeader('Design tokens')}\n\n${body}` : '';
 };
 
-/** One block per namespace with its qualified members; '' without namespaces. */
+/** `Api.Point -> Geometry.Point`, one line per alias. */
+const aliasLines = (aliases: readonly ExportAlias[]): string[] =>
+    aliases.map(alias => `- ${inlineCode(alias.name)} -> ${inlineCode(alias.target)}`);
+
+/**
+ * One block per namespace with its qualified members and aliases; '' without
+ * namespaces. A namespace without members or aliases is left out.
+ */
 const namespacesSection = (namespaces: ExportData['namespaces']): string => {
-    const blocks = documented<ExportNamespace>(namespaces).map(entry => {
+    const blocks = documentedNamespaces(documented<ExportNamespace>(namespaces)).map(entry => {
         const name = entry.namespace ? `${entry.namespace}.${entry.name}` : entry.name;
         const description = collapseDescription(entry.description ?? '');
         const meta = [
             `File: ${inlineCode(entry.file)}`,
             description ? `Description: ${escapeMarkdown(description)}` : '',
-            entry.members.length > 0 ? `Members: ${escapeMarkdown(entry.members.join(', '))}` : ''
+            entry.members.length > 0 ? `Members: ${escapeMarkdown(entry.members.join(', '))}` : '',
+            entry.aliases?.length ? ['Aliases:', ...aliasLines(entry.aliases)].join('\n') : ''
         ].filter(line => line.length > 0);
         return `### ${escapeMarkdown(name)}\n\n${meta.join('\n')}`;
     });
     return blocks.length > 0 ? `${sectionHeader('Namespaces')}\n\n${blocks.join('\n\n')}` : '';
 };
+
+/** The top-level `export import` aliases; '' without any. */
+const aliasesSection = (aliases: ExportData['aliases']): string =>
+    aliases?.length ? `${sectionHeader('Aliases')}\n\n${aliasLines(aliases).join('\n')}` : '';
 
 /** Routers and unmounted route arrays; '' without routes. */
 const routesSection = (roots: ExportData['routes']): string => {
@@ -159,6 +173,7 @@ export const emitLlmMd = (input: LlmMdInput): string => {
         renderSection('Classes', data.classes, emitClass),
         renderSection('Interfaces', data.interfaces, emitInterface),
         namespacesSection(data.namespaces),
+        aliasesSection(data.aliases),
         renderListSection<ExportFunction>('Public functions', misc?.functions, emitFunction),
         renderSection('Public tokens', data.tokens, emitInjectable),
         renderListSection<ExportTypeAlias>('Public type aliases', misc?.typealiases, emitTypeAlias),

@@ -89,7 +89,8 @@ export const parseDescription = (description: string, depth: number): string => 
                   )
                 : undefined;
         if (found && foundLink) {
-            let label = found.name;
+            // An `export import` alias keeps its own name; the link goes to its target.
+            let label = Configuration.mainData.symbols?.aliases?.has(target) ? target : found.name;
 
             if (leading.leadingText !== undefined) {
                 label = leading.leadingText;

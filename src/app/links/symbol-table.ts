@@ -1,3 +1,7 @@
+import {
+    documentedNamespaces,
+    type NamespaceContent
+} from '../compiler/angular-dependencies/namespace-content';
 import { factKey, type SemanticModel } from '../compiler/semantic/model';
 import type { EntityKind } from '../engines/dependencies.engine';
 import { type FileNameRequest, folderFileNames, safeFileName, symbolFolder } from './layout';
@@ -37,6 +41,20 @@ export interface SymbolTable {
     readonly byName: ReadonlyMap<string, readonly SymbolId[]>;
     /** The engine object of each `byName` id, index for index. */
     readonly dataByName: ReadonlyMap<string, readonly unknown[]>;
+    /**
+     * `export import X = Ns.Y` aliases by qualified name (`Api.Point`, `Pt`),
+     * each pointing to the symbol of its target. Only exact lookups read it;
+     * a symbol of the same name wins.
+     */
+    readonly aliases?: ReadonlyMap<string, SymbolId>;
+}
+
+/** An `export import X = Ns.Y` alias as the table sees it. */
+interface AliasRef {
+    readonly name: string;
+    readonly namespace?: string;
+    readonly target: string;
+    readonly targetFile?: string;
 }
 
 type Named = { readonly name?: unknown; readonly file?: unknown; readonly namespace?: unknown };
@@ -53,6 +71,7 @@ export interface EngineData {
     readonly classes?: List;
     readonly interfaces?: List;
     readonly namespaces?: List;
+    readonly namespaceAliases?: readonly AliasRef[];
     readonly guards?: List;
     readonly interceptors?: List;
     readonly entities?: List;
@@ -86,7 +105,8 @@ const listOf = (data: EngineData, kind: EngineKind): List => {
         case 'interface':
             return data.interfaces;
         case 'namespace':
-            return data.namespaces;
+            // A namespace without members or aliases gets no entry, so no page or link.
+            return documentedNamespaces(data.namespaces as readonly NamespaceContent[] | undefined);
         case 'guard':
             return data.guards;
         case 'interceptor':
@@ -200,7 +220,33 @@ export const buildSymbolTable = (data: EngineData, options: BuildOptions = {}): 
     for (const bare of bareNames.filter(bare => !qualified.has(bare.name))) {
         add(bare.name, bare.id, bare.item);
     }
-    return withFileNames({ byId, byName, dataByName });
+    const aliases = aliasTargets(data.namespaceAliases ?? [], byId, byName, cwd);
+    return withFileNames({ byId, byName, dataByName, ...(aliases.size > 0 && { aliases }) });
+};
+
+/** Each alias with the id of its documented target (the target's file first); unresolved ones left out. */
+const aliasTargets = (
+    aliases: readonly AliasRef[],
+    byId: ReadonlyMap<SymbolId, SymbolEntry>,
+    byName: ReadonlyMap<string, readonly SymbolId[]>,
+    cwd: string
+): ReadonlyMap<string, SymbolId> => {
+    const targets = new Map<string, SymbolId>();
+    for (const alias of aliases) {
+        const name = alias.namespace ? `${alias.namespace}.${alias.name}` : alias.name;
+        if (byName.has(name) || targets.has(name)) {
+            continue;
+        }
+        const file = alias.targetFile === undefined ? undefined : symbolFile(alias.targetFile, cwd);
+        const candidates = [...new Set(byName.get(alias.target) ?? [])].filter(
+            id => byId.get(id)?.ref.name === alias.target
+        );
+        const id = candidates.find(c => byId.get(c)?.ref.file === file) ?? candidates[0];
+        if (id) {
+            targets.set(name, id);
+        }
+    }
+    return targets;
 };
 
 const withFileNames = (table: SymbolTable): SymbolTable => {
@@ -269,7 +315,7 @@ export const withStyleEntries = (
         byName.set(ref.name, [...(byName.get(ref.name) ?? []), id]);
         dataByName.set(ref.name, [...(dataByName.get(ref.name) ?? []), style]);
     }
-    return withFileNames({ byId, byName, dataByName });
+    return withFileNames({ ...table, byId, byName, dataByName });
 };
 
 export const emptySymbolTable = (): SymbolTable => ({
@@ -393,6 +439,16 @@ const occurrencesOf = (table: SymbolTable, name: string, exclude?: ExcludeId): O
         .filter(o => !exclude?.(o.id));
 };
 
+/** The target of an alias of that name, as an occurrence of the target's own entry. */
+const aliasOccurrences = (table: SymbolTable, name: string, exclude?: ExcludeId): Occurrence[] => {
+    const id = table.aliases?.get(name);
+    const entry = id && table.byId.get(id);
+    if (!entry || exclude?.(entry.id)) {
+        return [];
+    }
+    return [{ id: entry.id, data: entry.data, kind: kindOf(table, entry.id) as TableKind }];
+};
+
 /** The occurrences in the policy's kind order (engine order inside a kind). */
 const inKindOrder = (occurrences: readonly Occurrence[], kinds: readonly TableKind[]) => {
     const rank = (o: Occurrence) => kinds.indexOf(o.kind);
@@ -445,7 +501,12 @@ const lookupOccurrence = (
         return undefined;
     }
     const kinds = kind ? POLICY_KINDS[policy].filter(k => k === kind) : POLICY_KINDS[policy];
-    const exact = inKindOrder(occurrencesOf(table, name, exclude), kinds);
+    const exact = inKindOrder(
+        occurrencesOf(table, name, exclude).length > 0
+            ? occurrencesOf(table, name, exclude)
+            : aliasOccurrences(table, name, exclude),
+        kinds
+    );
     switch (policy) {
         case 'type-link':
             return lastOfFirstKind(exact) ?? containedMatch(table, name, kinds, exclude);

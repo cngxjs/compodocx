@@ -10,6 +10,7 @@ import type {
     IInjectableDep,
     IInterceptorDep,
     IInterfaceDep,
+    INamespaceAlias,
     INamespaceDep,
     IPipeDep,
     IServiceDep,
@@ -152,6 +153,8 @@ export class DependenciesEngine {
     public guards: IGuardDep[];
     public interfaces: IInterfaceDep[];
     public namespaces: INamespaceDep[] = [];
+    /** Every `export import X = Ns.Y` alias, namespace and top-level ones. */
+    public namespaceAliases: INamespaceAlias[] = [];
     public pipes: IPipeDep[];
     public classes: IDep[];
     public appConfig: any[] = [];
@@ -217,6 +220,7 @@ export class DependenciesEngine {
         this.namespaces = [...(this.rawData.namespaces ?? [])].sort((a, b) =>
             a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         );
+        this.namespaceAliases = [...(this.rawData.namespaceAliases ?? [])];
         this.pipes = [...this.rawData.pipes].sort((a, b) =>
             (a as any).name.toLowerCase().localeCompare((b as any).name.toLowerCase())
         );

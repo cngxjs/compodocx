@@ -41,7 +41,8 @@ const table = buildSymbolTable(
                 file: FILE,
                 type: 'namespace',
                 description: '',
-                members: []
+                // A member without a page of its own: the namespace has a page, no member rows.
+                members: ['Bridge.Inner.Deep']
             }
         ]
     } as never,

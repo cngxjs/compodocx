@@ -1,4 +1,5 @@
 import Html from '@kitajs/html';
+import { documentedNamespaces } from '../../app/compiler/angular-dependencies/namespace-content';
 import Configuration from '../../app/configuration';
 import { type DiView, hasOwnPage } from '../../app/di/model';
 import {
@@ -23,6 +24,7 @@ import { qualifiedName, type SymbolId, type TableKind } from '../../app/links/sy
 import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { isAdditionalGroup } from '../../app/page-generator/additional-page-tree';
 import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
+import { linkTagsAsText } from '../../utils/link-parser';
 import { t } from '../helpers';
 import { type AdditionalTreeNode, additionalTree } from '../helpers/additional-tree';
 import {
@@ -349,7 +351,7 @@ const previewDesc = (desc?: string): string | undefined => {
     if (!desc) {
         return undefined;
     }
-    const stripped = desc.replace(/<[^>]+>/g, '').trim();
+    const stripped = linkTagsAsText(desc.replace(/<[^>]+>/g, '')).trim();
     if (!stripped) {
         return undefined;
     }
@@ -1180,6 +1182,8 @@ export const Menu = (props: MenuProps): string => {
     const injectables = d.injectables ?? [];
     const services = d.services ?? [];
     const pipes = d.pipes ?? [];
+    // A namespace without members or aliases has no page.
+    const namespaces = documentedNamespaces(d.namespaces);
     const entities = d.entities ?? [];
     const styles = styleMenuItems(d.symbols);
 
@@ -1412,10 +1416,10 @@ export const Menu = (props: MenuProps): string => {
                                 kind: 'interface',
                                 groupDepth: GROUP_EXPAND_DEPTH
                             })}
-                        {d.namespaces?.length > 0 &&
+                        {namespaces.length > 0 &&
                             EntitySection({
-                                items: d.namespaces,
-                                categorized: byFeature(d.namespaces, 'namespace'),
+                                items: namespaces,
+                                categorized: byFeature(namespaces, 'namespace'),
                                 type: 'namespaces',
                                 iconHtml: IconNamespace(),
                                 labelKey: 'namespaces',

@@ -5,7 +5,7 @@ import pkg from '../../../package.json';
 import { linkedStyleFiles, themingFor } from '../../templates/helpers/theming';
 import { logger } from '../../utils/logger';
 import type { StyleSource } from '../../utils/theme-doc-parser';
-import type { INamespaceDep } from '../compiler/angular/dependencies.interfaces';
+import type { INamespaceAlias, INamespaceDep } from '../compiler/angular/dependencies.interfaces';
 import type { AxisModel } from '../compiler/semantic/axes';
 import type { FamilyLink, Feature, FeatureModel } from '../compiler/semantic/features';
 import {
@@ -22,6 +22,7 @@ import Configuration from '../configuration';
 import type { DiView } from '../di/model';
 import {
     EXPORT_SCHEMA_VERSION,
+    type ExportAlias,
     type ExportAxis,
     type ExportComponent,
     type ExportData,
@@ -464,8 +465,21 @@ export const exportNamespaces = (
             ...(entry.namespace && { namespace: entry.namespace }),
             file: entry.file,
             ...(entry.description && { description: entry.description }),
-            members: [...entry.members]
+            members: [...entry.members],
+            ...(entry.aliases?.length && { aliases: entry.aliases.map(exportAlias) })
         }));
+
+const exportAlias = (alias: INamespaceAlias): ExportAlias => ({
+    name: alias.namespace ? `${alias.namespace}.${alias.name}` : alias.name,
+    target: alias.target
+});
+
+/** The top-level `export import` aliases (outside any namespace), in name order. */
+export const exportAliases = (aliases: readonly INamespaceAlias[] | undefined): ExportAlias[] =>
+    (aliases ?? [])
+        .filter(alias => !alias.namespace)
+        .map(exportAlias)
+        .sort((a, b) => compareText(a.name, b.name));
 
 export class ExportJsonEngine {
     private static instance: ExportJsonEngine;
@@ -548,6 +562,10 @@ export class ExportJsonEngine {
         const namespaces = exportNamespaces(data.namespaces);
         if (namespaces.length > 0) {
             exportData.namespaces = facts(namespaces);
+        }
+        const aliases = exportAliases(data.namespaceAliases);
+        if (aliases.length > 0) {
+            exportData.aliases = aliases;
         }
         exportData.miscellaneous = withRouteVariables(
             model
