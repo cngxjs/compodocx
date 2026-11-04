@@ -210,6 +210,7 @@ export const TRANSLATION_NL_NL = {
     'routed-at': 'Gerouteerd op',
     'mounted-at': 'Gekoppeld op',
     'used-in-routes': 'Gebruikt in routes',
+    'view-on-routes-page': 'Bekijken op de routespagina',
     'route-resolve': 'Resolve',
     'route-title': 'Titel',
     'route-data': 'Gegevens',

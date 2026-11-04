@@ -208,6 +208,7 @@ export const TRANSLATION_KO_KR = {
     'routed-at': '라우트 경로',
     'mounted-at': '마운트 위치',
     'used-in-routes': '사용하는 라우트',
+    'view-on-routes-page': '라우트 페이지에서 보기',
     'route-resolve': 'Resolve',
     'route-title': '제목',
     'route-data': '데이터',

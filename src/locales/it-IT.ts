@@ -210,6 +210,7 @@ export const TRANSLATION_IT_IT = {
     'routed-at': 'Instradato a',
     'mounted-at': 'Montato a',
     'used-in-routes': 'Usato nelle route',
+    'view-on-routes-page': 'Vedi nella pagina delle route',
     'route-resolve': 'Resolve',
     'route-title': 'Titolo',
     'route-data': 'Dati',

@@ -211,6 +211,7 @@ export const TRANSLATION_RU_RU = {
     'routed-at': 'Маршрут',
     'mounted-at': 'Подключено в',
     'used-in-routes': 'Используется в маршрутах',
+    'view-on-routes-page': 'Посмотреть на странице маршрутов',
     'route-resolve': 'Resolve',
     'route-title': 'Заголовок',
     'route-data': 'Данные',

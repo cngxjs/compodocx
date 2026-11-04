@@ -209,6 +209,7 @@ export const TRANSLATION_SK_SK = {
     'routed-at': 'Trasa',
     'mounted-at': 'Pripojené pod',
     'used-in-routes': 'Použité v trasách',
+    'view-on-routes-page': 'Zobraziť na stránke trás',
     'route-resolve': 'Resolve',
     'route-title': 'Názov',
     'route-data': 'Údaje',

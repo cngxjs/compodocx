@@ -25,11 +25,19 @@ export interface RoutesPageData {
     readonly di?: DiView;
 }
 
-interface Ctx {
+/** What a route tree needs to render. */
+export interface RouteTreeContext {
     readonly depth: number;
     readonly table?: SymbolTable;
     readonly di?: DiView;
+    /**
+     * Link each path to its row on the routes page instead of anchoring the
+     * row itself (a route tree on another page, e.g. a feature page).
+     */
+    readonly linkRows?: boolean;
 }
+
+type Ctx = RouteTreeContext;
 
 const esc = (text: string): string => Html.escapeHtml(text) as string;
 
@@ -156,11 +164,16 @@ const dataHtml = (node: RouteNode): string =>
         ? ''
         : `<details class="cdx-routes-data"><summary>${esc(t('route-data'))}</summary>${highlightedCodeWrap(node.data)}</details>`;
 
-interface Row {
+/** One route of a tree, with the full path of its parent and its depth. */
+export interface RouteRow {
     readonly node: RouteNode;
     readonly parent: string;
     readonly depth: number;
+    /** Shown for context only: the parent of a route the tree is about. */
+    readonly context?: boolean;
 }
+
+type Row = RouteRow;
 
 const flatten = (nodes: readonly RouteNode[], parent: string, depth: number): Row[] =>
     nodes.flatMap(node => [
@@ -168,14 +181,54 @@ const flatten = (nodes: readonly RouteNode[], parent: string, depth: number): Ro
         ...flatten(node.children, node.fullPath, depth + 1)
     ]);
 
+/**
+ * The routes whose component or lazily loaded route array is a member
+ * (`isMember`), with the routes above them as context, in tree order.
+ */
+export const featureRouteRows = (
+    roots: readonly RouteRoot[],
+    isMember: (id: SymbolId) => boolean
+): RouteRow[] => {
+    const owns = (node: RouteNode): boolean =>
+        [node.component, node.childrenFrom].some(
+            target => target?.symbol !== undefined && isMember(target.symbol)
+        );
+    const rowsOf = (nodes: readonly RouteNode[], parent: string, depth: number): RouteRow[] =>
+        nodes.flatMap(node => {
+            const below = rowsOf(node.children, node.fullPath, depth + 1);
+            if (owns(node)) {
+                return [{ node, parent, depth, context: false }, ...below];
+            }
+            return below.length > 0 ? [{ node, parent, depth, context: true }, ...below] : [];
+        });
+    return roots.flatMap(root => rowsOf(root.routes, '/', 0));
+};
+
 /** Visual indentation stops at this depth; deeper rows share its indent. */
 const MAX_INDENT = 6;
 
-const RouteRow = (row: Row, ctx: Ctx): string => {
+/** The path cell: anchored on the routes page, linked to it elsewhere. */
+const pathCell = (row: Row, ctx: Ctx): string => {
     const anchor = routeAnchor(row.node.id);
+    const path = pathHtml(row.node, row.parent, row.depth);
+    const body = ctx.linkRows
+        ? `<a class="cdx-routes-path-link" href="${esc(hrefText(hrefFor({ type: 'root', page: 'routes' }, ctx.depth, anchor)))}">${path}</a>`
+        : `${path}<a class="cdx-member-permalink" href="#${anchor}" aria-label="${esc(row.node.fullPath)}">#</a>`;
+    return `<div class="cdx-routes-path" title="${esc(row.node.fullPath)}">${body}</div>`;
+};
+
+const RouteRowHtml = (row: Row, ctx: Ctx): string => {
+    const at = ctx.linkRows
+        ? `data-cdx-route="${row.node.id}"`
+        : `id="${routeAnchor(row.node.id)}"`;
+    const classes = [
+        'cdx-routes-row',
+        `cdx-routes-depth-${Math.min(row.depth, MAX_INDENT)}`,
+        ...(row.context ? ['cdx-routes-row--context'] : [])
+    ].join(' ');
     return (
-        `<li id="${anchor}" class="cdx-routes-row cdx-routes-depth-${Math.min(row.depth, MAX_INDENT)}" data-cdx-route-depth="${row.depth}">` +
-        `<div class="cdx-routes-path" title="${esc(row.node.fullPath)}">${pathHtml(row.node, row.parent, row.depth)}<a class="cdx-member-permalink" href="#${anchor}" aria-label="${esc(row.node.fullPath)}">#</a></div>` +
+        `<li ${at} class="${classes}" data-cdx-route-depth="${row.depth}">` +
+        pathCell(row, ctx) +
         `<div class="cdx-routes-detail"><div class="cdx-routes-target">${targetHtmlOf(row.node, ctx)}</div>` +
         factsHtml(row.node, ctx) +
         dataHtml(row.node) +
@@ -219,6 +272,13 @@ const Meta = (root: RouteRoot, ctx: Ctx): string => {
     return items.length > 0 ? `<dl class="cdx-routes-meta">${items.join('')}</dl>` : '';
 };
 
+/**
+ * A list of routes in tree order (indented by depth): the path, the target,
+ * and the guards, resolvers, title and providers as facts, plus the data.
+ */
+export const RouteTree = (rows: readonly RouteRow[], ctx: RouteTreeContext): string =>
+    `<ol class="cdx-routes-tree">${rows.map(row => RouteRowHtml(row, ctx)).join('')}</ol>`;
+
 const RootSection = (root: RouteRoot, ctx: Ctx): string => {
     const rows = flatten(root.routes, '/', 0);
     const anchor = routeAnchor(root.id);
@@ -226,9 +286,8 @@ const RootSection = (root: RouteRoot, ctx: Ctx): string => {
         `<section class="cdx-content-section cdx-routes-root" data-compodoc="routes-root" data-cdx-route-kind="${root.kind}">` +
         `<h2 class="cdx-section-heading" id="${anchor}">${esc(rootTitle(root))}<a class="cdx-member-permalink" href="#${anchor}">#</a></h2>` +
         Meta(root, ctx) +
-        `<ol class="cdx-routes-tree">` +
-        rows.map(row => RouteRow(row, ctx)).join('') +
-        `</ol></section>`
+        RouteTree(rows, ctx) +
+        `</section>`
     );
 };
 

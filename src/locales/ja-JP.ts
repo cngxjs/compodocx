@@ -209,6 +209,7 @@ export const TRANSLATION_JA_JP = {
     'routed-at': 'ルート',
     'mounted-at': 'マウント先',
     'used-in-routes': '使用しているルート',
+    'view-on-routes-page': 'ルートページで表示',
     'route-resolve': 'Resolve',
     'route-title': 'タイトル',
     'route-data': 'データ',

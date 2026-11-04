@@ -99,6 +99,29 @@
     @apply font-semibold;
 }
 
+/* Route tree on another page (feature page): the path links to its row on
+ * the routes page and reads like the path itself until hovered. */
+.cdx-routes-path-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cdx-routes-path-link:hover .cdx-routes-path-own,
+.cdx-routes-path-link:focus-visible .cdx-routes-path-own {
+    text-decoration: underline;
+}
+
+/* A route above the feature's routes, shown for context only. */
+.cdx-routes-row--context .cdx-routes-path-own {
+    @apply font-normal;
+    color: var(--color-cdx-text-secondary);
+}
+
+.cdx-feature-routes-link {
+    @apply text-sm;
+    margin: 0 0 var(--spacing-cdx-sm);
+}
+
 /* A segment the checker could not evaluate: source text, not a URL part. */
 .cdx-routes-path-dynamic {
     @apply font-normal;

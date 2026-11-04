@@ -207,6 +207,7 @@ export const TRANSLATION_ZH_TW = {
     'routed-at': '路由於',
     'mounted-at': '掛載於',
     'used-in-routes': '使用它的路由',
+    'view-on-routes-page': '在路由頁面檢視',
     'route-resolve': 'Resolve',
     'route-title': '標題',
     'route-data': '資料',

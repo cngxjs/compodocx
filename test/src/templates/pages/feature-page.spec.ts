@@ -373,11 +373,16 @@ describe('FeaturePage - Theming section with style files', () => {
         []
     );
 
-    it('lists the routes of its members, linked to their rows on the routes page', () => {
+    it('shows the routes of its members as a tree, each linked to its row on the routes page', () => {
         const html = render(ROOT, { routing });
         expect(sectionIds(html)).toContain('routes');
-        expect(html).toContain('href="../routes.html#route-0-0"><code>/panel</code></a>');
-        expect(html).toContain('<code>SelectPanel (lazy)</code>');
+        expect(html).toMatch(
+            /<a class="cdx-routes-path-link" href="..\/routes.html#route-0-0">[\s\S]*?<span class="cdx-routes-path-own">panel<\/span><\/a>/
+        );
+        expect(html).toContain(
+            '<code>SelectPanel</code></a> <span class="cdx-routes-lazy">lazy</span>'
+        );
+        expect(html).toContain('<a href="../routes.html#route-0-0">View on the routes page</a>');
         expect(html).not.toContain('/other');
     });
 

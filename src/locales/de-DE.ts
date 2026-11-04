@@ -211,6 +211,7 @@ export const TRANSLATION_DE_DE = {
     'routed-at': 'Geroutet unter',
     'mounted-at': 'Eingebunden unter',
     'used-in-routes': 'Verwendet in Routen',
+    'view-on-routes-page': 'Auf der Routes-Seite ansehen',
     'route-resolve': 'Resolve',
     'route-title': 'Titel',
     'route-data': 'Daten',
