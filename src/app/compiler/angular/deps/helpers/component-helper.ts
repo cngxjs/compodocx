@@ -90,7 +90,9 @@ const localVariableInitializer = (
 export class ComponentHelper {
     constructor(
         private classHelper: ClassHelper,
-        private symbolHelper: SymbolHelper = new SymbolHelper()
+        private symbolHelper: SymbolHelper = new SymbolHelper(),
+        /** The crawler checker; follows consts imported from other project files. */
+        private checker?: ts.TypeChecker
     ) {}
 
     public getComponentChangeDetection(
@@ -170,26 +172,14 @@ export class ComponentHelper {
 
     /**
      * Classify a single element of the `hostDirectives: [...]` array into a
-     * `HostDirectiveEntry`. Handles three shapes:
+     * `HostDirectiveEntry`:
      *
      * 1. Inline `{ directive, inputs, outputs }` object literal - parsed directly.
-     * 2. `Identifier` that resolves to a local `const FOO = { directive: ... }`
-     *    variable declaration in the same source file - dereferenced and the
-     *    original identifier text is preserved as `refName`.
-     * 3. `Identifier` that does not resolve locally (bare directive class
-     *    reference OR const imported from another file) - emits `{ name }`.
-     *    For bare class references this is already the correct rendering;
-     *    for imported const refs this is a deliberate MVP fallback flagged
-     *    as `unresolved: true` so the renderer can treat it differently if
-     *    we ever want to.
-     *
-     * TODO(Phase 1.5): imported const dereferencing. Currently consts defined
-     * in a *different* source file cannot be followed, so the result is the
-     * same as a bare class reference. A follow-up should handle this by either
-     * walking imports without relying on the global `ast` Project singleton
-     * (to keep unit tests deterministic), or by wiring srcFile into a scoped
-     * ts-morph Project that can resolve the module specifier. See
-     * `.internal/compiler-metadata-extraction-fix-plan.md` Phase 1 risk table.
+     * 2. `Identifier` naming a const object, in this file or imported from
+     *    another project file (with the crawler checker, through re-exports) -
+     *    dereferenced, the identifier text kept as `refName`.
+     * 3. Any other `Identifier` (a bare directive class, an unknown name) -
+     *    `{ name, unresolved: true }`.
      */
     private parseHostDirectiveEntry(element: any, srcFile?: ts.SourceFile): HostDirectiveEntry {
         if (
@@ -203,20 +193,15 @@ export class ComponentHelper {
         if (element.kind === SyntaxKind.Identifier) {
             const identifierName = String(element.escapedText ?? element.text ?? '');
 
-            if (srcFile) {
-                const localConstProperties = this.resolveLocalObjectLiteralProperties(
-                    identifierName,
-                    srcFile
-                );
-                if (localConstProperties) {
-                    const parsed = this.parseHostDirectiveObjectLiteral(localConstProperties);
-                    return { ...parsed, refName: identifierName };
-                }
+            const target = srcFile && this.constInitializer(element, srcFile);
+            const value = target && unwrapExpression(target.initializer);
+            if (value && ts.isObjectLiteralExpression(value)) {
+                const parsed = this.parseHostDirectiveObjectLiteral(value.properties);
+                return { ...parsed, refName: identifierName };
             }
 
-            // Could not dereference - either a bare directive class reference
-            // (correct rendering) or an imported const (Phase 1.5 territory).
-            // Flag unresolved so the renderer can optionally distinguish.
+            // A bare directive class reference (correct rendering) or a name
+            // that does not lead to a const object.
             return { name: identifierName, unresolved: true };
         }
 
@@ -263,23 +248,6 @@ export class ComponentHelper {
         }
 
         return { name, inputs, outputs };
-    }
-
-    /**
-     * Walk the top-level statements of a source file looking for a
-     * `const NAME = { ... }` (or `let` / `var`) whose initializer is an
-     * ObjectLiteralExpression, and return its property list. Returns
-     * `undefined` when no matching local variable exists. This deliberately
-     * does NOT consult the global ts-morph `ast` Project from ImportsUtil -
-     * that dependency would break the in-memory unit test infrastructure and
-     * only adds cross-file resolution which is Phase 1.5 scope.
-     */
-    private resolveLocalObjectLiteralProperties(
-        name: string,
-        srcFile: ts.SourceFile
-    ): ReadonlyArray<ts.ObjectLiteralElementLike> | undefined {
-        const init = localVariableInitializer(name, srcFile);
-        return init && ts.isObjectLiteralExpression(init) ? init.properties : undefined;
     }
 
     public getComponentHost(
@@ -577,13 +545,30 @@ export class ComponentHelper {
         return [];
     }
 
-    /** The initializer of the variable `identifier` names, in this file. */
+    /**
+     * The initializer of the variable `identifier` names: a top-level variable
+     * of this file, else (with the checker) the declaration an import leads
+     * to, through re-exports. Anything but a variable (a class) is undefined.
+     */
     private constInitializer(
         identifier: ts.Identifier,
         srcFile: ts.SourceFile
     ): { initializer: ts.Expression; srcFile: ts.SourceFile } | undefined {
-        const initializer = localVariableInitializer(identifier.text, srcFile);
-        return initializer ? { initializer, srcFile } : undefined;
+        const local = localVariableInitializer(identifier.text, srcFile);
+        if (local) {
+            return { initializer: local, srcFile };
+        }
+        const symbol = this.checker?.getSymbolAtLocation(identifier);
+        if (!symbol) {
+            return undefined;
+        }
+        const target =
+            symbol.flags & ts.SymbolFlags.Alias ? this.checker.getAliasedSymbol(symbol) : symbol;
+        const declaration = target.valueDeclaration;
+        if (!declaration || !ts.isVariableDeclaration(declaration) || !declaration.initializer) {
+            return undefined;
+        }
+        return { initializer: declaration.initializer, srcFile: declaration.getSourceFile() };
     }
 
     public getComponentModuleId(

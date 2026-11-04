@@ -56,6 +56,6 @@ export class FrameworkDependencies {
         );
         this.typeChecker = this.program.getTypeChecker();
         this.classHelper = new ClassHelper(this.typeChecker);
-        this.componentHelper = new ComponentHelper(this.classHelper);
+        this.componentHelper = new ComponentHelper(this.classHelper, undefined, this.typeChecker);
     }
 }
