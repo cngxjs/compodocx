@@ -201,6 +201,9 @@ export const TRANSLATION_PL_PL = {
     'full-path': 'Pełna ścieżka',
     'route-target': 'Cel',
     lazy: 'lazy',
+    'lazy-routes': 'Leniwe',
+    'routes-description':
+        'Wszystkie trasy aplikacji, odczytane z konfiguracji routera i z eksportowanych tablic tras, w kolejności drzewa.',
     redirect: 'Przekierowanie',
     'router-features': 'Funkcje routera',
     'routed-at': 'Trasa',

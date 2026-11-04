@@ -203,6 +203,9 @@ export const TRANSLATION_DE_DE = {
     'full-path': 'Vollständiger Pfad',
     'route-target': 'Ziel',
     lazy: 'lazy',
+    'lazy-routes': 'Lazy',
+    'routes-description':
+        'Alle Routen der Anwendung, gelesen aus der Router-Konfiguration und aus exportierten Routen-Arrays, in Baumreihenfolge.',
     redirect: 'Weiterleitung',
     'router-features': 'Router-Features',
     'routed-at': 'Geroutet unter',

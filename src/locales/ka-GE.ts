@@ -201,6 +201,9 @@ export const TRANSLATION_KA_GE = {
     'full-path': 'სრული გზა',
     'route-target': 'სამიზნე',
     lazy: 'lazy',
+    'lazy-routes': 'ზარმაცი',
+    'routes-description':
+        'აპლიკაციის ყველა მარშრუტი, წაკითხული როუტერის კონფიგურაციიდან და ექსპორტირებული მარშრუტების მასივებიდან, ხის რიგით.',
     redirect: 'გადამისამართება',
     'router-features': 'როუტერის ფუნქციები',
     'routed-at': 'მარშრუტი',

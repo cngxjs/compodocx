@@ -200,6 +200,8 @@ export const TRANSLATION_ZH_CN = {
     'full-path': '完整路径',
     'route-target': '目标',
     lazy: 'lazy',
+    'lazy-routes': '懒加载',
+    'routes-description': '应用的所有路由,读取自路由器配置和导出的路由数组,按树形顺序排列。',
     redirect: '重定向',
     'router-features': '路由器功能',
     'routed-at': '路由于',

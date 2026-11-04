@@ -202,6 +202,9 @@ export const TRANSLATION_BG_BG = {
     'full-path': 'Пълен път',
     'route-target': 'Цел',
     lazy: 'lazy',
+    'lazy-routes': 'Отложени',
+    'routes-description':
+        'Всички маршрути на приложението, прочетени от конфигурацията на рутера и от експортираните масиви с маршрути, в дървовиден ред.',
     redirect: 'Пренасочване',
     'router-features': 'Функции на рутера',
     'routed-at': 'Маршрутизиран на',

@@ -201,6 +201,9 @@ export const TRANSLATION_SK_SK = {
     'full-path': 'Úplná cesta',
     'route-target': 'Cieľ',
     lazy: 'lazy',
+    'lazy-routes': 'Lenivé',
+    'routes-description':
+        'Všetky trasy aplikácie, načítané z konfigurácie routera a z exportovaných polí trás, v poradí stromu.',
     redirect: 'Presmerovanie',
     'router-features': 'Funkcie routera',
     'routed-at': 'Trasa',

@@ -200,6 +200,8 @@ export const TRANSLATION_ZH_TW = {
     'full-path': '完整路徑',
     'route-target': '目標',
     lazy: 'lazy',
+    'lazy-routes': '延遲載入',
+    'routes-description': '應用程式的所有路由,讀取自路由器設定與匯出的路由陣列,依樹狀順序排列。',
     redirect: '重新導向',
     'router-features': '路由器功能',
     'routed-at': '路由於',

@@ -200,6 +200,9 @@ export const TRANSLATION_KO_KR = {
     'full-path': '전체 경로',
     'route-target': '대상',
     lazy: 'lazy',
+    'lazy-routes': '지연 로드',
+    'routes-description':
+        '라우터 설정과 내보낸 라우트 배열에서 읽은 애플리케이션의 모든 라우트(트리 순서).',
     redirect: '리디렉션',
     'router-features': '라우터 기능',
     'routed-at': '라우트 경로',

@@ -1,4 +1,4 @@
-/* Routes page: one section per router / unmounted route array, a table of
+/* Routes page: one section per router / unmounted route array, a list of
    routes in tree order. Works without script. */
 
 .cdx-routes-meta {
@@ -20,37 +20,150 @@
     @apply m-0;
 }
 
-/* Only the table scrolls sideways; the page never does. */
-.cdx-routes-table-wrap {
-    @apply max-w-full overflow-x-auto;
+/* Route tree: one list item per route in tree order. Narrow content
+ * columns stack path above detail; from 40rem the path and the detail sit
+ * side by side, so the targets of all rows line up. Container query, not
+ * `@media`: the content column width depends on the sidebar. */
+.cdx-routes-root {
+    container-type: inline-size;
+    container-name: cdx-routes;
 }
 
-.cdx-routes-table td {
-    vertical-align: top;
+.cdx-routes-tree {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--color-cdx-border);
 }
 
+.cdx-routes-row {
+    --cdx-routes-indent: 1.25rem;
+    --cdx-routes-level: 0;
+
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-cdx-xs) var(--spacing-cdx-lg);
+    padding: var(--spacing-cdx-sm) 0;
+}
+
+/* A top-level route starts a group with its subtree. */
+.cdx-routes-depth-0 + .cdx-routes-depth-0,
+.cdx-routes-row:not(.cdx-routes-depth-0) + .cdx-routes-depth-0 {
+    border-top: 1px solid var(--color-cdx-border);
+}
+
+/* Depth indentation, capped so deep trees stay readable. */
+.cdx-routes-depth-1 { --cdx-routes-level: 1; }
+.cdx-routes-depth-2 { --cdx-routes-level: 2; }
+.cdx-routes-depth-3 { --cdx-routes-level: 3; }
+.cdx-routes-depth-4 { --cdx-routes-level: 4; }
+.cdx-routes-depth-5 { --cdx-routes-level: 5; }
+.cdx-routes-depth-6 { --cdx-routes-level: 6; }
+
+/* Guide line of a nested route; consecutive children join into one line. */
+.cdx-routes-row:not(.cdx-routes-depth-0)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--cdx-routes-level) * var(--cdx-routes-indent) - 0.625rem);
+    border-left: 1px solid var(--color-cdx-border);
+}
+
+.cdx-routes-path,
+.cdx-routes-detail {
+    min-width: 0;
+    padding-left: calc(var(--cdx-routes-level) * var(--cdx-routes-indent));
+}
+
+/* Paths wrap at the `<wbr>` after each slash, never inside a segment. */
 .cdx-routes-path {
     font-family: var(--font-code);
-    overflow-wrap: anywhere;
-    min-width: 12rem;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    overflow-wrap: break-word;
 }
 
-.cdx-routes-path-parent {
+.cdx-routes-path-slash,
+.cdx-routes-path-empty {
     color: var(--color-cdx-text-secondary);
 }
 
 .cdx-routes-path-own {
-    @apply font-semibold;
+    @apply font-medium;
     color: var(--color-cdx-text);
 }
 
-/* Depth indentation, capped so deep trees stay readable. */
-.cdx-routes-depth-1 .cdx-routes-path { padding-left: calc(var(--spacing-cdx-md) + 1 * var(--spacing-cdx-lg)); }
-.cdx-routes-depth-2 .cdx-routes-path { padding-left: calc(var(--spacing-cdx-md) + 2 * var(--spacing-cdx-lg)); }
-.cdx-routes-depth-3 .cdx-routes-path { padding-left: calc(var(--spacing-cdx-md) + 3 * var(--spacing-cdx-lg)); }
-.cdx-routes-depth-4 .cdx-routes-path { padding-left: calc(var(--spacing-cdx-md) + 4 * var(--spacing-cdx-lg)); }
-.cdx-routes-depth-5 .cdx-routes-path { padding-left: calc(var(--spacing-cdx-md) + 5 * var(--spacing-cdx-lg)); }
-.cdx-routes-depth-6 .cdx-routes-path { padding-left: calc(var(--spacing-cdx-md) + 6 * var(--spacing-cdx-lg)); }
+.cdx-routes-depth-0 .cdx-routes-path-own {
+    @apply font-semibold;
+}
+
+/* A segment the checker could not evaluate: source text, not a URL part. */
+.cdx-routes-path-dynamic {
+    @apply font-normal;
+    color: var(--color-cdx-text-secondary);
+}
+
+.cdx-routes-detail {
+    @apply flex flex-col;
+    gap: var(--spacing-cdx-xs);
+}
+
+.cdx-routes-target {
+    @apply flex flex-wrap items-baseline text-sm;
+    gap: var(--spacing-cdx-xs) var(--spacing-cdx-md);
+    line-height: 1.5;
+}
+
+.cdx-routes-target:empty {
+    display: none;
+}
+
+@container cdx-routes (min-width: 40rem) {
+    .cdx-routes-row {
+        grid-template-columns: minmax(0, 12rem) minmax(0, 1fr);
+    }
+
+    /* Side by side, the path column carries the indent; the detail column stays aligned. */
+    .cdx-routes-detail {
+        padding-left: 0;
+    }
+}
+
+/* Guards, resolvers, title and providers: one pill per route property. */
+.cdx-routes-facts {
+    @apply flex flex-wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 0.375rem;
+}
+
+.cdx-routes-fact {
+    @apply inline-flex flex-wrap items-baseline text-xs;
+    gap: 0.25rem 0.375rem;
+    max-width: 100%;
+    padding: 0.125rem 0.5rem;
+    border: 1px solid var(--color-cdx-border);
+    border-radius: var(--radius-cdx-sm);
+    background: var(--color-cdx-bg-elevated);
+    line-height: 1.5;
+}
+
+.cdx-routes-fact-key {
+    @apply font-medium;
+    color: var(--color-cdx-text-secondary);
+}
+
+.cdx-routes-fact code {
+    overflow-wrap: anywhere;
+}
+
+.cdx-routes-fact .cdx-routes-ref,
+.cdx-routes-target .cdx-routes-ref {
+    margin: 0;
+}
 
 .cdx-routes-ref {
     @apply inline-block;
@@ -66,14 +179,9 @@
 }
 
 .cdx-routes-redirect,
-.cdx-routes-outlet,
-.cdx-routes-guard-key {
+.cdx-routes-outlet {
     @apply text-xs;
     color: var(--color-cdx-text-secondary);
-}
-
-.cdx-routes-guard + .cdx-routes-guard {
-    margin-top: var(--spacing-cdx-xs);
 }
 
 .cdx-routes-data summary {

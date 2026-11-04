@@ -202,6 +202,9 @@ export const TRANSLATION_HU_HU = {
     'full-path': 'Teljes útvonal',
     'route-target': 'Cél',
     lazy: 'lazy',
+    'lazy-routes': 'Késleltetett',
+    'routes-description':
+        'Az alkalmazás összes útvonala a router konfigurációjából és az exportált útvonaltömbökből, fa sorrendben.',
     redirect: 'Átirányítás',
     'router-features': 'Router-funkciók',
     'routed-at': 'Útvonal',

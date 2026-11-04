@@ -202,6 +202,9 @@ export const TRANSLATION_NL_NL = {
     'full-path': 'Volledig pad',
     'route-target': 'Doel',
     lazy: 'lazy',
+    'lazy-routes': 'Lazy',
+    'routes-description':
+        'Alle routes van de applicatie, gelezen uit de routerconfiguratie en uit geëxporteerde route-arrays, in boomvolgorde.',
     redirect: 'Omleiding',
     'router-features': 'Routerfuncties',
     'routed-at': 'Gerouteerd op',

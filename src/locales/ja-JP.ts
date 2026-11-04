@@ -201,6 +201,9 @@ export const TRANSLATION_JA_JP = {
     'full-path': 'フルパス',
     'route-target': 'ターゲット',
     lazy: 'lazy',
+    'lazy-routes': '遅延読み込み',
+    'routes-description':
+        'ルーター設定とエクスポートされたルート配列から読み取った、アプリケーションのすべてのルート(ツリー順)。',
     redirect: 'リダイレクト',
     'router-features': 'ルーター機能',
     'routed-at': 'ルート',

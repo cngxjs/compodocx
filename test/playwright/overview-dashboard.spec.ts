@@ -264,9 +264,9 @@ test.describe('Overview Dashboard', () => {
     });
 
     test.describe('Routes page', () => {
-        test('lists the routes as table rows, enum redirects resolved', async ({ page }) => {
+        test('lists the routes as tree rows, enum redirects resolved', async ({ page }) => {
             await page.goto('/routes.html');
-            const rows = page.locator('table.cdx-routes-table tbody tr');
+            const rows = page.locator('ol.cdx-routes-tree > li');
             await expect(rows).toHaveCount(8);
             await expect(page.locator('#route-0-2')).toContainText('homeenumimported');
             await expect(page.locator('#route-0-1')).toContainText('lazy');

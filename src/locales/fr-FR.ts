@@ -203,6 +203,9 @@ export const TRANSLATION_FR_FR = {
     'full-path': 'Chemin complet',
     'route-target': 'Cible',
     lazy: 'lazy',
+    'lazy-routes': 'Différées',
+    'routes-description':
+        "Toutes les routes de l'application, lues depuis la configuration du routeur et les tableaux de routes exportés, dans l'ordre de l'arbre.",
     redirect: 'Redirection',
     'router-features': 'Fonctionnalités du routeur',
     'routed-at': 'Routé à',

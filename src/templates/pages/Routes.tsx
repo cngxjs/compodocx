@@ -13,6 +13,8 @@ import {
     type RouteValue,
     type RoutingModel
 } from '../../app/routing/model';
+import { HeroCounts } from '../components/HeroCounts';
+import { IconGitBranch } from '../components/Icons';
 import { highlightedCodeWrap, pagefindMetaBlock, t } from '../helpers';
 
 /** What the `routes` override receives besides the main data. */
@@ -69,17 +71,39 @@ const targetHtml = (target: RouteTarget, ctx: Ctx): string => {
     return `${linked(code(target.name), symbolHref(target.symbol, ctx))}${lazy}`;
 };
 
-/** Parent part muted, own segment emphasised; a route without its own segment is all muted. */
-const pathHtml = (node: RouteNode, parent: string): string => {
+/** Path text with a break opportunity after every slash, so long paths wrap at segments. */
+const pathText = (text: string): string => esc(text).replaceAll('/', '/<wbr />');
+
+/** Segment text with dynamic parts (`{source}`) set apart from literal ones. */
+const segmentHtml = (text: string): string =>
+    text
+        .split(/(\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})/)
+        .filter(part => part !== '')
+        .map(part =>
+            part.startsWith('{') && part.endsWith('}')
+                ? `<span class="cdx-routes-path-dynamic">${pathText(part)}</span>`
+                : pathText(part)
+        )
+        .join('');
+
+/**
+ * A top-level route shows its full path; a nested route only its own
+ * segment (its parent is the row above it), `''` for an empty path. A
+ * route whose path does not extend its parent's shows its full path.
+ */
+const pathHtml = (node: RouteNode, parent: string, depth: number): string => {
     const prefix = parent === '/' ? '/' : `${parent}/`;
-    if (node.fullPath === parent || !node.fullPath.startsWith(prefix)) {
-        return `<span class="cdx-routes-path-parent">${esc(node.fullPath)}</span>`;
+    const extendsParent = node.fullPath !== parent && node.fullPath.startsWith(prefix);
+    if (depth > 0 && node.fullPath === parent) {
+        return `<span class="cdx-routes-path-empty">''</span>`;
     }
-    const own = node.fullPath.slice(prefix.length);
-    return `<span class="cdx-routes-path-parent">${esc(prefix)}</span><span class="cdx-routes-path-own">${esc(own)}</span>`;
+    const own = extendsParent ? node.fullPath.slice(prefix.length) : node.fullPath;
+    const lead = extendsParent ? '/' : '';
+    const slash = lead ? `<span class="cdx-routes-path-slash">${lead}</span>` : '';
+    return `${slash}<span class="cdx-routes-path-own">${segmentHtml(own)}</span>`;
 };
 
-const targetCell = (node: RouteNode, ctx: Ctx): string => {
+const targetHtmlOf = (node: RouteNode, ctx: Ctx): string => {
     const parts: string[] = [];
     if (node.component) {
         parts.push(targetHtml(node.component, ctx));
@@ -103,63 +127,34 @@ const targetCell = (node: RouteNode, ctx: Ctx): string => {
     if (node.matcher) {
         parts.push(refHtml(node.matcher, ctx));
     }
-    return parts.join('<br />');
+    return parts.map(part => `<span class="cdx-routes-target-part">${part}</span>`).join('');
 };
 
-const guardsCell = (node: RouteNode, ctx: Ctx): string =>
-    GUARD_KEYS.filter(key => node.guards[key].length > 0)
-        .map(
-            key =>
-                `<div class="cdx-routes-guard"><span class="cdx-routes-guard-key">${key}</span> ${node.guards[
-                    key
-                ]
-                    .map(ref => refHtml(ref, ctx))
-                    .join(' ')}</div>`
-        )
-        .join('');
+/** One fact of a route: the route property it comes from and its values. */
+const fact = (key: string, values: string): string =>
+    `<li class="cdx-routes-fact" data-cdx-route-fact="${esc(key)}"><span class="cdx-routes-fact-key">${esc(key)}</span>${values}</li>`;
 
-const resolveCell = (node: RouteNode, ctx: Ctx): string =>
-    node.resolve.map(entry => `<div>${code(entry.key)}: ${refHtml(entry.ref, ctx)}</div>`).join('');
+/** Guards, resolvers, title and providers of a route, each under its route property. */
+const factsHtml = (node: RouteNode, ctx: Ctx): string => {
+    const facts = [
+        ...GUARD_KEYS.filter(key => node.guards[key].length > 0).map(key =>
+            fact(key, node.guards[key].map(ref => refHtml(ref, ctx)).join(''))
+        ),
+        ...node.resolve.map(entry =>
+            fact('resolve', `${code(`${entry.key}:`)} ${refHtml(entry.ref, ctx)}`)
+        ),
+        ...(node.title ? [fact('title', valueHtml(node.title, ctx))] : []),
+        ...(node.providers.length > 0
+            ? [fact('providers', node.providers.map(ref => refHtml(ref, ctx)).join(''))]
+            : [])
+    ];
+    return facts.length > 0 ? `<ul class="cdx-routes-facts">${facts.join('')}</ul>` : '';
+};
 
-const dataCell = (node: RouteNode): string =>
+const dataHtml = (node: RouteNode): string =>
     node.data === undefined
         ? ''
         : `<details class="cdx-routes-data"><summary>${esc(t('route-data'))}</summary>${highlightedCodeWrap(node.data)}</details>`;
-
-interface Column {
-    readonly key: string;
-    readonly label: string;
-    readonly cell: (node: RouteNode, ctx: Ctx) => string;
-    readonly has: (node: RouteNode) => boolean;
-}
-
-const COLUMNS: readonly Column[] = [
-    {
-        key: 'guards',
-        label: 'guards',
-        cell: guardsCell,
-        has: node => GUARD_KEYS.some(key => node.guards[key].length > 0)
-    },
-    {
-        key: 'resolve',
-        label: 'route-resolve',
-        cell: resolveCell,
-        has: node => node.resolve.length > 0
-    },
-    {
-        key: 'title',
-        label: 'route-title',
-        cell: (node, ctx) => (node.title ? valueHtml(node.title, ctx) : ''),
-        has: node => node.title !== undefined
-    },
-    {
-        key: 'providers',
-        label: 'providers',
-        cell: (node, ctx) => node.providers.map(ref => refHtml(ref, ctx)).join(' '),
-        has: node => node.providers.length > 0
-    },
-    { key: 'data', label: 'route-data', cell: dataCell, has: node => node.data !== undefined }
-];
 
 interface Row {
     readonly node: RouteNode;
@@ -176,14 +171,17 @@ const flatten = (nodes: readonly RouteNode[], parent: string, depth: number): Ro
 /** Visual indentation stops at this depth; deeper rows share its indent. */
 const MAX_INDENT = 6;
 
-const RouteRow = (row: Row, columns: readonly Column[], ctx: Ctx): string =>
-    `<tr id="${routeAnchor(row.node.id)}" class="cdx-routes-row cdx-routes-depth-${Math.min(row.depth, MAX_INDENT)}" data-cdx-route-depth="${row.depth}">` +
-    `<td class="cdx-routes-path">${pathHtml(row.node, row.parent)}<a class="cdx-member-permalink" href="#${routeAnchor(row.node.id)}" aria-label="${esc(row.node.fullPath)}">#</a></td>` +
-    `<td class="cdx-routes-target">${targetCell(row.node, ctx)}</td>` +
-    columns
-        .map(column => `<td class="cdx-routes-${column.key}">${column.cell(row.node, ctx)}</td>`)
-        .join('') +
-    `</tr>`;
+const RouteRow = (row: Row, ctx: Ctx): string => {
+    const anchor = routeAnchor(row.node.id);
+    return (
+        `<li id="${anchor}" class="cdx-routes-row cdx-routes-depth-${Math.min(row.depth, MAX_INDENT)}" data-cdx-route-depth="${row.depth}">` +
+        `<div class="cdx-routes-path" title="${esc(row.node.fullPath)}">${pathHtml(row.node, row.parent, row.depth)}<a class="cdx-member-permalink" href="#${anchor}" aria-label="${esc(row.node.fullPath)}">#</a></div>` +
+        `<div class="cdx-routes-detail"><div class="cdx-routes-target">${targetHtmlOf(row.node, ctx)}</div>` +
+        factsHtml(row.node, ctx) +
+        dataHtml(row.node) +
+        `</div></li>`
+    );
+};
 
 const rootTitle = (root: RouteRoot): string => {
     if (root.kind === 'unmounted') {
@@ -223,38 +221,50 @@ const Meta = (root: RouteRoot, ctx: Ctx): string => {
 
 const RootSection = (root: RouteRoot, ctx: Ctx): string => {
     const rows = flatten(root.routes, '/', 0);
-    const columns = COLUMNS.filter(column => rows.some(row => column.has(row.node)));
     const anchor = routeAnchor(root.id);
     return (
         `<section class="cdx-content-section cdx-routes-root" data-compodoc="routes-root" data-cdx-route-kind="${root.kind}">` +
         `<h2 class="cdx-section-heading" id="${anchor}">${esc(rootTitle(root))}<a class="cdx-member-permalink" href="#${anchor}">#</a></h2>` +
         Meta(root, ctx) +
-        `<div class="cdx-routes-table-wrap"><table class="cdx-table cdx-routes-table">` +
-        `<thead><tr><th scope="col">${esc(t('full-path'))}</th><th scope="col">${esc(t('route-target'))}</th>` +
-        columns.map(column => `<th scope="col">${esc(t(column.label))}</th>`).join('') +
-        `</tr></thead><tbody>` +
-        rows.map(row => RouteRow(row, columns, ctx)).join('') +
-        `</tbody></table></div></section>`
+        `<ol class="cdx-routes-tree">` +
+        rows.map(row => RouteRow(row, ctx)).join('') +
+        `</ol></section>`
     );
 };
 
 /**
  * The routes page (`routes.html`): one section per router and per unmounted
- * route array, each a table of its routes in tree order (indented by depth),
- * with targets, guards, resolvers, titles, providers and data. Empty columns
- * are left out per section. Needs no script. Override name: `routes`.
+ * route array, each a list of its routes in tree order (indented by depth):
+ * the full path, the target, and the guards, resolvers, title and providers
+ * as facts named by their route property, plus the route data. Needs no
+ * script. Override name: `routes`.
  */
 export const Routes = (props: RoutesPageData): string => {
     const ctx: Ctx = { depth: props.depth, table: props.symbols, di: props.di };
     const roots = props.routing?.roots ?? [];
+    const routers = roots.filter(root => root.kind === 'router').length;
+    const rows = roots.flatMap(root => flatten(root.routes, '/', 0));
+    const lazy = rows.filter(row => row.node.component?.lazy || row.node.childrenFrom?.lazy);
     return (
         <>
-            <div class="cdx-entity-hero" style="--cdx-hero-color: var(--color-cdx-primary)">
+            <div
+                class="cdx-entity-hero"
+                style="--cdx-hero-color: var(--color-cdx-entity-component)"
+            >
                 {pagefindMetaBlock({ kind: 'route' })}
-                <h1 class="cdx-entity-hero-name">{t('routes')}</h1>
-                <div class="cdx-entity-hero-badges">
-                    <span class="cdx-badge cdx-badge--count">{props.routing?.count ?? 0}</span>
+                <div class="cdx-entity-hero-watermark" aria-hidden="true">
+                    {IconGitBranch()}
                 </div>
+                <h1 class="cdx-entity-hero-name">
+                    <span>{t('routes')}</span>
+                </h1>
+                <p class="cdx-entity-hero-description">{t('routes-description')}</p>
+                {HeroCounts([
+                    [t('routes'), props.routing?.count ?? 0],
+                    [t('router'), routers],
+                    [t('unmounted-routes'), roots.length - routers],
+                    [t('lazy-routes'), lazy.length]
+                ])}
             </div>
             {roots.map(root => RootSection(root, ctx)).join('')}
         </>

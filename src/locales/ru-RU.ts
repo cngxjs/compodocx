@@ -203,6 +203,9 @@ export const TRANSLATION_RU_RU = {
     'full-path': 'Полный путь',
     'route-target': 'Цель',
     lazy: 'lazy',
+    'lazy-routes': 'Ленивые',
+    'routes-description':
+        'Все маршруты приложения из конфигурации роутера и экспортированных массивов маршрутов, в порядке дерева.',
     redirect: 'Перенаправление',
     'router-features': 'Функции маршрутизатора',
     'routed-at': 'Маршрут',

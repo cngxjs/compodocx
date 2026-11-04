@@ -202,6 +202,9 @@ export const TRANSLATION_EN_US = {
     'full-path': 'Full path',
     'route-target': 'Target',
     lazy: 'lazy',
+    'lazy-routes': 'Lazy',
+    'routes-description':
+        'Every route of the application, read from the router configuration and from exported route arrays, in tree order.',
     redirect: 'Redirect',
     'router-features': 'Router features',
     'routed-at': 'Routed at',

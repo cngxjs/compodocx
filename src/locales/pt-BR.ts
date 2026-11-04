@@ -202,6 +202,9 @@ export const TRANSLATION_PT_BR = {
     'full-path': 'Caminho completo',
     'route-target': 'Destino',
     lazy: 'lazy',
+    'lazy-routes': 'Lazy',
+    'routes-description':
+        'Todas as rotas da aplicação, lidas da configuração do roteador e dos arrays de rotas exportados, em ordem de árvore.',
     redirect: 'Redirecionamento',
     'router-features': 'Recursos do router',
     'routed-at': 'Roteado em',

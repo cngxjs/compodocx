@@ -159,7 +159,7 @@ describe('CLI simple generation - big app', () => {
 
     it('should render the routes page without a graph script', () => {
         expect(exists(`${distFolder}/js/routes/routes_index.js`)).to.be.false;
-        expect(routesPage).to.contain('class="cdx-table cdx-routes-table"');
+        expect(routesPage).to.contain('<ol class="cdx-routes-tree">');
     });
 
     it('should list the routes of the bootstrapped router, lazy children expanded', () => {
@@ -167,7 +167,7 @@ describe('CLI simple generation - big app', () => {
         expect(routesPage).to.contain('<code>ABOUT_ROUTES</code>');
         expect(routesPage).to.contain('<code>AboutComponent</code>');
         expect(routesPage).to.contain('<code>TodoMVCComponent</code>');
-        expect(routesPage.match(/<tr id="route-0-/g)).to.have.length(8);
+        expect(routesPage.match(/<li id="route-0-/g)).to.have.length(8);
     });
 
     it('should have a readme tab', () => {

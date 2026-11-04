@@ -9,7 +9,7 @@ test.describe('Routes page', () => {
         await page.goto(rootUrl('routes'));
         await expect(page.locator('h2#route-0')).toContainText('Router');
         await expect(page.locator('h2#route-1')).toContainText('PARTNER_ROUTES');
-        await expect(page.locator('table.cdx-routes-table tbody tr')).toHaveCount(23);
+        await expect(page.locator('ol.cdx-routes-tree > li')).toHaveCount(23);
         await context.close();
     });
 
@@ -19,7 +19,11 @@ test.describe('Routes page', () => {
         await page.goto(rootUrl('routes'));
         const entry = page.locator('#route-0-10-2-1-0');
         await expect(entry).toHaveClass(/cdx-routes-depth-3/);
-        await expect(entry).toContainText('/admin/audit/:entry');
+        await expect(entry.locator('.cdx-routes-path')).toHaveAttribute(
+            'title',
+            '/admin/audit/:entry'
+        );
+        await expect(page.locator('#route-0-10-2-1 .cdx-routes-path-own')).toHaveText(':entry');
         await expect(page.locator('#route-0-3')).toContainText('lazy');
         await expect(page.locator('#route-0-0')).toContainText('Redirect');
         await expect(page.locator('.cdx-routes-meta').first()).toContainText('withHashLocation()');
@@ -94,8 +98,8 @@ test.describe('Routes page', () => {
             () => document.documentElement.scrollWidth - document.documentElement.clientWidth
         );
         expect(overflow).toBeLessThanOrEqual(0);
-        const wrap = page.locator('.cdx-routes-table-wrap').first();
-        const scrolls = await wrap.evaluate(el => el.scrollWidth > el.clientWidth);
-        expect(scrolls).toBe(true);
+        const tree = page.locator('ol.cdx-routes-tree').first();
+        const scrolls = await tree.evaluate(el => el.scrollWidth > el.clientWidth);
+        expect(scrolls).toBe(false);
     });
 });
