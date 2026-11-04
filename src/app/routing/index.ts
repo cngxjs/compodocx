@@ -12,7 +12,14 @@ export {
     routeValue,
     unresolvedLazy
 } from './extract';
-export { mountsOf, nodesById, type RouteMount, routedNodes } from './lookup';
+export {
+    mountsOf,
+    nodesById,
+    type RouteMount,
+    type RouteUseAt,
+    routedNodes,
+    routeUsesOf
+} from './lookup';
 export * from './model';
 export {
     importedName,

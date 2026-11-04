@@ -3,8 +3,9 @@ import { renderCustomTemplate } from '../../app/engines/custom-template.engine';
 import type { RoutedAtProps } from '../helpers/routed-at';
 
 /**
- * The routes a component is rendered at, or the places a route array is
- * mounted at, each linking its row on the routes page. Empty without links.
+ * The routes a component is rendered at, the routes using a guard or
+ * resolver (with the role), or the places a route array is mounted at, each
+ * linking its row on the routes page. Empty without links.
  *
  * Overridable as `block-routed-at` via `--templates`.
  */
@@ -27,7 +28,11 @@ export const BlockRoutedAt = (props: RoutedAtProps | undefined): string => {
             <div class="cdx-chip-list">
                 {props.links.map(link => (
                     <a class="cdx-chip cdx-chip--route" href={link.href}>
-                        <code>{Html.escapeHtml(link.label)}</code>
+                        <code>
+                            {Html.escapeHtml(
+                                link.role ? `${link.label} - ${link.role}` : link.label
+                            )}
+                        </code>
                     </a>
                 ))}
             </div>

@@ -9,7 +9,7 @@ test.describe('Routes page', () => {
         await page.goto(rootUrl('routes'));
         await expect(page.locator('h2#route-0')).toContainText('Router');
         await expect(page.locator('h2#route-1')).toContainText('PARTNER_ROUTES');
-        await expect(page.locator('table.cdx-routes-table tbody tr')).toHaveCount(23);
+        await expect(page.locator('ol.cdx-routes-tree > li')).toHaveCount(23);
         await context.close();
     });
 
@@ -19,7 +19,11 @@ test.describe('Routes page', () => {
         await page.goto(rootUrl('routes'));
         const entry = page.locator('#route-0-10-2-1-0');
         await expect(entry).toHaveClass(/cdx-routes-depth-3/);
-        await expect(entry).toContainText('/admin/audit/:entry');
+        await expect(entry.locator('.cdx-routes-path')).toHaveAttribute(
+            'title',
+            '/admin/audit/:entry'
+        );
+        await expect(page.locator('#route-0-10-2-1 .cdx-routes-path-own')).toHaveText(':entry');
         await expect(page.locator('#route-0-3')).toContainText('lazy');
         await expect(page.locator('#route-0-0')).toContainText('Redirect');
         await expect(page.locator('.cdx-routes-meta').first()).toContainText('withHashLocation()');
@@ -46,6 +50,25 @@ test.describe('Routes page', () => {
         const links = page.locator('[data-compodoc="routed-at"] a.cdx-chip');
         await expect(links).toHaveCount(1);
         await expect(links.first()).toContainText('/admin/audit');
+    });
+
+    test('a guard links the routes using it, with the role', async ({ page }) => {
+        await page.goto(pageUrl('guard', 'rtaAuthGuard'));
+        const links = page.locator('[data-compodoc="routed-at"] a.cdx-chip');
+        await expect(page.locator('#used-in-routes')).toContainText('Used in routes');
+        await expect(links).toHaveCount(1);
+        await expect(links.first()).toHaveText('/account - canActivate');
+        await links.first().click();
+        await expect(page).toHaveURL(/routes\.html#route-0-4$/);
+        await expect(page.locator('#route-0-4')).toBeVisible();
+    });
+
+    test('a resolver links its route with the resolve key', async ({ page }) => {
+        await page.goto(pageUrl('resolver', 'rtaUserResolver'));
+        const links = page.locator('[data-compodoc="routed-at"] a.cdx-chip');
+        await expect(links).toHaveCount(1);
+        await expect(links.first()).toHaveText('/account/profile - resolve: user');
+        await expect(links.first()).toHaveAttribute('href', /routes\.html#route-0-4-0$/);
     });
 
     test('a feature page lists the routes of its members', async ({ page }) => {
@@ -75,8 +98,8 @@ test.describe('Routes page', () => {
             () => document.documentElement.scrollWidth - document.documentElement.clientWidth
         );
         expect(overflow).toBeLessThanOrEqual(0);
-        const wrap = page.locator('.cdx-routes-table-wrap').first();
-        const scrolls = await wrap.evaluate(el => el.scrollWidth > el.clientWidth);
-        expect(scrolls).toBe(true);
+        const tree = page.locator('ol.cdx-routes-tree').first();
+        const scrolls = await tree.evaluate(el => el.scrollWidth > el.clientWidth);
+        expect(scrolls).toBe(false);
     });
 });

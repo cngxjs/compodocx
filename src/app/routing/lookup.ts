@@ -1,5 +1,5 @@
 import type { SymbolId } from '../links/symbol-id';
-import type { RouteNode, RoutingModel } from './model';
+import type { RouteNode, RouteUse, RoutingModel } from './model';
 
 const nodeIndexes = new WeakMap<RoutingModel, ReadonlyMap<string, RouteNode>>();
 
@@ -51,3 +51,15 @@ export const mountsOf = (model: RoutingModel, id: SymbolId): readonly RouteMount
     }
     return mounts;
 };
+
+/** A route using a guard, resolver or title resolver, with its node. */
+export interface RouteUseAt extends RouteUse {
+    readonly route: RouteNode;
+}
+
+/** The routes using a guard, resolver or title resolver, in tree order. */
+export const routeUsesOf = (model: RoutingModel, id: SymbolId): readonly RouteUseAt[] =>
+    (model.usedIn.get(id) ?? []).flatMap(use => {
+        const route = nodesById(model).get(use.node);
+        return route ? [{ ...use, route }] : [];
+    });

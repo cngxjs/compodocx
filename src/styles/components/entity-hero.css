@@ -73,6 +73,17 @@
     line-height: 1.3;
 }
 
+/* One sentence about an overview page (routes), between the name and the counts. */
+.cdx-entity-hero-description {
+    position: relative;
+    z-index: 1;
+    max-width: 60ch;
+    margin: var(--spacing-cdx-xs) 0 var(--spacing-cdx-sm);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    color: var(--color-cdx-text-secondary);
+}
+
 .cdx-entity-hero-badges {
     position: relative;
     z-index: 1;

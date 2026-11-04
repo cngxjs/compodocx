@@ -40,6 +40,18 @@ export const GUARD_KEYS = [
 
 export type GuardKey = (typeof GUARD_KEYS)[number];
 
+/** How a route uses a function: one of its guard lists, a `resolve` entry or its title. */
+export type RouteUseRole = GuardKey | 'resolve' | 'title';
+
+/** One route that uses a guard, resolver or title resolver. */
+export interface RouteUse {
+    /** Id of the route node. */
+    readonly node: string;
+    readonly role: RouteUseRole;
+    /** The `resolve` key, for role `resolve`. */
+    readonly key?: string;
+}
+
 export interface RouteNode {
     /** Stable within one build: root index and child index path (`0.2.1`). */
     readonly id: string;
@@ -114,6 +126,8 @@ export interface RoutingModel {
     readonly byTarget: ReadonlyMap<SymbolId, readonly string[]>;
     /** Route array variable -> full paths it is mounted at. */
     readonly mountedAt: ReadonlyMap<SymbolId, readonly string[]>;
+    /** Guard, resolver or title resolver -> the routes using it, in tree order. */
+    readonly usedIn: ReadonlyMap<SymbolId, readonly RouteUse[]>;
     readonly notes: readonly RouteNote[];
 }
 
@@ -130,6 +144,7 @@ export const EMPTY_ROUTING: RoutingModel = {
     count: 0,
     byTarget: new Map(),
     mountedAt: new Map(),
+    usedIn: new Map(),
     notes: []
 };
 

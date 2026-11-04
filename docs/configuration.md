@@ -174,7 +174,7 @@ These flags disable entire features, tabs, or pages. Unlike visibility filters w
 | disableGraph | `--disableGraph` | boolean | `false` | Remove the dependency graph from the overview page; `js/graph.js` is not written. The per-component Dependencies tab is controlled by `disableDependenciesTab`. See [Dependency graph](#dependency-graph) |
 | disableDependenciesTab | `--disableDependenciesTab` | boolean | `false` | Remove the per-component Dependencies tab that shows the component's neighbourhood in the dependency graph. The overview graph and other graphs are not affected |
 | disablePlaygroundTab | `--disablePlaygroundTab` | boolean | `false` | Remove the per-component Playground tab even when `@playground` JSDoc blocks are present in the source |
-| disableRoutes | `--disableRoutes` | boolean | `false` | Do not read routes: no routes page, no menu entry, no Routed at / Mounted at links, no route entries in the command palette and no `routes` in the exports. See [Routes](#routes). The removed `--disableRoutesGraph` / `disableRoutesGraph` are ignored with a warning |
+| disableRoutes | `--disableRoutes` | boolean | `false` | Do not read routes: no routes page, no menu entry, no Routed at / Mounted at / Used in routes links, no route entries in the command palette and no `routes` in the exports. See [Routes](#routes). The removed `--disableRoutesGraph` / `disableRoutesGraph` are ignored with a warning |
 | disableSearch | `--disableSearch` | boolean | `false` | Remove the Pagefind search functionality. Disables the command palette (Ctrl+K), the search input, and skips Pagefind index generation at build time |
 | disableCoverage | `--disableCoverage` | boolean | `false` | Remove the documentation coverage report page. Coverage measures how many public members have JSDoc descriptions |
 | disableOverview | `--disableOverview` | boolean | `false` | Remove the overview/dashboard page that shows project-level statistics and the main dependency graph |
@@ -324,7 +324,7 @@ compodocx reads the routes of the documented files through the project analysis 
 - **Unmounted routes.** An exported route array that no router mounts (a library shipping feature routes) gets a section of its own. Unexported ones are left out.
 - **Not read.** `RouterModule.forRoot` / `forChild`, string `loadChildren`, routes built at runtime by a function (shown as one node with the call), `Router.navigate` calls and `routerLink`.
 
-The build log prints `Routes: <n> in <r> routers, <u> unmounted (<l> lazy, <d> dynamic values)`; what was skipped is logged at debug level. Component pages list the routes they are rendered at, route array variables the places they are mounted at, and feature pages the routes of their members. `--disableRoutes` turns all of it off.
+The build log prints `Routes: <n> in <r> routers, <u> unmounted (<l> lazy, <d> dynamic values)`; what was skipped is logged at debug level. Component pages list the routes they are rendered at, route array variables the places they are mounted at, and feature pages the routes of their members. The page of a functional guard, resolver or title resolver lists the routes using it under "Used in routes", each with the property it is used in (`canActivate`, `canActivateChild`, `canDeactivate`, `canMatch`, `canLoad`, `resolve: <key>` or `title`); redirect functions, matchers and providers are not listed. `--disableRoutes` turns all of it off.
 
 ## Analytics
 

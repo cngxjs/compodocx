@@ -91,18 +91,57 @@ describe('routes page', () => {
         expect(html).toContain('Router main.ts');
         expect(html).toContain('id="route-1"');
         expect(html).toContain('Unmounted routes PARTNERS');
-        expect(html.match(/<tr id="route-/g)).toHaveLength(5);
-        expect(html).toContain('<tr id="route-0-1-0" class="cdx-routes-row cdx-routes-depth-1"');
+        expect(html.match(/<li id="route-/g)).toHaveLength(5);
+        expect(html).toContain('<li id="route-0-1-0" class="cdx-routes-row cdx-routes-depth-1"');
+        expect(html).toContain('title="/"><span class="cdx-routes-path-own">/<wbr /></span>');
     });
 
-    it('leaves out columns no route of the section uses', () => {
+    it('shows a nested route by its own segment, the full path as its title', () => {
         const html = render([router]);
-        expect(html).toContain('>Guards</th>');
-        expect(html).not.toContain('>Data</th>');
-        expect(html).not.toContain('>Resolve</th>');
-        const partners = render([unmounted]);
-        expect(partners).toContain('>Data</th>');
-        expect(partners).not.toContain('>Guards</th>');
+        expect(html).toContain(
+            '<div class="cdx-routes-path" title="/home/detail"><span class="cdx-routes-path-slash">/</span><span class="cdx-routes-path-own">detail</span>'
+        );
+        expect(html).toContain(
+            '<div class="cdx-routes-path" title="/home"><span class="cdx-routes-path-slash">/</span><span class="cdx-routes-path-own">home</span>'
+        );
+    });
+
+    it('marks an empty child path and a dynamic segment', () => {
+        const html = render([
+            {
+                ...router,
+                routes: [
+                    node('0-0', '/{seg()}', {
+                        children: [
+                            node('0-0-0', '/{seg()}', { path: { kind: 'literal', text: '' } })
+                        ]
+                    })
+                ]
+            }
+        ]);
+        expect(html).toContain(
+            '<span class="cdx-routes-path-own"><span class="cdx-routes-path-dynamic">{seg()}</span></span>'
+        );
+        expect(html).toContain('<span class="cdx-routes-path-empty">\'\'</span>');
+    });
+
+    it('lists guards, resolvers, title and providers as facts, data as details', () => {
+        const html = render([router]);
+        expect(html).toContain(
+            '<li class="cdx-routes-fact" data-cdx-route-fact="canActivate"><span class="cdx-routes-fact-key">canActivate</span><span class="cdx-routes-ref"><code>authGuard</code></span></li>'
+        );
+        expect(html).not.toContain('cdx-routes-data');
+        expect(render([unmounted])).toContain(
+            '<details class="cdx-routes-data"><summary>Data</summary>'
+        );
+    });
+
+    it('describes the page and counts routes, routers, unmounted and lazy routes', () => {
+        const html = render([router, unmounted]);
+        expect(html).toMatch(
+            /<p class="cdx-entity-hero-description"[^>]*>Every route of the application/
+        );
+        expect(html).toContain('Routes 5 · Router 1 · Unmounted routes 1 · Lazy 2');
     });
 
     it('links a documented target and marks it lazy', () => {
