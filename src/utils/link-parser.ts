@@ -44,3 +44,17 @@ export function splitLinkText(text) {
         target: target || text
     };
 }
+
+/**
+ * Plain text with every inline `{@link}` (`{@linkcode}`, `{@linkplain}`)
+ * replaced by its link text: the leading `[text]`, the text after `|` or
+ * the first space, else the target. For excerpts that show no links;
+ * expects text without HTML tags.
+ */
+export const linkTagsAsText = (text: string): string =>
+    text
+        .replace(/\[([^\]]+)\]\{@link(?:code|plain)?\s[^}]*\}/g, '$1')
+        .replace(/\{@link(?:code|plain)?\s+([^}]*?)\s*\}/g, (_tag, inner: string) => {
+            const split = splitLinkText(inner.trim());
+            return (split.linkText ?? split.target).trim();
+        });

@@ -23,6 +23,7 @@ import { qualifiedName, type SymbolId, type TableKind } from '../../app/links/sy
 import { entryInFile, type SymbolTable } from '../../app/links/symbol-table';
 import { isAdditionalGroup } from '../../app/page-generator/additional-page-tree';
 import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
+import { linkTagsAsText } from '../../utils/link-parser';
 import { t } from '../helpers';
 import { type AdditionalTreeNode, additionalTree } from '../helpers/additional-tree';
 import {
@@ -349,7 +350,7 @@ const previewDesc = (desc?: string): string | undefined => {
     if (!desc) {
         return undefined;
     }
-    const stripped = desc.replace(/<[^>]+>/g, '').trim();
+    const stripped = linkTagsAsText(desc.replace(/<[^>]+>/g, '')).trim();
     if (!stripped) {
         return undefined;
     }

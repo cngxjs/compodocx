@@ -21,6 +21,24 @@ describe('firstSentence', () => {
         expect(firstSentence('<br/><br/>')).toBeUndefined();
     });
 
+    it('reads an inline {@link} as its link text', () => {
+        expect(firstSentence('<p>Uses {@link Pt} and {@link Api.Point}. More.</p>')).toBe(
+            'Uses Pt and Api.Point'
+        );
+        expect(firstSentence('<p>See {@link Geometry.Point|the point} here.</p>')).toBe(
+            'See the point here'
+        );
+        expect(firstSentence('<p>See {@link https://angular.dev Angular docs}.</p>')).toBe(
+            'See Angular docs'
+        );
+        expect(firstSentence('<p>See [the box]{@link Box} and {@linkcode Foo#bar}.</p>')).toBe(
+            'See the box and Foo#bar'
+        );
+        expect(firstSentence('<p>Uses {@link <a href="Pt">Pt</a>} from markdown.</p>')).toBe(
+            'Uses Pt from markdown'
+        );
+    });
+
     it('strips HTML tags from rendered descriptions', () => {
         expect(firstSentence('<p>Hello <strong>world</strong>.</p>')).toBe('Hello world');
         expect(firstSentence('<code>Foo</code> bar baz')).toBe('Foo bar baz');

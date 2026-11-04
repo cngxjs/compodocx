@@ -1,4 +1,5 @@
 import type { TableKind } from '../../app/links/symbol-id';
+import { linkTagsAsText } from '../../utils/link-parser';
 
 /**
  * User-facing labels for entity kinds. Surfaced on Pagefind search-result
@@ -73,10 +74,8 @@ export function firstSentence(html: unknown): string | undefined {
     }
     // Drop tags first, then collapse whitespace runs (markdown line breaks
     // leave `<br/>` followed by whitespace; both vanish here).
-    const stripped = html
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
+    // An inline `{@link}` reads as its link text; an excerpt has no links.
+    const stripped = linkTagsAsText(html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')).trim();
     if (!stripped) {
         return undefined;
     }
