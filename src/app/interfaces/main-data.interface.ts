@@ -52,6 +52,8 @@ export interface MainDataInterface {
     interfaces: any;
     /** The TypeScript namespaces (`INamespaceDep`); set by the namespace stage. */
     namespaces?: unknown[];
+    /** Every `export import X = Ns.Y` alias, namespace and top-level ones. */
+    namespaceAliases?: unknown[];
     components: any;
     entities: any;
     directives: any;

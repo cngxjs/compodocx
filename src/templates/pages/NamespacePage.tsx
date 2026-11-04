@@ -8,6 +8,7 @@ import type {
 } from '../../app/page-generator/namespace-page-generator';
 import { FeatureCrumbs } from '../components/FeatureCrumbs';
 import { IconFile, IconNamespace } from '../components/Icons';
+import { KindIcon } from '../components/KindIcon';
 import { NamespaceLine } from '../components/NamespaceLine';
 import {
     firstSentence,
@@ -32,12 +33,37 @@ const Section = (id: string, title: string, body: string): string =>
         </section>
     ) as string;
 
+/** An alias names its target after the arrow, muted. */
+const aliasTarget = (member: NamespaceMemberRow): string =>
+    member.aliasOf === undefined
+        ? ''
+        : ((
+              <span class="cdx-namespace-alias-of" safe>
+                  {` -> ${member.aliasOf}`}
+              </span>
+          ) as string);
+
+/** The kind icon (the kind in text for screen readers), a blank of its width without a kind. */
+const KindOf = (member: NamespaceMemberRow): string => {
+    if (!member.kind) {
+        return (<span class="cdx-namespace-kind-blank" aria-hidden="true" />) as string;
+    }
+    const label = KIND_LABELS[member.kind];
+    return `${KindIcon(member.kind, label)}${(<span class="sr-only">{`${label} `}</span>) as string}`;
+};
+
 const MemberRow = (member: NamespaceMemberRow): string => {
     const name = <code>{member.name}</code>;
     return (
-        <tr data-cdx-namespace-member={member.kind}>
-            <td>{KIND_LABELS[member.kind]}</td>
-            <td>{member.href ? <a href={member.href}>{name}</a> : name}</td>
+        <tr
+            data-cdx-namespace-member={member.kind ?? 'alias'}
+            data-cdx-namespace-alias={member.aliasOf}
+        >
+            <td class="cdx-namespace-member-name">
+                {KindOf(member)}
+                {member.href ? <a href={member.href}>{name}</a> : name}
+                {aliasTarget(member)}
+            </td>
             <td>{firstSentence(member.description) ?? ''}</td>
         </tr>
     ) as string;
@@ -53,7 +79,6 @@ const Members = (members: readonly NamespaceMemberRow[]): string =>
                   <table class="cdx-table">
                       <thead>
                           <tr>
-                              <th scope="col">{t('kind')}</th>
                               <th scope="col">{t('name')}</th>
                               <th scope="col">{t('description')}</th>
                           </tr>

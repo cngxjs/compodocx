@@ -46,6 +46,7 @@ const fixture = (): Required<Omit<EngineData, 'miscellaneous'>> & {
     classes: [item('Page', 'src/page.ts'), item('Foo', 'src/foo.class.ts')],
     interfaces: [item('Foo', 'src/foo.ts'), item('Item', 'src/item.ts')],
     namespaces: [],
+    namespaceAliases: [],
     guards: [],
     interceptors: [],
     entities: [],

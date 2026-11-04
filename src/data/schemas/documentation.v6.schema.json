@@ -112,6 +112,13 @@
             },
             "description": "TypeScript namespaces, outermost first; written only when there are any."
         },
+        "aliases": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/ExportAlias"
+            },
+            "description": "Top-level `export import X = Ns.Y` aliases; written only when there are any."
+        },
         "semantic": {
             "$ref": "#/$defs/ExportSemantic",
             "description": "Entry points and counts of the semantic analysis. Absent when the\nanalysis did not run (no tsconfig, or the tsconfig could not be read)."
@@ -182,6 +189,25 @@
                 "title",
                 "file",
                 "markdown"
+            ],
+            "additionalProperties": true
+        },
+        "ExportAlias": {
+            "description": "An `export import X = Ns.Y` alias: qualified alias name and qualified target name.",
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "`Api.Point` inside a namespace, `Pt` at the top level of a file."
+                },
+                "target": {
+                    "type": "string",
+                    "description": "`Geometry.Point`, as the checker resolves it (else as written)."
+                }
+            },
+            "required": [
+                "name",
+                "target"
             ],
             "additionalProperties": true
         },
@@ -2460,6 +2486,13 @@
                     "items": {
                         "type": "string"
                     }
+                },
+                "aliases": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/$defs/ExportAlias"
+                    },
+                    "description": "The `export import X = Ns.Y` aliases it declares; written only when there are any."
                 },
                 "entryPoint": {
                     "type": "string",

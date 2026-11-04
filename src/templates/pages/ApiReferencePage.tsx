@@ -9,11 +9,11 @@ import type { TableKind } from '../../app/links/symbol-id';
 import { unlinkedTokenFiles } from '../../app/styles/design-tokens';
 import { isNonNull } from '../../lib';
 import { IconSearch, IconX } from '../components/Icons';
+import { KindIcon } from '../components/KindIcon';
 import {
     deriveLibFromBucket,
     firstSentence,
     KIND_LABELS,
-    KIND_LETTER,
     pagefindMetaBlock,
     relativeUrl,
     t
@@ -55,15 +55,6 @@ const stabilityOf = (item: BucketItem): 'stable' | 'experimental' | 'deprecated'
     return 'stable';
 };
 
-const KindLetterIcon = (kind: TableKind): string => {
-    const letter = KIND_LETTER[kind] ?? '?';
-    return (
-        <span class={`cdx-ref-kind-icon cdx-ref-kind-icon--${kind}`} aria-hidden="true">
-            {letter}
-        </span>
-    ) as string;
-};
-
 const RefItem = (item: BucketItem, depth: number, bucket: string): string => {
     const href = buildHref(item, depth);
     const stability = stabilityOf(item);
@@ -80,7 +71,7 @@ const RefItem = (item: BucketItem, depth: number, bucket: string): string => {
             data-cdx-wcag={wcag ?? undefined}
         >
             <a class="cdx-ref-item-link" href={href} title={excerpt || name}>
-                {KindLetterIcon(item.kind)}
+                {KindIcon(item.kind)}
                 <span class="cdx-ref-item-name">{name}</span>
                 <span class="cdx-ref-item-badges">
                     {stability === 'deprecated' ? (
@@ -157,7 +148,6 @@ const BucketSection = (bucket: string, items: readonly BucketItem[], depth: numb
 };
 
 const KindChip = (kind: TableKind, count: number): string => {
-    const letter = KIND_LETTER[kind] ?? '?';
     const label = KIND_LABELS[kind] ?? kind;
     return (
         <button
@@ -167,9 +157,7 @@ const KindChip = (kind: TableKind, count: number): string => {
             aria-pressed="true"
             title={label}
         >
-            <span class={`cdx-ref-kind-icon cdx-ref-kind-icon--${kind}`} aria-hidden="true">
-                {letter}
-            </span>
+            {KindIcon(kind)}
             <span class="cdx-ref-kind-chip-label">{label}</span>
             <span class="cdx-ref-kind-chip-count" data-cdx-ref-kind-count={kind}>
                 {count}

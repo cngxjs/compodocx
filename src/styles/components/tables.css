@@ -79,3 +79,23 @@
     font-size: inherit;
     color: var(--color-cdx-text);
 }
+
+/* Namespace member table: the target an `export import` alias points to. */
+.cdx-namespace-alias-of {
+    @apply text-xs;
+    color: var(--color-cdx-text-secondary);
+    font-family: var(--font-code);
+    white-space: nowrap;
+}
+
+/* Namespace member table: the kind icon (or a blank of its width) before the name. */
+.cdx-namespace-member-name .cdx-ref-kind-icon,
+.cdx-namespace-kind-blank {
+    margin-right: var(--spacing-cdx-sm);
+    vertical-align: middle;
+}
+
+.cdx-namespace-kind-blank {
+    display: inline-block;
+    width: var(--cdx-ref-icon);
+}

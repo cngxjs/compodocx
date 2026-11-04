@@ -386,6 +386,16 @@ export interface ExportNamespace extends ExportSemanticFacts {
     file: string;
     description?: string;
     members: string[];
+    /** The `export import X = Ns.Y` aliases it declares; written only when there are any. */
+    aliases?: ExportAlias[];
+}
+
+/** An `export import X = Ns.Y` alias: qualified alias name and qualified target name. */
+export interface ExportAlias {
+    /** `Api.Point` inside a namespace, `Pt` at the top level of a file. */
+    name: string;
+    /** `Geometry.Point`, as the checker resolves it (else as written). */
+    target: string;
 }
 
 export interface ExportEntityCommon extends ExportSemanticFacts, ExportNamespaceScope {
@@ -727,6 +737,8 @@ export interface ExportData {
     styleFiles?: ExportStyleFile[];
     /** TypeScript namespaces, outermost first; written only when there are any. */
     namespaces?: ExportNamespace[];
+    /** Top-level `export import X = Ns.Y` aliases; written only when there are any. */
+    aliases?: ExportAlias[];
     /**
      * Entry points and counts of the semantic analysis. Absent when the
      * analysis did not run (no tsconfig, or the tsconfig could not be read).

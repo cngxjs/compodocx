@@ -225,4 +225,22 @@ export interface INamespaceDep extends IDep {
     description: string;
     rawdescription: string;
     members: string[];
+    /** The `export import X = Ns.Y` aliases it declares, in name order. */
+    aliases?: INamespaceAlias[];
+}
+
+/**
+ * An exported import alias, `export import Point = Geometry.Point`. `name`
+ * is the alias name, `namespace` the enclosing namespace chain (absent at the
+ * top level), `target` the qualified name of what it points to.
+ */
+export interface INamespaceAlias {
+    name: string;
+    namespace?: string;
+    target: string;
+    /** File of the target declaration, cwd-relative; absent when it cannot be resolved. */
+    targetFile?: string;
+    file: string;
+    description: string;
+    rawdescription: string;
 }

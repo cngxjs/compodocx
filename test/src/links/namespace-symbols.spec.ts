@@ -88,8 +88,19 @@ describe('namespace member symbols', () => {
                         { name: 'StateSource', file: FILE, namespace: 'Bridge', type: 'interface' }
                     ],
                     namespaces: [
-                        { name: 'Bridge', file: FILE, type: 'namespace' },
-                        { name: 'Inner', file: FILE, namespace: 'Bridge', type: 'namespace' }
+                        {
+                            name: 'Bridge',
+                            file: FILE,
+                            type: 'namespace',
+                            members: ['Bridge.Inner', 'Bridge.StateSource']
+                        },
+                        {
+                            name: 'Inner',
+                            file: FILE,
+                            namespace: 'Bridge',
+                            type: 'namespace',
+                            members: ['Bridge.Inner.Deep']
+                        }
                     ]
                 } as never,
                 { cwd: '/repo' }

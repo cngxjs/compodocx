@@ -11,6 +11,7 @@ import { EXPORT_SCHEMA_VERSION, type ExportData } from '../interfaces/export-dat
 import { exportRoutes, type RoutingModel } from '../routing';
 import { exportAdditionalPages } from './export-additional-pages';
 import {
+    exportAliases,
     exportNamespaces,
     exportStyleFiles,
     factsJoiner,
@@ -77,6 +78,10 @@ export class ExportLlmMdEngine {
         const namespaces = exportNamespaces(data.namespaces);
         if (namespaces.length > 0) {
             exportData.namespaces = facts(namespaces);
+        }
+        const aliases = exportAliases(data.namespaceAliases);
+        if (aliases.length > 0) {
+            exportData.aliases = aliases;
         }
         exportData.miscellaneous = model
             ? miscellaneousWithFacts(data.miscellaneous, model)

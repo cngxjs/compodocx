@@ -11,6 +11,7 @@ export interface ParsedData {
     guards?;
     interfaces?;
     namespaces?;
+    namespaceAliases?;
     pipes?;
     classes?;
     miscellaneous?;
