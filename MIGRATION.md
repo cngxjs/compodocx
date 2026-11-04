@@ -75,6 +75,7 @@ No flag or config key was removed, and the JSON export schema stays 6. What to c
 - **Namespace member URLs.** A namespace member's page is named after its qualified name (`Bridge.StateSource.html` instead of `StateSource.html`). `redirects.json` maps the old page to the new one, and the version switcher follows it; hand-written links to the old page are rewritten. Bookmarks keep working through the redirect.
 - **Non-exported namespace members are gone.** A member without `export` inside a namespace, and every member of a namespace the file does not export, is no longer documented. Add `export` where the member is meant to be documented.
 - **`documentation.json` entries of namespace members.** `name` stays the bare name; the new `namespace` field holds the chain, so the qualified name is `<namespace>.<name>`. Module augmentation members carry `augments`, and the top-level `namespaces` list is new. Tools that key entries by `name` and file see same-name members of two namespaces as two entries now. `compodocx diff` pairs entries by the qualified name.
+- **Markdown image class.** Images rendered from markdown have the class `cdx-img-responsive` instead of `img-responsive`. Rename the class in custom CSS or template overrides that select it.
 
 ## Changes in 0.14.0
 
