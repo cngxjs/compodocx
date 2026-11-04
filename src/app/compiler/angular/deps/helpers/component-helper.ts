@@ -64,6 +64,29 @@ export type HostDirectiveEntry = {
     readonly refName?: string;
 };
 
+/** `node` without parentheses, `as` and `satisfies` around it. */
+const unwrapExpression = (node: ts.Expression): ts.Expression => {
+    let current = node;
+    while (
+        ts.isParenthesizedExpression(current) ||
+        ts.isAsExpression(current) ||
+        ts.isSatisfiesExpression(current)
+    ) {
+        current = current.expression;
+    }
+    return current;
+};
+
+/** The initializer of the top-level variable `name` in `srcFile`. */
+const localVariableInitializer = (
+    name: string,
+    srcFile: ts.SourceFile
+): ts.Expression | undefined =>
+    srcFile.statements
+        .filter(ts.isVariableStatement)
+        .flatMap(statement => [...statement.declarationList.declarations])
+        .find(decl => ts.isIdentifier(decl.name) && decl.name.text === name)?.initializer;
+
 export class ComponentHelper {
     constructor(
         private classHelper: ClassHelper,
@@ -255,24 +278,8 @@ export class ComponentHelper {
         name: string,
         srcFile: ts.SourceFile
     ): ReadonlyArray<ts.ObjectLiteralElementLike> | undefined {
-        for (const statement of srcFile.statements) {
-            if (!ts.isVariableStatement(statement)) {
-                continue;
-            }
-            for (const decl of statement.declarationList.declarations) {
-                if (!ts.isIdentifier(decl.name)) {
-                    continue;
-                }
-                if (decl.name.text !== name) {
-                    continue;
-                }
-                const init = decl.initializer;
-                if (init && ts.isObjectLiteralExpression(init)) {
-                    return init.properties;
-                }
-            }
-        }
-        return undefined;
+        const init = localVariableInitializer(name, srcFile);
+        return init && ts.isObjectLiteralExpression(init) ? init.properties : undefined;
     }
 
     public getComponentHost(
@@ -514,11 +521,69 @@ export class ComponentHelper {
         return this.sanitizeUrls(this.symbolHelper.getSymbolDeps(props, 'assetsDir', srcFile));
     }
 
+    /**
+     * The inline `styles` of a decorator: a string, a template literal or an
+     * array of them, also through consts and spreads. A template literal with
+     * substitutions is kept as written (`${COLOR}` stays in the text); a value
+     * that cannot be read (a call, an unknown name) is left out instead of
+     * showing its name as CSS.
+     */
     public getComponentStyles(
         props: ReadonlyArray<ts.ObjectLiteralElementLike>,
         srcFile: ts.SourceFile
     ): string[] {
-        return this.symbolHelper.getSymbolDeps(props, 'styles', srcFile);
+        const prop = props.find(p => p.name && ts.isIdentifier(p.name) && p.name.text === 'styles');
+        if (!prop) {
+            return [];
+        }
+        if (ts.isShorthandPropertyAssignment(prop)) {
+            return this.readStyles(prop.name, srcFile, new Set());
+        }
+        if (ts.isPropertyAssignment(prop)) {
+            return this.readStyles(prop.initializer, srcFile, new Set());
+        }
+        return [];
+    }
+
+    private readStyles(
+        node: ts.Expression | undefined,
+        srcFile: ts.SourceFile,
+        seen: Set<ts.Node>
+    ): string[] {
+        const expression = node && unwrapExpression(node);
+        if (!expression || seen.has(expression)) {
+            return [];
+        }
+        seen.add(expression);
+        if (ts.isStringLiteral(expression) || ts.isNoSubstitutionTemplateLiteral(expression)) {
+            return [expression.text];
+        }
+        if (ts.isTemplateExpression(expression)) {
+            return [expression.getText(srcFile).slice(1, -1)];
+        }
+        if (ts.isArrayLiteralExpression(expression)) {
+            return expression.elements.flatMap(element =>
+                this.readStyles(
+                    ts.isSpreadElement(element) ? element.expression : element,
+                    srcFile,
+                    seen
+                )
+            );
+        }
+        if (ts.isIdentifier(expression)) {
+            const target = this.constInitializer(expression, srcFile);
+            return target ? this.readStyles(target.initializer, target.srcFile, seen) : [];
+        }
+        return [];
+    }
+
+    /** The initializer of the variable `identifier` names, in this file. */
+    private constInitializer(
+        identifier: ts.Identifier,
+        srcFile: ts.SourceFile
+    ): { initializer: ts.Expression; srcFile: ts.SourceFile } | undefined {
+        const initializer = localVariableInitializer(identifier.text, srcFile);
+        return initializer ? { initializer, srcFile } : undefined;
     }
 
     public getComponentModuleId(

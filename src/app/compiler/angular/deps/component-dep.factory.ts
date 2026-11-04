@@ -37,7 +37,7 @@ export class ComponentDepFactory {
             providers: this.helper.getComponentProviders(props, srcFile),
             selector: this.helper.getComponentSelector(props, srcFile),
             styleUrls: this.helper.getComponentStyleUrls(props, srcFile),
-            styles: this.helper.getComponentStyles(props, srcFile), // TODO fix args
+            styles: this.helper.getComponentStyles(props, srcFile),
             template: this.helper.getComponentTemplate(props, srcFile),
             templateUrl: this.helper.getComponentTemplateUrl(props, srcFile),
             viewProviders: this.helper.getComponentViewProviders(props, srcFile),
