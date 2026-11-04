@@ -26,18 +26,15 @@ export class ComponentDepFactory {
             name,
             id: `component-${name}-${hash}`,
             file: file,
-            // animations?: string[]; // TODO
             changeDetection: this.helper.getComponentChangeDetection(props, srcFile),
             encapsulation: this.helper.getComponentEncapsulation(props, srcFile),
             exportAs: this.helper.getComponentExportAs(props, srcFile),
             host: this.helper.getComponentHost(props),
             hostStructured: this.helper.getComponentHostStructured(props),
             inputs: this.helper.getComponentInputsMetadata(props, srcFile),
-            // interpolation?: string; // TODO waiting doc infos
             moduleId: this.helper.getComponentModuleId(props, srcFile),
             outputs: this.helper.getComponentOutputs(props, srcFile),
             providers: this.helper.getComponentProviders(props, srcFile),
-            // queries?: Deps[]; // TODO
             selector: this.helper.getComponentSelector(props, srcFile),
             styleUrls: this.helper.getComponentStyleUrls(props, srcFile),
             styles: this.helper.getComponentStyles(props, srcFile), // TODO fix args
