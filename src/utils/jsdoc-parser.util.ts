@@ -2,6 +2,9 @@ import { SyntaxKind, ts } from 'ts-morph';
 
 import * as _ts from './ts-internal';
 
+/** JSDoc comments and tags per node, kept off the TypeScript nodes. */
+const jsDocsCache = new WeakMap<ts.Node, ReadonlyArray<ts.JSDoc | ts.JSDocTag>>();
+
 export class JsdocParserUtil {
     public isVariableLike(node: ts.Node): node is ts.VariableLikeDeclaration {
         if (node) {
@@ -212,11 +215,10 @@ export class JsdocParserUtil {
     }
 
     public getJSDocs(node: ts.Node): ReadonlyArray<ts.JSDoc | ts.JSDocTag> {
-        // TODO: jsDocCache is internal, see if there's a way around it
-        let cache: ReadonlyArray<ts.JSDoc | ts.JSDocTag> = (node as any).jsDocCache;
+        let cache = jsDocsCache.get(node);
         if (!cache) {
             cache = this.getJSDocsWorker(node, []).filter(x => x);
-            (node as any).jsDocCache = cache;
+            jsDocsCache.set(node, cache);
         }
         return cache;
     }
