@@ -8,8 +8,13 @@ import { relativePrefix } from './layout';
 export type MarkdownPages = ReadonlyMap<string, string>;
 
 export interface MarkdownLinkSource {
-    /** Absolute path of the Markdown file the HTML was rendered from (posix separators). */
-    readonly file: string;
+    /**
+     * Absolute path of the file the HTML was rendered from (posix separators):
+     * a Markdown file, or the TypeScript file of a symbol whose JSDoc and
+     * neighbour README the page shows. Without one (a page shown from several
+     * files) only root-absolute links are resolved.
+     */
+    readonly file?: string;
     /** Folder a root-absolute link (`/guides/x.md`) is resolved against (posix separators). */
     readonly root: string;
     /** Folder depth of the page the HTML is written to. */
@@ -45,7 +50,8 @@ const attributeText = (href: string): string => href.replace(/&/g, '&amp;');
  * against the folder of the source file, a root-absolute one (`/...`)
  * against `root`. A target with a page points at that page, relative to the
  * page depth, anchor kept; a target without one is left as written and
- * listed in `missing`. External links and `#anchor` links are untouched.
+ * listed in `missing`. External links and `#anchor` links are untouched, so
+ * are relative links when the source has no file.
  */
 export const rewriteMarkdownLinks = (
     html: string,
@@ -64,7 +70,11 @@ export const rewriteMarkdownLinks = (
             if (!MD_FILE.test(file)) {
                 return match;
             }
-            const base = file.startsWith('/') ? source.root : path.posix.dirname(source.file);
+            const rootAbsolute = file.startsWith('/');
+            if (!rootAbsolute && source.file === undefined) {
+                return match;
+            }
+            const base = rootAbsolute ? source.root : path.posix.dirname(source.file);
             const target = path.posix.normalize(path.posix.join(base, file));
             const page = pages.get(target);
             if (page === undefined) {
@@ -78,6 +88,46 @@ export const rewriteMarkdownLinks = (
     return { html: rewritten, missing };
 };
 
-/** The warning for a `.md` link without a page; paths as the caller shows them. */
-export const missingMarkdownPageMessage = (page: string, target: string): string =>
-    `${page}: link to ${target} has no additional page`;
+/** A `.md` link without a page; paths as the report shows them. */
+export interface MissingMarkdownLink {
+    /** File the link was written in. */
+    readonly source: string;
+    /** File the link points at. */
+    readonly target: string;
+}
+
+export interface MissingMarkdownLinksReport {
+    /** The count line, logged as a warning. */
+    readonly summary: string;
+    /** One indented `source: target` line per link, listed with `--verbose`. */
+    readonly details: readonly string[];
+}
+
+/**
+ * The build notice for `.md` links without a page: a count line, then one
+ * line per link, sorted by source, then target. The same link (source and
+ * target) counts once. Undefined without links.
+ */
+export const missingMarkdownLinksReport = (
+    links: Iterable<MissingMarkdownLink>
+): MissingMarkdownLinksReport | undefined => {
+    const unique = new Map<string, MissingMarkdownLink>();
+    for (const item of links) {
+        unique.set(`${item.source}\0${item.target}`, item);
+    }
+    if (unique.size === 0) {
+        return undefined;
+    }
+    const order = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+    const sorted = [...unique.values()].sort(
+        (a, b) => order(a.source, b.source) || order(a.target, b.target)
+    );
+    const counted =
+        sorted.length === 1
+            ? '1 link to a .md file without a page (--verbose lists it)'
+            : `${sorted.length} links to .md files without a page (--verbose lists them)`;
+    return {
+        summary: `Markdown links: ${counted}`,
+        details: sorted.map(item => `  ${item.source}: ${item.target}`)
+    };
+};

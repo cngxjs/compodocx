@@ -499,6 +499,7 @@ const writeOutput = (ctx: RunContext): Promise<Result<RunContext, Halt>> =>
                         current.generators.pageWriter
                     );
                 }
+                current.generators.pageWriter.reportMarkdownLinks();
                 return proceed(current);
             },
             async current => {
