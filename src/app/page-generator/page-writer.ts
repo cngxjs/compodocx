@@ -1,3 +1,5 @@
+import * as path from 'node:path';
+
 import AngularApiUtil from '../../utils/angular-api.util';
 import { buildEntityIndex } from '../../utils/entity-index.util';
 import { logger } from '../../utils/logger';
@@ -8,6 +10,12 @@ import { buildGraphModel, defaultKinds, graphFile, visibleGraph } from '../graph
 import type { PageInterface } from '../interfaces/page.interface';
 import { featureSegments } from '../links/feature-paths';
 import { pageLocation, pagePath, ROOT_DEPTH } from '../links/layout';
+import {
+    type MarkdownPages,
+    missingMarkdownPageMessage,
+    rewriteMarkdownLinks,
+    toPosix
+} from '../links/markdown-links';
 import {
     buildRedirects,
     type Redirects,
@@ -25,6 +33,39 @@ import {
     menuScript
 } from './shared-scripts';
 
+/** Pages of the additional documentation, nested ones included; groups have none. */
+const additionalPagesOf = (pages: readonly PageInterface[]): PageInterface[] =>
+    pages.flatMap((page: PageInterface) => [
+        ...(isAdditionalGroup(page) ? [] : [page]),
+        ...((page as { children?: PageInterface[] }).children ?? [])
+    ]);
+
+const absolutePosix = (base: string, file: string): string => toPosix(path.resolve(base, file));
+
+/** Contexts of the root pages rendered from the project Markdown files. */
+const ROOT_MARKDOWN_CONTEXTS: ReadonlySet<string> = new Set([
+    'readme',
+    'changelog',
+    'contributing',
+    'license',
+    'todo'
+]);
+
+/** File name (no extension) of a root Markdown page: `README` for the index. */
+const rootMarkdownName = (page: PageInterface): string =>
+    page.context === 'readme' ? 'README' : page.context.toUpperCase();
+
+/** The Markdown file a page was rendered from: an additional page or the README. */
+const markdownSourceOf = (page: PageInterface): string | undefined => {
+    const { mainData } = Configuration;
+    if (page.context === 'additional-page' && page.additionalPageSource) {
+        return absolutePosix(mainData.includes, page.additionalPageSource.file);
+    }
+    return page.context === 'readme'
+        ? absolutePosix(process.cwd(), `${rootMarkdownName(page)}.md`)
+        : undefined;
+};
+
 /** Path of a file in the output folder, from its path below the site root. */
 const outputPath = (file: string): string => {
     const { output } = Configuration.mainData;
@@ -37,6 +78,49 @@ export class PageWriter {
     /** Output files written by earlier runs since the last `takeStalePages`. */
     private readonly earlier = new Set<string>();
     private legacy?: { readonly redirects: Redirects; readonly pages: ReadonlySet<string> };
+    private markdown?: MarkdownPages;
+
+    /**
+     * The page of every Markdown file that has one, built once per run: the
+     * additional pages and the root pages of the project files (README.md
+     * and its neighbours in the cwd).
+     */
+    private markdownPages(): MarkdownPages {
+        this.markdown ??= new Map([
+            ...Configuration.pages
+                .filter(page => ROOT_MARKDOWN_CONTEXTS.has(page.context))
+                .map((page): [string, string] => [
+                    absolutePosix(process.cwd(), `${rootMarkdownName(page)}.md`),
+                    pageOutputPath(page)
+                ]),
+            ...additionalPagesOf(Configuration.mainData.additionalPages).map(
+                (page): [string, string] => [
+                    absolutePosix(Configuration.mainData.includes, page.additionalPageSource.file),
+                    pageOutputPath(page)
+                ]
+            )
+        ]);
+        return this.markdown;
+    }
+
+    /** Relative `.md` links of a Markdown page pointed at the generated pages. */
+    private withMarkdownLinks(html: string, page: PageInterface): string {
+        const file = markdownSourceOf(page);
+        if (file === undefined) {
+            return html;
+        }
+        const root = absolutePosix(Configuration.mainData.includes ?? '', '.');
+        const result = rewriteMarkdownLinks(
+            html,
+            { file, root, depth: page.depth ?? ROOT_DEPTH },
+            this.markdownPages()
+        );
+        const shown = (absolute: string): string => toPosix(path.relative(process.cwd(), absolute));
+        for (const target of result.missing) {
+            logger.warn(missingMarkdownPageMessage(shown(file), shown(target)));
+        }
+        return result.html;
+    }
 
     /**
      * The redirect map of this run (old page paths of earlier layouts) and
@@ -47,10 +131,7 @@ export class PageWriter {
             return this.legacy;
         }
         const { mainData } = Configuration;
-        const additional = mainData.additionalPages.flatMap((page: PageInterface) => [
-            ...(isAdditionalGroup(page) ? [] : [page]),
-            ...((page as { children?: PageInterface[] }).children ?? [])
-        ]);
+        const additional = additionalPagesOf(mainData.additionalPages);
         const pages = new Set([...Configuration.pages, ...additional].map(pageOutputPath));
         const features = mainData.semantic?.features?.features ?? [];
         const utilities = pagePath(pageLocation({ type: 'root', page: 'utilities' }));
@@ -74,7 +155,7 @@ export class PageWriter {
 
         const { redirects, pages } = this.legacyLinks();
         const htmlData = rewriteLegacyLinks(
-            HtmlEngine.render(Configuration.mainData, page),
+            this.withMarkdownLinks(HtmlEngine.render(Configuration.mainData, page), page),
             pageOutputPath(page),
             page.depth ?? ROOT_DEPTH,
             redirects,
@@ -106,6 +187,7 @@ export class PageWriter {
 
     public async processPages(): Promise<void> {
         this.legacy = undefined;
+        this.markdown = undefined;
         for (const file of this.written) {
             this.earlier.add(file);
         }
