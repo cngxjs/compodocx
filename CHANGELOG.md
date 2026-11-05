@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
-## [Unreleased]
+## [0.15.0] - 2026-11-05
 
 Upgrading from 0.14: no flag or config key was removed and the JSON export schema stays 6. The per-symbol log lines need `--verbose` now, namespace members get pages named after their qualified name (old URLs redirect), and members a namespace does not export are no longer documented. [MIGRATION.md](MIGRATION.md) lists each change.
 
@@ -43,11 +43,8 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 ### Fixed
 
 - **Links between additional pages.** A relative link to a Markdown file in an additional page or the README (`[Signals](./signals.md)`) kept its `.md` target and led to a missing page. It now points at the generated page of that file, resolved against the folder of the file it is written in (`/...` against the `--includes` folder), anchor kept. `{@link ./guide.md}` in JSDoc and Markdown links in a symbol's neighbour README work the same way, resolved against the folder of the `.ts` file, and a link to the README of another symbol or of a feature folder points at its page. A link to a file without a page stays as written; one warning after the build counts them, `--verbose` lists them. See [Links between pages](docs/additional-pages.md#links-between-pages).
-
 - **`{@link}` labels with spaces around the pipe.** `{@link Foo | the foo}` kept the spaces in the target, so a symbol was not found (rendered as code) and a URL or `.md` link got a trailing space in its `href`. The spaces around the pipe are now dropped.
-
 - **`{@link}` in short descriptions.** The first sentence shown on feature pages, namespace pages, the utilities and dependency injection pages, the API reference tooltips, the search excerpts and the sidebar previews printed an inline `{@link Target}` as raw text. It now reads as its link text (`[text]{@link X}`, `{@link X|text}`, `{@link X text}`, else the target).
-
 - **Dotted namespaces.** `namespace A.B { ... }` was skipped. Its members are documented as `A.B.Member`, and `A` and `A.B` get namespace pages.
 - **`publicApiOnly` with namespaces.** The members of a namespace that the public API exports were dropped, because the declaration files only name the namespace. They are kept now, nested namespaces included. A module augmentation is kept when its file declares a public symbol.
 - **Multi-line tags in descriptions.** The second and later lines of a block tag (`@slot`, `@deprecated`, ...) showed up in the description of the symbol. The text of a tag now runs until the next tag, code fences included; `@example` and `@see` stay part of the description.
