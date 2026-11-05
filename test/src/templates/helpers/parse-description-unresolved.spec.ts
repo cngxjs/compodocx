@@ -27,4 +27,11 @@ describe('parseDescription with an unresolved {@link}', () => {
         );
         expect(parseDescription('{@link GUIDE.md}', 1)).toBe('<a href="GUIDE.md">GUIDE.md</a>');
     });
+
+    it('trims the spaces around the pipe of a labelled link', () => {
+        expect(parseDescription('See {@link ./guide.md#setup | Setup}.', 1)).toBe(
+            'See <a href="./guide.md#setup">Setup</a>.'
+        );
+        expect(parseDescription('See {@link appConfig | APP}', 1)).toBe('See <code>APP</code>');
+    });
 });

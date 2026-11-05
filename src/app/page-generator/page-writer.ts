@@ -12,7 +12,8 @@ import { featureSegments } from '../links/feature-paths';
 import { pageLocation, pagePath, ROOT_DEPTH } from '../links/layout';
 import {
     type MarkdownPages,
-    missingMarkdownPageMessage,
+    type MissingMarkdownLink,
+    missingMarkdownLinksReport,
     rewriteMarkdownLinks,
     toPosix
 } from '../links/markdown-links';
@@ -55,7 +56,60 @@ const ROOT_MARKDOWN_CONTEXTS: ReadonlySet<string> = new Set([
 const rootMarkdownName = (page: PageInterface): string =>
     page.context === 'readme' ? 'README' : page.context.toUpperCase();
 
-/** The Markdown file a page was rendered from: an additional page or the README. */
+/**
+ * Page field holding the symbol of a symbol page, per context. Its `file`
+ * is the TypeScript source of the JSDoc and the neighbour README the page
+ * shows. Pages of several files (DI clusters, features) are not listed.
+ */
+const SYMBOL_DATA_KEYS: Readonly<Record<string, string>> = {
+    component: 'component',
+    directive: 'directive',
+    class: 'class',
+    interface: 'interface',
+    injectable: 'injectable',
+    service: 'service',
+    pipe: 'pipe',
+    entity: 'entity',
+    token: 'token',
+    provider: 'provider',
+    namespace: 'namespace',
+    guard: 'injectable',
+    interceptor: 'injectable',
+    resolver: 'resolver',
+    function: 'function',
+    variable: 'variable',
+    typealias: 'typealias',
+    enumeration: 'enumeration'
+};
+
+/** The TypeScript file of a symbol page, absolute; undefined for other pages. */
+const symbolSourceOf = (page: PageInterface): string | undefined => {
+    const key = SYMBOL_DATA_KEYS[page.context];
+    const file = key === undefined ? undefined : (page[key] as { file?: unknown })?.file;
+    return typeof file === 'string' && file !== '' ? absolutePosix(process.cwd(), file) : undefined;
+};
+
+/** The neighbour README a symbol page shows (`foo.component.md`), absolute. */
+const symbolReadmeOf = (page: PageInterface): string | undefined => {
+    const key = SYMBOL_DATA_KEYS[page.context];
+    const readme = key === undefined ? undefined : (page[key] as { readme?: unknown })?.readme;
+    const file = symbolSourceOf(page);
+    return typeof readme === 'string' && file !== undefined
+        ? `${file.replace(/\.ts$/, '')}.md`
+        : undefined;
+};
+
+/** The README a feature page shows, absolute. */
+const featureReadmeOf = (page: PageInterface): string | undefined => {
+    const file = (page.feature as { readme?: { file?: unknown } } | undefined)?.readme?.file;
+    return typeof file === 'string' ? absolutePosix(process.cwd(), file) : undefined;
+};
+
+/**
+ * The file the `.md` links of a page are resolved against: the Markdown file
+ * of an additional page or the README, the TypeScript file of a symbol page.
+ * Undefined for any other page, which resolves root-absolute links only.
+ */
 const markdownSourceOf = (page: PageInterface): string | undefined => {
     const { mainData } = Configuration;
     if (page.context === 'additional-page' && page.additionalPageSource) {
@@ -63,8 +117,11 @@ const markdownSourceOf = (page: PageInterface): string | undefined => {
     }
     return page.context === 'readme'
         ? absolutePosix(process.cwd(), `${rootMarkdownName(page)}.md`)
-        : undefined;
+        : symbolSourceOf(page);
 };
+
+/** A path as the build log shows it: relative to the cwd, posix separators. */
+const shownPath = (absolute: string): string => toPosix(path.relative(process.cwd(), absolute));
 
 /** Path of a file in the output folder, from its path below the site root. */
 const outputPath = (file: string): string => {
@@ -79,14 +136,31 @@ export class PageWriter {
     private readonly earlier = new Set<string>();
     private legacy?: { readonly redirects: Redirects; readonly pages: ReadonlySet<string> };
     private markdown?: MarkdownPages;
+    /** `.md` links without a page found by the current run. */
+    private readonly missingMarkdown: MissingMarkdownLink[] = [];
 
     /**
      * The page of every Markdown file that has one, built once per run: the
-     * additional pages and the root pages of the project files (README.md
-     * and its neighbours in the cwd).
+     * neighbour README of a symbol (its symbol page, first symbol of the
+     * file wins), the README of a feature (its feature page), the root pages
+     * of the project files (README.md and its neighbours in the cwd) and the
+     * additional pages.
      */
     private markdownPages(): MarkdownPages {
-        this.markdown ??= new Map([
+        if (this.markdown) {
+            return this.markdown;
+        }
+        const neighbourReadmes = Configuration.pages.flatMap((page): [string, string][] => {
+            const file = symbolReadmeOf(page);
+            return file === undefined ? [] : [[file, pageOutputPath(page)]];
+        });
+        const featureReadmes = Configuration.pages.flatMap((page): [string, string][] => {
+            const file = page.context === 'feature' ? featureReadmeOf(page) : undefined;
+            return file === undefined ? [] : [[file, pageOutputPath(page)]];
+        });
+        this.markdown = new Map([
+            ...neighbourReadmes.reverse(),
+            ...featureReadmes,
             ...Configuration.pages
                 .filter(page => ROOT_MARKDOWN_CONTEXTS.has(page.context))
                 .map((page): [string, string] => [
@@ -103,23 +177,39 @@ export class PageWriter {
         return this.markdown;
     }
 
-    /** Relative `.md` links of a Markdown page pointed at the generated pages. */
+    /**
+     * `.md` links of a page pointed at the generated pages: relative ones
+     * against the file the page was rendered from, root-absolute ones against
+     * the includes folder. Links without a page are kept for the report.
+     */
     private withMarkdownLinks(html: string, page: PageInterface): string {
         const file = markdownSourceOf(page);
-        if (file === undefined) {
-            return html;
-        }
         const root = absolutePosix(Configuration.mainData.includes ?? '', '.');
         const result = rewriteMarkdownLinks(
             html,
             { file, root, depth: page.depth ?? ROOT_DEPTH },
             this.markdownPages()
         );
-        const shown = (absolute: string): string => toPosix(path.relative(process.cwd(), absolute));
+        const source = file === undefined ? pageOutputPath(page) : shownPath(file);
         for (const target of result.missing) {
-            logger.warn(missingMarkdownPageMessage(shown(file), shown(target)));
+            this.missingMarkdown.push({ source, target: shownPath(target) });
         }
         return result.html;
+    }
+
+    /**
+     * Log the `.md` links without a page found since `processPages`, once
+     * per run after every page (additional pages included) is written: a
+     * count line as a warning, the links with `--verbose`.
+     */
+    public reportMarkdownLinks(): void {
+        const report = missingMarkdownLinksReport(this.missingMarkdown);
+        this.missingMarkdown.length = 0;
+        if (report === undefined) {
+            return;
+        }
+        logger.warn(report.summary);
+        logger.debug(report.details.join('\n'));
     }
 
     /**
@@ -188,6 +278,7 @@ export class PageWriter {
     public async processPages(): Promise<void> {
         this.legacy = undefined;
         this.markdown = undefined;
+        this.missingMarkdown.length = 0;
         for (const file of this.written) {
             this.earlier.add(file);
         }

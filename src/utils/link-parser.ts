@@ -33,10 +33,13 @@ export function splitLinkText(text) {
     }
 
     if (splitIndex !== -1) {
-        linkText = text.substr(splitIndex + 1);
-        // Normalize subsequent newlines to a single space.
-        linkText = linkText.replace(/\n+/, ' ');
-        target = text.substr(0, splitIndex);
+        // Normalize subsequent newlines to a single space; the spaces around
+        // a pipe (`{@link Foo | the foo}`) belong to neither side.
+        linkText = text
+            .substr(splitIndex + 1)
+            .replace(/\n+/, ' ')
+            .trim();
+        target = text.substr(0, splitIndex).trim();
     }
 
     return {

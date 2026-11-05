@@ -121,7 +121,9 @@ JSDoc-style `{@link Target}` references also work - compodocx resolves them agai
 
 Link to another page with a relative link to its Markdown file, as you would on GitHub: `[Signals](./signals.md)`, `[Migration](advanced/migration.md#steps)` or `[Back](../overview.md)`. The path is resolved against the folder of the file the link is written in; a link starting with `/` is resolved against the `--includes` folder. When the target is the `file` of a page in `summary.json`, the link points at that page (its current URL, also when the page has aliases), anchor kept. The README works the same way, and a page can link to `README.md`, `CHANGELOG.md` and the other root files in the working directory.
 
-A `.md` link whose file has no page (not in `summary.json`, missing, or a group without a page) is left as written and logs one warning per link, `<file>: link to <target> has no additional page`; the build continues. External URLs and `#anchor` links are not touched.
+The same works in the documentation of your code. In a JSDoc comment, `{@link ./guides/signals.md}` (or `{@link ../../docs/guide.md#setup|Setup}`) is resolved against the folder of the `.ts` file, and so is a Markdown link in the README next to it (`foo.component.md`, the README tab); `/...` again starts at the `--includes` folder. Besides additional pages and the root files, a link can point at the README of another symbol (its symbol page) or of a feature folder (its feature page). Pages built from several files (dependency injection clusters, features, overviews) resolve only links starting with `/`.
+
+A `.md` link whose file has no page (not in `summary.json`, missing, or a group without a page) is left as written; the build continues. After all pages are written, one warning gives the count, `Markdown links: <n> links to .md files without a page (--verbose lists them)`, and `--verbose` lists each link once as `<file>: <target>`, paths relative to the working directory. External URLs and `#anchor` links are not touched.
 
 Example (trimmed from `getting-started.md`):
 

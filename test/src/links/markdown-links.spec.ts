@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
     type MarkdownPages,
-    missingMarkdownPageMessage,
+    missingMarkdownLinksReport,
     rewriteMarkdownLinks,
     toPosix
 } from '../../../src/app/links/markdown-links';
@@ -122,6 +122,36 @@ describe('rewriteMarkdownLinks', () => {
         const html = '<link href="./signals.md">';
         expect(rewriteMarkdownLinks(html, from('guides/overview.md', 1), PAGES).html).toBe(html);
     });
+
+    it('resolves a link of a TypeScript source against its folder', () => {
+        const result = rewriteMarkdownLinks(
+            link('../docs/guides/signals.md#setup'),
+            { file: '/repo/src/foo.component.ts', root: ROOT, depth: 2 },
+            PAGES
+        );
+        expect(result.html).toBe(
+            link('../../additional/guides/signals-&amp;-reactivity.html#setup')
+        );
+    });
+
+    describe('without a source file', () => {
+        const rootOnly = (href: string) =>
+            rewriteMarkdownLinks(link(href), { root: ROOT, depth: 1 }, PAGES);
+
+        it('points a root-absolute link at its page', () => {
+            expect(rootOnly('/intro.md').html).toBe(link('../additional/intro.html'));
+        });
+
+        it('lists a root-absolute link without a page', () => {
+            expect(rootOnly('/nope.md').missing).toEqual([`${ROOT}/nope.md`]);
+        });
+
+        it('leaves a relative link as written and does not list it', () => {
+            const result = rootOnly('./intro.md');
+            expect(result.html).toBe(link('./intro.md'));
+            expect(result.missing).toEqual([]);
+        });
+    });
 });
 
 describe('toPosix', () => {
@@ -130,10 +160,37 @@ describe('toPosix', () => {
     });
 });
 
-describe('missingMarkdownPageMessage', () => {
-    it('names the page and the target', () => {
-        expect(missingMarkdownPageMessage('docs/a.md', 'docs/b.md')).toBe(
-            'docs/a.md: link to docs/b.md has no additional page'
-        );
+describe('missingMarkdownLinksReport', () => {
+    it('is undefined without links', () => {
+        expect(missingMarkdownLinksReport([])).toBeUndefined();
+    });
+
+    it('counts one link in the singular', () => {
+        expect(missingMarkdownLinksReport([{ source: 'README.md', target: 'docs/a.md' }])).toEqual({
+            summary: 'Markdown links: 1 link to a .md file without a page (--verbose lists it)',
+            details: ['  README.md: docs/a.md']
+        });
+    });
+
+    it('counts several links in the plural, sorted by source, then target', () => {
+        const report = missingMarkdownLinksReport([
+            { source: 'src/b.ts', target: 'docs/z.md' },
+            { source: 'README.md', target: 'docs/b.md' },
+            { source: 'README.md', target: 'docs/a.md' }
+        ]);
+        expect(report).toEqual({
+            summary: 'Markdown links: 3 links to .md files without a page (--verbose lists them)',
+            details: ['  README.md: docs/a.md', '  README.md: docs/b.md', '  src/b.ts: docs/z.md']
+        });
+    });
+
+    it('counts a link from the same source to the same target once', () => {
+        const report = missingMarkdownLinksReport([
+            { source: 'README.md', target: 'docs/a.md' },
+            { source: 'README.md', target: 'docs/a.md' },
+            { source: 'src/c.ts', target: 'docs/a.md' }
+        ]);
+        expect(report?.details).toEqual(['  README.md: docs/a.md', '  src/c.ts: docs/a.md']);
+        expect(report?.summary).toContain('2 links');
     });
 });

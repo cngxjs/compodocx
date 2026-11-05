@@ -1,11 +1,17 @@
 import * as path from 'node:path';
 import { pageLocation, pagePath } from '../../../src/app/links/layout';
 import { exists, fs, hasStderrError, read, shell, temporaryDir } from '../helpers';
+import { pagesIn } from '../helpers/pages';
 
 const tmp = temporaryDir();
 const folder = 'additional-documentation';
 
-const generate = (distFolder: string, includes: string) => {
+const generate = (
+    distFolder: string,
+    includes: string,
+    tsconfig = './test/fixtures/kitchen-sink-standalone/tsconfig.json',
+    extra: readonly string[] = []
+) => {
     tmp.create(distFolder);
     const run = shell(
         'node',
@@ -13,12 +19,13 @@ const generate = (distFolder: string, includes: string) => {
             './bin/index-cli.js',
             '--no-multiVersion',
             '-p',
-            './test/fixtures/kitchen-sink-standalone/tsconfig.json',
+            tsconfig,
             '-d',
             distFolder,
             '--disableSearch',
             '--includes',
-            includes
+            includes,
+            ...extra
         ],
         { encoding: 'utf8' }
     );
@@ -43,11 +50,20 @@ const hrefsOf = (html: string, text: string): string[] =>
 const targetOf = (page: string, href: string): string =>
     path.posix.normalize(path.posix.join(path.posix.dirname(page), href.split('#')[0]));
 
+/** A path as the build log shows it: relative to the cwd, posix separators. */
+const shown = (file: string): string => path.relative(process.cwd(), file).replace(/\\/g, '/');
+
+/** Lines of the build log that carry the collected `.md` link warning. */
+const summaryLines = (stdout: string): string[] =>
+    stdout.split('\n').filter(line => line.includes('Markdown links: '));
+
 describe('CLI Additional documentation - links between Markdown pages', () => {
     const fixtureDist = `${tmp.name}-additional-md-links`;
     const ownSrc = `${tmp.name}-additional-md-links-src`;
     const ownDist = `${tmp.name}-additional-md-links-own`;
+    const verboseDist = `${tmp.name}-additional-md-links-verbose`;
     let ownRun: ReturnType<typeof generate>;
+    let verboseRun: ReturnType<typeof generate>;
 
     beforeAll(() => {
         generate(fixtureDist, './test/fixtures/kitchen-sink-standalone/additional-doc');
@@ -80,12 +96,14 @@ describe('CLI Additional documentation - links between Markdown pages', () => {
         fs.writeFileSync(`${ownSrc}/sub/moved.md`, '# Moved\n\n[Back](../start.md)\n');
         fs.writeFileSync(`${ownSrc}/kid.md`, '# Kid\n');
         ownRun = generate(ownDist, ownSrc);
+        verboseRun = generate(verboseDist, ownSrc, undefined, ['--verbose']);
     });
 
     afterAll(() => {
         tmp.clean(fixtureDist);
         tmp.clean(ownSrc);
         tmp.clean(ownDist);
+        tmp.clean(verboseDist);
     });
 
     it.each([
@@ -128,18 +146,148 @@ describe('CLI Additional documentation - links between Markdown pages', () => {
         expect(targetOf(back, hrefsOf(read(`${ownDist}/${back}`), 'Back')[0])).toBe(page);
     });
 
-    it('keeps links without a page and warns once per link', () => {
+    it('keeps links without a page and reports them in one warning', () => {
         const html = read(`${ownDist}/${additional('start')}`);
         expect(hrefsOf(html, 'Lost')).toEqual(['./lost.md']);
         expect(hrefsOf(html, 'Nowhere')).toEqual(['./nowhere.md']);
         expect(hrefsOf(html, 'Web')).toEqual(['https://example.com/x.md']);
-        const start = path.relative(process.cwd(), `${ownSrc}/start.md`).replace(/\\/g, '/');
-        for (const target of ['lost.md', 'nowhere.md']) {
-            const file = path.relative(process.cwd(), `${ownSrc}/${target}`).replace(/\\/g, '/');
-            const message = `${start}: link to ${file} has no additional page`;
-            expect(ownRun.stdout.split(message).length - 1).toBe(1);
-        }
-        expect(ownRun.stdout).not.toContain('x.md has no additional page');
+        const [summary, ...more] = summaryLines(ownRun.stdout);
+        expect(more).toEqual([]);
+        expect(summary).toMatch(/Markdown links: \d+ links to \.md files without a page/);
+        expect(summary).toContain('(--verbose lists them)');
+        expect(ownRun.stdout).not.toContain(`${shown(`${ownSrc}/start.md`)}: `);
         expect(ownRun.status).toBe(0);
+    });
+
+    it('lists the links without a page with --verbose, each once', () => {
+        const start = shown(`${ownSrc}/start.md`);
+        for (const target of ['lost.md', 'nowhere.md']) {
+            const line = `  ${start}: ${shown(`${ownSrc}/${target}`)}`;
+            expect(verboseRun.stdout.split(`${line}\n`).length - 1).toBe(1);
+        }
+        expect(verboseRun.stdout).not.toContain('x.md\n');
+        expect(summaryLines(verboseRun.stdout)).toHaveLength(1);
+    });
+});
+
+describe('CLI Additional documentation - .md links on symbol pages', () => {
+    const project = `${tmp.name}-symbol-md-links-src`;
+    const dist = `${tmp.name}-symbol-md-links`;
+    const pages = pagesIn(dist);
+    let run: ReturnType<typeof generate>;
+
+    beforeAll(() => {
+        fs.mkdirpSync(`${project}/src/app/features/billing`);
+        fs.mkdirpSync(`${project}/docs`);
+        fs.writeFileSync(
+            `${project}/tsconfig.json`,
+            JSON.stringify({
+                compilerOptions: {
+                    target: 'ES2022',
+                    module: 'ES2022',
+                    moduleResolution: 'bundler',
+                    experimentalDecorators: true,
+                    strict: true
+                },
+                include: ['src/**/*.ts']
+            })
+        );
+        fs.writeFileSync(
+            `${project}/docs/summary.json`,
+            JSON.stringify([{ title: 'Guide', file: 'guide.md' }])
+        );
+        fs.writeFileSync(`${project}/docs/guide.md`, '# Guide\n\n## Setup\n');
+        fs.writeFileSync(
+            `${project}/src/app/guide-card.component.ts`,
+            [
+                "import { Component } from '@angular/core';",
+                '',
+                '/**',
+                ' * A card. Read {@link ../../docs/guide.md#setup|Relative guide},',
+                ' * {@link /guide.md|Root guide}, {@link ./features/billing/README.md|Billing},',
+                ' * {@link ./nowhere.md|Nowhere} and {@link https://example.com/y.md|Web}.',
+                ' */',
+                "@Component({ selector: 'app-guide-card', template: '' })",
+                'export class GuideCardComponent {}',
+                ''
+            ].join('\n')
+        );
+        fs.writeFileSync(
+            `${project}/src/app/guide-card.component.md`,
+            '# Guide card\n\n[Readme guide](../../docs/guide.md) and [Helper](./helper.service.md#use).\n'
+        );
+        fs.writeFileSync(
+            `${project}/src/app/helper.service.ts`,
+            [
+                "import { Injectable } from '@angular/core';",
+                '',
+                '/** Helps. */',
+                "@Injectable({ providedIn: 'root' })",
+                'export class HelperService {}',
+                ''
+            ].join('\n')
+        );
+        fs.writeFileSync(`${project}/src/app/helper.service.md`, '# Helper\n\nUse it.\n');
+        fs.writeFileSync(
+            `${project}/src/app/features/billing/billing.component.ts`,
+            [
+                "import { Component } from '@angular/core';",
+                '',
+                '/** Bills. */',
+                "@Component({ selector: 'app-billing', template: '' })",
+                'export class BillingComponent {}',
+                ''
+            ].join('\n')
+        );
+        fs.writeFileSync(`${project}/src/app/features/billing/README.md`, '# Billing\n\nPays.\n');
+        run = generate(dist, `${project}/docs`, `${project}/tsconfig.json`, ['--verbose']);
+    });
+
+    afterAll(() => {
+        tmp.clean(project);
+        tmp.clean(dist);
+    });
+
+    const card = () => pages.of('component', 'GuideCardComponent');
+    const contextOf = (page: string): string | undefined =>
+        /COMPODOC_CURRENT_PAGE_CONTEXT = '([^']*)'/.exec(read(`${dist}/${page}`))?.[1];
+
+    it('points a relative JSDoc link at the additional page, anchor kept', () => {
+        const page = card();
+        const [href] = hrefsOf(read(`${dist}/${page}`), 'Relative guide');
+        expect(targetOf(page, href)).toBe(additional('guide'));
+        expect(href.endsWith('#setup')).toBe(true);
+    });
+
+    it('resolves a root-absolute JSDoc link against the includes folder', () => {
+        const page = card();
+        const [href] = hrefsOf(read(`${dist}/${page}`), 'Root guide');
+        expect(targetOf(page, href)).toBe(additional('guide'));
+    });
+
+    it('points a link to a feature README at the feature page', () => {
+        const page = card();
+        const [href] = hrefsOf(read(`${dist}/${page}`), 'Billing');
+        expect(contextOf(targetOf(page, href))).toBe('feature');
+    });
+
+    it('points the links of the neighbour README at their pages', () => {
+        const page = card();
+        const html = read(`${dist}/${page}`);
+        expect(targetOf(page, hrefsOf(html, 'Readme guide')[0])).toBe(additional('guide'));
+        const [helper] = hrefsOf(html, 'Helper');
+        expect(targetOf(page, helper)).toBe(pages.of('injectable', 'HelperService'));
+        expect(helper.endsWith('#use')).toBe(true);
+    });
+
+    it('keeps external and unknown links and reports the unknown one', () => {
+        const page = card();
+        const html = read(`${dist}/${page}`);
+        expect(hrefsOf(html, 'Web')).toEqual(['https://example.com/y.md']);
+        expect(hrefsOf(html, 'Nowhere')).toEqual(['./nowhere.md']);
+        const line = `  ${shown(`${project}/src/app/guide-card.component.ts`)}: ${shown(`${project}/src/app/nowhere.md`)}`;
+        expect(run.stdout).toContain(`${line}\n`);
+        expect(run.stdout).not.toContain('y.md\n');
+        expect(summaryLines(run.stdout)).toHaveLength(1);
     });
 });
