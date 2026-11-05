@@ -42,6 +42,8 @@ Upgrading from 0.14: no flag or config key was removed and the JSON export schem
 
 ### Fixed
 
+- **Links between additional pages.** A relative link to a Markdown file in an additional page or the README (`[Signals](./signals.md)`) kept its `.md` target and led to a missing page. It now points at the generated page of that file, resolved against the folder of the file it is written in (`/...` against the `--includes` folder), anchor kept; a link to a file without a page stays as written and logs a warning. See [Links between pages](docs/additional-pages.md#links-between-pages).
+
 - **`{@link}` in short descriptions.** The first sentence shown on feature pages, namespace pages, the utilities and dependency injection pages, the API reference tooltips, the search excerpts and the sidebar previews printed an inline `{@link Target}` as raw text. It now reads as its link text (`[text]{@link X}`, `{@link X|text}`, `{@link X text}`, else the target).
 
 - **Dotted namespaces.** `namespace A.B { ... }` was skipped. Its members are documented as `A.B.Member`, and `A` and `A.B` get namespace pages.

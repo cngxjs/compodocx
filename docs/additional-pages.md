@@ -117,6 +117,12 @@ A page whose first line is `<!-- @aiGenerated -->` or `<!-- @aiGenerated <value>
 
 JSDoc-style `{@link Target}` references also work - compodocx resolves them against the project's symbol index, so a guide page can link to `{@link UserService}` and land the reader on the generated service page.
 
+### Links between pages
+
+Link to another page with a relative link to its Markdown file, as you would on GitHub: `[Signals](./signals.md)`, `[Migration](advanced/migration.md#steps)` or `[Back](../overview.md)`. The path is resolved against the folder of the file the link is written in; a link starting with `/` is resolved against the `--includes` folder. When the target is the `file` of a page in `summary.json`, the link points at that page (its current URL, also when the page has aliases), anchor kept. The README works the same way, and a page can link to `README.md`, `CHANGELOG.md` and the other root files in the working directory.
+
+A `.md` link whose file has no page (not in `summary.json`, missing, or a group without a page) is left as written and logs one warning per link, `<file>: link to <target> has no additional page`; the build continues. External URLs and `#anchor` links are not touched.
+
 Example (trimmed from `getting-started.md`):
 
 ```markdown
