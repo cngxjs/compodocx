@@ -118,13 +118,10 @@ const ComponentMetadata = (c: any, depth: number): string => {
     // (downstream consumers grep these labels in CI / migration scripts).
     codeField('selector', c.selector);
     codeField('exportAs', c.exportAs);
-    codeField('animations', c.animations);
     codeField('changeDetection', isOnPushByDefault(c) ? 'OnPush (default)' : c.changeDetection);
     codeField('encapsulation', c.encapsulation);
     codeField('preserveWhitespaces', c.preserveWhitespaces);
-    codeField('interpolation', c.interpolation);
     codeField('moduleId', c.moduleId);
-    codeField('queries', c.queries);
     codeField('templateUrl', c.templateUrl);
     if (c.styleUrls?.length > 0) {
         codeField('styleUrls', breakComma(c.styleUrls));

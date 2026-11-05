@@ -178,17 +178,14 @@ export interface Deps {
 
     // Component
 
-    animations?: string[]; // TODO
     changeDetection?: string;
     encapsulation?: string;
     exportAs?: string;
     host?: any;
     hostDirectives?: HostDirectiveEntry[];
     inputs?: string[];
-    interpolation?: string; // TODO
     moduleId?: string;
     outputs?: string[];
-    queries?: Deps[]; // TODO
     selector?: string;
     styleUrls?: string[];
     styles?: string[];

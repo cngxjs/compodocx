@@ -181,3 +181,36 @@ body {
     outline: 2px solid var(--color-cdx-border-focus);
     outline-offset: 2px;
 }
+
+/* --- Content container: heading offsets and plain markdown lists ---
+   Lists without a cdx- class are markdown output; the guard keeps
+   component lists (tab bar, pills, facts) out. */
+
+.content > h1:first-of-type {
+    margin-top: var(--spacing-cdx-lg);
+}
+.content > h3:first-of-type {
+    margin-top: var(--spacing-cdx-sm);
+}
+.content.readme h1:first-of-type {
+    margin-top: 0;
+}
+
+.content ol:not([class*="cdx-"]) {
+    list-style-type: decimal;
+    margin-top: 0;
+    padding-left: var(--spacing-cdx-xl);
+    margin-bottom: var(--spacing-cdx-lg);
+}
+.content ul:not([class*="cdx-"]) {
+    list-style: disc;
+    margin-top: 0;
+    padding-left: var(--spacing-cdx-xl);
+    margin-bottom: var(--spacing-cdx-lg);
+}
+.content ul.cdx-tab-bar {
+    margin-top: var(--spacing-cdx-lg);
+}
+.content ul ul {
+    list-style-type: circle;
+}

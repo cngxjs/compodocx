@@ -726,3 +726,10 @@ a.cdx-member-permalink:hover {
     --cdx-io-color: hsl(210 60% 70%);
 }
 
+
+.cdx-member-description {
+    margin: 10px 0;
+}
+.cdx-member-modifier:empty {
+    display: none;
+}

@@ -225,21 +225,7 @@ describe('ComponentHelper', () => {
         });
     });
 
-    describe('getComponentStyles', () => {
-        it('should extract styles from props', () => {
-            const props = createMockProps({ styles: ['.class { color: red; }'] });
-            symbolHelperStub.getSymbolDeps.mockReturnValue(['.class { color: red; }']);
-
-            const result = componentHelper.getComponentStyles(props, sourceFile);
-
-            expect(symbolHelperStub.getSymbolDeps).toHaveBeenCalledWith(
-                props,
-                'styles',
-                sourceFile
-            );
-            expect(result).to.deep.equal(['.class { color: red; }']);
-        });
-    });
+    // getComponentStyles reads the AST itself: component-helper-styles.spec.ts.
 
     describe('getComponentInputsMetadata', () => {
         it('should extract inputs metadata from props', () => {

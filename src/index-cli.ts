@@ -112,7 +112,7 @@ export async function runCli(argv: string[]): Promise<void> {
     printBanner(
         { pkgVersion: pkg.version, cwd },
         {
-            loggerSilent: logger.silent,
+            quiet: logger.quiet,
             isWatching: false,
             isLlmMdStdoutMode
         }

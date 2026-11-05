@@ -10,7 +10,7 @@ vi.mock('../../../../src/utils/logger', () => ({
         warn: vi.fn(),
         debug: vi.fn(),
         error: vi.fn(),
-        silent: true,
+        quiet: false,
         routeToStderr: false
     }
 }));
@@ -250,6 +250,22 @@ describe('loadConfigFile', () => {
 describe('applyConfigToMainData', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+    });
+
+    it('makes the logger quiet for silent in the config file', () => {
+        logger.quiet = false;
+        const program = makeProgram();
+        program.setOptionValue('silent', false);
+        applyConfigToMainData(makeMainData(), { silent: true }, program, { cwd: '/tmp/test' });
+        expect(logger.quiet).toBe(true);
+    });
+
+    it('makes the logger quiet for --silent', () => {
+        logger.quiet = false;
+        applyConfigToMainData(makeMainData(), {}, makeProgram(['--silent']), {
+            cwd: '/tmp/test'
+        });
+        expect(logger.quiet).toBe(true);
     });
 
     it('drops the miscellaneous and tokens menu keys with a warning, keeps the new ones', () => {
