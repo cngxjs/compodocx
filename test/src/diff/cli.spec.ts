@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { EXPORT_SCHEMA_VERSION } from '../../../src/app/interfaces/export-data.interface';
 import { runDiffCli } from '../../../src/diff/index';
 
 /**
@@ -13,6 +14,7 @@ import { runDiffCli } from '../../../src/diff/index';
 const FIXTURE_DIR = path.resolve(__dirname, '../../fixtures/diff-fixtures');
 const V1 = path.join(FIXTURE_DIR, 'v1.json');
 const V2 = path.join(FIXTURE_DIR, 'v2.json');
+const OLDER = EXPORT_SCHEMA_VERSION - 1;
 
 const captureStreams = async (
     work: () => Promise<number>
@@ -48,22 +50,22 @@ describe('diff/cli — runDiffCli behavior contract', () => {
         expect(stderr).toMatch(/file not found/);
     });
 
-    it('exits 2 with the re-export hint when a schema 5 export meets a schema 6 one', async () => {
+    it(`exits 2 with the re-export hint when a schema ${OLDER} export meets a schema ${EXPORT_SCHEMA_VERSION} one`, async () => {
         const fs = await import('node:fs');
         const os = await import('node:os');
         const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'cdx-diff-schema-'));
-        const old5 = path.join(dir, 'old-5.json');
+        const older = path.join(dir, `old-${OLDER}.json`);
         fs.writeFileSync(
-            old5,
-            JSON.stringify({ ...JSON.parse(fs.readFileSync(V1, 'utf8')), schemaVersion: 5 })
+            older,
+            JSON.stringify({ ...JSON.parse(fs.readFileSync(V1, 'utf8')), schemaVersion: OLDER })
         );
         try {
             const { stderr, exitCode } = await captureStreams(() =>
-                runDiffCli(['--old', old5, '--new', V2])
+                runDiffCli(['--old', older, '--new', V2])
             );
             expect(exitCode).toBe(2);
             expect(stderr).toContain(
-                'schemaVersion 5 does not match supported 6 - re-export it with this compodocx version'
+                `schemaVersion ${OLDER} does not match supported ${EXPORT_SCHEMA_VERSION} - re-export it with this compodocx version`
             );
         } finally {
             fs.rmSync(dir, { recursive: true, force: true });

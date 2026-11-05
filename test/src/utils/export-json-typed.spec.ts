@@ -96,7 +96,7 @@ describe('export-json typed snapshot — todomvc fixture', () => {
     });
 
     it('writes typed routes (schema 5 and later)', () => {
-        expect(EXPORT_SCHEMA_VERSION).toBe(6);
+        expect(EXPORT_SCHEMA_VERSION).toBeGreaterThanOrEqual(5);
         const [root] = snapshot.routes ?? [];
         expect(root.kind).toBe('router');
         expect(root.config).toBe('appConfig');
@@ -131,11 +131,8 @@ describe('export-json typed snapshot — todomvc fixture', () => {
                 value.forEach(walk);
             } else if (value && typeof value === 'object') {
                 for (const [key, child] of Object.entries(value)) {
-                    // Raw JSDoc nodes keep their tag names; only compodocx fields count.
-                    if (key !== 'jsdoctags') {
-                        keys.push(key);
-                        walk(child);
-                    }
+                    keys.push(key);
+                    walk(child);
                 }
             }
         };

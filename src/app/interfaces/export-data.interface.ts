@@ -97,7 +97,7 @@ export interface ExportRouteRoot {
  * other place in `src/` writes a numeric literal as the schema version
  * instead of importing this constant.
  */
-export const EXPORT_SCHEMA_VERSION = 6 as const;
+export const EXPORT_SCHEMA_VERSION = 7 as const;
 
 export type ExportSchemaVersion = typeof EXPORT_SCHEMA_VERSION;
 
@@ -120,27 +120,7 @@ export interface DeprecatedExportField {
  * (`test/src/utils/json-export-doc.spec.ts`) and carries `@deprecated` on its
  * interface property.
  */
-export const DEPRECATED_EXPORT_FIELDS: readonly DeprecatedExportField[] = [
-    {
-        path: 'components[].signal',
-        since: '0.12.0',
-        removedWithSchema: 7,
-        replacement: '`signalKind` on the members'
-    },
-    {
-        path: 'directives[].signal',
-        since: '0.12.0',
-        removedWithSchema: 7,
-        replacement: '`signalKind` on the members'
-    },
-    {
-        path: 'jsdoctags[] node fields',
-        since: '0.12.0',
-        removedWithSchema: 7,
-        replacement: 'the fields of `ExportJsdocTag` (`tagName`, `comment`, `name`, `type`, ...)',
-        undeclared: true
-    }
-];
+export const DEPRECATED_EXPORT_FIELDS: readonly DeprecatedExportField[] = [];
 
 /**
  * Header fields on `ExportData` that change on every run even when the source
@@ -155,29 +135,30 @@ export const VOLATILE_EXPORT_FIELDS = ['generatedAt', 'compodocxVersion'] as con
 
 export type VolatileExportField = (typeof VOLATILE_EXPORT_FIELDS)[number];
 
-/** Name node of a JSDoc tag or parameter: `text` or `escapedText` holds the name. */
+/** Name of a JSDoc tag. */
 export interface ExportJsdocName {
-    text?: string;
-    escapedText?: string;
+    text: string;
 }
 
 /**
- * A JSDoc tag of a class, member or parameter as the crawler writes it. Most
- * entries are the TypeScript JSDoc node itself, so node fields (`pos`, `end`,
- * `kind`, `flags`, ...) can appear next to the fields listed here. Those node
- * fields are deprecated since 0.12.0 and go with schema 7.
+ * A JSDoc tag of a class, member or parameter. Plain object: only the fields
+ * listed here are written.
  */
 export interface ExportJsdocTag {
     tagName?: ExportJsdocName;
     /** Rendered comment of the tag. */
     comment?: string;
-    /** Parameter name, as text or as the name node. */
-    name?: string | ExportJsdocName;
+    /** Parameter name. */
+    name?: string;
     type?: string;
     defaultValue?: string;
     optional?: boolean;
     deprecated?: boolean;
     deprecationMessage?: string;
+    /** Rest parameter. */
+    dotDotDotToken?: boolean;
+    /** Arguments of a function-typed parameter. */
+    function?: ExportArg[];
 }
 
 export interface ExportArg {
@@ -422,8 +403,6 @@ export interface ExportEntityCommon extends ExportSemanticFacts, ExportNamespace
 export interface ExportComponent extends ExportEntityCommon {
     selector?: string;
     standalone?: boolean;
-    /** @deprecated Since 0.12.0, removed with schema 7. Read `signalKind` on the members. */
-    signal?: boolean;
     zoneless?: boolean;
     changeDetection?: string;
     encapsulation?: string[];
@@ -477,8 +456,6 @@ export interface ExportDirective extends ExportEntityCommon {
     themeOverview?: string;
     selector?: string;
     standalone?: boolean;
-    /** @deprecated Since 0.12.0, removed with schema 7. Read `signalKind` on the members. */
-    signal?: boolean;
     zoneless?: boolean;
     inputsClass?: ExportProperty[];
     outputsClass?: ExportProperty[];

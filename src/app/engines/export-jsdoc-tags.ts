@@ -2,8 +2,6 @@ import type { ExportArg, ExportJsdocTag } from '../interfaces/export-data.interf
 
 type Fields = Record<string, unknown>;
 
-type PlainJsdocTag = ExportJsdocTag & { dotDotDotToken?: boolean; function?: ExportArg[] };
-
 const isObject = (value: unknown): value is Fields => typeof value === 'object' && value !== null;
 
 /** `text`, else `escapedText`, of a name node; a string stays as it is. */
@@ -54,7 +52,7 @@ const toExportArg = (arg: unknown): ExportArg => {
 };
 
 /** One JSDoc tag of the engine (a TS node or a compodocx object) as written to the export. */
-export const toExportJsdocTag = (tag: Fields): PlainJsdocTag => {
+export const toExportJsdocTag = (tag: Fields): ExportJsdocTag => {
     const out: Fields = {};
     const tagName = nameText(tag.tagName);
     if (tagName !== undefined) {
@@ -71,7 +69,7 @@ export const toExportJsdocTag = (tag: Fields): PlainJsdocTag => {
     if (Array.isArray(tag.function)) {
         out.function = tag.function.map(toExportArg);
     }
-    return out as PlainJsdocTag;
+    return out as ExportJsdocTag;
 };
 
 /** `JSON.stringify` replacer: every `jsdoctags` array, at any depth, as plain tag objects. */

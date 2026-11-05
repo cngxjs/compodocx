@@ -19,6 +19,7 @@ const TAG_KEYS = new Set([
 describe('CLI export: jsdoctags', () => {
     const distFolder = `${tmp.name}-export-jsdoctags`;
     let tags: any[];
+    let data: any;
 
     beforeAll(() => {
         tmp.create(distFolder);
@@ -38,7 +39,7 @@ describe('CLI export: jsdoctags', () => {
         }
         const raw = read(`${distFolder}/documentation.json`, 'utf8');
         tags = [];
-        JSON.parse(raw, (key, value) => {
+        data = JSON.parse(raw, (key, value) => {
             if (key === 'jsdoctags' && Array.isArray(value)) {
                 tags.push(...value);
             }
@@ -61,5 +62,14 @@ describe('CLI export: jsdoctags', () => {
         const badNames = tags.filter(tag => 'name' in tag && typeof tag.name !== 'string');
         expect(badTagNames.length).to.equal(0);
         expect(badNames.length).to.equal(0);
+    });
+
+    it('is schema 7 without the entry signal flag', () => {
+        expect(data.schemaVersion).to.equal(7);
+        const entries = [...(data.components ?? []), ...(data.directives ?? [])];
+        expect(entries.length).to.be.greaterThan(0);
+        expect(entries.filter(entry => 'signal' in entry).map(entry => entry.name)).to.deep.equal(
+            []
+        );
     });
 });

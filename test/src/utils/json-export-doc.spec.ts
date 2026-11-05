@@ -54,24 +54,36 @@ describe('docs/json-export.md', () => {
         expect(doc).toMatch(new RegExp(`^\\| \`${EXPORT_SCHEMA_VERSION}\` \\|`, 'm'));
     });
 
-    it.each(DEPRECATED_EXPORT_FIELDS)('lists the deprecated field $path', field => {
-        expect(doc).toContain(
-            `| \`${field.path}\` | ${field.since} | ${field.removedWithSchema} | ${field.replacement} |`
-        );
+    // One test over the list: `it.each([])` leaves no test once nothing is deprecated.
+    it('lists every deprecated field, or "None." without one', () => {
+        const section = doc.slice(doc.indexOf('## Deprecated fields'), doc.indexOf('## Versions'));
+        for (const field of DEPRECATED_EXPORT_FIELDS) {
+            expect(section).toContain(
+                `| \`${field.path}\` | ${field.since} | ${field.removedWithSchema} | ${field.replacement} |`
+            );
+        }
+        if (DEPRECATED_EXPORT_FIELDS.length === 0) {
+            expect(section).toMatch(/^None\.$/m);
+        }
     });
 });
 
+// Loops instead of `it.each`: an empty list would leave the suite without a test.
 describe('DEPRECATED_EXPORT_FIELDS', () => {
-    it.each(DEPRECATED_EXPORT_FIELDS)('$path goes with a later schema', field => {
-        expect(field.removedWithSchema).toBeGreaterThan(EXPORT_SCHEMA_VERSION);
+    it('go with a later schema', () => {
+        for (const field of DEPRECATED_EXPORT_FIELDS) {
+            expect(field.removedWithSchema, field.path).toBeGreaterThan(EXPORT_SCHEMA_VERSION);
+        }
     });
 
-    const declared = DEPRECATED_EXPORT_FIELDS.filter(field => !field.undeclared);
-
-    it.each(declared)('$path is marked @deprecated in the interface', field => {
-        const declaration = fieldDeclaration(field.path);
-        expect(declaration, field.path).toBeDefined();
-        const tags = ts.getJSDocTags(declaration as ts.PropertySignature).map(t => t.tagName.text);
-        expect(tags).toContain('deprecated');
+    it('are marked @deprecated in the interface when declared there', () => {
+        for (const field of DEPRECATED_EXPORT_FIELDS.filter(f => !f.undeclared)) {
+            const declaration = fieldDeclaration(field.path);
+            expect(declaration, field.path).toBeDefined();
+            const tags = ts
+                .getJSDocTags(declaration as ts.PropertySignature)
+                .map(t => t.tagName.text);
+            expect(tags, field.path).toContain('deprecated');
+        }
     });
 });
