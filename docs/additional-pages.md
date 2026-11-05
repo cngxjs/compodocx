@@ -38,7 +38,7 @@ additional-doc/
     api-reference.md
 ```
 
-The `--includes` folder can be absolute or relative to the working directory, also when it is set in a config file passed with `-c` from another folder. Paths inside `summary.json` are resolved relative to that folder.
+The `--includes` folder can be absolute or relative to the working directory. Set in a config file (`includes`), a relative folder is resolved against the folder of that config file, also when it is passed with `-c` from another folder (see [Paths in a config file](configuration.md#paths-in-a-config-file)). Paths inside `summary.json` are resolved relative to the includes folder.
 
 ## `summary.json` schema
 
