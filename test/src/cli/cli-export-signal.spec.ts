@@ -5,9 +5,8 @@ const tmp = temporaryDir();
 const SIGNAL_API_KINDS = new Set(['input-signal', 'output-signal', 'model']);
 
 /**
- * The deprecated entry flag `signal` of components and directives is true
- * exactly when the entry has an `input()`, `output()` or `model()` member
- * (the fixture uses no class tag `@signal`).
+ * Components and directives carry no entry flag `signal`; signal members are
+ * marked by `signalKind` on the member itself.
  */
 describe('CLI export: entry signal flag', () => {
     const distFolder = `${tmp.name}-export-signal`;
@@ -34,20 +33,18 @@ describe('CLI export: entry signal flag', () => {
     });
     afterAll(() => tmp.clean(distFolder));
 
-    const hasSignalMember = (entry: any): boolean =>
-        [entry.inputsClass, entry.outputsClass, entry.propertiesClass].some(list =>
-            (list ?? []).some((member: any) => SIGNAL_API_KINDS.has(member.signalKind))
+    const signalMembers = (entry: any): any[] =>
+        [entry.inputsClass, entry.outputsClass, entry.propertiesClass].flatMap(list =>
+            (list ?? []).filter((member: any) => SIGNAL_API_KINDS.has(member.signalKind))
         );
 
-    it('sets the flag exactly on entries with signal members', () => {
-        const mismatched = entries
-            .filter(entry => entry.signal !== hasSignalMember(entry))
-            .map(entry => entry.name);
-        expect(mismatched).to.deep.equal([]);
+    it('writes no signal flag on components and directives', () => {
+        const flagged = entries.filter(entry => 'signal' in entry).map(entry => entry.name);
+        expect(flagged).to.deep.equal([]);
     });
 
-    it('has entries on both sides', () => {
-        expect(entries.some(entry => entry.signal === true)).to.be.true;
-        expect(entries.some(entry => entry.signal === false)).to.be.true;
+    it('keeps signalKind on input(), output() and model() members', () => {
+        const kinds = new Set(entries.flatMap(signalMembers).map(member => member.signalKind));
+        expect([...kinds].sort()).to.deep.equal(['input-signal', 'model', 'output-signal']);
     });
 });

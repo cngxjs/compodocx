@@ -4,7 +4,6 @@ import type { ComponentPlaygroundBlock } from '../../../../templates/helpers/jsd
 import { cleanLifecycleHooksFromMethods } from '../../../../utils';
 import Configuration from '../../../configuration';
 import type { IDep } from '../dependencies.interfaces';
-import { hasSignalMember } from './helpers/class-helper/member-visitor';
 import type { ComponentHelper, HostDirectiveEntry, HostEntry } from './helpers/component-helper';
 import type { ProviderEntry } from './helpers/symbol-helper';
 
@@ -51,7 +50,6 @@ export class ComponentDepFactory {
             deprecationMessage: IO.deprecationMessage,
 
             // Custom JSDoc tags (Phase 4.6)
-            signal: IO.signal === true || hasSignalMember(IO.inputs, IO.outputs, IO.properties),
             zoneless: IO.zoneless || false,
             beta: IO.beta || false,
             since: IO.since || '',
