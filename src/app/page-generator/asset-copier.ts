@@ -59,7 +59,7 @@ const copyTheme = (mainData: MainDataInterface, finalOutput: string): Promise<vo
     }
     if (mainData.extTheme) {
         return copyOrReject(
-            path.resolve(cwd + path.sep + mainData.extTheme),
+            path.resolve(cwd, mainData.extTheme),
             path.resolve(`${finalOutput}/styles/`),
             'External styling theme copy succeeded',
             'Error during external styling theme copy '
@@ -74,7 +74,7 @@ const copyFavicon = (mainData: MainDataInterface, finalOutput: string): Promise<
     }
     logger.info(`Custom favicon supplied`);
     return copyOrReject(
-        path.resolve(cwd + path.sep + mainData.customFavicon),
+        path.resolve(cwd, mainData.customFavicon),
         path.resolve(finalOutput, IMAGES_FOLDER, faviconImage(mainData.customFavicon).file),
         'External custom favicon copy succeeded',
         'Error during resources copy of favicon'
@@ -87,7 +87,7 @@ const copyLogo = (mainData: MainDataInterface, finalOutput: string): Promise<voi
     }
     logger.info(`Custom logo supplied`);
     return copyOrReject(
-        path.resolve(cwd + path.sep + mainData.customLogo),
+        path.resolve(cwd, mainData.customLogo),
         path.resolve(finalOutput, IMAGES_FOLDER, logoImage(mainData.customLogo)),
         'External custom logo copy succeeded',
         'Error during resources copy of logo'
@@ -99,7 +99,7 @@ const copyLogoDark = (mainData: MainDataInterface, finalOutput: string): Promise
         return Promise.resolve();
     }
     return copyOrReject(
-        path.resolve(cwd + path.sep + mainData.customLogoDark),
+        path.resolve(cwd, mainData.customLogoDark),
         path.resolve(finalOutput, IMAGES_FOLDER, logoImage(mainData.customLogoDark)),
         'External custom dark logo copy succeeded',
         'Error during resources copy of dark logo'
