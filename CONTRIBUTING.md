@@ -32,7 +32,7 @@ See this folder for more details: [DOCS](./docs/README.md).
     npm run start
     ```
 
-1. Open another terminal with the source code of the [demo project](https://github.com/cngxjs/compodocx-demo-todomvc-angular), and run: 
+1. Open another terminal with the source code of the [demo project](https://github.com/cngxjs/compodocx-demo-todomvc-angular), and run:
 
     ```shell
     node ../compodoc/bin/index-cli.js -p tsconfig.json -a screenshots -n 'TodoMVC Angular documentation' --includes additional-doc --toggleMenuItems "'all'" -s
@@ -230,7 +230,7 @@ we use the git commit messages to **generate the Angular CLI change log**.
 Each commit message consists of a **header**, a **body** and a **footer**. The header has a special
 format that includes a **type**, a **scope** and a **subject**:
 
-```
+```text
 <type>(<scope>): <subject>
 <BLANK LINE>
 <body>

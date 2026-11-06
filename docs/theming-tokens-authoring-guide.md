@@ -1,6 +1,5 @@
 # Theme Tokens: Authoring Guide
 
-
 ## When to apply this guide
 
 Use it when you are:

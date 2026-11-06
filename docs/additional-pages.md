@@ -23,7 +23,7 @@ All four can also be set via the config file (`.compodocxrc`, `.compodocxrc.json
 
 Everything lives under one folder - convention is `additional-doc/` next to your `tsconfig.json`, but it can be anywhere:
 
-```
+```text
 additional-doc/
   summary.json
   getting-started.md
@@ -127,7 +127,7 @@ A `.md` link whose file has no page (not in `summary.json`, missing, or a group 
 
 Example (trimmed from `getting-started.md`):
 
-```markdown
+````markdown
 # Getting Started
 
 Welcome to the **Kitchen Sink Standalone** demo - a modern Angular app with no NgModules.
@@ -145,13 +145,13 @@ Welcome to the **Kitchen Sink Standalone** demo - a modern Angular app with no N
 npm install
 ng serve
 ```
-```
+````
 
 ## Output URLs
 
 For a node titled `Getting Started` referencing `getting-started.md`, compodocx writes:
 
-```
+```text
 <output>/additional-documentation/getting-started.html
 ```
 
@@ -273,7 +273,7 @@ The redirect page is not in the sidebar and not in the search index.
 
 Keep one `summary.json` per language and give every node, ancestors included, the same slugs and files:
 
-```
+```text
 additional-doc/
   en/summary.json
   de/summary.json

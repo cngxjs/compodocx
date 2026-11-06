@@ -122,7 +122,6 @@ Added (optional): the semantic facts on every symbol entry (`entryPoint`, `expor
 - `name` stays the bare name; the qualified name is `<namespace>.<name>`. Members a namespace does not export are no longer listed.
 - Added (optional): `aliases` on a `namespaces` entry, one `{ name, target }` per `export import X = Ns.Y` it declares (`{ "name": "Api.Point", "target": "Geometry.Point" }`, both qualified, the target as the checker resolves it, else as written), and the top-level `aliases` list with the aliases outside any namespace (`export import Pt = Geometry.Point`). Both are written only when there are aliases. A namespace without members or aliases stays in `namespaces`, although the HTML gives it no page.
 
-
 ## Schema 2
 
 Written by 0.6.0 to 0.8.x. Additive over schema 1, nothing was removed:

@@ -10,7 +10,7 @@ compodocx -p src/tsconfig.json --templates ./my-templates
 
 Directory structure:
 
-```
+```text
 my-templates/
   partials/
     component.js      # overrides the component detail page
@@ -217,6 +217,7 @@ If you have existing `.hbs` custom templates, convert them to `.js`:
 ### Example
 
 Before (`component-detail.hbs`):
+
 ```handlebars
 {{#if component.selector}}
 <h3>Selector</h3>
@@ -230,6 +231,7 @@ Before (`component-detail.hbs`):
 ```
 
 After (`component.js`):
+
 ```js
 module.exports = function(data, helpers) {
     const c = data.component;
