@@ -197,6 +197,21 @@ describe('feature page', () => {
         expect(render(MENU)).not.toContain('data-cdx-feature-card');
     });
 
+    it('keeps a .md link in the README but shows only its text in the card summary', () => {
+        const symbols = buildSymbolTable(engine as never, { cwd: '/' });
+        const pages = featurePages(semantic, symbols, buildDiView(symbols, semantic), file =>
+            file === 'lib/select/src/menu/README.md'
+                ? '<p>Read <a href="../../../docs/guide.md#setup">the guide</a>.</p>'
+                : READMES[file]
+        );
+        const root = pages.find(page => page.id === ROOT);
+        const menu = pages.find(page => page.id === MENU);
+        expect(root?.subFeatures.map(card => card.summary)).toEqual(['Read the guide.']);
+        expect(menu?.readme?.html).toContain(
+            '<a href="../../../docs/guide.md#setup">the guide</a>'
+        );
+    });
+
     it('links the features of other entry points that extend this one', () => {
         expect(render(ROOT)).toContain(
             `<tr data-cdx-feature-related="${FIELD}"><td><a href="../${featurePage(['ui', 'field'])}"><code>field</code></a></td><td>@x/ui</td></tr>`

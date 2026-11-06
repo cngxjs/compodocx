@@ -108,12 +108,14 @@ const resolveRelative = (dir: string, rel: string): string => {
 };
 
 const EXTERNAL = /^([a-z][a-z0-9+.-]*:|\/\/|#)/i;
+const MD_FILE = /\.md$/i;
 
 /**
  * README links made to work from the feature page: a relative link (or one
  * from the workspace root, `/...`) to another feature's README or folder
- * points at that feature's page, anchor kept; any other such link is
- * dropped, its text kept.
+ * points at that feature's page, anchor kept; any other `.md` link stays for
+ * the page writer, which points it at its page or reports it; any other such
+ * link is dropped, its text kept.
  */
 const rewriteReadmeLinks = (
     html: string,
@@ -130,10 +132,10 @@ const rewriteReadmeLinks = (
             const [target, anchor] = href.split('#');
             const base = target.startsWith('/') ? '' : posixDirname(readme);
             const resolved = resolveRelative(base, target);
-            const folder = /\.md$/i.test(resolved) ? posixDirname(resolved) : resolved;
+            const folder = MD_FILE.test(resolved) ? posixDirname(resolved) : resolved;
             const segments = featureAt(folder);
             if (!segments) {
-                return text;
+                return MD_FILE.test(resolved) ? link : text;
             }
             const page = hrefText(
                 hrefFor({ type: 'feature', segments }, depth, anchor || undefined)
@@ -142,8 +144,16 @@ const rewriteReadmeLinks = (
         }
     );
 
+/**
+ * The first paragraph of a README for a card on another feature's page, where
+ * a `.md` link left for the page writer would resolve against the wrong
+ * README: such a link is reduced to its text.
+ */
 const firstParagraph = (html: string): string | undefined =>
-    /<p>([\s\S]*?)<\/p>/.exec(html)?.[1]?.trim() || undefined;
+    /<p>([\s\S]*?)<\/p>/
+        .exec(html)?.[1]
+        ?.replace(/<a href="[^"]*\.md(?:#[^"]*)?"[^>]*>([\s\S]*?)<\/a>/gi, '$1')
+        .trim() || undefined;
 
 /** The page data of every feature; `readme` renders a README file to HTML. */
 export const featurePages = (

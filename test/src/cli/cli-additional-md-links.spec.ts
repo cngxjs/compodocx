@@ -239,7 +239,19 @@ describe('CLI Additional documentation - .md links on symbol pages', () => {
                 ''
             ].join('\n')
         );
-        fs.writeFileSync(`${project}/src/app/features/billing/README.md`, '# Billing\n\nPays.\n');
+        fs.writeFileSync(
+            `${project}/src/app/features/billing/README.md`,
+            [
+                '# Billing',
+                '',
+                'Pays.',
+                '',
+                '[Feature relative](../../../../docs/guide.md#setup),',
+                '[Feature root](/guide.md), [Feature lost](../../../../docs/lost.md),',
+                '[Feature web](https://example.com/z.md) and [Feature text](./notes.txt).',
+                ''
+            ].join('\n')
+        );
         run = generate(dist, `${project}/docs`, `${project}/tsconfig.json`, ['--verbose']);
     });
 
@@ -278,6 +290,39 @@ describe('CLI Additional documentation - .md links on symbol pages', () => {
         const [helper] = hrefsOf(html, 'Helper');
         expect(targetOf(page, helper)).toBe(pages.of('injectable', 'HelperService'));
         expect(helper.endsWith('#use')).toBe(true);
+    });
+
+    describe('in the README of a feature page', () => {
+        const featurePage = () => {
+            const page = card();
+            return targetOf(page, hrefsOf(read(`${dist}/${page}`), 'Billing')[0]);
+        };
+        const featureHtml = () => read(`${dist}/${featurePage()}`);
+
+        it('points a relative link at the additional page, anchor kept', () => {
+            const [href] = hrefsOf(featureHtml(), 'Feature relative');
+            expect(targetOf(featurePage(), href)).toBe(additional('guide'));
+            expect(href.endsWith('#setup')).toBe(true);
+        });
+
+        it('resolves a root-absolute link against the includes folder', () => {
+            const [href] = hrefsOf(featureHtml(), 'Feature root');
+            expect(targetOf(featurePage(), href)).toBe(additional('guide'));
+        });
+
+        it('keeps a .md link without a page and reports it', () => {
+            expect(hrefsOf(featureHtml(), 'Feature lost')).toEqual(['../../../../docs/lost.md']);
+            const readme = shown(`${project}/src/app/features/billing/README.md`);
+            const target = shown(`${project}/docs/lost.md`);
+            expect(run.stdout).toContain(`  ${readme}: ${target}\n`);
+        });
+
+        it('keeps an external link and drops a relative link to another file type', () => {
+            const html = featureHtml();
+            expect(hrefsOf(html, 'Feature web')).toEqual(['https://example.com/z.md']);
+            expect(hrefsOf(html, 'Feature text')).toEqual([]);
+            expect(html).toContain('Feature text');
+        });
     });
 
     it('keeps external and unknown links and reports the unknown one', () => {

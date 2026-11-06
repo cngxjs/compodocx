@@ -107,11 +107,15 @@ const featureReadmeOf = (page: PageInterface): string | undefined => {
 
 /**
  * The file the `.md` links of a page are resolved against: the Markdown file
- * of an additional page or the README, the TypeScript file of a symbol page.
- * Undefined for any other page, which resolves root-absolute links only.
+ * of an additional page, the README or a feature page, the TypeScript file of
+ * a symbol page. Undefined for any other page, which resolves root-absolute
+ * links only.
  */
 const markdownSourceOf = (page: PageInterface): string | undefined => {
     const { mainData } = Configuration;
+    if (page.context === 'feature') {
+        return featureReadmeOf(page);
+    }
     if (page.context === 'additional-page' && page.additionalPageSource) {
         return absolutePosix(mainData.includes, page.additionalPageSource.file);
     }
