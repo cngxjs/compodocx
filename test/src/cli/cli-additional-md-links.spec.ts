@@ -249,8 +249,14 @@ describe('CLI Additional documentation - .md links on symbol pages', () => {
                 '[Feature relative](../../../../docs/guide.md#setup),',
                 '[Feature root](/guide.md), [Feature lost](../../../../docs/lost.md),',
                 '[Feature web](https://example.com/z.md) and [Feature text](./notes.txt).',
+                '[Feature neighbour](./billing.component.md#use), [Feature own](./README.md)',
+                'and [Feature sibling lost](./lost-sibling.md).',
                 ''
             ].join('\n')
+        );
+        fs.writeFileSync(
+            `${project}/src/app/features/billing/billing.component.md`,
+            '# Billing component\n\n## Use\n'
         );
         run = generate(dist, `${project}/docs`, `${project}/tsconfig.json`, ['--verbose']);
     });
@@ -314,6 +320,24 @@ describe('CLI Additional documentation - .md links on symbol pages', () => {
             expect(hrefsOf(featureHtml(), 'Feature lost')).toEqual(['../../../../docs/lost.md']);
             const readme = shown(`${project}/src/app/features/billing/README.md`);
             const target = shown(`${project}/docs/lost.md`);
+            expect(run.stdout).toContain(`  ${readme}: ${target}\n`);
+        });
+
+        it('points a link to a neighbour file in the feature folder at the symbol page', () => {
+            const [href] = hrefsOf(featureHtml(), 'Feature neighbour');
+            expect(targetOf(featurePage(), href)).toBe(pages.of('component', 'BillingComponent'));
+            expect(href.endsWith('#use')).toBe(true);
+        });
+
+        it('points a link to the README of the folder at the feature page', () => {
+            const [href] = hrefsOf(featureHtml(), 'Feature own');
+            expect(targetOf(featurePage(), href)).toBe(featurePage());
+        });
+
+        it('reports a .md link to a missing file in the feature folder', () => {
+            expect(hrefsOf(featureHtml(), 'Feature sibling lost')).toEqual(['./lost-sibling.md']);
+            const readme = shown(`${project}/src/app/features/billing/README.md`);
+            const target = shown(`${project}/src/app/features/billing/lost-sibling.md`);
             expect(run.stdout).toContain(`  ${readme}: ${target}\n`);
         });
 

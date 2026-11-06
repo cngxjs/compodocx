@@ -109,6 +109,7 @@ const resolveRelative = (dir: string, rel: string): string => {
 
 const EXTERNAL = /^([a-z][a-z0-9+.-]*:|\/\/|#)/i;
 const MD_FILE = /\.md$/i;
+const README_FILE = /(?:^|\/)readme\.md$/i;
 
 /**
  * README links made to work from the feature page: a relative link (or one
@@ -132,10 +133,13 @@ const rewriteReadmeLinks = (
             const [target, anchor] = href.split('#');
             const base = target.startsWith('/') ? '' : posixDirname(readme);
             const resolved = resolveRelative(base, target);
-            const folder = MD_FILE.test(resolved) ? posixDirname(resolved) : resolved;
-            const segments = featureAt(folder);
+            const isMarkdown = MD_FILE.test(resolved);
+            if (isMarkdown && !README_FILE.test(resolved)) {
+                return link;
+            }
+            const segments = featureAt(isMarkdown ? posixDirname(resolved) : resolved);
             if (!segments) {
-                return MD_FILE.test(resolved) ? link : text;
+                return isMarkdown ? link : text;
             }
             const page = hrefText(
                 hrefFor({ type: 'feature', segments }, depth, anchor || undefined)
