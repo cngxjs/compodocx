@@ -8,7 +8,7 @@ const FIXTURE = './test/fixtures/kitchen-sink-standalone';
 
 /**
  * `@aiGenerated` markers show a visible sentence: on the additional page
- * marked `<!-- @aiGenerated 2026-05 -->` and on the hero of `SignalCardComponent`
+ * marked `<!-- @aiGenerated 2026-05 -->` and on the hero of `DataTableComponent`
  * (`@aiGenerated claude-opus-4.7`). `aiGeneratedNote` replaces the text.
  */
 const generate = (distFolder: string, extra: string[] = []): void => {
@@ -41,7 +41,7 @@ describe('CLI @aiGenerated note', () => {
         beforeAll(() => {
             generate(distFolder);
             additionalPage = read(`${distFolder}/additional-documentation/getting-started.html`);
-            componentPage = read(`${distFolder}/${pages.of('component', 'SignalCardComponent')}`);
+            componentPage = read(`${distFolder}/${pages.of('component', 'DataTableComponent')}`);
         });
         afterAll(() => tmp.clean(distFolder));
 
@@ -85,7 +85,7 @@ describe('CLI @aiGenerated note', () => {
             );
             generate(distFolder, ['-c', config]);
             additionalPage = read(`${distFolder}/additional-documentation/getting-started.html`);
-            componentPage = read(`${distFolder}/${pages.of('component', 'SignalCardComponent')}`);
+            componentPage = read(`${distFolder}/${pages.of('component', 'DataTableComponent')}`);
         });
         afterAll(() => {
             tmp.clean(distFolder);

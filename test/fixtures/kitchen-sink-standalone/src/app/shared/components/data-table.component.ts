@@ -31,6 +31,7 @@ export interface Column<T = unknown> {
  * ```
  *
  * @since 2.0.0
+ * @aiGenerated claude-opus-4.7
  * @storybook https://storybook.example.com/?path=/story/shared-datatable--default
  * @figma https://www.figma.com/file/abc123/Design-System?node-id=42:1337
  * @stackblitz https://stackblitz.com/edit/angular-data-table-demo
