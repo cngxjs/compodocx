@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
-## [Unreleased]
+## [0.16.0] - 2026-11-06
 
 Upgrading from 0.15: the JSON export schema is 7 (the fields deprecated in 0.12.0 are gone), and relative paths in a config file resolve against the folder of that file instead of the working directory. CLI flags are unchanged. [MIGRATION.md](MIGRATION.md) lists each change.
 
