@@ -45,6 +45,7 @@ const IGNORED_CONFIG_KEYS: Readonly<Record<string, string>> = {
 
 /** Upstream compodoc theme names, mapped to the built-in theme used in their place. */
 const UPSTREAM_THEMES: Readonly<Record<string, string>> = {
+    gitbook: 'default',
     material: 'default',
     original: 'default',
     postmark: 'nord',
@@ -333,7 +334,7 @@ export function applyConfigToMainData(
     if (mainData.theme && Object.hasOwn(UPSTREAM_THEMES, mainData.theme)) {
         const replacement = UPSTREAM_THEMES[mainData.theme];
         logger.warn(
-            `'${mainData.theme}' theme has been removed; using '${replacement}'. Use 'default', 'gitbook', 'ocean', 'ember', 'midnight', 'neon', 'brutalist', 'nord', or 'rose-pine' instead.`
+            `'${mainData.theme}' theme has been removed; using '${replacement}'. Use 'default', 'ocean', 'ember', 'midnight', 'neon', 'brutalist', 'nord', or 'rose-pine' instead.`
         );
         mainData.theme = replacement;
     }

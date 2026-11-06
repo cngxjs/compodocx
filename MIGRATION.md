@@ -484,7 +484,7 @@ The bundled theme set is different.
 
 | Old compodoc theme | Closest replacement |
 |-|-|
-| `gitbook` | `gitbook` (renders like `default`) |
+| `gitbook` | `default` |
 | `material` | `default` |
 | `original` | `default` |
 | `postmark` | `nord` |
@@ -493,7 +493,7 @@ The bundled theme set is different.
 | `vagrant` | `midnight` |
 | `laravel` | `ember` |
 
-Eight bundled compodocx themes: `default`, `ocean`, `midnight`, `nord`, `rose-pine`, `ember`, `neon`, `brutalist`. `gitbook` is kept as a name and renders like `default`. The other old theme names still work: they warn and fall back to the replacement in the table.
+Eight bundled compodocx themes: `default`, `ocean`, `midnight`, `nord`, `rose-pine`, `ember`, `neon`, `brutalist`. The other old theme names still work: they warn and fall back to the replacement in the table.
 
 Each theme is a single CSS file overriding the design tokens defined in `src/styles/compodocx.css`. Author your own by copying [`src/themes/theme-template.css`](https://github.com/cngxjs/compodocx/blob/develop/src/themes/theme-template.css) from the repository (it is not part of the npm package), setting tokens, and passing the path via `--theme`.
 

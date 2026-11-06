@@ -257,7 +257,7 @@ describe('CLI Coverage - Targeted Line Execution', () => {
             `${distFolder}-markdown`,
             '--silent',
             '--theme',
-            'gitbook'
+            'default'
         ]);
         expect(command.status).to.equal(0);
     });

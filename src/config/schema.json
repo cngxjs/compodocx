@@ -112,7 +112,7 @@
         "theme": {
             "$id": "/properties/theme",
             "type": "string",
-            "title": "Choose a built-in theme ('default', 'ocean', 'midnight', 'nord', 'rose-pine', 'ember', 'neon', 'brutalist', 'gitbook') or a path to a custom CSS file",
+            "title": "Choose a built-in theme ('default', 'ocean', 'midnight', 'nord', 'rose-pine', 'ember', 'neon', 'brutalist') or a path to a custom CSS file",
             "default": "default",
             "examples": [""]
         },

@@ -315,8 +315,7 @@ const ContentActions = (props: {
     maxVersionsShown?: number;
     depth: number;
 }): string => {
-    const isDefaultTheme =
-        !props.lockedTheme || props.lockedTheme === 'default' || props.lockedTheme === 'gitbook';
+    const isDefaultTheme = !props.lockedTheme || props.lockedTheme === 'default';
     const showThemePicker = isDefaultTheme;
     const activeTheme = isDefaultTheme ? 'default' : props.lockedTheme!;
 
@@ -389,7 +388,7 @@ export const Layout = (props: LayoutProps): string => {
     const { data, content, menuVersion, entitiesVersion } = props;
     const r = (path: string) => relativeUrl(data.depth, path);
     // A custom or named theme is locked: no picker, and no stored choice may swap it.
-    const themePicker = !data.theme || ['default', 'gitbook'].includes(data.theme);
+    const themePicker = !data.theme || data.theme === 'default';
     const favicon = faviconImage(data.customFavicon);
 
     return ('<!doctype html>\n' +
@@ -412,7 +411,7 @@ export const Layout = (props: LayoutProps): string => {
                     id="cdx-theme-link"
                     rel="stylesheet"
                     href={
-                        data.theme && !['default', 'gitbook'].includes(data.theme)
+                        data.theme && data.theme !== 'default'
                             ? r(`styles/${data.theme}.css`)
                             : ''
                     }
