@@ -17,7 +17,7 @@ name: Release
 # Or via release-it (see .release-it.json):
 #   npx release-it patch       # interactive bump + tag + push
 #
-# This workflow does NOT create the tag — it only reacts to tag pushes.
+# This workflow does NOT create the tag - it only reacts to tag pushes.
 #
 # Safety guards: the publish step is gated on the main CI workflow having
 # already passed on the same commit (4-OS x 2-node-matrix + e2e), and on
@@ -115,7 +115,7 @@ jobs:
             # `sync:tokens` against the new tag so the vendored CSS tracks the
             # released library version (auto-commits with `[skip ci]`).
             #
-            # Requires repo secret WEBSITE_DISPATCH_TOKEN — a PAT with
+            # Requires repo secret WEBSITE_DISPATCH_TOKEN - a PAT with
             # `repo` scope (classic) or `Actions: write` + `Contents: write`
             # (fine-grained, scoped to cngxjs/compodocx-website only).
             - name: Trigger compodocx-website rebuild

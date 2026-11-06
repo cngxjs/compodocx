@@ -376,14 +376,14 @@
             "$id": "/properties/playgroundHead",
             "type": "array",
             "items": { "type": "string" },
-            "title": "Arbitrary <head> entries injected into every @playground index.html (after the Material shell links, when present) — for custom fonts, meta tags, CSP, or preloads. Emitted verbatim.",
+            "title": "Arbitrary <head> entries injected into every @playground index.html (after the Material shell links, when present) - for custom fonts, meta tags, CSP, or preloads. Emitted verbatim.",
             "default": [],
             "examples": [["<link rel=\"stylesheet\" href=\"https://example.com/font.css\">"]]
         },
         "playgroundGlobalStyles": {
             "$id": "/properties/playgroundGlobalStyles",
             "type": "string",
-            "title": "Global CSS appended to every @playground src/styles.css, after the default body reset — for fonts, resets, or any global rules the examples depend on.",
+            "title": "Global CSS appended to every @playground src/styles.css, after the default body reset - for fonts, resets, or any global rules the examples depend on.",
             "default": "",
             "examples": [":root { --brand: #06f; }"]
         },
@@ -414,7 +414,7 @@
         "playgroundVendorIncludeSourcemaps": {
             "$id": "/properties/playgroundVendorIncludeSourcemaps",
             "type": "boolean",
-            "title": "Keep *.map sourcemaps in vendored packages. Off by default — sourcemaps are a large slice of FESM byte size and the WebContainer build never reads them.",
+            "title": "Keep *.map sourcemaps in vendored packages. Off by default - sourcemaps are a large slice of FESM byte size and the WebContainer build never reads them.",
             "default": false,
             "examples": [false]
         },

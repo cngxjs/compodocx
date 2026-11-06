@@ -71,7 +71,7 @@ const buildFallbackResolver =
                   sourceCode:
                       sourceCode && sourceCode.length > 0
                           ? sourceCode
-                          : "// Source not available — open the component's Source tab on the doc page.",
+                          : "// Source not available. Open the component's Source tab on the doc page.",
                   imports: []
               }
             : null;

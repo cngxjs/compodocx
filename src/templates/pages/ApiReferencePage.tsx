@@ -294,7 +294,7 @@ export const ApiReferencePage = (data: any): string => {
     const showStabilityRow = hasExperimental || hasDeprecated;
 
     const searchMeta = pagefindMetaBlock({
-        description: `${heading} — ${totalItems} symbols across ${bucketKeys.length} features`
+        description: `${heading} - ${totalItems} symbols across ${bucketKeys.length} features`
     });
 
     return (

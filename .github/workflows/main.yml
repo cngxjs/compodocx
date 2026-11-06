@@ -11,7 +11,7 @@ jobs:
         runs-on: ${{ matrix.os }}
 
         # Minimal coverage: current LTS on both OSes, next LTS on the
-        # primary OS. Drops the Node 20 lane (EOL April 2026) — we no
+        # primary OS. Drops the Node 20 lane (EOL April 2026) - we no
         # longer promise Node 20 support (engines.node = >=22).
         strategy:
             fail-fast: false
@@ -88,7 +88,7 @@ jobs:
               run: npm run build
 
             # Per-push e2e only runs chromium-engine projects (chrome, todomvc,
-            # standalone — see step below). Firefox and webkit are nightly via
+            # standalone - see step below). Firefox and webkit are nightly via
             # e2e-cross-browser.yml. Restricting `playwright install` to
             # `chromium` here saves ~6-8 minutes per CI run on cold-cache
             # runners (full install pulls all three engines + apt deps).
@@ -97,7 +97,7 @@ jobs:
 
             # Per-push e2e: only the chromium-class browser + the two
             # fixture-specific projects. Firefox and webkit run nightly via
-            # .github/workflows/e2e-cross-browser.yml — cross-engine
+            # .github/workflows/e2e-cross-browser.yml - cross-engine
             # regressions in a static-HTML doc generator are rare and the
             # nightly catches them without slowing every push by ~6 minutes.
             - name: E2E tests (chrome + fixtures)
