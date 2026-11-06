@@ -134,6 +134,14 @@ const updateActiveLink = (url: string, clickedAnchor: HTMLAnchorElement | null =
         normalizedPath += 'index.html';
     }
 
+    // The page from the root of the docs, whatever the site is hosted under. A
+    // suffix match would let the docs' `index.html` claim every feature page.
+    const depth = (globalThis as any).COMPODOC_CURRENT_PAGE_DEPTH ?? 0;
+    const pagePath = normalizedPath
+        .split('/')
+        .slice(-(depth + 1))
+        .join('/');
+
     let bestMatch: HTMLAnchorElement | null = null;
     let bestScore = -1;
 
@@ -141,7 +149,7 @@ const updateActiveLink = (url: string, clickedAnchor: HTMLAnchorElement | null =
         const href = a.getAttribute('href') || '';
         const cleaned = href.replace(/^(\.\/|\.\.\/)+/, '').toLowerCase();
 
-        if (normalizedPath.endsWith(cleaned)) {
+        if (pagePath === cleaned) {
             // Prefer entity-link (3) > chapter-link (2) > index-link (1)
             const type = a.getAttribute('data-type');
             const score = type === 'entity-link' ? 3 : type === 'chapter-link' ? 2 : 1;

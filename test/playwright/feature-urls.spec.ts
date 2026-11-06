@@ -32,6 +32,19 @@ test.describe('Feature URLs', () => {
         expect(failed).toEqual([]);
     });
 
+    test('does not mark the index of the docs on a feature page', async ({ page }) => {
+        await page.goto(featureUrl(['core', 'select']));
+        await expect(page.locator('.cdx-entity-hero[data-cdx-feature] h1')).toHaveText('select');
+        await expect(page.locator('.menu a.active')).toHaveCount(0);
+    });
+
+    test('marks the index of the docs on the index page', async ({ page }) => {
+        await page.goto('/index.html');
+        const active = page.locator('.menu a.active');
+        await expect(active).toHaveCount(1);
+        await expect(active).toHaveAttribute('href', /^(\.\/)?index\.html$/);
+    });
+
     test('a symbol page lives in its feature folder and climbs back to the root', async ({
         page
     }) => {
