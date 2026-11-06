@@ -64,6 +64,21 @@ test.describe('menuLayout: "feature" sidebar', () => {
         await expect(first).toHaveAttribute('href', hrefTo(pageUrl('component', name)));
     });
 
+    test('a feature page opened directly marks its own link', async ({ page }) => {
+        const link = page
+            .locator('#features-links a.cdx-bucket-link[data-cdx-bucket-link]')
+            .first();
+        const href = await link.evaluate(a => (a as HTMLAnchorElement).href);
+        expect(href).toMatch(/\/index\.html$/);
+
+        await page.goto(href);
+
+        const active = page.locator('.menu a.active');
+        await expect(active).toHaveCount(1);
+        await expect(active).toHaveClass(/cdx-bucket-link/);
+        await expect(active).toHaveAttribute('aria-current', 'page');
+    });
+
     test('top-nav Reference link points at references.html', async ({ page }) => {
         // The cross-kind exhaustive surface is no longer a sidebar tree — it
         // lives on the `references.html` portal page. The sidebar surfaces
