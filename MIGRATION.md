@@ -1,6 +1,6 @@
 # Migrating from compodoc to compodocx
 
-compodocx is the successor to compodoc for modern Angular, not a drop-in replacement. It documents Angular 21+ standalone code: standalone components, directives and pipes, `inject()`, signal inputs, outputs and models, the `host` metadata object, and functional guards, interceptors and resolvers.
+compodocx is a fork of compodoc for modern Angular, not a drop-in replacement. It documents Angular 21+ standalone code: standalone components, directives and pipes, `inject()`, signal inputs, outputs and models, the `host` metadata object, and functional guards, interceptors and resolvers.
 
 What it does not document:
 
