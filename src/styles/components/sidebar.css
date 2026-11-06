@@ -549,7 +549,15 @@
 }
 .cdx-additional-parent > ul.links {
     flex: 0 0 calc(100% - 21px);
+    /* Without it the list grows to its widest link and scrolls the whole menu. */
+    min-width: 0;
     box-sizing: border-box;
+}
+/* The title of an additional page is prose, not a symbol name: it wraps, so
+   the part that tells two pages apart is never cut off. */
+.menu ul.list li.chapter.additional a {
+    overflow-wrap: anywhere;
+    white-space: normal;
 }
 .cdx-additional-toggle {
     @apply bg-transparent border-0 m-0;

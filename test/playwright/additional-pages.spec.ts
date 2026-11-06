@@ -80,6 +80,34 @@ test.describe('Additional pages', () => {
         expect(await startOf('Guides')).toBeCloseTo(plain, 0);
     });
 
+    test('wraps a long title inside the sidebar width', async ({ page }) => {
+        await page.goto('/additional-documentation/guides/signals-&-reactivity.html');
+        await expect(page.locator('#additional-pages a.active')).toBeVisible();
+        await page.addStyleTag({ content: '* { transition: none !important; }' });
+
+        const shortHeight = await page
+            .locator('#additional-pages a.active')
+            .evaluate(link => link.getBoundingClientRect().height);
+        const measured = await page.evaluate(() => {
+            const link = document.querySelector('#additional-pages a.active') as HTMLElement;
+            link.textContent = 'Signals & Reactivity '.repeat(8).trim();
+            const nav = link.closest('nav') as HTMLElement;
+            return {
+                height: link.getBoundingClientRect().height,
+                linkScroll: link.scrollWidth,
+                linkClient: link.clientWidth,
+                navScroll: nav.scrollWidth,
+                navClient: nav.clientWidth,
+                navLeft: nav.scrollLeft
+            };
+        });
+
+        expect(measured.navScroll).toBeLessThanOrEqual(measured.navClient);
+        expect(measured.navLeft).toBe(0);
+        expect(measured.linkScroll).toBeLessThanOrEqual(measured.linkClient);
+        expect(measured.height).toBeGreaterThan(shortHeight);
+    });
+
     test('opens the list of the active child page on first load', async ({ page }) => {
         await page.goto('/additional-documentation/guides/signals-&-reactivity.html');
         const active = page.locator('#additional-pages a.active');
