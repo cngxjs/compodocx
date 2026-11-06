@@ -8,7 +8,7 @@ The feature is built into compodocx itself, covered by the project's MIT license
 
 You point the CLI at a folder of Markdown files and a table of contents (`summary.json`). For each entry in the TOC, compodocx reads the referenced Markdown file, renders it to HTML using the same Markdown pipeline as JSDoc descriptions, and writes a standalone page under `<output>/additional-documentation/<slug>.html`. The sidebar gets a new top-level group listing those pages in the order and hierarchy defined by `summary.json`.
 
-Two CLI flags drive it:
+Four CLI flags drive it:
 
 | Flag | Purpose | Default |
 |-|-|-|
@@ -109,7 +109,7 @@ Rules:
 
 The files are plain Markdown rendered by [`marked`](https://marked.js.org/). You have the normal toolbox: headings, paragraphs, lists, tables, fenced code blocks with language hints (Shiki-highlighted), block quotes, inline code, links, and images. Relative image paths resolve against the generated page's directory, so referencing images is easiest via absolute or external URLs.
 
-A page whose first line is `<!-- @aiGenerated -->` or `<!-- @aiGenerated <value> -->` (a model name, a date) gets a banner above its content: an "AI generated" chip and the sentence "Drafted with AI assistance (<value>).". `@ai` and `@aigen` work as well. A value of `key=value` pairs (`<!-- @aiGenerated model=claude-opus-4.7 date=2026-05 -->`) shows its values joined by `, `. The same marker works as the first line of the root Markdown files (README, CHANGELOG, ...) and of a README next to a source file, shown in the symbol's README tab. `--hideAiGeneratedBadge` hides every banner. The `aiGeneratedNote` config key replaces the sentence, with `{value}` standing for the marker value and `{model}`, `{date}` or any other `{key}` for a field of a `key=value` value. A marker with none of the named fields gets the default sentence:
+A page whose first line is `<!-- @aiGenerated -->` or `<!-- @aiGenerated <value> -->` (a model name, a date) gets a banner above its content: an "AI generated" chip and the sentence "Drafted with AI assistance (<value>).". `@ai` and `@aigen` work as well. A value of `key=value` pairs (`<!-- @aiGenerated model=example-model date=2026-05 -->`) shows its values joined by `, `. The same marker works as the first line of the root Markdown files (README, CHANGELOG, ...) and of a README next to a source file, shown in the symbol's README tab. `--hideAiGeneratedBadge` hides every banner. The `aiGeneratedNote` config key replaces the sentence, with `{value}` standing for the marker value and `{model}`, `{date}` or any other `{key}` for a field of a `key=value` value. A marker with none of the named fields gets the default sentence:
 
 ```json
 { "aiGeneratedNote": "Drafted with AI assistance ({value}) and reviewed by a maintainer." }

@@ -203,7 +203,7 @@ function renderMenu(menu: HTMLElement, widget: HTMLElement, sliced: SliceResult)
         const manifestUrl = getManifestUrl(widget);
         footer =
             '<div class="cdx-version-switcher-footer">' +
-            `Showing ${sliced.shown.length} of ${sliced.total} versions — ` +
+            `Showing ${sliced.shown.length} of ${sliced.total} versions - ` +
             `<a href="${escapeAttr(manifestUrl)}">see versions.json</a>` +
             '</div>';
     }

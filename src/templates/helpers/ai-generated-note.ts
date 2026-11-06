@@ -6,8 +6,8 @@ const FIELD = /([A-Za-z][\w-]*)=(?:"([^"]*)"|(\S+))/g;
 const NAMED_PLACEHOLDER = /\{([A-Za-z][\w-]*)\}/g;
 
 /**
- * The fields of a structured marker value (`model=claude-opus-4.7
- * date=2026-05`, `model="Claude Opus"`), or `undefined` when the value is
+ * The fields of a structured marker value (`model=example-model
+ * date=2026-05`, `model="Example Model"`), or `undefined` when the value is
  * free text: every part of it must be a `key=value` pair.
  */
 export const aiGeneratedFields = (marker: string | true): Record<string, string> | undefined => {

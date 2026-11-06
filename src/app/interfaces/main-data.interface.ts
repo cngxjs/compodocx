@@ -199,7 +199,7 @@ export interface MainDataInterface {
      * consumer-`package.json` auto-forward - use it for libraries the
      * consumer hosts but doesn't `npm install` directly (peer-only CSS
      * themes, dev-time-only deps), or to pin a specific version per build.
-     * No CLI flag - this surfaces only via `compodocx.config.json`.
+     * No CLI flag - this surfaces only via a config file.
      */
     playgroundDependencies: Record<string, string>;
     /**

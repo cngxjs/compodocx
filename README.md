@@ -20,7 +20,7 @@
 
 ## Why compodocx
 
-The successor to [compodoc](https://github.com/compodoc/compodoc) for modern Angular, not a drop-in replacement. It documents Angular 21+ standalone code (signal inputs, outputs and models, `inject()`, the structured `host` metadata, functional guards, interceptors and resolvers) and adds a Theming tab driven by JSDoc/SassDoc-style comments above your CSS / SCSS tokens. The rendering layer is new (JSX templates, Tailwind v4, Pagefind, D3).
+A fork of [compodoc](https://github.com/compodoc/compodoc) for modern Angular, not a drop-in replacement. It documents Angular 21+ standalone code (signal inputs, outputs and models, `inject()`, the structured `host` metadata, functional guards, interceptors and resolvers) and adds a Theming tab driven by JSDoc/SassDoc-style comments above your CSS / SCSS tokens. The rendering layer is new (JSX templates, Tailwind v4, Pagefind, D3).
 
 NgModules, decorator members (`@Input`, `@Output`, `@HostBinding`, `@HostListener`), constructor injection in Angular classes and class-based guards, interceptors and resolvers are not documented; a run reports them in one legacy notice. Page URLs and the JSON export schema differ from compodoc. Switching from compodoc means changing the package and the script, running it, and acting on the warnings it prints; [`MIGRATION.md`](MIGRATION.md) explains each one.
 

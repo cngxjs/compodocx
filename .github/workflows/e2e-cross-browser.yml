@@ -8,7 +8,7 @@ name: E2E cross-browser (nightly)
 
 on:
     schedule:
-        # 02:30 UTC every day — quiet hour for the European timezone the
+        # 02:30 UTC every day - quiet hour for the European timezone the
         # team works in, well clear of US business-hours CI load.
         - cron: '30 2 * * *'
     workflow_dispatch:

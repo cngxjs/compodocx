@@ -1,7 +1,7 @@
 {
     "name": "@cngxjs/compodocx",
     "version": "0.16.1",
-    "description": "Static documentation generator for modern Angular projects — signals, inject(), standalone components, theming tab, JS-based template overrides, Pagefind search.",
+    "description": "Static documentation generator for modern Angular projects: signals, inject(), standalone components, theming tab, JS-based template overrides, Pagefind search.",
     "main": "dist/index.js",
     "bin": {
         "compodocx": "bin/index-cli.js",
