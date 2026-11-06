@@ -377,7 +377,7 @@ SCSS variables follow the Sass rule instead: a variable whose name starts with `
 
 The parser walks every component and reads:
 
-1. Each entry in the component's `styleUrls`, resolved relative to the component's `.ts` file.
+1. The component's `styleUrl` or each entry in its `styleUrls`, resolved relative to the component's `.ts` file.
 2. Each string in the component's inline `styles[]` array, treated as anonymous CSS keyed `<inline-style-0>`, `<inline-style-1>`, ...
 3. For SCSS files only, top-level `@import` and `@use` rules are followed **one level deep**. Use this for shared token partials:
 
@@ -396,12 +396,12 @@ $brand-primary: #2563eb !default;
 /// Alert-specific override.
 /// @type Color
 /// @group container
-$alert-bg: $tokens.$brand-primary !default;
+$alert-bg: tokens.$brand-primary !default;
 ```
 
 Both `$brand-primary` and `$alert-bg` end up on the alert's Theming tab.
 
-Components without `styleUrls` and without inline `styles[]` produce zero tokens, and the Theming tab is omitted automatically.
+Components without `styleUrl`, `styleUrls` and inline `styles` produce zero tokens, and the Theming tab is omitted automatically.
 
 Directives get a Theming tab only from free-standing style files that name them with `@themes`. Other entities (services, classes, interfaces, pipes, guards, interceptors) never produce a Theming tab.
 
@@ -655,8 +655,10 @@ Copy-paste starting point for a brand-new component. Five tokens, two groups, an
  * @type <length>
  * @default 8px
  * @group container
- * @example css
- *   .{{component-prefix}}--sharp { --{{component-prefix}}-radius: 0; }
+ * @example
+ * ```css
+ * .{{component-prefix}}--sharp { --{{component-prefix}}-radius: 0; }
+ * ```
  */
 @property --{{component-prefix}}-radius {
     syntax: '<length>';

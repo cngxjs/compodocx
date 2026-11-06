@@ -8,7 +8,7 @@ The feature is built into compodocx itself, covered by the project's MIT license
 
 You point the CLI at a folder of Markdown files and a table of contents (`summary.json`). For each entry in the TOC, compodocx reads the referenced Markdown file, renders it to HTML using the same Markdown pipeline as JSDoc descriptions, and writes a standalone page under `<output>/additional-documentation/<slug>.html`. The sidebar gets a new top-level group listing those pages in the order and hierarchy defined by `summary.json`.
 
-Two CLI flags drive it:
+Four CLI flags drive it:
 
 | Flag | Purpose | Default |
 |-|-|-|

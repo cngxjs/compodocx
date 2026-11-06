@@ -3,7 +3,7 @@
 Compodocx generates static HTML documentation for Angular projects by analyzing TypeScript source code. Every aspect of the output can be configured through three methods:
 
 1. **CLI flags** -- pass options directly when running `compodocx` or `compodoc`
-2. **Config file** -- `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` (also `.yml`, `.js`, `.cjs`, `.mjs`, `.ts` and `compodocx.config.*`); the same `.compodocrc` / `compodoc.config.*` names are still found
+2. **Config file** -- `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` (also `.yml`, `.js`, `.cjs`, `.mjs`, `.ts` and `compodocx.config.{js,ts,cjs,mjs}`); the same `.compodocrc` / `compodoc.config.*` names are still found
 3. **package.json** -- under a `compodocx` or `compodoc` property
 
 Options are resolved in this order: CLI flags override config file values, which override defaults. The config file is looked up in the folder compodocx runs in (not in parent folders) unless explicitly specified with `-c`. The `compodocx` names are searched first: when a folder holds both a `.compodocxrc.json` and a `.compodocrc.json`, the `.compodocxrc.json` is used, and a `compodocx` key in `package.json` also wins over a `.compodocrc.json`.
@@ -159,8 +159,8 @@ These flags control which class members and entity details appear in the documen
 | disableInternal | `--disableInternal` | boolean | `false` | Hide members marked with the `@internal` JSDoc tag. Useful for public-facing documentation |
 | disableLifeCycleHooks | `--disableLifeCycleHooks` | boolean | `false` | Hide Angular lifecycle hooks (`ngOnInit`, `ngOnDestroy`, etc.) from method listings |
 | disableConstructors | `--disableConstructors` | boolean | `false` | Hide the constructor section from entity pages |
-| disableProperties | `--disableProperties` | boolean | `false` | Hide the entire properties section (inputs, outputs, and regular properties) |
-| disableDependencies | `--disableDependencies` | boolean | `false` | Hide the dependencies section on the Info tab. This section shows the `inject()` calls of the class |
+| disableProperties | `--disableProperties` | boolean | `false` | Do not build the package properties page or its sidebar link. Class and component members are not affected |
+| disableDependencies | `--disableDependencies` | boolean | `false` | Do not build the package dependencies page or its sidebar link. To hide the section on the Info tab, leave `dependencies` out of `infoTabSections` |
 | disableFilePath | `--disableFilePath` | boolean | `false` | Hide the source file path shown in the entity hero area |
 | showEffects | `--showEffects` | boolean | `false` | Show Angular `effect()` entries in a dedicated "Effects" block on the API tab. When disabled (default), effects appear as regular properties. Opt-in because effects are implementation details in most projects |
 | publicApiOnly | `--publicApiOnly` | string | -- | Restrict documentation to the public API. The public names come from `*.api.md` reports (API Extractor) below the tsconfig folder, or, without one, from the `index.d.ts` files in the given dist folder, or, without those, from the declaration files that `exports[*].types` of each `package.json` in it names (Angular Package Format, `types/<pkg>.d.ts`); such names are matched to the source entry point with the same import path, and an import path without one is named in a warning. Each name is followed through re-exports, `export *`, aliases and nested barrels to the symbol it declares; an alias in a `*.api.md` report is not followed. Useful for library authors who want to document only the public API. Relative paths: see [Paths in a config file](#paths-in-a-config-file) |
@@ -218,7 +218,7 @@ Controls sidebar behavior and entity page tab configuration.
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
 | toggleMenuItems | `--toggleMenuItems` | string[] | `['all']` | Sidebar chapters that start open. The default `['all']` keeps every chapter collapsed, and `'all'` anywhere in the list does the same. Otherwise list the chapters to open, comma-separated on the CLI: `components`, `directives`, `entities`, `classes`, `injectables`, `services` (classes with Angular's `@Service`), `dependency-injection`, `guards`, `interfaces`, `namespaces` (the Namespaces chapter under `menuLayout: 'type'`, only with namespaces), `interceptors`, `pipes`, `resolvers`, `utilities`, `styles` (the Style files chapter under `menuLayout: 'type'`), `additionalPages`, and `features` (the Features chapter under `menuLayout: 'feature'`; References is a single top-level link with no collapsible tree, so it is not a valid key). Unlisted chapters start collapsed. `modules`, `miscellaneous` and `tokens` are ignored with a warning. `collapsedAll: true` overrides this list |
-| navTabConfig | `--navTabConfig` | object[] | `[]` | Customize the order and labels of entity page tabs. Array of `{ id, label }` objects. Available tab IDs: `info` (overview/metadata), `readme` (component README), `api` (member surface), `source` (source code), `templateData` (component template), `styleData` (component styles), `theming` (theme tokens), `tree` (DOM tree), `example` (examples), `playground` (`@playground` blocks). Tabs not listed are hidden. If empty (default), all applicable tabs are shown in their default order |
+| navTabConfig | `--navTabConfig` | object[] | `[]` | Customize the order and labels of entity page tabs. Array of `{ id, label }` objects. Available tab IDs: `info` (overview/metadata), `readme` (component README), `api` (member surface), `source` (source code), `templateData` (component template), `styleData` (component styles), `theming` (theme tokens), `tree` (DOM tree), `example` (examples), `playground` (`@playground` blocks). Tabs not listed are hidden, except the Dependencies tab, which has no ID and is controlled by `disableDependenciesTab`. If empty (default), all applicable tabs are shown in their default order |
 | exampleUrlBase | `--exampleUrlBase <url>` | string | `''` | Base URL for relative `<example-url>` tags in class JSDoc (the Example tab shows each one in an iframe). A relative tag is appended to the base with one slash between them, so `<example-url>/#/forms/select</example-url>` with base `https://example.github.io/demo` gives `https://example.github.io/demo/#/forms/select`; absolute URLs (`https:`, `//host`) stay as written. The resolved URL is also written to `exampleUrls` in the JSON export. Without a base, relative tags stay as written, load relative to the page (which fails when the site is opened from disk) and are listed in one build warning |
 
 ## Coverage
@@ -240,7 +240,7 @@ Include external documentation, static assets, or supply custom templates.
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
-| includes | `--includes` | string | -- | Path to a folder of external markdown files, absolute or relative to the working directory; in a config file relative to the config file's folder (see [Paths in a config file](#paths-in-a-config-file)). A folder that does not exist is reported with a warning. Each `.md` file becomes a page in the documentation, accessible via a dedicated sidebar section. Supports nested folders for sub-navigation |
+| includes | `--includes` | string | -- | Path to a folder of external markdown files, absolute or relative to the working directory; in a config file relative to the config file's folder (see [Paths in a config file](#paths-in-a-config-file)). A folder that does not exist is reported with a warning. Each file named in its `summary.json` becomes a page in a dedicated sidebar section, nested through `children`. |
 | includesName | `--includesName` | string | `'Additional documentation'` | Sidebar label for the external markdown pages section |
 | includesLabels | `--includesLabels` | string | -- | Path to a JSON file keyed by page slug, each entry with an optional `label` (sidebar text), `title` (page title) and `tooltip` (link tooltip with `includesTooltips`). Read only when `includes` is set. See [Additional pages](additional-pages.md). Relative paths: see [Paths in a config file](#paths-in-a-config-file) |
 | includesTooltips | `--includesTooltips` | boolean | `false` | Show the subtitle of each additional page (the heading directly after its first-level heading) or its `tooltip` key as the tooltip of its sidebar link. See [Additional pages](additional-pages.md#link-tooltips) |
@@ -383,7 +383,7 @@ In the flag and heuristic cases, **only** the shell is injected - `@angular/mate
 | playgroundVendorIncludeSourcemaps | -- (config-only) | boolean | `false` | Keep `*.map` sourcemaps in vendored packages. Off by default - sourcemaps are a large slice of FESM byte size and the WebContainer build never reads them. |
 
 ```jsonc
-// compodocx.config.json
+// .compodocxrc.json
 {
     "tsconfig": "projects/ui-kit/tsconfig.lib.json",
     "output": "docs/",
@@ -400,7 +400,7 @@ In the flag and heuristic cases, **only** the shell is injected - `@angular/mate
 The Material shell covers the common case (Roboto + Material-Icons). For anything else a playground needs in the page shell, `playgroundHead` and `playgroundGlobalStyles` let you contribute to the generated `index.html` `<head>` and `src/styles.css` directly - these extend the **same** shell writer the Material option uses, so they compose with it rather than replacing the scaffold.
 
 ```jsonc
-// compodocx.config.json
+// .compodocxrc.json
 {
     "playgroundHead": [
         "<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">",
@@ -449,7 +449,7 @@ StackBlitz's WebContainer runs a real `npm install`, so it resolves each of thes
 A registry dependency always resolves to the last **published** version, so a playground that imports a symbol which only exists in your working tree fails to compile in the sandbox, and an unreleased bugfix shows stale. `playgroundVendor` fixes this by embedding the locally built `dist/` into the payload - the same mechanism compodocx already uses to inline your example sources, one level deeper.
 
 ```jsonc
-// compodocx.config.json
+// .compodocxrc.json
 {
     "tsconfig": "projects/ui/tsconfig.lib.json",
     "output": "docs/",
@@ -579,7 +579,7 @@ These are config-file only (no CLI flag). An explicit non-empty list replaces th
 
 ## Theming Tab
 
-Components grow a **Theming** tab when the parser finds documented theme tokens or mixins inside their `styleUrls` or inline `styles[]`, or when a style file listed in [`styleFiles`](#style-files) themes them with `@themes`; directives get the tab from `@themes` files. Tokens are described with a small inline-doc convention -- no separate manifest, no companion files. The same convention works for SCSS variables, CSS custom properties, and `@property` at-rules.
+Components grow a **Theming** tab when the parser finds documented theme tokens or mixins inside their `styleUrl`, `styleUrls` or inline `styles`, or when a style file listed in [`styleFiles`](#style-files) themes them with `@themes`; directives get the tab from `@themes` files. Tokens are described with a small inline-doc convention -- no separate manifest, no companion files. The same convention works for SCSS variables, CSS custom properties, and `@property` at-rules.
 
 > Authoring a stylesheet from scratch or retrofitting an existing one? See [the theming tokens authoring guide](theming-tokens-authoring-guide.md) for copy-paste recipes, `@themes`, `@relatedTo`, documented mixins, anti-patterns, and a verification loop.
 
@@ -674,7 +674,7 @@ A style file whose tokens are all hidden, and that has no overview and no docume
 
 ### Source resolution
 
-For each component, compodocx reads the `@Component` decorator's `styleUrls` relative to the component file and parses each entry. Inline `styles[]` strings are parsed identically. SCSS files have their top-level `@import` and `@use` rules followed **one level deep**, so you can keep tokens in a partial like `_tokens.scss` and re-export from the component stylesheet. Deeper transitive resolution is intentionally out of scope.
+For each component, compodocx reads the `@Component` decorator's `styleUrl` or `styleUrls` relative to the component file and parses each entry. Inline `styles` are parsed identically. SCSS files have their top-level `@import` and `@use` rules followed **one level deep**, so you can keep tokens in a partial like `_tokens.scss` and re-export from the component stylesheet. Deeper transitive resolution is intentionally out of scope.
 
 Components without documented tokens or mixins get no Theming tab. Directives get one only from style files that name them in `@themes`. Other entity kinds (services, classes, ...) never produce a Theming tab.
 
@@ -723,7 +723,7 @@ Compodocx recognizes these custom JSDoc tags on any entity or member:
 | `@docs <url>` | Adds a documentation link in the entity hero |
 | `@example` | Code examples rendered in the Info tab with syntax highlighting |
 | `@playground <title> [<path>]` | Runnable demo on the component's Playground tab. Title required. Optional trailing `./*.html` or `./*.ts` path triggers file-ref mode (see Playground section). |
-| `@slot <name> <description>` | Adds a row to the component's Slots section in the Info tab |
+| `@slot <name> <description>` | Adds a row to the component's Content Slots section in the Info tab |
 | `@overview` (in CSS / SCSS) | Prose intro at the top of the Theming tab |
 | `@group <name>` (on a CSS / SCSS token) | Groups the token under this heading on the Theming tab |
 | `@themes <Name>` (in a CSS / SCSS style file) | Links the file to the components and directives it themes, see [Style files](#style-files) |
