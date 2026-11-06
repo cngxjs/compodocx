@@ -14,9 +14,9 @@ export const isAiGeneratedTagName = (name: string | undefined): boolean =>
  *
  * Recognised forms:
  *   <!-- @aiGenerated -->
- *   <!-- @aiGenerated claude-opus-4.7 -->
+ *   <!-- @aiGenerated example-model -->
  *   <!-- @ai 2026-05 -->
- *   <!-- @aigen model=claude-opus-4.7 date=2026-05 -->
+ *   <!-- @aigen model=example-model date=2026-05 -->
  *
  * Returns the trimmed value when found, `true` when the bare marker is
  * present, or `false` when absent. The marker must appear before any
