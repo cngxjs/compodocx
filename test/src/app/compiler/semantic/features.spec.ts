@@ -31,6 +31,7 @@ interface Case {
     readonly tags?: Readonly<Record<string, string>>;
     readonly config?: Partial<FeatureConfig>;
     readonly dirs?: readonly string[];
+    readonly readmes?: readonly string[];
 }
 
 /** One symbol per file, named after the file. */
@@ -43,7 +44,7 @@ const detect = (c: Case) => {
         config: { ...CONFIG, ...c.config },
         fs: {
             isDirectory: dir => (c.dirs ?? []).includes(dir),
-            isFile: () => false,
+            isFile: file => (c.readmes ?? []).includes(file),
             packageName: () => undefined
         }
     };
@@ -221,5 +222,56 @@ describe('feature detection', () => {
         expect(app.of('app/src/app/services/admin.service.ts')).toBe('#admin');
         expect(app.of('app/src/app/services/log.service.ts')).toBe('#');
         expect(app.model.features.map(x => x.id)).toEqual(['#', '#admin']);
+    });
+
+    describe('README of a config or tag feature', () => {
+        const ENTRY = lib('@x/ui', 'lib/ui');
+        const readmeOf = (c: Case, id: string): string | undefined =>
+            detect({ entryPoints: [ENTRY], ...c }).model.features.find(f => f.id === id)?.readme;
+        const TOAST = 'lib/ui/feedback/toast';
+        const CASE: Case = {
+            files: [`${TOAST}/toast.ts`, `${TOAST}/outlet/outlet.ts`],
+            config: { features: { [`${TOAST}/**`]: 'toast' } }
+        };
+
+        it('reads the README of the common folder of its symbols, not of the key', () => {
+            const readme = `${TOAST}/README.md`;
+            expect(readmeOf({ ...CASE, readmes: [readme] }, '@x/ui#toast')).toBe(readme);
+        });
+
+        it('does the same for a tag', () => {
+            const readme = `${TOAST}/README.md`;
+            const tagged: Case = {
+                files: CASE.files,
+                tags: Object.fromEntries(CASE.files.map(file => [file, 'toast'])),
+                readmes: [readme]
+            };
+            expect(readmeOf(tagged, '@x/ui#toast')).toBe(readme);
+        });
+
+        it('walks up from the common folder to the nearest README', () => {
+            const readme = 'lib/ui/feedback/README.md';
+            const deep: Case = {
+                files: [`${TOAST}/toast.ts`],
+                config: { features: { [`${TOAST}/**`]: 'toast' } },
+                readmes: [readme]
+            };
+            expect(readmeOf(deep, '@x/ui#toast')).toBe(readme);
+        });
+
+        it('stops at the folder of the entry file', () => {
+            const inSrc = 'lib/ui/src/feedback/toast';
+            const c: Case = {
+                files: [`${inSrc}/toast.ts`],
+                config: { features: { [`${inSrc}/**`]: 'toast' } },
+                readmes: ['lib/ui/src/README.md']
+            };
+            expect(readmeOf(c, '@x/ui#toast')).toBeUndefined();
+        });
+
+        it('never shows the README of the entry point', () => {
+            const readmes = ['lib/ui/README.md', 'lib/ui/src/README.md'];
+            expect(readmeOf({ ...CASE, readmes }, '@x/ui#toast')).toBeUndefined();
+        });
     });
 });

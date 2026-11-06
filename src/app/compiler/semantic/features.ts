@@ -294,6 +294,25 @@ const fileStem = (file: string): string => posix.basename(file).split('.')[0];
 
 const lastSegment = (importPath: string): string => importPath.split('/').pop() ?? importPath;
 
+/** The nearest `README.md` from `folder` upwards, stopping before any of `stops`. */
+const nearestReadme = (
+    folder: string,
+    stops: ReadonlySet<string>,
+    isFile: (file: string) => boolean
+): string | undefined => {
+    for (
+        let dir = folder;
+        !stops.has(dir) && dir !== '.' && dir !== '/';
+        dir = posix.dirname(dir)
+    ) {
+        const file = posix.join(dir, 'README.md');
+        if (isFile(file)) {
+            return file;
+        }
+    }
+    return undefined;
+};
+
 const commonRoot = (files: readonly string[]): string => {
     if (files.length === 0) {
         return '';
@@ -575,6 +594,7 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
     );
 
     const features = new Map<FeatureId, Feature>();
+    const filesOf = new Map<FeatureId, string[]>();
     const featureOf = new Map<string, FeatureId>();
     const entryByPath = new Map(entryPoints.map(entry => [entry.importPath, entry]));
     for (const symbol of input.symbols) {
@@ -585,6 +605,7 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
         }
         const id = featureId(p.entryPoint, p.key);
         featureOf.set(symbol.key, id);
+        filesOf.set(id, [...(filesOf.get(id) ?? []), symbol.file]);
         const known = features.get(id);
         if (known) {
             if (DETECTOR_RANK[p.detector] < DETECTOR_RANK[known.detector]) {
@@ -607,6 +628,20 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
             detector: p.detector,
             readme
         });
+    }
+    // A config or tag key names no folder: the README comes from where the
+    // symbols are, and the one of the entry point stays on its root feature.
+    for (const [id, feature] of features) {
+        if (feature.key === '' || (feature.detector !== 'config' && feature.detector !== 'tag')) {
+            continue;
+        }
+        const entry =
+            feature.entryPoint !== undefined ? entryByPath.get(feature.entryPoint) : undefined;
+        const stops = new Set(
+            entry ? [feature.root, entry.root, posix.dirname(entry.file)] : [feature.root]
+        );
+        const readme = nearestReadme(commonRoot(filesOf.get(id) ?? []), stops, fs.isFile);
+        features.set(id, { ...feature, readme });
     }
 
     const sorted = [...features.values()].sort(
