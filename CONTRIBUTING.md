@@ -1,6 +1,6 @@
 # Contributing to compodocx
 
-> compodocx is a fork of [compodoc](https://github.com/compodoc/compodoc) by Vincent Ogloblinsky, maintained by CNGX Christian Weiss<CWOIDA>.
+> compodocx is a fork of [compodoc](https://github.com/compodoc/compodoc) by Vincent Ogloblinsky, maintained by CNGX Christian Weiss.
 
 [commit-message-format]: https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit#
 [github]: https://github.com/cngxjs/compodocx
@@ -296,25 +296,25 @@ Anyone can file an expense. If the expense makes sense for the development of th
 ### Contributors
 
 Thank you to all the people who have already contributed to compodoc!
-<a href="graphs/contributors"><img src="https://opencollective.com/compodoc/contributors.svg?width=890" /></a>
+<a href="graphs/contributors"><img src="https://opencollective.com/compodoc/contributors.svg?width=890" alt="compodoc contributors" /></a>
 
 ### Backers
 
 Thank you to all our backers! [[Become a backer](https://opencollective.com/compodoc#backer)]
 
-<a href="https://opencollective.com/compodoc#backers" target="_blank"><img src="https://opencollective.com/compodoc/backers.svg?width=890"></a>
+<a href="https://opencollective.com/compodoc#backers" target="_blank"><img src="https://opencollective.com/compodoc/backers.svg?width=890" alt="compodoc backers"></a>
 
 ### Sponsors
 
 Thank you to all our sponsors! (please ask your company to also support this open source project by [becoming a sponsor](https://opencollective.com/compodoc#sponsor))
 
-<a href="https://opencollective.com/compodoc/sponsor/0/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/0/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/1/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/1/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/2/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/2/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/3/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/3/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/4/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/4/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/5/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/5/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/6/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/6/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/7/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/7/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/8/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/8/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/9/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/9/avatar.svg"></a>
+<a href="https://opencollective.com/compodoc/sponsor/0/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/0/avatar.svg" alt="Sponsor 1"></a>
+<a href="https://opencollective.com/compodoc/sponsor/1/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/1/avatar.svg" alt="Sponsor 2"></a>
+<a href="https://opencollective.com/compodoc/sponsor/2/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/2/avatar.svg" alt="Sponsor 3"></a>
+<a href="https://opencollective.com/compodoc/sponsor/3/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/3/avatar.svg" alt="Sponsor 4"></a>
+<a href="https://opencollective.com/compodoc/sponsor/4/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/4/avatar.svg" alt="Sponsor 5"></a>
+<a href="https://opencollective.com/compodoc/sponsor/5/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/5/avatar.svg" alt="Sponsor 6"></a>
+<a href="https://opencollective.com/compodoc/sponsor/6/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/6/avatar.svg" alt="Sponsor 7"></a>
+<a href="https://opencollective.com/compodoc/sponsor/7/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/7/avatar.svg" alt="Sponsor 8"></a>
+<a href="https://opencollective.com/compodoc/sponsor/8/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/8/avatar.svg" alt="Sponsor 9"></a>
+<a href="https://opencollective.com/compodoc/sponsor/9/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/9/avatar.svg" alt="Sponsor 10"></a>
