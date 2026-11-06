@@ -95,7 +95,7 @@ export function defineFlags(program: Command): Command {
         )
         .option(
             '--theme [theme]',
-            'Choose a built-in theme or path to a custom CSS file (built-in: default, ocean, ember, midnight, neon, brutalist, nord, rose-pine, gitbook)'
+            'Choose a built-in theme or path to a custom CSS file (built-in: default, ocean, ember, midnight, neon, brutalist, nord, rose-pine)'
         )
         .option(
             '--shikiTheme [theme]',

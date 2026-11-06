@@ -674,6 +674,7 @@ describe('applyConfigToMainData', () => {
     });
 
     it.each([
+        ['gitbook', 'default'],
         ['material', 'default'],
         ['original', 'default'],
         ['postmark', 'nord'],
@@ -692,8 +693,8 @@ describe('applyConfigToMainData', () => {
 
     it('keeps built-in theme names without a warning', () => {
         const mainData = makeMainData();
-        applyConfigToMainData(mainData, { theme: 'gitbook' }, makeProgram(), { cwd: '/tmp/test' });
-        expect(mainData.theme).toBe('gitbook');
+        applyConfigToMainData(mainData, { theme: 'ocean' }, makeProgram(), { cwd: '/tmp/test' });
+        expect(mainData.theme).toBe('ocean');
         expect(vi.mocked(logger.warn)).not.toHaveBeenCalled();
     });
 

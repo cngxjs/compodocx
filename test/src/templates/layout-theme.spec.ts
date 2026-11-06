@@ -18,7 +18,7 @@ const RESTORE = "localStorage.getItem('compodocx-theme')";
 
 describe('stored theme restore script', () => {
     it('is emitted with the theme picker for the built-in themes', () => {
-        for (const theme of [undefined, 'default', 'gitbook']) {
+        for (const theme of [undefined, 'default']) {
             const html = render({ theme });
             expect(html).toContain(RESTORE);
             expect(html).toContain('data-cdx-theme-picker');
