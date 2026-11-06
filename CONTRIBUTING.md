@@ -1,6 +1,6 @@
 # Contributing to compodocx
 
-> compodocx is a fork of [compodoc](https://github.com/compodoc/compodoc) by Vincent Ogloblinsky, maintained by CNGX Christian Weiss<CWOIDA>.
+> compodocx is a fork of [compodoc](https://github.com/compodoc/compodoc) by Vincent Ogloblinsky, maintained by CNGX Christian Weiss.
 
 [commit-message-format]: https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit#
 [github]: https://github.com/cngxjs/compodocx
@@ -18,7 +18,7 @@ to follow:
 
 ## Stack
 
-Compodoc is written in TypeScript. The compiling process use `Rollup.js`.
+compodocx is written in TypeScript. The compiling process use `Rollup.js`.
 
 ## Architecture and operating
 
@@ -26,7 +26,7 @@ See this folder for more details: [DOCS](./docs/README.md).
 
 ### Development process
 
-1. Open one terminal and run inside `compodoc` folder:
+1. Open one terminal and run inside `compodocx` folder:
 
     ```shell
     npm run start
@@ -35,7 +35,7 @@ See this folder for more details: [DOCS](./docs/README.md).
 1. Open another terminal with the source code of the [demo project](https://github.com/cngxjs/compodocx-demo-todomvc-angular), and run:
 
     ```shell
-    node ../compodoc/bin/index-cli.js -p tsconfig.json -a screenshots -n 'TodoMVC Angular documentation' --includes additional-doc --toggleMenuItems "'all'" -s
+    node ../compodocx/bin/index-cli.js -p tsconfig.json -a screenshots -n 'TodoMVC Angular documentation' --includes additional-doc --toggleMenuItems "'all'" -s
     ```
 
 ### Debugging process
@@ -57,7 +57,7 @@ See this folder for more details: [DOCS](./docs/README.md).
     }
     ```
 
-1. Open one terminal and run inside compodoc folder:
+1. Open one terminal and run inside compodocx folder:
 
     ```shell
     npm run start
@@ -68,10 +68,10 @@ See this folder for more details: [DOCS](./docs/README.md).
 1. Open another terminal with the source code of the [demo project](https://github.com/cngxjs/compodocx-demo-todomvc-angular), and run:
 
     ```shell
-    node --inspect ../compodoc/bin/index-cli.js -p tsconfig.json -a screenshots -n 'TodoMVC Angular documentation' --includes additional-doc --toggleMenuItems "'all'" -s
+    node --inspect ../compodocx/bin/index-cli.js -p tsconfig.json -a screenshots -n 'TodoMVC Angular documentation' --includes additional-doc --toggleMenuItems "'all'" -s
     ```
 
-1. Compodoc will wait 10s before starting when it detects `--inspect` flag.
+1. compodocx will wait 10s before starting when it detects `--inspect` flag.
 1. Open the debug window in Chrome, and click `inspect`.
 
 ## <a name="issue"></a> Found an Issue?
@@ -92,7 +92,7 @@ Before you submit an issue, please search the issue tracker, maybe an issue for 
 
 We want to fix all the issues as soon as possible, but before fixing a bug we need to reproduce and confirm it. In order to reproduce bugs, we will systematically ask you to provide a minimal reproduction scenario. Having a reproducible scenario gives us wealth of important information without going back & forth to you with additional questions like:
 
--   version of compodoc, Node.js used
+-   version of compodocx, Node.js used
 -   `.tsconfig.json` configuration
 -   and most importantly - a use-case that fails
 
@@ -131,7 +131,7 @@ Before you submit your Pull Request (PR) consider the following guidelines:
 
     ```shell
     cd test-pr
-    compodoc -p src/tsconfig.json
+    compodocx -p src/tsconfig.json
     ```
 
 -   Commit your changes using a descriptive commit message that follows our
@@ -192,22 +192,22 @@ from the `main (upstream)` repository:
     git pull --ff upstream develop
     ```
 
-### Fork the compodoc project
+### Fork the compodocx project
 
-Go to the [compodoc project](https://github.com/cngxjs/compodocx) and click on the "fork" button. You can then clone your own fork of the project, and start working on it.
+Go to the [compodocx project](https://github.com/cngxjs/compodocx) and click on the "fork" button. You can then clone your own fork of the project, and start working on it.
 
 [Please read the Github forking documentation for more information](https://help.github.com/articles/fork-a-repo)
 
 ### Set NPM to use the cloned project
 
-In your cloned `compodoc` project, type `npm link`.
+In your cloned `compodocx` project, type `npm link`.
 
-This will do a symbolic link from the global `node_modules` version to point to this folder, so when we run `compodoc`, you will now use the development version of Compodoc.
+This will do a symbolic link from the global `node_modules` version to point to this folder, so when we run `compodocx`, you will now use the development version of compodocx.
 
-For testing, you will want to generate an application with angular-cli, and run `compodoc` installed globally.
+For testing, you will want to generate an application with angular-cli, and run `compodocx` installed globally.
 
 ```shell
-compodoc ...
+compodocx ...
 ```
 
 ## <a name="rules"></a> Coding Rules
@@ -285,36 +285,3 @@ Just as in the **subject**, use the imperative, present tense: "change" not Ther
 **Breaking Changes** should start with the word `BREAKING CHANGE:` with a space or two newlines. The rest of the commit message is then used for this.
 
 A detailed explanation can be found in this [document][commit-message-format].
-
-## Financial contributions
-
-We also welcome financial contributions in full transparency on our [open collective](https://opencollective.com/compodoc).
-Anyone can file an expense. If the expense makes sense for the development of the community, it will be "merged" in the ledger of our open collective by the core contributors and the person who filed the expense will be reimbursed.
-
-## Credits
-
-### Contributors
-
-Thank you to all the people who have already contributed to compodoc!
-<a href="graphs/contributors"><img src="https://opencollective.com/compodoc/contributors.svg?width=890" /></a>
-
-### Backers
-
-Thank you to all our backers! [[Become a backer](https://opencollective.com/compodoc#backer)]
-
-<a href="https://opencollective.com/compodoc#backers" target="_blank"><img src="https://opencollective.com/compodoc/backers.svg?width=890"></a>
-
-### Sponsors
-
-Thank you to all our sponsors! (please ask your company to also support this open source project by [becoming a sponsor](https://opencollective.com/compodoc#sponsor))
-
-<a href="https://opencollective.com/compodoc/sponsor/0/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/0/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/1/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/1/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/2/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/2/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/3/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/3/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/4/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/4/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/5/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/5/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/6/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/6/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/7/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/7/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/8/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/8/avatar.svg"></a>
-<a href="https://opencollective.com/compodoc/sponsor/9/website" target="_blank"><img src="https://opencollective.com/compodoc/sponsor/9/avatar.svg"></a>

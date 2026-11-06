@@ -12,7 +12,7 @@ assignees: vogloblinsky
 
 <!-- explain the issue, if an error is being thrown a stack trace helps -->
 
-##### **Operating System, Node.js, npm, compodoc version(s)**
+##### **Operating System, Node.js, npm, compodocx version(s)**
 
 <!-- provide all information we need -->
 
@@ -20,7 +20,7 @@ assignees: vogloblinsky
 
 <!-- This is mandatory for bug reports. This will help us to replicate the scenario. -->
 
-##### **Compodoc installed globally or locally ?**
+##### **compodocx installed globally or locally ?**
 
 <!-- provide all information we need -->
 
@@ -47,5 +47,3 @@ assignees: vogloblinsky
 ##### **Suggest a Fix**
 
 <!-- if you can't fix the bug yourself, perhaps you can point to what might be causing the problem (line of code or commit) -->
-
-<!-- Love compodoc? Please consider supporting our collective: 👉  https://opencollective.com/compodoc/donate -->

@@ -23,6 +23,3 @@ assignees: vogloblinsky
 ##### **Related issues**
 
 <!-- has a similar issue been reported before? -->
-
-<!-- Love compodoc? Please consider supporting our collective:
-👉  https://opencollective.com/compodoc/donate -->
