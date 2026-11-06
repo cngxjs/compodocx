@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [0.16.1] - 2026-11-06
+
+### Changed
+
+- **`gitbook` is no longer a theme name.** It had no theme file and rendered like `default`. `--theme gitbook` and `"theme": "gitbook"` keep working and render the same, with a warning that names the available themes.
+
+### Fixed
+
+- **README of a feature from the `features` config or an `@feature` tag.** The feature page reads the nearest `README.md` from the common folder of its symbols upwards, and no longer shows the README of its entry point.
+- **Relative `.md` links in a feature README.** A link to another feature's `README.md` points at that feature's page, a link to any other `.md` file points at that file's page, and a link without a page is reported in the `Markdown links:` warning. They used to be dropped, leaving only the link text. On the card of a sub-feature such a link is shown as text.
+- **Long additional page titles in the sidebar wrap.** The child list of a page with children grew to its widest link, so the title was cut off at the sidebar edge and scrolling the active link into view shifted the whole menu sideways.
+- **Active sidebar link on feature pages.** The docs' `index.html` matched every feature page and was marked instead of the feature's own link. A page without a sidebar link now marks nothing.
+
 ## [0.16.0] - 2026-11-06
 
 Upgrading from 0.15: the JSON export schema is 7 (the fields deprecated in 0.12.0 are gone), and relative paths in a config file resolve against the folder of that file instead of the working directory. CLI flags are unchanged. [MIGRATION.md](MIGRATION.md) lists each change.
