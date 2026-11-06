@@ -67,6 +67,15 @@ Useful flags:
 
 Re-running `ng add @cngxjs/compodocx` is idempotent (zero diff on the second pass). CI workflow files that invoke `compodoc -p ...` directly are not rewritten - update those manually, or rely on the `compodoc` bin alias the new package still ships. The schematic does not touch your sources, templates or config file: the warnings of the first run still apply.
 
+## Changes in 0.16.0
+
+The JSON export schema goes from 6 to 7, and relative paths in a config file resolve against the folder of that file. CLI flags are unchanged. What to check when you upgrade from 0.15:
+
+- **`signal` on components and directives is gone.** `documentation.json` no longer writes the entry flag `signal` (deprecated since 0.12.0). Read `signalKind` on the members instead: an entry has signal APIs when one of its `inputsClass`, `outputsClass` or `propertiesClass` members has `signalKind` `input-signal`, `output-signal` or `model`. The class tag `@signal` has no effect on components and directives any more; on functions it still sets `signal`.
+- **`jsdoctags` entries are plain objects.** The TypeScript node fields (`pos`, `end`, `kind`, `id`, `flags`, `modifierFlagsCache`, `transformFlags`, `escapedText`) are no longer written. Read the tag name from `tagName.text` (it is always set) and the parameter name from `name`, which is always a string now; code that fell back to `escapedText` can drop the fallback. A `comment` that is not a string is left out.
+- **Re-export `compodocx diff` baselines.** `compodocx diff` reads schema 7 only and stops with exit code 2 on a schema 6 export (`re-export it with this compodocx version`). Generate the old side again with 0.16.0. JSON Schema validators switch to `src/data/schemas/documentation.v7.schema.json`; the schema 6 file stays in the package.
+- **Config file paths.** A relative `tsconfig`, `output`, `theme` (as a path), `extTheme`, `assetsFolder`, `templates`, `includes`, `includesLabels`, `unitTestCoverage`, `customFavicon`, `customLogo`, `customLogoDark`, `publicApiOnly`, `versionsRoot` or `playgroundVendorRoot` in a config file resolves against the folder of that config file, no longer against the working directory. Nothing changes when the config file sits in the folder compodocx runs in, which is the case without `-c`. With `-c path/to/.compodocxrc.json` (or a `package.json` key in another folder), write these values relative to the config file or make them absolute. Flags keep reading paths relative to the working directory and still win over the config file. `include`, `exclude`, `files`, `features`, `classificationAxes.*.paths` and `styleFiles` are unchanged.
+
 ## Changes in 0.15.0
 
 No flag or config key was removed, and the JSON export schema stays 6. What to check when you upgrade from 0.14:

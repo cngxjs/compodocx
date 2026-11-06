@@ -44,6 +44,7 @@ import { lookupEntry, type SymbolTable, styleFileName } from '../links/symbol-ta
 import { exportRoutes, type RoutingModel, withRouteFacts } from '../routing';
 import type { StyleModel } from '../styles/model';
 import { exportAdditionalPages } from './export-additional-pages';
+import { jsdocTagsReplacer } from './export-jsdoc-tags';
 import FileEngine from './file.engine';
 
 const INLINE_STYLE_RE = /^<inline-style-(\d+)>$/;
@@ -591,7 +592,7 @@ export class ExportJsonEngine {
 
         return FileEngine.write(
             `${outputFolder + path.sep}/documentation.json`,
-            JSON.stringify(exportData, undefined, Configuration.mainData.jsonIndent)
+            JSON.stringify(exportData, jsdocTagsReplacer, Configuration.mainData.jsonIndent)
         ).catch(err => {
             logger.error('Error during export file generation ', err);
             return Promise.reject(err);

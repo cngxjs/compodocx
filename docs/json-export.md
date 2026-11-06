@@ -4,17 +4,17 @@
 
 ## JSON Schema
 
-The package ships a JSON Schema (draft 2020-12) of the current version at `node_modules/@cngxjs/compodocx/src/data/schemas/documentation.v6.schema.json`. Validate an export with any 2020-12 validator, for example with ajv:
+The package ships a JSON Schema (draft 2020-12) of the current version at `node_modules/@cngxjs/compodocx/src/data/schemas/documentation.v7.schema.json`. Validate an export with any 2020-12 validator, for example with ajv:
 
 ```js
 import Ajv2020 from 'ajv/dist/2020.js';
-import schema from '@cngxjs/compodocx/src/data/schemas/documentation.v6.schema.json' with { type: 'json' };
+import schema from '@cngxjs/compodocx/src/data/schemas/documentation.v7.schema.json' with { type: 'json' };
 
 const validate = new Ajv2020({ strict: false }).compile(schema);
 validate(documentation) || console.error(validate.errors);
 ```
 
-The schema is generated from the TypeScript declaration of the export. Objects allow fields the schema does not list (`additionalProperties: true`), so a newer export with added optional fields still validates. Deprecated fields carry `deprecated: true`. `jsdoctags` entries are the TypeScript JSDoc nodes as the crawler writes them; the schema lists their documented fields and allows the node fields next to them.
+The schema is generated from the TypeScript declaration of the export. Objects allow fields the schema does not list (`additionalProperties: true`), so a newer export with added optional fields still validates. Deprecated fields carry `deprecated: true`. `jsdoctags` entries are plain objects with the fields of `ExportJsdocTag` only. The schema files of earlier versions (`documentation.v6.schema.json`) stay in the package.
 
 ## Compatibility policy
 
@@ -29,11 +29,10 @@ The schema is generated from the TypeScript declaration of the export. Objects a
 
 | Field | Deprecated since | Removed with schema | Read instead |
 |-|-|-|-|
-| `components[].signal` | 0.12.0 | 7 | `signalKind` on the members |
-| `directives[].signal` | 0.12.0 | 7 | `signalKind` on the members |
-| `jsdoctags[] node fields` | 0.12.0 | 7 | the fields of `ExportJsdocTag` (`tagName`, `comment`, `name`, `type`, ...) |
 
-The node fields of `jsdoctags` entries are the fields the TypeScript JSDoc node carries besides the documented ones: `pos`, `end`, `kind`, `id`, `flags`, `modifierFlagsCache`, `transformFlags`, `escapedText` in `tagName` and `name`, and further node references. The JSON Schema does not list them.
+None.
+
+Removed with schema 7: `components[].signal` and `directives[].signal` (read `signalKind` on the members) and the TypeScript node fields of `jsdoctags` entries (see [Schema 7](#schema-7)).
 
 ## Versions
 
@@ -42,9 +41,23 @@ The node fields of `jsdoctags` entries are the fields the TypeScript JSDoc node 
 | none | compodoc and compodocx before 0.3.0 |
 | `1` | compodocx 0.3.0 to 0.5.x |
 | `2` | compodocx 0.6.0 to 0.8.x |
-| `6` | compodocx 0.9.0 and later |
+| `6` | compodocx 0.9.0 to 0.15.x |
+| `7` | compodocx 0.16.0 and later |
 
 Schemas 3 to 5 were development steps towards 6 and were never published.
+
+## Schema 7
+
+### Introduced in 0.16.0
+
+Removed:
+
+- `signal` on components and directives; read `signalKind` on the members (`input-signal`, `output-signal`, `model`). The class tag `@signal` no longer sets anything on components and directives; functions keep their `signal` field.
+- The TypeScript node fields of `jsdoctags` entries (`pos`, `end`, `kind`, `id`, `flags`, `modifierFlagsCache`, `transformFlags`, `escapedText` and further node references).
+
+Reshaped:
+
+- `jsdoctags` entries are plain objects with `tagName`, `comment`, `name`, `type`, `defaultValue`, `optional`, `deprecated`, `deprecationMessage`, `dotDotDotToken` and `function` (the arguments of a function-typed parameter), each written only when set. `tagName` is always `{ text }` with `text` set; `name` is always a string. A `comment` that is not a string is left out.
 
 ## Schema 6
 

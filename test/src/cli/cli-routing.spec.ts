@@ -1,7 +1,8 @@
-import type {
-    ExportData,
-    ExportRoute,
-    ExportRouteRoot
+import {
+    EXPORT_SCHEMA_VERSION,
+    type ExportData,
+    type ExportRoute,
+    type ExportRouteRoot
 } from '../../../src/app/interfaces/export-data.interface';
 import { hasStderrError, read, shell, temporaryDir } from '../helpers';
 
@@ -150,7 +151,7 @@ describe('CLI routes', () => {
         it('writes no routes key', () => {
             const data = JSON.parse(read(`${out}/documentation.json`)) as ExportData;
             expect(data.routes).toBeUndefined();
-            expect(data.schemaVersion).toBe(6);
+            expect(data.schemaVersion).toBe(EXPORT_SCHEMA_VERSION);
         });
     });
 

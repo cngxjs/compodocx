@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+Upgrading from 0.15: the JSON export schema is 7 (the fields deprecated in 0.12.0 are gone), and relative paths in a config file resolve against the folder of that file instead of the working directory. CLI flags are unchanged. [MIGRATION.md](MIGRATION.md) lists each change.
+
+### Changed
+
+- **JSON export schema 7.** `documentation.json` no longer writes `signal` on components and directives; read `signalKind` on the members. `jsdoctags` entries are plain objects with `tagName` (`{ text }`), `comment`, `name` (a string), `type`, `defaultValue`, `optional`, `deprecated`, `deprecationMessage`, `dotDotDotToken` and `function`, without the TypeScript node fields (`pos`, `end`, `kind`, `flags`, `escapedText`, ...). The package ships `documentation.v7.schema.json` next to the schema 6 file. `compodocx diff` reads schema 7 only; re-export stored baselines. The class tag `@signal` no longer sets anything on components and directives. See [JSON export](docs/json-export.md#schema-7).
+- **Paths in a config file are relative to its folder.** `tsconfig`, `output`, `theme` (as a path), `extTheme`, `assetsFolder`, `templates`, `includes`, `includesLabels`, `unitTestCoverage`, `customFavicon`, `customLogo`, `customLogoDark`, `publicApiOnly`, `versionsRoot` and `playgroundVendorRoot` resolve against the folder of the config file (for a `package.json` key: the folder of that `package.json`). A config file in the working directory reads them as before. Absolute values and CLI flags are unchanged, and a flag still wins over the config value. The glob keys (`include`, `exclude`, `files`, `features`, `classificationAxes.*.paths`) and `styleFiles` keep their bases. See [Paths in a config file](docs/configuration.md#paths-in-a-config-file).
+
+### Fixed
+
+- **Absolute paths for the custom favicon, logos and `extTheme`.** `--customFavicon /abs/icon.ico` (and `customLogo`, `customLogoDark`, `extTheme`) was read below the working directory (`<cwd>/abs/icon.ico`) and the copy failed. Absolute paths are now used as given.
+
 ## [0.15.0] - 2026-11-05
 
 Upgrading from 0.14: no flag or config key was removed and the JSON export schema stays 6. The per-symbol log lines need `--verbose` now, namespace members get pages named after their qualified name (old URLs redirect), and members a namespace does not export are no longer documented. [MIGRATION.md](MIGRATION.md) lists each change.

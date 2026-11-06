@@ -2,25 +2,12 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { hasSignalMember } from '../../../../src/app/compiler/angular/deps/helpers/class-helper/member-visitor';
 import { AngularDependencies } from '../../../../src/app/compiler/angular-dependencies';
 
-describe('hasSignalMember', () => {
-    it('is true for an input, output or model member', () => {
-        expect(hasSignalMember([{ signalKind: 'input-signal' }])).toBe(true);
-        expect(hasSignalMember(undefined, [{ signalKind: 'output-signal' }])).toBe(true);
-        expect(hasSignalMember([], [], [{ signalKind: 'model' }])).toBe(true);
-    });
-
-    it('is false for other signal kinds and plain members', () => {
-        expect(hasSignalMember([{ signalKind: 'computed' }, { signalKind: 'signal' }, {}])).toBe(
-            false
-        );
-        expect(hasSignalMember(undefined, [])).toBe(false);
-    });
-});
-
-/** The deprecated entry flag `signal` follows the members, plus the class tag `@signal`. */
+/**
+ * Components and directives carry no entry flag `signal`, neither from signal
+ * members nor from the class tag `@signal`; the members keep `signalKind`.
+ */
 describe('entry signal flag', () => {
     let tmpDir: string;
     let deps: any;
@@ -70,23 +57,29 @@ export class PlainDirective {}
         fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
-    const flag = (list: any[], name: string) => list.find((e: any) => e.name === name)?.signal;
+    const entry = (list: any[], name: string) => list.find((e: any) => e.name === name);
 
-    it('is true for components with an input or model member', () => {
-        expect(flag(deps.components, 'WithInputComponent')).toBe(true);
-        expect(flag(deps.components, 'WithModelComponent')).toBe(true);
+    it('is not written on components with signal members or the class tag', () => {
+        for (const name of [
+            'WithInputComponent',
+            'WithModelComponent',
+            'PlainComponent',
+            'TaggedComponent'
+        ]) {
+            expect(entry(deps.components, name)).toBeDefined();
+            expect(entry(deps.components, name)).not.toHaveProperty('signal');
+        }
     });
 
-    it('is false for a component with only signal() and computed() members', () => {
-        expect(flag(deps.components, 'PlainComponent')).toBe(false);
+    it('is not written on directives', () => {
+        for (const name of ['WithOutputDirective', 'PlainDirective']) {
+            expect(entry(deps.directives, name)).toBeDefined();
+            expect(entry(deps.directives, name)).not.toHaveProperty('signal');
+        }
     });
 
-    it('keeps the class tag', () => {
-        expect(flag(deps.components, 'TaggedComponent')).toBe(true);
-    });
-
-    it('follows the members of directives', () => {
-        expect(flag(deps.directives, 'WithOutputDirective')).toBe(true);
-        expect(flag(deps.directives, 'PlainDirective')).toBe(false);
+    it('keeps signalKind on the members', () => {
+        const input = entry(deps.components, 'WithInputComponent').inputsClass[0];
+        expect(input.signalKind).toBe('input-signal');
     });
 });

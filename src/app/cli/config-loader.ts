@@ -20,6 +20,7 @@ import type { ConfigurationFileInterface } from '../interfaces/configuration-fil
 import type { MainDataInterface } from '../interfaces/main-data.interface';
 import { isTableKind } from '../links/symbol-id';
 import { isLogoLayoutSetting, LOGO_LAYOUTS, logoImage } from '../page-generator/brand-images';
+import { type ApplySources, fromConfigFile, isThemePath } from './config-paths';
 
 /** Config names in search order: `.compodocxrc*` / `compodocx` key first, then the `compodoc` ones. */
 const COSMICONFIG_MODULE_NAMES: readonly string[] = ['compodocx', 'compodoc'];
@@ -83,11 +84,7 @@ export interface LoadedConfig {
 
 export type ConfigFileResult = Result<LoadedConfig, string>;
 
-export interface ApplySources {
-    readonly cwd: string;
-    /** Folder of the config file, when one was loaded. */
-    readonly configDir?: string;
-}
+export type { ApplySources } from './config-paths';
 
 /**
  * Cosmiconfig boundary. Honours an explicit `-c` path, otherwise searches
@@ -294,7 +291,7 @@ export function applyConfigToMainData(
     const programOptions = program.opts();
 
     if (configFile.output) {
-        mainData.output = configFile.output;
+        mainData.output = fromConfigFile(configFile.output, sources);
         mainData.outputProvided = true;
     }
     if (programOptions.output && programOptions.output !== COMPODOC_DEFAULTS.folder) {
@@ -310,7 +307,7 @@ export function applyConfigToMainData(
     }
 
     if (configFile.extTheme) {
-        mainData.extTheme = configFile.extTheme;
+        mainData.extTheme = fromConfigFile(configFile.extTheme, sources);
     }
     if (programOptions.extTheme) {
         mainData.extTheme = programOptions.extTheme;
@@ -324,7 +321,9 @@ export function applyConfigToMainData(
     }
 
     if (configFile.theme) {
-        mainData.theme = configFile.theme;
+        mainData.theme = isThemePath(configFile.theme)
+            ? fromConfigFile(configFile.theme, sources)
+            : configFile.theme;
     }
     if (programOptions.theme) {
         mainData.theme = programOptions.theme;
@@ -346,10 +345,7 @@ export function applyConfigToMainData(
 
     // Detect custom theme file path (contains '/' or ends with '.css')
     const themeVal = mainData.theme;
-    if (
-        themeVal &&
-        (themeVal.includes('/') || themeVal.includes(path.sep) || themeVal.endsWith('.css'))
-    ) {
+    if (themeVal && isThemePath(themeVal)) {
         const resolved = path.resolve(sources.cwd, themeVal);
         if (fs.existsSync(resolved)) {
             mainData.customThemePath = resolved;
@@ -376,7 +372,7 @@ export function applyConfigToMainData(
     }
 
     if (configFile.assetsFolder) {
-        mainData.assetsFolder = configFile.assetsFolder;
+        mainData.assetsFolder = fromConfigFile(configFile.assetsFolder, sources);
     }
     if (programOptions.assetsFolder) {
         mainData.assetsFolder = programOptions.assetsFolder;
@@ -406,7 +402,7 @@ export function applyConfigToMainData(
     }
 
     if (configFile.templates) {
-        mainData.templates = configFile.templates;
+        mainData.templates = fromConfigFile(configFile.templates, sources);
     }
     if (programOptions.templates) {
         mainData.templates = programOptions.templates;
@@ -488,7 +484,7 @@ export function applyConfigToMainData(
         typeof configFile.playgroundVendorRoot === 'string' &&
         configFile.playgroundVendorRoot.length > 0
     ) {
-        mainData.playgroundVendorRoot = configFile.playgroundVendorRoot;
+        mainData.playgroundVendorRoot = fromConfigFile(configFile.playgroundVendorRoot, sources);
     }
 
     // Backstop closure cap. Floor keeps a meaningful payload; ceiling is the
@@ -502,7 +498,7 @@ export function applyConfigToMainData(
     }
 
     if (configFile.includes) {
-        mainData.includes = configFile.includes;
+        mainData.includes = fromConfigFile(configFile.includes, sources);
     }
     if (programOptions.includes) {
         mainData.includes = programOptions.includes;
@@ -519,7 +515,7 @@ export function applyConfigToMainData(
     }
 
     if (configFile.includesLabels) {
-        mainData.includesLabels = configFile.includesLabels;
+        mainData.includesLabels = fromConfigFile(configFile.includesLabels, sources);
     }
     if (programOptions.includesLabels) {
         mainData.includesLabels = programOptions.includesLabels;
@@ -639,7 +635,7 @@ export function applyConfigToMainData(
     }
 
     if (typeof configFile.versionsRoot === 'string') {
-        mainData.versionsRoot = configFile.versionsRoot;
+        mainData.versionsRoot = fromConfigFile(configFile.versionsRoot, sources);
     }
     if (program.getOptionValueSource('versionsRoot') === 'cli') {
         mainData.versionsRoot = String(programOptions.versionsRoot ?? '');
@@ -729,7 +725,7 @@ export function applyConfigToMainData(
     }
 
     if (configFile.unitTestCoverage) {
-        mainData.unitTestCoverage = configFile.unitTestCoverage;
+        mainData.unitTestCoverage = fromConfigFile(configFile.unitTestCoverage, sources);
     }
     if (programOptions.unitTestCoverage) {
         mainData.unitTestCoverage = programOptions.unitTestCoverage;
@@ -908,21 +904,21 @@ export function applyConfigToMainData(
     }
 
     if (configFile.customFavicon) {
-        mainData.customFavicon = configFile.customFavicon;
+        mainData.customFavicon = fromConfigFile(configFile.customFavicon, sources);
     }
     if (programOptions.customFavicon) {
         mainData.customFavicon = programOptions.customFavicon;
     }
 
     if (configFile.customLogo) {
-        mainData.customLogo = configFile.customLogo;
+        mainData.customLogo = fromConfigFile(configFile.customLogo, sources);
     }
     if (programOptions.customLogo) {
         mainData.customLogo = programOptions.customLogo;
     }
 
     if (configFile.customLogoDark) {
-        mainData.customLogoDark = configFile.customLogoDark;
+        mainData.customLogoDark = fromConfigFile(configFile.customLogoDark, sources);
     }
     if (programOptions.customLogoDark) {
         mainData.customLogoDark = programOptions.customLogoDark;
@@ -960,7 +956,7 @@ export function applyConfigToMainData(
     }
 
     if (configFile.publicApiOnly) {
-        mainData.publicApiOnly = configFile.publicApiOnly;
+        mainData.publicApiOnly = fromConfigFile(configFile.publicApiOnly, sources);
     }
     if (programOptions.publicApiOnly) {
         mainData.publicApiOnly = programOptions.publicApiOnly;
@@ -984,7 +980,7 @@ export function applyConfigToMainData(
     }
 
     if (configFile.tsconfig) {
-        mainData.tsconfig = configFile.tsconfig;
+        mainData.tsconfig = fromConfigFile(configFile.tsconfig, sources);
     }
     if (programOptions.tsconfig) {
         mainData.tsconfig = programOptions.tsconfig;

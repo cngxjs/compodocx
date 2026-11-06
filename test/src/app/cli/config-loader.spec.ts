@@ -125,6 +125,7 @@ const makeProgram = (argv: readonly string[] = []): Command => {
         .option('-c, --config [config]')
         .option('-d, --output [folder]', '', './documentation/')
         .option('--theme [theme]')
+        .option('--includes [path]')
         .option('--includesLabels [path]')
         .option('--includesTooltips', '', false)
         .option('--port [port]', '', '8080')
@@ -294,6 +295,79 @@ describe('applyConfigToMainData', () => {
         );
         expect(mainData.styleFiles).toEqual(['projects/*/theming/**/*.css']);
         expect(mainData.styleFilesBase).toBe('/tmp/test/conf');
+    });
+
+    // theme and extTheme are file paths that must exist; their own case below.
+    describe('path keys of a config file in another folder', () => {
+        const sources = { cwd: '/tmp/test', configDir: '/tmp/test/conf' };
+        const PATH_KEYS = [
+            'tsconfig',
+            'output',
+            'assetsFolder',
+            'templates',
+            'includes',
+            'includesLabels',
+            'playgroundVendorRoot',
+            'versionsRoot',
+            'unitTestCoverage',
+            'customFavicon',
+            'customLogo',
+            'customLogoDark',
+            'publicApiOnly'
+        ] as const;
+
+        it.each(PATH_KEYS)('resolves %s against the config folder', key => {
+            const mainData = makeMainData();
+            const value = 'sub/value';
+            // customLogoDark is dropped without customLogo.
+            const extra = key === 'customLogoDark' ? { customLogo: 'light.svg' } : {};
+            applyConfigToMainData(mainData, { ...extra, [key]: value }, makeProgram(), sources);
+            expect((mainData as unknown as Record<string, unknown>)[key]).toBe(
+                path.resolve('/tmp/test/conf', value)
+            );
+        });
+
+        it('resolves the theme and extTheme file paths against the config folder', () => {
+            const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'cdx-theme-')));
+            try {
+                fs.mkdirSync(path.join(dir, 'conf'));
+                fs.writeFileSync(path.join(dir, 'conf', 'brand.css'), '');
+                const themeSources = { cwd: dir, configDir: path.join(dir, 'conf') };
+                const expected = path.join(dir, 'conf', 'brand.css');
+                for (const key of ['theme', 'extTheme'] as const) {
+                    const mainData = makeMainData();
+                    mainData.theme = '';
+                    applyConfigToMainData(
+                        mainData,
+                        { [key]: './brand.css' },
+                        makeProgram(),
+                        themeSources
+                    );
+                    expect(mainData.customThemePath, key).toBe(expected);
+                    expect(mainData.theme, key).toBe('custom');
+                }
+            } finally {
+                fs.rmSync(dir, { recursive: true, force: true });
+            }
+        });
+
+        it('keeps the flag value raw and lets it win', () => {
+            const mainData = makeMainData();
+            applyConfigToMainData(
+                mainData,
+                { includes: 'from-config' },
+                makeProgram(['--includes', 'docs']),
+                sources
+            );
+            expect(mainData.includes).toBe('docs');
+        });
+
+        it('keeps a theme name a name', () => {
+            const mainData = makeMainData();
+            applyConfigToMainData(mainData, { theme: 'nord' }, makeProgram(), sources);
+            expect(mainData.theme).toBe('nord');
+            expect(mainData.customThemePath).toBe('');
+        });
     });
 
     it('ignores styleFiles that is not a list of non-empty strings, with a warning', () => {

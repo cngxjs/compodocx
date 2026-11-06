@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type {
-    ExportAdditionalPage,
-    ExportData
+import {
+    EXPORT_SCHEMA_VERSION,
+    type ExportAdditionalPage,
+    type ExportData
 } from '../../../src/app/interfaces/export-data.interface';
 import { emitLlmMd } from '../../../src/llm-md';
 import { demoteHeadings, emitAdditionalPages } from '../../../src/llm-md/additional-pages';
@@ -131,7 +132,7 @@ describe('llm-md/additional-pages - emitAdditionalPages', () => {
 
 describe('llm-md/dispatcher - additional pages section', () => {
     const base: ExportData = {
-        schemaVersion: 6,
+        schemaVersion: EXPORT_SCHEMA_VERSION,
         generatedAt: '2026-10-22T00:00:00.000Z',
         compodocxVersion: '0.0.0'
     };

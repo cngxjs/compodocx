@@ -7,11 +7,10 @@ const tmp = temporaryDir();
 describe('CLI option file', () => {
     let stdoutString;
 
-    const distFolder = 'test-config-file'; // Match /test/fixtures/todomvc-ng2/.compodocrc
+    // `output` of test/fixtures/todomvc-ng2/.compodocrc, relative to that file's folder.
+    const distFolder = 'test/fixtures/todomvc-ng2/test-config-file';
 
     beforeAll(() => {
-        tmp.create(distFolder);
-
         const ls = shell('node', [
             './bin/index-cli.js',
             '--no-multiVersion',

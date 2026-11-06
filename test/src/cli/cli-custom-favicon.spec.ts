@@ -1,3 +1,4 @@
+import * as path from 'node:path';
 import { exists, hasStderrError, read, shell, stats, temporaryDir } from '../helpers';
 
 const tmp = temporaryDir();
@@ -49,6 +50,21 @@ describe('CLI custom favicon', () => {
             const link = iconLink(read(`${distFolder}/index.html`));
             expect(link).to.contain(`href="./images/${file}"`);
             expect(link).to.contain(`type="${type}"`);
+        });
+    });
+
+    describe('when specifying the favicon as an absolute path', () => {
+        const distFolder = `${tmp.name}-favicon-absolute`;
+        const source = path.resolve('./test/fixtures/todomvc-ng2/favicon.ico');
+
+        beforeAll(() => generate(distFolder, ['--customFavicon', source]));
+        afterAll(() => tmp.clean(distFolder));
+
+        it('copies the file the path names', () => {
+            expect(exists(`${distFolder}/images/favicon.ico`)).to.be.true;
+            expect((stats(`${distFolder}/images/favicon.ico`) as Image).size).to.equal(
+                (stats(source) as Image).size
+            );
         });
     });
 
