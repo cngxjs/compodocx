@@ -411,9 +411,7 @@ export const Layout = (props: LayoutProps): string => {
                     id="cdx-theme-link"
                     rel="stylesheet"
                     href={
-                        data.theme && data.theme !== 'default'
-                            ? r(`styles/${data.theme}.css`)
-                            : ''
+                        data.theme && data.theme !== 'default' ? r(`styles/${data.theme}.css`) : ''
                     }
                     data-base={r('')}
                 />
