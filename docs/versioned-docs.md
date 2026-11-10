@@ -56,7 +56,7 @@ Entries are sorted by semver, highest first; labels that are not semver (`main`,
 
 ## The version switcher
 
-Every page has a version dropdown in the top bar. It loads `versions.json` from the folder above the version folder the first time it is opened, so the deployed tree must keep the manifest next to the version folders. With one version listed it hides itself. Opened from `file://`, where browsers block the request, it shows a short hint instead of the list.
+Every page has a version dropdown in the top bar. It loads `versions.json` from the folder above the version folder when the page loads, so the deployed tree must keep the manifest next to the version folders. With one version listed (or none) it shows the current version as a plain label without a dropdown, and the widget carries `data-cdx-single-version="true"` for custom styling. Opened from `file://`, where browsers block the request, it shows a short hint instead of the list.
 
 Picking a version opens the same page in that version when it exists there, otherwise the root of that version. Pages that moved between versions are followed through `redirects.json` (below).
 
