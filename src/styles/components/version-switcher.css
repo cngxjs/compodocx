@@ -43,6 +43,20 @@
     color: var(--color-cdx-text);
 }
 
+/* One version (or none) in the manifest: a static label, nothing to open. */
+.cdx-version-switcher[data-cdx-single-version="true"] .cdx-version-switcher-trigger {
+    cursor: default;
+}
+
+.cdx-version-switcher[data-cdx-single-version="true"] .cdx-version-switcher-trigger:hover {
+    background: none;
+    color: var(--color-cdx-text-muted);
+}
+
+.cdx-version-switcher[data-cdx-single-version="true"] .cdx-version-switcher-caret {
+    display: none;
+}
+
 .cdx-version-switcher-label {
     font-family: var(--font-mono, ui-monospace, SFMono-Regular, monospace);
 }
