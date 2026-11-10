@@ -6,9 +6,12 @@
  * versions' `redirects.json`: the target's map forward, else the current
  * version's map backward.
  *
- * On `file://`, fetch is uniformly blocked across browsers - render a
- * static hint and disable the trigger rather than ship a half-working
- * dropdown.
+ * The manifest is fetched once per page when the widget is wired, so the
+ * widget knows what it is before the first click. With one version (or
+ * none) listed it stays as a static label of the current version.
+ *
+ * On `file://`, fetch is uniformly blocked across browsers - the menu shows
+ * a static hint instead of a half-working dropdown.
  */
 
 import { REDIRECTS_FILE } from '../app/links/layout';
@@ -53,68 +56,103 @@ function wire(widget: HTMLElement): void {
         return;
     }
 
-    // Lazy fetch on first open; cache the result so the menu reopens cheaply.
-    let cache: VersionsManifest | null | undefined;
-    let pending: Promise<VersionsManifest | null> | null = null;
-
-    const ensure = () => {
-        if (cache !== undefined) {
-            return Promise.resolve(cache);
+    const pending = manifestFor(getManifestUrl(widget));
+    let manifest: VersionsManifest | null | undefined;
+    void pending.then(m => {
+        manifest = m;
+        if (m && isSingleVersion(m)) {
+            renderStaticLabel(widget, trigger, menu);
         }
-        if (!pending) {
-            pending = loadManifest(getManifestUrl(widget)).then(m => {
-                cache = m;
-                return m;
-            });
-        }
-        return pending;
-    };
+    });
 
     bindToggle(trigger, menu, async () => {
-        if (cache === undefined) {
+        if (manifest === undefined) {
             renderLoading(menu);
-            await ensure();
+            manifest = await pending;
         }
-        const m = cache;
-        if (!m) {
+        if (!manifest) {
             renderUnreachable(menu);
-            return;
+            return true;
         }
-        const sliced = sliceForCap(m.versions, getCap(widget));
-        if (sliced.shown.length <= 1) {
-            // Hide entirely - single-version sites don't need a dropdown.
-            collapse(trigger, menu);
-            widget.dataset.cdxSingleVersion = 'true';
-            widget.style.display = 'none';
-            return;
+        if (isSingleVersion(manifest)) {
+            return false;
         }
-        renderMenu(menu, widget, sliced);
+        renderMenu(menu, widget, sliceForCap(manifest.versions, getCap(widget)));
+        return true;
     });
 }
 
+/** Manifests already requested on this page, by URL; every widget shares one fetch. */
+const manifests = new Map<string, Promise<VersionsManifest | null>>();
+
+function manifestFor(url: string): Promise<VersionsManifest | null> {
+    let pending = manifests.get(url);
+    if (!pending) {
+        pending = loadManifest(url);
+        manifests.set(url, pending);
+    }
+    return pending;
+}
+
+/** Nothing to switch to: the whole manifest, not the capped list, decides. */
+function isSingleVersion(manifest: VersionsManifest): boolean {
+    return manifest.versions.length <= 1;
+}
+
+/**
+ * Turns the trigger into a plain label: the current version stays readable,
+ * but there is no popup to announce and nothing to open.
+ */
+function renderStaticLabel(
+    widget: HTMLElement,
+    trigger: HTMLButtonElement,
+    menu: HTMLElement
+): void {
+    menu.hidden = true;
+    menu.innerHTML = '';
+    trigger.disabled = true;
+    trigger.removeAttribute('aria-haspopup');
+    trigger.removeAttribute('aria-expanded');
+    trigger.setAttribute(
+        'aria-label',
+        `Documentation version: ${widget.dataset.cdxCurrentLabel ?? ''}`
+    );
+    widget.dataset.cdxSingleVersion = 'true';
+}
+
+/** `onOpen` returning `false` keeps the menu closed. */
 function bindToggle(
     trigger: HTMLButtonElement,
     menu: HTMLElement,
-    onOpen?: () => void | Promise<void>
+    onOpen?: () => boolean | Promise<boolean>
 ): void {
     trigger.addEventListener('click', async () => {
-        const isOpen = trigger.getAttribute('aria-expanded') === 'true';
-        if (isOpen) {
+        if (trigger.disabled) {
+            return;
+        }
+        if (isOpen(trigger)) {
             collapse(trigger, menu);
             return;
         }
-        if (onOpen) {
-            await onOpen();
+        if (onOpen && !(await onOpen())) {
+            return;
         }
         trigger.setAttribute('aria-expanded', 'true');
         menu.hidden = false;
     });
 
     document.addEventListener('click', e => {
+        if (!isOpen(trigger)) {
+            return;
+        }
         if (!trigger.contains(e.target as Node) && !menu.contains(e.target as Node)) {
             collapse(trigger, menu);
         }
     });
+}
+
+function isOpen(trigger: HTMLButtonElement): boolean {
+    return trigger.getAttribute('aria-expanded') === 'true';
 }
 
 function collapse(trigger: HTMLButtonElement, menu: HTMLElement): void {

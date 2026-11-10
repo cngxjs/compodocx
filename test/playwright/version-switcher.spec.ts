@@ -32,6 +32,18 @@ test.describe('VersionSwitcher — widget renders', () => {
         await expect(label).toHaveText('v2.0.0');
     });
 
+    test('loads the manifest on page load and keeps the dropdown enabled', async ({ page }) => {
+        const manifest = page.waitForResponse(r => r.url().endsWith('/versions.json'));
+        await page.goto('/v2.0.0/index.html');
+        await manifest;
+        const widget = page.locator('.cdx-content-actions .cdx-version-switcher');
+        await expect(widget).toBeVisible();
+        await expect(widget).not.toHaveAttribute('data-cdx-single-version', 'true');
+        const trigger = widget.locator('.cdx-version-switcher-trigger');
+        await expect(trigger).toBeEnabled();
+        await expect(trigger).toHaveAttribute('aria-haspopup', 'listbox');
+    });
+
     test('opens the menu and lists every version', async ({ page }) => {
         await page.goto('/v2.0.0/index.html');
         const trigger = page.locator('.cdx-content-actions .cdx-version-switcher-trigger');

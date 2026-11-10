@@ -176,20 +176,30 @@ describe('initVersionSwitcher — DOM behaviour', () => {
         document.body.innerHTML = '';
     });
 
-    function buildWidget(opts: { manifestUrl?: string; cap?: number; label?: string } = {}) {
-        document.body.innerHTML = `
+    // The manifest is cached per URL for the page's lifetime; a fresh URL per
+    // test keeps one test's manifest out of the next.
+    let manifestSeq = 0;
+
+    function widgetMarkup(opts: { manifestUrl: string; cap?: number; label?: string }): string {
+        return `
             <div class="cdx-version-switcher"
                  data-compodoc="version-switcher"
                  data-cdx-current-label="${opts.label ?? 'v1.0.0'}"
-                 data-cdx-manifest-url="${opts.manifestUrl ?? '../versions.json'}"
+                 data-cdx-manifest-url="${opts.manifestUrl}"
                  data-cdx-max-shown="${opts.cap ?? 10}">
                 <button type="button" class="cdx-version-switcher-trigger"
+                        aria-haspopup="listbox"
                         aria-expanded="false">
                     <span class="cdx-version-switcher-label">${opts.label ?? 'v1.0.0'}</span>
                 </button>
                 <div class="cdx-version-switcher-menu" role="listbox" hidden></div>
             </div>
         `;
+    }
+
+    function buildWidget(opts: { manifestUrl?: string; cap?: number; label?: string } = {}) {
+        const manifestUrl = opts.manifestUrl ?? `../versions.json?case=${++manifestSeq}`;
+        document.body.innerHTML = widgetMarkup({ ...opts, manifestUrl });
         return {
             widget: document.querySelector<HTMLElement>('.cdx-version-switcher')!,
             trigger: document.querySelector<HTMLButtonElement>('.cdx-version-switcher-trigger')!,
@@ -227,22 +237,91 @@ describe('initVersionSwitcher — DOM behaviour', () => {
         expect(fetchSpy).not.toHaveBeenCalled();
     });
 
-    it('hides the widget entirely when the manifest contains a single version', async () => {
-        const { widget, trigger } = buildWidget({ label: 'v1.0.0' });
-        setLocation('https://docs.example.com/v1.0.0/index.html');
-        fetchSpy.mockResolvedValueOnce({
+    const manifestOf = (labels: string[]) =>
+        ({
             ok: true,
             json: () =>
                 Promise.resolve({
                     schemaVersion: 1,
                     updatedAt: 'x',
-                    versions: [{ label: 'v1.0.0', path: 'v1.0.0/', builtAt: 'x' }]
+                    versions: labels.map(label => ({ label, path: `${label}/`, builtAt: 'x' }))
                 })
-        } as Response);
+        }) as Response;
+
+    const settle = () => new Promise(resolve => setTimeout(resolve, 0));
+
+    it.each([
+        ['a single version', ['v1.0.0']],
+        ['no versions', []]
+    ])('with %s it stays visible as a static label', async (_, labels) => {
+        const { widget, trigger, menu } = buildWidget({ label: 'v1.0.0' });
+        setLocation('https://docs.example.com/v1.0.0/index.html');
+        fetchSpy.mockResolvedValueOnce(manifestOf(labels));
+        initVersionSwitcher();
+        await settle();
+        expect(widget.style.display).not.toBe('none');
+        expect(widget.dataset.cdxSingleVersion).toBe('true');
+        expect(widget.querySelector('.cdx-version-switcher-label')?.textContent).toBe('v1.0.0');
+        expect(trigger.disabled).toBe(true);
+        expect(trigger.hasAttribute('aria-haspopup')).toBe(false);
+        expect(trigger.hasAttribute('aria-expanded')).toBe(false);
+        expect(trigger.getAttribute('aria-label')).toContain('v1.0.0');
+        trigger.click();
+        await settle();
+        expect(menu.hidden).toBe(true);
+        expect(widget.style.display).not.toBe('none');
+    });
+
+    it('a click before the manifest arrives opens nothing for a single version', async () => {
+        const { widget, trigger, menu } = buildWidget({ label: 'v1.0.0' });
+        setLocation('https://docs.example.com/v1.0.0/index.html');
+        let resolve: (r: Response) => void = () => {};
+        fetchSpy.mockReturnValueOnce(new Promise<Response>(r => (resolve = r)));
         initVersionSwitcher();
         trigger.click();
-        await new Promise(resolve => setTimeout(resolve, 0));
-        expect(widget.style.display).toBe('none');
+        resolve(manifestOf(['v1.0.0']));
+        await settle();
+        expect(menu.hidden).toBe(true);
+        expect(trigger.disabled).toBe(true);
+        expect(widget.style.display).not.toBe('none');
+    });
+
+    it('loads the manifest on init and not again on click', async () => {
+        const { trigger, menu } = buildWidget({ label: 'v1.0.0' });
+        setLocation('https://docs.example.com/v1.0.0/index.html');
+        fetchSpy.mockResolvedValueOnce(manifestOf(['v2.0.0', 'v1.0.0']));
+        initVersionSwitcher();
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        await settle();
+        trigger.click();
+        await settle();
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+        expect(menu.hidden).toBe(false);
+        expect(menu.querySelectorAll('.cdx-version-switcher-item')).toHaveLength(2);
+    });
+
+    it('two widgets with the same manifest URL share one fetch', async () => {
+        const manifestUrl = `../versions.json?case=${++manifestSeq}`;
+        document.body.innerHTML = widgetMarkup({ manifestUrl }) + widgetMarkup({ manifestUrl });
+        setLocation('https://docs.example.com/v1.0.0/index.html');
+        fetchSpy.mockResolvedValueOnce(manifestOf(['v2.0.0', 'v1.0.0']));
+        initVersionSwitcher();
+        await settle();
+        expect(fetchSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the dropdown when the cap shows one of several versions', async () => {
+        const { widget, trigger, menu } = buildWidget({ cap: 1, label: 'v1.0.0' });
+        setLocation('https://docs.example.com/v1.0.0/index.html');
+        fetchSpy.mockResolvedValueOnce(manifestOf(['v2.0.0', 'v1.0.0']));
+        initVersionSwitcher();
+        await settle();
+        trigger.click();
+        await settle();
+        expect(widget.dataset.cdxSingleVersion).toBeUndefined();
+        expect(menu.hidden).toBe(false);
+        expect(menu.querySelectorAll('.cdx-version-switcher-item')).toHaveLength(1);
+        expect(menu.innerHTML).toMatch(/Showing 1 of 2/);
     });
 
     it('shows "no other versions known" when the manifest fetch fails', async () => {
