@@ -6,11 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
-## [Unreleased]
+## [0.16.2] - 2026-11-10
 
 ### Fixed
 
 - **Version switcher with a single version.** With one version (or none) in `versions.json` the switcher vanished on the first click. It now loads the manifest with the page and shows the current version as a plain label, without a dropdown. The widget carries `data-cdx-single-version="true"` in that state. With two or more versions it works as before, and `--maxVersionsShown 1` keeps the dropdown when the manifest lists more versions.
+- **Config schema id.** `src/config/schema.json` declares `https://compodocx.dev/schema` as its `$id` instead of the upstream `http://compodoc.app/schema`.
 
 ## [0.16.1] - 2026-11-06
 
