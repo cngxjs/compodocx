@@ -8,7 +8,7 @@ labels: 'Type: Enhancement'
 
 <!--
 > Please follow the feature template below.
-> For feature requests, start the label of the title with [FEATURE] and explain your use case and ideas clearly below, you can remove sections which are not relevant.
+> Explain your use case below. Remove sections that do not apply.
 -->
 
 ##### **Overview of the feature**
@@ -17,7 +17,7 @@ labels: 'Type: Enhancement'
 
 ##### **Motivation for or Use Case**
 
-<!-- explain why this is a bug for you -->
+<!-- explain the use case this feature solves -->
 
 ##### **Related issues**
 
