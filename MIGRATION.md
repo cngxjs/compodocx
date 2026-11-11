@@ -185,7 +185,7 @@ Pages: `categories/<bucket>.html` is gone. Every feature has a page, `index.html
 
 Template overrides: `bucket-landing` is removed (a file with that name is ignored with a warning). The new `feature` context targets feature pages (`data.feature`, see docs/custom-templates.md). `menu` and `api-reference` overrides read the feature model from `data.semantic.features`; `data.categorizedByFeature*` and the `data.categorized*` kind groups are gone. Entity heroes write `data-pagefind-meta="feature:<label>"` instead of `category:<bucket>`, and the command palette shows only the `feature` value next to a result; a custom template that still writes `category:` loses that label.
 
-JSON export: `category` and `docsKind` are gone, symbol entries can carry `feature`; see "JSON export schema 6" below.
+JSON export: `category` and `docsKind` are gone, symbol entries can carry `feature`; see "JSON export schema 7" below.
 
 Search: the `bucket` and `tier` facets are replaced by `feature` and `entryPoint`.
 
@@ -223,7 +223,7 @@ Template overrides:
 
 New page contexts: `utilities`, `dependency-injection`, `di-cluster` (the page of a feature type) and `resolver`. The `referenced-by` block now renders the "Used by" list; its props are unchanged.
 
-JSON export: `referencedBy` is gone (use `usedBy`); see "JSON export schema 6" below. The llm-md export gains a "Public tokens" section and leaves out symbols that reach no entry point.
+JSON export: `referencedBy` is gone (use `usedBy`); see "JSON export schema 7" below. The llm-md export gains a "Public tokens" section and leaves out symbols that reach no entry point.
 
 ## Breaking change in 0.9.0: programmatic entry point
 
@@ -272,13 +272,13 @@ Configuration and template changes:
 - The `modules.js` and `module.js` template overrides are removed; a file with either name is ignored with a warning.
 - The i18n keys of module pages are removed, see "Removed i18n keys" below.
 
-JSON export: `modules` and `entryComponents` are gone; see "JSON export schema 6" below.
+JSON export: `modules` and `entryComponents` are gone; see "JSON export schema 7" below.
 
 ## Breaking change in 0.9.0: typed routes and `disableRoutes`
 
 Routes are read through the project analysis: a router starts at `bootstrapApplication` and its `provideRouter` call, route arrays are recognised by their `@angular/router` type, and lazy `loadChildren` route arrays are expanded below their route. See "Routes" in docs/configuration.md for what is read.
 
-- **Typed `routes` in the JSON export.** `routes` used to hold one tree object under a key typed as a list. It is now a typed list of router and unmounted roots, written only when the project has routes; components gain `routedAt` and route array variables `mountedAt`. See "JSON export schema 6" below. `compodocx diff` does not compare routes.
+- **Typed `routes` in the JSON export.** `routes` used to hold one tree object under a key typed as a list. It is now a typed list of router and unmounted roots, written only when the project has routes; components gain `routedAt` and route array variables `mountedAt`. See "JSON export schema 7" below. `compodocx diff` does not compare routes.
 - **No routes graph.** The routes page is a server-rendered table per router; the d3 graph and `js/routes/routes_index.js` are gone. A custom `routes` page override receives `routing` (the route model), `symbols` and `depth` instead of `routes`. Rows carry the anchors `route-<root>-<index>...`, sections `route-<root>`.
 - **No page without routes.** `routes.html` and its menu entry are generated only when the project has routes.
 - **`disableRoutesGraph` -> `disableRoutes`.** Rename the key in your config file and the flag in your scripts. `--disableRoutesGraph` is dropped with a warning and the config key is ignored with a warning, so routes stay enabled until you switch.
@@ -291,7 +291,7 @@ compodocx can document style files that no component reads (theme bridges, direc
 
 Behaviour changes:
 
-- **Unknown tags in style comments are dropped.** A tag the style parser does not read (for example `@todo` or `@internal` in a `///` or `/** */` block, or any tag other than `@themes` and `@relatedTo` inside an `@overview` block) used to be appended to the token description as plain text. It is now dropped and reported once per run; the exit code is unchanged:
+- **Unknown tags in style comments are dropped.** A tag the style parser does not read (for example `@todo` or `@note` in a `///` or `/** */` block, or any tag other than `@themes`, `@relatedTo`, `@cssprop`/`@cssproperty` and `@internal` inside an `@overview` block) used to be appended to the token description as plain text. It is now dropped and reported once per run; the exit code is unchanged:
 
     ```text
     Style comments: 2 unknown tags ignored (@todo x1, @note x1)
@@ -374,7 +374,7 @@ Full pattern, deployment recipes, and version-switcher reference: [`docs/version
 | `-c`, `--config` | unchanged | Also finds the `compodocx` config names, see "Config file" below |
 | `-d`, `--output` | unchanged | HTML goes to `<output>/<version>/` unless `--no-multiVersion` |
 | `-s`, `--serve`, `-r`, `--port`, `--host`, `-w`, `--watch`, `-o`, `--open` | unchanged ||
-| `-e`, `--exportFormat` | extended | `html` (default), `json` and `llm-md`. `llm-md` writes Markdown for language models: to stdout without an output folder, to `<output>/llm-context.md` when `-d` or the `output` key is set. The JSON shape changed, see "JSON export schema 6" below |
+| `-e`, `--exportFormat` | extended | `html` (default), `json` and `llm-md`. `llm-md` writes Markdown for language models: to stdout without an output folder, to `<output>/llm-context.md` when `-d` or the `output` key is set. The JSON shape changed, see "JSON export schema 7" below |
 | `--jsonIndent` | new (default `0`) | Indent for `documentation.json`, `0` to `8`. Pass `--jsonIndent 2` for human-readable formatting |
 | `--multiVersion` / `--no-multiVersion` | new (default `true`) | See "Multi-version output is the default" above |
 | `--versionLabel`, `--versionsRoot`, `--maxVersionsShown` | new | Multi-version controls. See `docs/versioned-docs.md` |
@@ -394,7 +394,7 @@ Full pattern, deployment recipes, and version-switcher reference: [`docs/version
 | `--toggleMenuItems`, `--navTabConfig` | unchanged | `toggleMenuItems` values `modules`, `miscellaneous` and `tokens` are ignored with a warning; `navTabConfig` tab IDs are listed in docs/configuration.md |
 | `--gaID` | replaces `--gaSite` | GA4 measurement IDs only (`G-XXXXXXXXXX`). SPA pageviews tracked automatically |
 | `--showEffects` | new (default `false`) | Renders Angular `effect()` blocks in a dedicated section on the API tab |
-| `--publicApiOnly <path>` | new | Restricts the documentation to the public API (`*.api.md` reports, or the `index.d.ts` files below `<path>`) |
+| `--publicApiOnly <path>` | new | Restricts the documentation to the public API (`*.api.md` reports, the `index.d.ts` files below `<path>`, or the `exports[*].types` of each `package.json` below `<path>`) |
 | `--maxSearchResults` | needs a value | An integer from `0` to `10000` (`0` shows all results); a bare `--maxSearchResults` or any other value stops the build. The `maxSearchResults` config key is read; the flag wins when both are set |
 | `--gaSite` | removed | Universal Analytics is end-of-life. The flag and the `gaSite` config key warn and are ignored |
 | `--templatePlayground` | removed | The flag and the `templatePlayground` config key warn and are ignored. Convert Handlebars partials by hand ([cookbook](#hbs--js-cookbook)) |
@@ -426,9 +426,9 @@ Some options are config-only (no CLI flag). The ones most projects meet first:
 
 The full list, including `styleFiles`, `features`, `classificationAxes`, `menuFeatureSections` and the other `playground*` keys, is in [docs/configuration.md](docs/configuration.md).
 
-## JSON export schema 6
+## JSON export schema 7
 
-`documentation.json` (`--exportFormat json`) is written with `schemaVersion: 6`. compodoc wrote no `schemaVersion`; compodocx 0.3.0 to 0.5.x wrote `1` and 0.6.0 to 0.8.x wrote `2`. A reader built for schema 2 needs these changes:
+`documentation.json` (`--exportFormat json`) is written with `schemaVersion: 7`. compodoc wrote no `schemaVersion`; compodocx 0.3.0 to 0.5.x wrote `1`, 0.6.0 to 0.8.x wrote `2` and 0.9.0 to 0.15.x wrote `6`. Schema 7 drops `signal` on components and directives and the node fields of `jsdoctags`, see "Changes in 0.16.0". A reader built for schema 2 needs these changes:
 
 Removed and reshaped fields:
 
@@ -468,7 +468,7 @@ New optional fields (readers can ignore them): the semantic facts on every symbo
 
 The header fields are `schemaVersion`, `generatedAt` (ISO 8601) and `compodocxVersion`. The export is written on one line by default; pass `--jsonIndent 2` for indented output. The TypeScript types of the export are not part of the package; the shape is declared in [`src/app/interfaces/export-data.interface.ts`](https://github.com/cngxjs/compodocx/blob/develop/src/app/interfaces/export-data.interface.ts) in the repository.
 
-`compodocx diff` reads schema 6 only: an older or newer export exits with code 2 and asks to re-export (or to upgrade compodocx). Re-export stored baselines after upgrading. `compodocx diff` does not compare `routes` or `styleFiles`.
+`compodocx diff` reads schema 7 only: an older or newer export exits with code 2 and asks to re-export (or to upgrade compodocx). Re-export stored baselines after upgrading. `compodocx diff` does not compare `routes` or `styleFiles`.
 
 Every schema version, the changes of values within schema 6 by release, and the compatibility policy for future changes are listed in [`docs/json-export.md`](https://github.com/cngxjs/compodocx/blob/develop/docs/json-export.md).
 
@@ -499,7 +499,7 @@ Each theme is a single CSS file overriding the design tokens defined in `src/sty
 
 ## Custom templates: HBS → JS
 
-The biggest behavioral break. compodocx ships a JavaScript-based template override system that replaces compodoc's Handlebars partials.
+compodocx replaces compodoc's Handlebars partials with JavaScript overrides.
 
 ### Layout
 
@@ -668,7 +668,7 @@ compodoc emitted Bootstrap classes plus ad-hoc `compodoc-` names. compodocx pref
 
 ## Unsupported migrations
 
-What does NOT migrate cleanly:
+These do not migrate cleanly:
 
 - **Custom Handlebars helpers.** compodoc's `loadHelpers` extension point is gone. Port your `{{myHelper foo bar}}` partials as plain JavaScript functions and call them inline from your `partials/*.js` overrides.
 - **`search-results` / `search-input` overrides.** Pagefind owns the search UI shell now. Style adjustments are still possible via CSS.
