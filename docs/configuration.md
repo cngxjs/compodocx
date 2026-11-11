@@ -1,6 +1,6 @@
 # Compodocx Configuration Reference
 
-Compodocx generates static HTML documentation for Angular projects by analyzing TypeScript source code. Every aspect of the output can be configured through three methods:
+Compodocx generates static HTML documentation for Angular projects by analyzing TypeScript source code. Options can be set in three places:
 
 1. **CLI flags** -- pass options directly when running `compodocx` or `compodoc`
 2. **Config file** -- `.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml` (also `.yml`, `.js`, `.cjs`, `.mjs`, `.ts` and `compodocx.config.{js,ts,cjs,mjs}`); the same `.compodocrc` / `compodoc.config.*` names are still found
@@ -20,7 +20,7 @@ compodocx -p src/tsconfig.json -s -w
 # Custom output folder and title
 compodocx -p src/tsconfig.json -d ./docs -n "My Project"
 
-# Minimal mode (no search, no graphs, no coverage, no routes)
+# Minimal mode (no search, no overview graph, no coverage, no routes)
 compodocx -p src/tsconfig.json --minimal
 ```
 
@@ -123,7 +123,7 @@ Compodocx ships with multiple built-in themes and supports custom CSS. All theme
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
-| theme | `--theme` | string | `'default'` | Built-in theme name or path to a custom CSS file. Built-in themes: `default`, `ocean`, `ember`, `midnight`, `neon`, `brutalist`, `nord`, `rose-pine`. A custom CSS file is loaded *instead of* the built-in theme, on top of the base styles; it can set `--color-cdx-accent` (active sidebar page and its rail, default orange) and `--color-cdx-focus-ring` (keyboard focus, default blue) in `:root` and `.dark`, and should when its sidebar is much darker or lighter than the default one, so the active page keeps a 4.5:1 contrast. Upstream compodoc theme names warn and map to a built-in theme (`material`, `original`, `readthedocs` to `default`; `postmark` to `nord`; `stripe` to `ocean`; `vagrant` to `midnight`; `laravel` to `ember`). Relative paths: see [Paths in a config file](#paths-in-a-config-file) |
+| theme | `--theme` | string | `'default'` | Built-in theme name or path to a custom CSS file. Built-in themes: `default`, `ocean`, `ember`, `midnight`, `neon`, `brutalist`, `nord`, `rose-pine`. A custom CSS file is loaded *instead of* the built-in theme, on top of the base styles; it can set `--color-cdx-accent` (active sidebar page and its rail, default orange) and `--color-cdx-focus-ring` (keyboard focus, default blue) in `:root` and `.dark`, and should when its sidebar is much darker or lighter than the default one, so the active page keeps a 4.5:1 contrast. Upstream compodoc theme names warn and map to a built-in theme (`gitbook`, `material`, `original`, `readthedocs` to `default`; `postmark` to `nord`; `stripe` to `ocean`; `vagrant` to `midnight`; `laravel` to `ember`). Relative paths: see [Paths in a config file](#paths-in-a-config-file) |
 | extTheme | `-y, --extTheme` | string | -- | **Deprecated** -- use `--theme` instead. When set and no `--theme` is provided, treated as a custom theme path. Does not load an additional stylesheet. Relative paths: see [Paths in a config file](#paths-in-a-config-file) |
 | shikiTheme | `--shikiTheme` | string | `'github-light:github-dark'` | Shiki syntax highlighting theme pair for code blocks. Format: `'light-theme:dark-theme'` or a single theme name used for both modes. Uses [Shiki's bundled themes](https://shiki.style/themes). Applies to both the Source Viewer and inline code snippets |
 | customFavicon | `--customFavicon` | string | -- | Path to a custom favicon file (`.svg`, `.ico` or `.png`). Copied to `images/favicon.<ext>` and linked in every page's `<head>` instead of the bundled icon. Relative paths: see [Paths in a config file](#paths-in-a-config-file) |
@@ -183,7 +183,9 @@ These flags disable entire features, tabs, or pages. Unlike visibility filters w
 | disableCoverage | `--disableCoverage` | boolean | `false` | Remove the documentation coverage report page. Coverage measures how many public members have JSDoc descriptions |
 | disableOverview | `--disableOverview` | boolean | `false` | Remove the overview/dashboard page that shows project-level statistics and the main dependency graph |
 | disableMarkdownPages | `--disableMarkdownPages <pages>` | string[] | `[]` | Root Markdown files of the working directory not to build as pages: `changelog` (CHANGELOG.md), `contributing` (CONTRIBUTING.md), `license` (LICENSE.md or LICENSE), `todo` (TODO.md). A listed file gets no page, no sidebar link and no search entry. Comma-separated on the CLI (`--disableMarkdownPages changelog,license`); the flag replaces the config value. An unknown entry is ignored with a warning; the README stays the index page |
-| minimal | `--minimal` | boolean | `false` | Shorthand that disables search, all graphs, routes and the coverage report in one flag. Equivalent to `--disableSearch --disableGraph --disableRoutes --disableCoverage` |
+| minimal | `--minimal` | boolean | `false` | Shorthand that disables search, the overview graph, routes and the coverage report in one flag. Equivalent to `--disableSearch --disableGraph --disableRoutes --disableCoverage` |
+
+`--disableMainGraph`, `--stackblitz`, `--stackblitzTemplate` and the config key `base` are ignored with a warning, see [MIGRATION.md](../MIGRATION.md).
 
 ## Dependency graph
 
@@ -258,7 +260,7 @@ Controls how symbols are organized in the sidebar. Both layouts group symbols by
 | featuresName | _config-only_ | string | `''` (i18n default) | Override the **Features** chapter heading under `menuLayout: 'feature'`. Empty falls back to the translated `features` i18n key. Use this to keep non-English builds aligned without adding locale entries |
 | referencesName | _config-only_ | string | `''` (i18n default) | Exposed on `data.referencesName` for `menu.js` / `api-reference.js` custom-template overrides that want a non-i18n label. The built-in sidebar link reads the localised `reference` key and the portal heading reads `api-reference`; neither consumes `referencesName` directly today |
 | menuFeatureSections | _config-only_ | `Record<role, 'own' \| 'more' \| 'top' \| 'hidden'>` | `{ configuration: 'own', utilities: 'more', constants: 'more', types: 'more' }` | Where each member role of a feature shows in the sidebar under `menuLayout: 'feature'`, for features with a primary member. Roles: `configuration` (tokens, providers, feature functions and feature types; the members of a provider cluster fold into one entry for their feature type), `utilities` (functions), `constants` (constants), `types` (interfaces, type aliases, enums). Values: `own` (a collapsed node of its own), `more` (a labelled group inside one collapsed **More** node), `top` (flat next to the primary members), `hidden` (not in the sidebar; still on the feature page, in the API reference and in search). Missing roles keep their default; an unknown role or value is ignored with a warning |
-| collapsedAll | _config-only_ | boolean | `false` | Force every sidebar chapter AND every nested group to start collapsed on first load. Overrides `toggleMenuItems` (which only controls top-level chapters) and the default expansion of the first two group levels. Useful for large codebases where the default produces a wall of expanded links. Works under both `menuLayout` modes |
+| collapsedAll | _config-only_ | boolean | `false` | Force every sidebar chapter and every nested group to start collapsed on first load. Overrides `toggleMenuItems` (which only controls top-level chapters) and the default expansion of the first two group levels. Useful for large codebases where the default produces a wall of expanded links. Works under both `menuLayout` modes |
 | features | _config-only_ | `Record<string, string>` | `{}` | Feature keys by file glob. Keys are globs over file paths relative to the working directory (`**` any path, `*` and `?` inside one segment), values a feature key: one segment of lower-case letters, digits and dashes, relative to the file's entry point (or the app). The first matching glob in object order wins. It never moves a symbol into another entry point. Invalid keys are ignored with a warning |
 | featureContainers | _config-only_ | string[] | `['features', 'pages', 'domains']` | App folders whose sub-folders are the features: `src/app/features/admin` gives the feature `admin` |
 | featureUtilityFolders | _config-only_ | string[] | `['internal', 'i18n', 'utils', 'testing', '__test-helpers', 'examples']` | Folders below an entry point that belong to its root feature instead of forming a feature of their own |
@@ -311,7 +313,7 @@ An axis classifies symbols by a property of your own choosing, such as stability
 | `label` | Heading of the badge and the search facet; default the axis name |
 | `paths` | File globs relative to the working directory (same syntax as `features`) mapped to a value; the first match in object order wins |
 | `default` | Value for symbols without a tag or a matching path |
-| `kinds` | Symbol kinds the axis applies to: `component`, `directive`, `pipe`, `injectable`, `class`, `interface`, `token`, `guard`, `interceptor`, `resolver`, `entity`, `function`, `variable`, `typealias`, `enumeration`. Default: all |
+| `kinds` | Symbol kinds the axis applies to: `component`, `directive`, `pipe`, `injectable`, `class`, `interface`, `token`, `guard`, `interceptor`, `resolver`, `entity`, `function`, `variable`, `typealias`, `enumeration`, `service`, `namespace`. Default: all |
 
 A symbol gets its value per axis from an `@axis <name> <value>` tag on its declaration, else from the first matching `paths` glob, else from `default`. A symbol of a kind the axis does not apply to has no value. Invalid config parts warn once each and are dropped. Tag problems (an undeclared axis or value, a kind the axis does not apply to, a missing value, a second tag for the same axis) are logged once per problem with up to three locations; the symbol then falls back to its path rule or default. When axes are declared, the build log prints one line such as `Axes: stability 40/40 classified, level 12/18 classified (6 unclassified)`; `@axis` tags without declared axes log one notice and are ignored.
 
@@ -340,7 +342,7 @@ Integrate Google Analytics 4 (gtag.js) tracking into the generated documentation
 
 ## Playground (`@playground`)
 
-The modern path for runnable component demos. Add `@playground <title>` JSDoc blocks to a component class and compodocx assembles a fresh, complete StackBlitz Angular project per block at build time. The SDK is lazy-loaded on first click; static doc pages stay light.
+Add `@playground <title>` JSDoc blocks to a component class and compodocx assembles a fresh, complete StackBlitz Angular project per block at build time. The SDK is lazy-loaded on first click; pages load no StackBlitz code until then.
 
 Three authoring modes, dispatched by the trailing token on the tag line:
 
@@ -352,25 +354,25 @@ Three authoring modes, dispatched by the trailing token on the tag line:
 
 All three modes share the same scaffold (an Angular CLI standalone project on a WebContainer template). Its Angular version follows your project: the `@angular/core` range from your `package.json` (`dependencies`, then `peerDependencies`), `^21.0.0` when none is declared. Material widgets are auto-detected: when the demo references known Material selectors or attribute directives, `@angular/material` and `@angular/cdk` are force-pinned and the prebuilt theme is wired up automatically. Bare-specifier imports in any walked source are auto-forwarded with the version your `package.json` declares.
 
-In TS-component mode, `templateUrl` / `styleUrl` / `styleUrls` are resolved from a **string or a plain template literal** (`templateUrl: \`./x.component.html\``). A value the resolver can't statically resolve - an interpolated literal (`` `./x.${variant}.html` ``) or a computed identifier (`styleUrls: STYLES`) - **fails that playground with a clear error** naming the decorator, rather than silently shipping it without its template/styles. Use a literal path, or inline the `template` / `styles` in the demo component.
+In TS-component mode, `templateUrl` / `styleUrl` / `styleUrls` are resolved from a **string or a plain template literal** (`templateUrl: \`./x.component.html\``). A value the resolver can't statically resolve - an interpolated literal (`` `./x.${variant}.html` ``) or a computed identifier (`styleUrls: STYLES`) - fails that playground with a clear error naming the decorator, rather than silently shipping it without its template/styles. Use a literal path, or inline the `template` / `styles` in the demo component.
 
 ### Material app shell (fonts + body classes)
 
 The Roboto / Material-Icons font `<link>`s and the `mat-typography mat-app-background` body classes (the "Material app shell", matching Angular Material's `ng add`) are normally emitted only when the Material auto-detect fires. That misses libraries that are merely *themed to look like* Material via a Sass theme bridge - their templates contain no `<mat-*>` element, so without the shell Roboto never loads and the app background is missing.
 
-The shell is now decoupled from Material module wiring and is emitted when **any** of these hold:
+The shell is emitted when any of these hold:
 
-- the real `<mat-*>` auto-detect fired (unchanged - this also adds `@angular/material`/`@angular/cdk` and the prebuilt theme);
+- the real `<mat-*>` auto-detect fired (this also adds `@angular/material`/`@angular/cdk` and the prebuilt theme);
 - `playgroundMaterialShell: true` is set in the config (forces the shell on every playground);
 - a bundled playground file contains a Sass `@use` of a Material theme bridge, i.e. it matches `@use '…material…theme'` (e.g. `@use '@cngx/themes/material/azure-theme';`).
 
-In the flag and heuristic cases, **only** the shell is injected - `@angular/material`/`@angular/cdk` are **not** added to dependencies and no Material modules are added to `AppComponent.imports`. That wiring stays gated behind the real `<mat-*>` auto-detect.
+In the flag and heuristic cases, only the shell is injected - `@angular/material`/`@angular/cdk` are not added to dependencies and no Material modules are added to `AppComponent.imports`. That wiring stays gated behind the real `<mat-*>` auto-detect.
 
 | Option | CLI | Type | Default | Description |
 |-|-|-|-|-|
 | disablePlaygroundTab | `--disablePlaygroundTab` | boolean | `false` | Hide the per-component Playground tab even when `@playground` blocks are parsed. Independent of `--disableDependenciesTab`. No effect on components without `@playground` blocks (the tab is already absent). |
 | strictPlaygrounds | `--strictPlaygrounds` | boolean | `false` | **Fail** the build when a non-vendored `@playground` imports a subpath or named symbol absent from the version of the package pinned in `node_modules`. Default (off) only **warns**. See [Pre-publish breakage guard](#pre-publish-breakage-guard---strictplaygrounds). |
-| playgroundDependencies | -- (config-only) | object | `{}` | Extra packages to inject into every StackBlitz manifest's `dependencies`, with the version specifier YOU choose. Wins over the consumer-`package.json` auto-forward AND any auto-detected version (e.g. Material). Use for libraries the consumer ships but doesn't `npm install` directly (peer-only CSS themes), or to pin a per-build version. The value is forwarded into the generated `package.json` **unchanged** - see [Non-registry dependency sources](#non-registry-dependency-sources) for the accepted forms. |
+| playgroundDependencies | -- (config-only) | object | `{}` | Extra packages to inject into every StackBlitz manifest's `dependencies`, with the version specifier you choose. Wins over the consumer `package.json` auto-forward and any auto-detected version (e.g. Material). Use for libraries the consumer ships but doesn't `npm install` directly (peer-only CSS themes), or to pin a per-build version. The value is forwarded into the generated `package.json` **unchanged** - see [Non-registry dependency sources](#non-registry-dependency-sources) for the accepted forms. |
 | playgroundMaterialShell | -- (config-only) | boolean | `false` | Force the Material app shell (Roboto + Material-Icons font links and the `mat-typography mat-app-background` body classes) into every `@playground` `index.html`, independent of Material auto-detect. For libraries themed to look like Material via a Sass theme bridge. Does **not** add `@angular/material`/`@angular/cdk` or Material module imports. See [Material app shell](#material-app-shell-fonts--body-classes). |
 | playgroundDepDepth | -- (config-only) | number | `3` | Max import depth followed when walking a `@playground`'s dependency graph. Raise for deeply-nested examples. Range 1–100. |
 | playgroundFileCountCap | -- (config-only) | number | `25` | Hard ceiling on the number of source files in one `@playground` manifest. Exceeding it fails **that** playground with a message naming the component and the walked files (other playgrounds still build). Raise for large multi-file examples. Range 1–1000. |
@@ -429,7 +431,7 @@ export class NavComponent {}
 
 The referenced file is shipped as the project's `src/app/app.config.ts` (its transitive relative imports are bundled too), and the generated `src/main.ts` wires `bootstrapApplication(AppComponent, appConfig)`. The file **must export `appConfig`**. One `@playgroundConfig` per component applies to all of that component's `@playground` blocks (inline and file-ref alike).
 
-This replaces the older, undocumented trick of adding `export { appConfig } from './app.config'` to the example component purely so the file got bundled - that still works for back-compat, but `@playgroundConfig` is the supported, explicit way.
+`export { appConfig } from './app.config'` in the example component also bundles the file; prefer `@playgroundConfig`.
 
 #### Non-registry dependency sources
 
@@ -465,16 +467,16 @@ How it works, per playground:
 - **Pruned to the imported entry points.** Vendoring all of `@cngx/common` when the playground imports only `@cngx/common/tabs` is the main payload lever, so for each closure package only the entry points actually reached ship: the ones imported (from TS or SCSS), plus any sibling/cross-package entry point a kept FESM chunk or its typings references, followed transitively. Unreached entry points are dropped. Pruning is conservative - a package whose entry-point structure can't be read with confidence (no `exports` map), or for which an imported subpath maps to no known entry point, is shipped whole rather than risk a broken build.
 - **Wired as `file:` deps.** Each vendored package is placed under `vendor/<pkg>/` and declared as `"<pkg>": "file:vendor/<pkg>"` in the generated `package.json`. A root `file:` entry is authoritative: it overrides any registry version and any transitive semver range, so no closure package is pulled from npm.
 
-**Prerequisite:** the libraries must be **built before** compodocx runs (`dist/` present). A typical `docs:full` script already builds the libs first. If `playgroundVendor` names a package whose build output is missing, the docs build **fails** with a clear message (`playgroundVendor: "@cngx/ui" not found under dist - run the library build`) rather than silently falling back to a stale registry version. A glob that matches nothing only warns.
+**Prerequisite:** the libraries must be built before compodocx runs (`dist/` present). A typical `docs:full` script already builds the libs first. If `playgroundVendor` names a package whose build output is missing, the docs build fails with a clear message (`playgroundVendor: "@cngx/ui" not found under dist - run the library build`) rather than silently falling back to a stale registry version. A glob that matches nothing only warns.
 
-**Size - the StackBlitz POST limit is the real constraint.** `@stackblitz/sdk`'s `openProject` submits the whole project as a single form POST; StackBlitz's edge rejects bodies past roughly **2 MB** with `413 Request Entity Too Large`. The slimming and entry-point pruning above exist to keep the vendored payload comfortably under that. `playgroundVendorCap` (default ~1.5 MB, under the POST limit to leave room for the scaffold files and form-encoding overhead) is a **backstop**: a closure that still exceeds it fails the build naming the packages and measured bytes - and, when the payload is also over the StackBlitz limit, says so explicitly - never a silent truncation or a manifest that 413s on click.
+**Size - the StackBlitz POST limit is the real constraint.** `@stackblitz/sdk`'s `openProject` submits the whole project as a single form POST; StackBlitz's edge rejects bodies past roughly 2 MB with `413 Request Entity Too Large`. The slimming and entry-point pruning above exist to keep the vendored payload comfortably under that. `playgroundVendorCap` (default ~1.5 MB, under the POST limit to leave room for the scaffold files and form-encoding overhead) is a backstop: a closure that still exceeds it fails the build naming the packages and measured bytes - and, when the payload is also over the StackBlitz limit, says so explicitly - never a silent truncation or a manifest that 413s on click.
 
 #### Pre-publish breakage guard (`--strictPlaygrounds`)
 
 For playgrounds whose imports are served from the **registry** (i.e. not vendored), compodocx checks each bare import against the version of the package actually installed in your `node_modules` - the version StackBlitz would resolve. When the example imports an entry point or a named symbol that the pinned version does not have (`import { CngxTabNav } from '@cngx/ui/tabs'` while the published `@cngx/ui` predates `tabs`), the playground compiles locally but fails in the sandbox. The guard surfaces that at docs-build time:
 
 - **Default:** a per-playground **warning** naming the specifier/symbol and the pinned version.
-- **`--strictPlaygrounds`:** the same finding **fails** the build.
+- **`--strictPlaygrounds`:** the same finding fails the build.
 
 Two checks run, both biased toward **no false positives**: a *subpath* check against the pinned package's `exports` map, and a *symbol* check that scans the entry-point `.d.ts`. Anything the static check can't determine - a legacy package without an `exports` map, or typings that re-export via wildcard (`export * from …`) - is left unreported. Vendored packages (`playgroundVendor`) and framework peers (`@angular/*`, `rxjs`, …) are exempt: the former ship the local build, the latter are pinned by the manifest itself.
 
@@ -482,7 +484,7 @@ The static guard is fast but conservative. For full certainty that every playgro
 
 #### `compodocx playground:validate <docsDir>`
 
-A standalone command that **compiles every `@playground`** in a generated documentation folder and reports a per-playground pass/fail summary - the strongest guard, catching breakage the static `--strictPlaygrounds` check can't. It reads the manifests back out of the produced HTML, materializes each StackBlitz project to a temp directory, and runs `npm install` + `npm run build` (`ng build`) against the resolved (and vendored) dependencies.
+A standalone command that **compiles every `@playground`** in a generated documentation folder and reports a per-playground pass/fail summary. It catches breakage the static `--strictPlaygrounds` check can't. It reads the manifests back out of the produced HTML, materializes each StackBlitz project to a temp directory, and runs `npm install` + `npm run build` (`ng build`) against the resolved (and vendored) dependencies.
 
 ```bash
 # Generate docs, then validate every playground compiles
@@ -497,7 +499,7 @@ compodocx playground:validate documentation
 | `--installCmd <cmd>` | Override the install command (default `npm install --no-audit --no-fund`) |
 | `--buildCmd <cmd>` | Override the build command (default `npm run build`) |
 
-Exit codes: `0` all passed (or none found), `1` at least one failed, `2` fatal (bad args / unreadable docs dir). The command is opt-in and **decoupled from the docs build** - it never slows normal generation. Because it runs a real `npm install` per project, it needs network access and is much slower than the build itself; run it as a CI step after the docs are produced rather than on every local build.
+Exit codes: `0` all passed (or none found), `1` at least one failed, `2` fatal (bad args / unreadable docs dir). The command is opt-in and decoupled from the docs build - it never slows normal generation. Because it runs a real `npm install` per project, it needs network access and is much slower than the build itself; run it as a CI step after the docs are produced rather than on every local build.
 
 For the complete authoring guide (folder layout, library-author workflow, troubleshooting), see [the Playground guide on compodocx.dev](https://compodocx.dev/guides/playground/).
 
@@ -609,7 +611,7 @@ The `///` block must sit immediately above the `$variable: value [!default];` de
 }
 ```
 
-The doc block can sit directly above the property OR above a wrapping selector that contains the property as its first declaration. Single-asterisk `/* */` blocks are ignored -- only `/**` opens a doc comment.
+The doc block can sit directly above the property or above a wrapping selector that contains the property as its first declaration. Single-asterisk `/* */` blocks are ignored -- only `/**` opens a doc comment.
 
 ### Native `@property` at-rules -- runtime-typed tokens
 

@@ -32,7 +32,7 @@ Only HTML output is versioned. `--exportFormat json` and `llm-md` write a single
 | Flag | Default | Description |
 |-|-|-|
 | `--multiVersion` / `--no-multiVersion` | on | `--no-multiVersion` writes the site straight into the `-d` folder, without a version folder, `versions.json` or switcher |
-| `--versionLabel <label>` | from `package.json` | Name of the version folder and of the manifest entry. Without the flag, compodocx reads the `version` of the nearest `package.json` above the tsconfig folder (then above the working directory) and prefixes `v` to a semver value (`1.2.0` becomes `v1.2.0`). Labels such as `main` or `next` work too. When no label can be found the run stops with exit code 2 |
+| `--versionLabel <label>` | from `package.json` | Name of the version folder and of the manifest entry. Without the flag, compodocx reads the `version` of the nearest `package.json` above the tsconfig folder (then above the working directory) and prefixes `v` to a semver value (`1.2.0` becomes `v1.2.0`); an explicit `--versionLabel 1.2.0` gets the same prefix. Labels such as `main` or `next` work too. When no label can be found the run stops with exit code 2 |
 | `--versionsRoot <path>` | the `-d` folder | Folder `versions.json` is read from and written to. Override it when CI builds each version in a separate job and stitches the folders together later |
 | `--maxVersionsShown <n>` | `10` | Number of versions the switcher lists, `0` for all (range 0 to 1000). The manifest always keeps every version |
 
@@ -67,7 +67,7 @@ A `version-switcher.js` template override replaces the dropdown markup, see [cus
 Page URLs follow the feature a symbol belongs to (`<entry point>/<feature>/<Name>.html`), so a page can move when a symbol moves to another feature or when an older version used an earlier layout (one folder per kind, `components/Foo.html`). Every version's output therefore holds `redirects.json`:
 
 ```json
-{ "schemaVersion": 1, "redirects": { "components/Foo.html": "forms/select/Foo.html" } }
+{ "schemaVersion": 1, "redirects": { "components/Foo.html": "forms/select/panel/Foo.html" } }
 ```
 
 Keys are old page paths relative to the version folder (an anchor is allowed, for the old `miscellaneous/functions.html#name` collection anchors), values are where that page or section is now. The switcher looks the page up in the target version's map; when the target was built before maps existed, it reads the current version's map backwards to find the old path. If neither finds the page, it opens the target version's root. A web server can use the same map for HTTP redirects; compodocx writes no stub pages.
