@@ -256,3 +256,53 @@ describe('CLI Additional documentation - rebuild after changing aliases', () => 
         expect(exists(`${pageDist}/${pages}/errors/old-b.html`)).to.equal(true);
     });
 });
+
+describe('CLI Additional documentation - invalid summary.json', () => {
+    const src = `${tmp.name}-additional-invalid-summary-src`;
+    const dist = `${tmp.name}-additional-invalid-summary`;
+    let run: ReturnType<typeof shell>;
+
+    beforeAll(() => {
+        fs.mkdirpSync(src);
+        fs.writeFileSync(`${src}/summary.json`, '[{"title": "A", "file": "a.md"');
+        fs.writeFileSync(`${src}/a.md`, '# A\n');
+        tmp.create(dist);
+        run = shell(
+            'node',
+            [
+                './bin/index-cli.js',
+                '--no-multiVersion',
+                '-p',
+                './test/fixtures/todomvc-ng2/src/tsconfig.json',
+                '-d',
+                dist,
+                '--disableSearch',
+                '--includes',
+                src
+            ],
+            { encoding: 'utf8', timeout: 120_000 }
+        );
+    }, 150_000);
+
+    afterAll(() => {
+        tmp.clean(src);
+        tmp.clean(dist);
+    });
+
+    it('stops the build with exit code 1', () => {
+        expect(run.signal).to.equal(null);
+        expect(run.status).to.equal(1);
+    });
+
+    it('names the file and the JSON error', () => {
+        expect(`${run.stdout}${run.stderr}`).to.match(
+            /Additional pages: .*summary\.json: invalid JSON \(/
+        );
+    });
+
+    it('reports a config error, not an internal one', () => {
+        const output = `${run.stdout}${run.stderr}`;
+        expect(output).to.not.contain('Unhandled Rejection');
+        expect(output).to.not.contain('Please fill an issue');
+    });
+});
