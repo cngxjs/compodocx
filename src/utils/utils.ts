@@ -9,6 +9,7 @@ import {
 import { isInNodeModules } from '../app/compiler/semantic/program';
 import { AngularLifecycleHooks } from './angular-lifecycles-hooks';
 import { stripExampleUrlTags } from './example-urls';
+import { repairFencedTags } from './jsdoc-fences';
 import { JsdocParserUtil } from './jsdoc-parser.util';
 import { kindToType } from './kind-to-type';
 import { logger } from './logger';
@@ -388,7 +389,7 @@ export function compilerHost(
                 }
                 const shared = sharedSourceFile?.(fileName);
                 if (shared) {
-                    return shared;
+                    return repairFencedTags(shared);
                 }
 
                 if (!fs.existsSync(fileName)) {
@@ -407,7 +408,9 @@ export function compilerHost(
                     logger.debug(e, fileName);
                 }
 
-                return ts.createSourceFile(fileName, libSource, transpileOptions.target, false);
+                return repairFencedTags(
+                    ts.createSourceFile(fileName, libSource, transpileOptions.target, false)
+                );
             }
             return undefined;
         },

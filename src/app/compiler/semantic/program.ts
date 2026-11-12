@@ -1,6 +1,7 @@
 import { ts } from 'ts-morph';
 
 import { err, isErr, ok, type Result } from '../../../lib';
+import { repairFencedTags } from '../../../utils/jsdoc-fences';
 
 /** "No inputs were found": the root files come from the caller, not from the tsconfig. */
 const NO_INPUTS = 18003;
@@ -59,9 +60,9 @@ const projectOnlyHost = (options: ts.CompilerOptions, oldProgram?: ts.Program): 
             if (isInNodeModules(fileName)) {
                 return undefined;
             }
-            return (
+            return repairFencedTags(
                 unchanged(fileName) ??
-                host.getSourceFile(fileName, languageVersion, onError, shouldCreate)
+                    host.getSourceFile(fileName, languageVersion, onError, shouldCreate)
             );
         }
     };
