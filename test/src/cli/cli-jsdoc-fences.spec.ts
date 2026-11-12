@@ -96,6 +96,14 @@ describe('CLI JSDoc: tags inside code fences', () => {
         expect(tagNames(entries.get('ClosedBlock'))).to.deep.equal(['since']);
     });
 
+    it('keeps an @ inside inline code in the description and a tag text', () => {
+        const node = entries.get('CodeSpanNode');
+        expect(tagNames(node)).to.deep.equal(['example', 'since']);
+        expect(node?.description).to.include('<code>ng add @fences/lib</code>');
+        expect(node?.description).to.include('<code>@fences/a -&gt; @fences/b</code>');
+        expect(node?.jsdoctags[0].comment).to.include('Run ``ng add @fences/lib`` once.');
+    });
+
     it('does not read a fenced @internal line in the semantic stage', () => {
         expect(entries.get('FencedInternal')?.notExported).to.equal(true);
         expect(entries.get('RealInternal')?.notExported).to.equal(undefined);

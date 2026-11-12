@@ -1,7 +1,7 @@
 import { ts } from 'ts-morph';
 import { describe, expect, it } from 'vitest';
 import { createSemanticProgram } from '../../../src/app/compiler/semantic/program';
-import { fencedRanges, repairFencedTags } from '../../../src/utils/jsdoc-fences';
+import { codeSpans, fencedRanges, repairFencedTags } from '../../../src/utils/jsdoc-fences';
 import { compilerHost } from '../../../src/utils/utils';
 
 const doc = (...lines: string[]): string => ['/**', ...lines.map(l => ` * ${l}`), ' */'].join('\n');
@@ -193,5 +193,83 @@ describe('compiler hosts repair fenced tags', () => {
         }
         const row = program.value.getSourceFile(file)?.statements.find(ts.isClassDeclaration);
         expect(row && ts.getJSDocTags(row).map(tag => tag.tagName.text)).toEqual(['since']);
+    });
+});
+
+/** The text inside each inline code span, by its offsets. */
+const spans = (comment: string): string[] =>
+    codeSpans(comment).map(range => comment.slice(range.start, range.end));
+
+describe('codeSpans', () => {
+    it('finds spans of one and more backticks on a line', () => {
+        expect(spans(doc('Run `ng add @x/core` and ``a ` b`` now.'))).toEqual([
+            'ng add @x/core',
+            'a ` b'
+        ]);
+    });
+
+    it('closes a span only with a run of the same length', () => {
+        expect(spans(doc('`a `` @x` b'))).toEqual(['a `` @x']);
+    });
+
+    it('ignores a backtick that is never closed on its line', () => {
+        expect(spans(doc('Uses the ` char.', 'Then `x`.'))).toEqual(['x']);
+    });
+
+    it('does not open a span over a line break', () => {
+        expect(spans(doc('Run `ng add', '@x/core` now.'))).toEqual([]);
+    });
+
+    it('does not open a span on an escaped backtick', () => {
+        expect(spans(doc('A \\` @x ` b'))).toEqual([]);
+    });
+
+    it('adds the offset to the positions', () => {
+        const comment = doc('a `b` c');
+        const [range] = codeSpans(comment, 50);
+        expect(range.start - 50).toBe(comment.indexOf('b`'));
+    });
+});
+
+describe('repairFencedTags: tags inside inline code', () => {
+    it('keeps an @ after a space inside a span in the description', () => {
+        const sourceFile = repaired(
+            `${doc('Run `ng add @x/core` and move `@x/a -> @x/b`.', '', '@since 1')}\nexport class X {}`
+        );
+        expect(tagNames(sourceFile)).toEqual(['since']);
+        expect(firstDoc(sourceFile).comment).toBe('Run `ng add @x/core` and move `@x/a -> @x/b`.');
+    });
+
+    it('keeps a double backtick span in the text of a tag', () => {
+        const sourceFile = repaired(
+            `${doc('Lead.', '@example Run ``ng add @x/core`` now.', '@since 1')}\nexport class X {}`
+        );
+        const tags = ts.getJSDocTags(sourceFile.statements[0]);
+        expect(tags.map(tag => tag.tagName.text)).toEqual(['example', 'since']);
+        expect(tags[0].comment).toBe('Run ``ng add @x/core`` now.');
+    });
+
+    it('keeps real tags after a span and after an unclosed backtick', () => {
+        expect(tagNames(repaired('/** Uses `a b`. @defaultValue 3 */\nexport class X {}'))).toEqual(
+            ['defaultValue']
+        );
+        expect(
+            tagNames(repaired(`${doc('Uses the ` char.', '@since 1')}\nexport class X {}`))
+        ).toEqual(['since']);
+        expect(
+            tagNames(repaired('/** Uses the ` char. @defaultValue 3 */\nexport class X {}'))
+        ).toEqual(['defaultValue']);
+    });
+
+    it('leaves a span over a line break as TypeScript reads it', () => {
+        const source = `${doc('Run `ng add', '@x/core` now.', '@since 1')}\nexport class X {}`;
+        expect(tagNames(repaired(source))).toEqual(tagNames(parse(source)));
+    });
+
+    it('keeps a tag at the start of a line after a closed span', () => {
+        const sourceFile = repaired(
+            `${doc('Use `a`.', '@param a the `a` value', '@returns b')}\nexport function f(a) {}`
+        );
+        expect(tagNames(sourceFile)).toEqual(['param', 'returns']);
     });
 });

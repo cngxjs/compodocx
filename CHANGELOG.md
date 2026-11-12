@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Fixed
+
+- **`@` inside inline code.** An `@` after a space inside inline code of a JSDoc comment, as in `` `ng add @scope/pkg` `` or `` `@scope/a -> @scope/b` ``, was still read as a tag (`scope`), and the text ended there. The 0.16.3 docs said that backticks always prevent this. Such words now stay part of the text when the inline code opens and closes on the same line; inline code across a line break is left as TypeScript reads it.
+
 ## [0.16.3] - 2026-11-12
 
 ### Fixed

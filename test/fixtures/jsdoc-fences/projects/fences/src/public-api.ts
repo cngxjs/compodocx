@@ -4,3 +4,4 @@ export * from './list-example';
 export * from './unclosed';
 export * from './visible-helper';
 export * from './tilde-node';
+export * from './code-span-node';
