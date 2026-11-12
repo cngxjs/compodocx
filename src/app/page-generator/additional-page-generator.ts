@@ -10,6 +10,7 @@ import {
     type LabelMap,
     labelsFileMessage,
     parseLabelMap,
+    parseSummary,
     resolveAdditionalPages
 } from './additional-page-resolver';
 import {
@@ -45,49 +46,17 @@ export class AdditionalPageGenerator {
         // Scan include folder for files detailed in summary.json
         // For each file, add to Configuration.mainData.additionalPages
         // Each file will be converted to html page, inside COMPODOC_DEFAULTS.additionalEntryPath
+        const summaryPath = this.getIncludedPathForFile('summary.json');
         return new Promise((resolve, reject) => {
-            FileEngine.get(this.getIncludedPathForFile('summary.json')).then(
-                async summaryData => {
-                    logger.info('Additional documentation: summary.json file found');
-
-                    const parsedSummaryData = JSON.parse(summaryData);
-
-                    const labelsPath = Configuration.mainData.includesLabels;
-                    let labels: LabelMap | undefined;
-                    if (labelsPath) {
-                        const loaded = await this.loadLabels(labelsPath);
-                        if (isErr(loaded)) {
-                            reject(loaded.message);
+            FileEngine.get(summaryPath).then(
+                summaryData =>
+                    this.includeSummary(summaryData, summaryPath).then(result => {
+                        if (isErr(result)) {
+                            reject(result.message);
                             return;
                         }
-                        labels = loaded.value;
-                    }
-
-                    const resolved = resolveAdditionalPages(parsedSummaryData, labels, labelsPath);
-                    if (isErr(resolved)) {
-                        reject(resolved.message);
-                        return;
-                    }
-                    const tooltips = Configuration.mainData.includesTooltips;
-                    const notice = ignoredTooltipsNotice(resolved.value, tooltips);
-                    if (notice !== undefined) {
-                        logger.info(notice);
-                    }
-                    const { pages, aliases, skipped } = buildAdditionalPages(
-                        resolved.value,
-                        file => this.readPage(file),
-                        segments => this.locationOf(segments),
-                        tooltips
-                    );
-                    for (const page of skipped) {
-                        logger.warn(skippedPageMessage(page));
-                    }
-                    for (const page of pages) {
-                        Configuration.addAdditionalPage(page);
-                    }
-                    Configuration.mainData.additionalAliases = aliases;
-                    resolve(true);
-                },
+                        resolve(true);
+                    }, reject),
                 () => {
                     // A folder without summary.json adds no pages silently; a missing folder is reported.
                     const folder = path.resolve(Configuration.mainData.includes);
@@ -100,6 +69,53 @@ export class AdditionalPageGenerator {
                 }
             );
         });
+    }
+
+    /** Reads the pages `summary.json` lists; `err` stops the build with that message. */
+    private async includeSummary(
+        summaryData: string,
+        summaryPath: string
+    ): Promise<Result<true, string>> {
+        logger.info('Additional documentation: summary.json file found');
+
+        const summary = parseSummary(summaryData, summaryPath);
+        if (isErr(summary)) {
+            return summary;
+        }
+
+        const labelsPath = Configuration.mainData.includesLabels;
+        let labels: LabelMap | undefined;
+        if (labelsPath) {
+            const loaded = await this.loadLabels(labelsPath);
+            if (isErr(loaded)) {
+                return loaded;
+            }
+            labels = loaded.value;
+        }
+
+        const resolved = resolveAdditionalPages(summary.value, labels, labelsPath);
+        if (isErr(resolved)) {
+            return resolved;
+        }
+        const tooltips = Configuration.mainData.includesTooltips;
+        const notice = ignoredTooltipsNotice(resolved.value, tooltips);
+        if (notice !== undefined) {
+            logger.info(notice);
+        }
+        const { pages, aliases, skipped } = buildAdditionalPages(
+            resolved.value,
+            file => this.readPage(file),
+            segments => this.locationOf(segments),
+            tooltips
+        );
+        for (const page of skipped) {
+            logger.warn(skippedPageMessage(page));
+        }
+        for (const page of pages) {
+            Configuration.addAdditionalPage(page);
+        }
+        Configuration.mainData.additionalAliases = aliases;
+        return ok(true);
     }
 
     private loadLabels(labelsPath: string): Promise<Result<LabelMap, string>> {

@@ -360,6 +360,19 @@ const isOptionalString = (value: unknown): value is string | undefined =>
     value === undefined || typeof value === 'string';
 
 /**
+ * Parses the content of `summary.json`. Only the JSON syntax is checked here;
+ * `resolveAdditionalPages` validates the entries.
+ */
+export const parseSummary = (raw: string, source: string): Result<unknown, string> => {
+    try {
+        return ok(JSON.parse(raw) as unknown);
+    } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        return err(`Additional pages: ${source}: invalid JSON (${reason})`);
+    }
+};
+
+/**
  * Parses the content of a labels file: an object whose values are objects
  * with an optional string `label`, `title` and `tooltip`. Other properties of
  * an entry are ignored.

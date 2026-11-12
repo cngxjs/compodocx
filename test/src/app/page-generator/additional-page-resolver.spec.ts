@@ -4,6 +4,7 @@ import { pageLocation } from '../../../../src/app/links/layout';
 import {
     type LabelMap,
     parseLabelMap,
+    parseSummary,
     type ResolvedAdditionalPage,
     type ResolvedAdditionalPages,
     resolveAdditionalPages
@@ -574,6 +575,24 @@ describe('resolveAdditionalPages tooltip overrides', () => {
             guide: { tooltip: 'Short form' }
         });
         expect(resolved.tooltip).toBe('Short form');
+    });
+});
+
+describe('parseSummary', () => {
+    it('returns the parsed summary', () => {
+        const result = parseSummary('[{"title":"A","file":"a.md"}]', 'docs/summary.json');
+        if (!isOk(result)) {
+            throw new Error(result.message);
+        }
+        expect(result.value).toEqual([{ title: 'A', file: 'a.md' }]);
+    });
+
+    it('rejects invalid JSON with the file and the parser message', () => {
+        const result = parseSummary('[{"title":', 'docs/summary.json');
+        expect(result.ok).toBe(false);
+        expect(isOk(result) ? '' : result.message).toMatch(
+            /^Additional pages: docs\/summary\.json: invalid JSON \(.+\)$/
+        );
     });
 });
 

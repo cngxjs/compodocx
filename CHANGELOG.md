@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Fixed
+
+- **Invalid `summary.json`.** A `summary.json` in the `--includes` folder that is not valid JSON stopped the build with an "Unhandled Rejection" stack trace and a request to file an issue. The build now stops with exit code 1 and `Additional pages: <path>/summary.json: invalid JSON (...)`, which names the file and the parser error.
+
 ## [0.16.2] - 2026-11-10
 
 ### Fixed
