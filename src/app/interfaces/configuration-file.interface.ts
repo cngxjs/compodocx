@@ -100,6 +100,8 @@ export interface ConfigurationFileInterface {
     aiGeneratedNote: string;
     /** Base for relative `<example-url>` tags. */
     exampleUrlBase: string;
+    /** Root URL of the published docs site; links to it stay in the version being built. */
+    siteUrl: string;
     referencesName: string;
     playgroundDependencies: Record<string, string>;
     shikiTheme: string;

@@ -113,7 +113,8 @@ const makeMainData = (): MainDataInterface => {
         apiTabSections: [],
         themingTabSections: [],
         themingPrivatePrefix: '--_',
-        playgroundDependencies: {}
+        playgroundDependencies: {},
+        siteUrl: ''
     } as unknown as MainDataInterface;
 };
 
@@ -139,6 +140,7 @@ const makeProgram = (argv: readonly string[] = []): Command => {
         .option('--maxSearchResults <n>', '', '15')
         .option('--searchFacetLimit <n>', '', '8')
         .option('--gaID [id]')
+        .option('--siteUrl <url>', '', '')
         .option('--logoLayout [layout]')
         .option('--customLogo [path]')
         .option('--customLogoDark [path]')
@@ -947,6 +949,72 @@ describe('applyConfigToMainData', () => {
         ).toThrow(/process\.exit\(2\)/);
         expect(exitSpy).toHaveBeenCalledWith(2);
         exitSpy.mockRestore();
+    });
+
+    describe('siteUrl', () => {
+        it('stays empty without the key', () => {
+            const mainData = makeMainData();
+            applyConfigToMainData(mainData, {}, makeProgram(), { cwd: '/tmp/test' });
+            expect(mainData.siteUrl).toBe('');
+        });
+
+        it('reads the config value, trimmed, with a trailing slash', () => {
+            const mainData = makeMainData();
+            applyConfigToMainData(
+                mainData,
+                { siteUrl: '  https://example.github.io/lib  ' },
+                makeProgram(),
+                { cwd: '/tmp/test' }
+            );
+            expect(mainData.siteUrl).toBe('https://example.github.io/lib/');
+        });
+
+        it('keeps a trailing slash that is already there', () => {
+            const mainData = makeMainData();
+            applyConfigToMainData(
+                mainData,
+                { siteUrl: 'https://example.github.io/lib/' },
+                makeProgram(),
+                { cwd: '/tmp/test' }
+            );
+            expect(mainData.siteUrl).toBe('https://example.github.io/lib/');
+        });
+
+        it('keeps an empty value empty', () => {
+            const mainData = makeMainData();
+            applyConfigToMainData(mainData, { siteUrl: '  ' }, makeProgram(), {
+                cwd: '/tmp/test'
+            });
+            expect(mainData.siteUrl).toBe('');
+        });
+
+        it('lets the CLI flag win over the config file', () => {
+            const mainData = makeMainData();
+            applyConfigToMainData(
+                mainData,
+                { siteUrl: 'https://config.example/lib/' },
+                makeProgram(['--siteUrl', 'https://flag.example/lib']),
+                { cwd: '/tmp/test' }
+            );
+            expect(mainData.siteUrl).toBe('https://flag.example/lib/');
+        });
+
+        it('exits with code 2 for a value that is not a string', () => {
+            const mainData = makeMainData();
+            const exitSpy = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
+                throw new Error(`process.exit(${code})`);
+            }) as never);
+            expect(() =>
+                applyConfigToMainData(
+                    mainData,
+                    { siteUrl: 42 as unknown as string },
+                    makeProgram(),
+                    { cwd: '/tmp/test' }
+                )
+            ).toThrow(/process\.exit\(2\)/);
+            expect(exitSpy).toHaveBeenCalledWith(2);
+            exitSpy.mockRestore();
+        });
     });
 
     it('invalid collapsedAll exits with code 2', () => {
