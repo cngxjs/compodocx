@@ -726,7 +726,7 @@ Compodocx recognizes these custom JSDoc tags on any entity or member:
 | `@stackblitz <url>` | Adds a StackBlitz link in the entity hero |
 | `@github <url>` | Adds a GitHub link in the entity hero |
 | `@docs <url>` | Adds a documentation link in the entity hero |
-| `@example` | Code examples rendered in the Info tab with syntax highlighting |
+| `@example` | Code examples rendered in the Info tab with syntax highlighting. Text on the tag line directly before a code fence (`@example Call it`), or a `<caption>...</caption>` element, renders as a caption in bold italics; with an empty line before the fence it stays plain text, and without a fence it is the first line of the code |
 | `@playground <title> [<path>]` | Runnable demo on the component's Playground tab. Title required. Optional trailing `./*.html` or `./*.ts` path triggers file-ref mode (see Playground section). |
 | `@slot <name> <description>` | Adds a row to the component's Content Slots section in the Info tab |
 | `@overview` (in CSS / SCSS) | Prose intro at the top of the Theming tab |

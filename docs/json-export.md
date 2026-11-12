@@ -48,9 +48,10 @@ Schemas 3 to 5 were development steps towards 6 and were never published.
 
 ## Schema 7
 
-### Added in 0.17.0
+### Changed in 0.17.0
 
-- `root` on every `semantic.features` entry: the folder the feature lives in, relative to the working directory, POSIX, without a trailing slash; for a `config` or `tag` feature the common folder of its files. Exports of 0.16.x do not have it.
+- Added: `root` on every `semantic.features` entry: the folder the feature lives in, relative to the working directory, POSIX, without a trailing slash; for a `config` or `tag` feature the common folder of its files. Exports of 0.16.x do not have it.
+- Text after `@example` on the tag line is kept. Before a code fence it is a caption (`<p><b><i>Call it</i></b></p>`) in `description` and in `jsdoctags[].comment`, the same as `<caption>`; without a fence it is the first line of the code block (`@example k.stop();` gives `<div class="cdx-code-snippet">k.stop();</div>`). Exports of 0.16.x left that text out.
 
 ### Introduced in 0.16.0
 
