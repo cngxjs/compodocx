@@ -15,15 +15,15 @@ labels: 'Type: Bug'
 
 <!-- provide all information we need -->
 
-##### **Angular configuration, a `package.json` file in the root folder**
+##### **package.json, the tsconfig passed with -p, and the compodocx config file or command line**
 
-<!-- This is mandatory for bug reports. This will help us to replicate the scenario. -->
+<!-- Required: we need it to reproduce the problem. -->
 
-##### **compodocx installed globally or locally ?**
+##### **compodocx installed globally or locally?**
 
 <!-- provide all information we need -->
 
-##### **If possible sourcecode of the file where it breaks**
+##### **If possible, the source code of the file where it breaks**
 
 <!-- provide all information we need -->
 
@@ -31,9 +31,9 @@ labels: 'Type: Bug'
 
 <!-- provide all information we need -->
 
-##### **Motivation for or Use Case**
+##### **Expected behaviour**
 
-<!-- explain why this is a bug for you -->
+<!-- what you expected to happen instead -->
 
 ##### **Reproduce the error**
 

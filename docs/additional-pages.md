@@ -1,8 +1,6 @@
 # Additional pages
 
-compodocx can ship hand-written Markdown pages alongside the API reference it generates from your source. These are plain `.md` files you author yourself - guides, tutorials, architecture notes, getting-started sections, migration docs, whatever - and compodocx renders them as first-class pages in the output site with their own sidebar section.
-
-The feature is built into compodocx itself, covered by the project's MIT license. There is no separate extension, paid tier, or service involved; if you can run the CLI you already have it.
+compodocx can ship hand-written Markdown pages alongside the API reference it generates from your source. These are plain `.md` files you author yourself - guides, tutorials, architecture notes, getting-started sections, or migration notes. compodocx renders them as pages with their own sidebar section.
 
 ## How it works
 
@@ -17,7 +15,7 @@ Four CLI flags drive it:
 | `--includesLabels <path>` | JSON file with a sidebar label and a title per page slug (see [Labels and titles from a file](#labels-and-titles-from-a-file)) | - |
 | `--includesTooltips` | Show each page's subtitle (or its `tooltip` key) as the tooltip of its sidebar link (see [Link tooltips](#link-tooltips)) | `false` |
 
-All four can also be set via the config file (`.compodocxrc`, `.compodocxrc.json`, `.compodocxrc.yaml`, or the `compodocx` property in `package.json`) as `includes` / `includesName` / `includesLabels` / `includesTooltips`.
+All four can also be set via the config file (any name from [Configuration](configuration.md), for example `.compodocxrc.json`, `compodocx.config.js` or the `compodocx` key in `package.json`) as `includes` / `includesName` / `includesLabels` / `includesTooltips`.
 
 ## File layout
 
@@ -343,7 +341,3 @@ These problems stop the build with exit code 1. The message names the position i
 - Set a fixed URL through the labels file - it feeds label and title only, never the path.
 - Change the Markdown pipeline per page - it is the same `marked` instance used for JSDoc.
 - Interleave additional pages inside the API groups - they live in their own sidebar section. This holds under both `menuLayout: 'feature'` (default) and `menuLayout: 'type'`: the Features chapter only mixes code entities, never additional pages.
-
-## Licensing
-
-compodocx is MIT-licensed. The additional-pages feature is part of the CLI; nothing you produce with it is encumbered by compodocx, and nothing about enabling it changes the licensing of the generated site. Ship it wherever you like.

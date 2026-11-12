@@ -13,7 +13,7 @@ If you only consume tokens (e.g. you are styling a page that uses someone else's
 
 ## Quick reference
 
-This is the smallest possible cheat sheet. Skim this first; everything below is detail.
+One example per pattern. The sections below explain each one.
 
 ```scss
 // SCSS variable
@@ -81,7 +81,7 @@ $padding: 8px !default;
 @mixin focus-ring($color: currentColor) { /* ... */ }
 ```
 
-The parser does the rest. The tokens land in the component's **Theming** tab, grouped by `@group`, with the type, default value, description, examples, and `@see` cross-links rendered automatically.
+The tokens show on the component's Theming tab, grouped by `@group`, with the type, default value, description, examples, and `@see` cross-links rendered automatically.
 
 ## Core mental model
 
@@ -92,8 +92,6 @@ The parser thinks like JSDoc, not like a CSS preprocessor. Three rules cover alm
 2. **`@overview`, `@themes` and `@cssprop` claim the block.** A doc block carrying `@overview` or `@themes` describes the file and is never associated with a following declaration. Use it for a one-paragraph description at the top of the file and for the file-level links. A block carrying `@cssprop` documents the hook it names and is claimed the same way.
 
 3. **Single-asterisk `/* */` blocks are invisible.** Only `/**` (two asterisks) opens a doc comment. SCSS `//` line comments (one or two slashes, not three) are also invisible.
-
-That is the whole model. Everything else is tag semantics.
 
 ## Authoring patterns
 
@@ -237,7 +235,7 @@ If the same stylesheet also declares the property (`--badge-color: ...;` or `@pr
 
 | Tag | Value | Effect |
 |-|-|-|
-| `@overview` | Markdown body, may span multiple lines | File-level intro paragraph rendered above the index. The tag claims the block: do NOT mix `@overview` with token-describing tags in the same block |
+| `@overview` | Markdown body, may span multiple lines | File-level intro paragraph rendered above the index. The tag claims the block: do not mix `@overview` with token tags in the same block |
 | `@type` | CSS type expression (`<length>`, `<color>`, `<length-percentage>+`, `Number`, `String`, free-form text) | Renders in the **Type** cell next to the token name |
 | `@default` | Any string | Renders in the **Default** cell. Falls back to the literal declaration value when omitted; for `@property`, falls back to `initial-value` |
 | `@group` | Identifier (kebab-case recommended: `container`, `severity`, `icon`) | Groups tokens under a sub-heading. Tokens without `@group` sit in a flat default bucket above all named groups |
@@ -775,7 +773,7 @@ These are intentionally out of scope. Do not try to document them and expect the
 - Transitive `@import` / `@use` resolution beyond one level. Keep token partials a single hop away from the component stylesheet.
 - Token usage graphs (which component consumes which token from another component's surface).
 - Validation of `@type` against the actual declaration value. The parser trusts you.
-- Auto-detection of undocumented tokens. Tokens without a doc block are intentionally invisible, the same convention as undocumented JSDoc on TypeScript members.
+- Auto-detection of undocumented tokens. Custom properties and SCSS variables without a doc block are not listed. The exception is an undocumented `@property` rule, which is listed with its `syntax` and `initial-value` (see [Hiding tokens from the docs](#hiding-tokens-from-the-docs)).
 
 ## Related references
 

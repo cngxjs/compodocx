@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/cngxjs/compodocx/actions"><img src="https://github.com/cngxjs/compodocx/workflows/CI/badge.svg" alt="CI"/></a>
+  <a href="https://github.com/cngxjs/compodocx/actions"><img src="https://github.com/cngxjs/compodocx/actions/workflows/main.yml/badge.svg" alt="CI"/></a>
   <a href="https://www.npmjs.com/package/@cngxjs/compodocx"><img src="https://img.shields.io/npm/v/@cngxjs/compodocx.svg" alt="npm"/></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License: MIT"/></a>
 </p>
@@ -44,7 +44,7 @@ ng add @cngxjs/compodocx
 ## Quick start
 
 ```bash
-# Generate static documentation into ./docs
+# Generate static documentation into ./docs/<version>/ (version from package.json)
 npx compodocx -p tsconfig.app.json -d docs
 
 # Generate, serve, open in browser
@@ -56,6 +56,8 @@ npx compodocx -p tsconfig.app.json -d docs -s -w
 # Coverage check that fails CI under 70%
 npx compodocx -p tsconfig.app.json -d docs --coverageTest 70 --coverageTestThresholdFail
 ```
+
+`--no-multiVersion` writes straight into the `-d` folder, see [versioned docs](docs/versioned-docs.md).
 
 The CLI is also exposed as `compodoc`, so existing npm scripts keep running.
 

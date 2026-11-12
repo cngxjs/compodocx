@@ -43,7 +43,7 @@ Run these before you open a pull request:
 
 | Command | What it does |
 |-|-|
-| `npm run lint` | Biome lint and format check |
+| `npm run lint` | Biome lint and format check (fix with `npm run lint:fix` or `npm run format:write`) |
 | `npm run typecheck` | TypeScript check of the sources, the client and the schematics |
 | `npm run test:unit` | Unit tests |
 | `npm test` | Rebuilds `dist`, then runs the unit and CLI tests |
