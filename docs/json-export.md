@@ -48,6 +48,10 @@ Schemas 3 to 5 were development steps towards 6 and were never published.
 
 ## Schema 7
 
+### Added in 0.17.0
+
+- `root` on every `semantic.features` entry: the folder the feature lives in, relative to the working directory, POSIX, without a trailing slash; for a `config` or `tag` feature the common folder of its files. Exports of 0.16.x do not have it.
+
 ### Introduced in 0.16.0
 
 Removed:

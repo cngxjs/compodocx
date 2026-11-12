@@ -11,9 +11,11 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 ### Added
 
 - **`siteUrl`.** Links in READMEs, additional pages and JSDoc to the published docs site, with or without a version folder, point at the page in the version being built, so the same link opens the docs on GitHub and stays in the version on the site. A link to a page the build does not have stays absolute and is listed in a `Site links:` warning.
+- **Feature root in the JSON export.** Every `semantic.features` entry has `root`, the folder the feature lives in (relative to the working directory, POSIX, no trailing slash). For a feature from a `features` glob or an `@feature` tag it is the common folder of its files. A README link to that folder points at the feature page, also for features without a README. The schema version stays 7; `documentation.v7.schema.json` lists the field.
 
 ### Changed
 
+- **README links to a feature folder.** A relative README link to the folder of a feature from a `features` glob or an `@feature` tag (the common folder of its files) now points at that feature page, also when the README sits higher up. Before, only the README folder counted. When several features share a folder, the root feature of the entry point is the target, and a feature folder wins over the README folder of another feature.
 - **Section headings.** Section headings ("Overview", "Inputs", "Index"), block headings ("Metadata"), the group labels in the member index and the overview dashboard headings are no longer set in uppercase with wide letter spacing. They are 2px larger: 15px, the index group labels 13px, the dashboard headings 14px.
 - **Markdown headings on feature and additional pages.** Headings below the page title step down more evenly: h2 1.25rem (was 1.375rem), h3 1.0625rem (was 1.125rem), h4 0.9375rem (was 1rem), h5 and h6 0.875rem (was 0.9375rem, still uppercase). The page title (h1) is unchanged. The README on the index page, the CHANGELOG page and JSDoc descriptions keep their sizes.
 

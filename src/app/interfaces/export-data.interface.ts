@@ -312,6 +312,12 @@ export interface ExportFeature {
     key: string;
     label: string;
     detector: 'config' | 'tag' | 'cohesion' | 'entry-point' | 'folder';
+    /**
+     * Folder the feature lives in, relative to the working directory, POSIX, no
+     * trailing slash; for a `config` or `tag` feature the common folder of its files.
+     * A link to it (or to the folder of `readme`) is a link to the feature page.
+     */
+    root: string;
     /** README of the feature, relative to the working directory. */
     readme?: string;
     /** Ids of features in other entry points this one uses. */

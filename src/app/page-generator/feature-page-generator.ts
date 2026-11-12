@@ -159,6 +159,31 @@ const firstParagraph = (html: string): string | undefined =>
         ?.replace(/<a href="[^"]*\.md(?:#[^"]*)?"[^>]*>([\s\S]*?)<\/a>/gi, '$1')
         .trim() || undefined;
 
+/**
+ * The feature page segments a README link to a folder points at. A feature
+ * root wins over the folder of another feature's README; among roots, the root
+ * feature of an entry point wins, then the first feature in model order.
+ */
+export const featureFolders = (
+    features: readonly Feature[],
+    segments: ReadonlyMap<FeatureId, readonly string[]>
+): ReadonlyMap<string, readonly string[]> => {
+    const ordered = [...features.filter(f => f.key === ''), ...features.filter(f => f.key !== '')];
+    const folders: [string, FeatureId][] = [
+        ...ordered.map(f => [f.root, f.id] as [string, FeatureId]),
+        ...ordered.flatMap(f =>
+            f.readme === undefined ? [] : [[posixDirname(f.readme), f.id] as [string, FeatureId]]
+        )
+    ];
+    const byFolder = new Map<string, readonly string[]>();
+    for (const [folder, id] of folders) {
+        if (!byFolder.has(folder)) {
+            byFolder.set(folder, segments.get(id) ?? []);
+        }
+    }
+    return byFolder;
+};
+
 /** The page data of every feature; `readme` renders a README file to HTML. */
 export const featurePages = (
     semantic: SemanticModel,
@@ -182,18 +207,7 @@ export const featurePages = (
         list.sort((a, b) => (a.ref.file < b.ref.file ? -1 : 1));
     }
     const { segments } = featureSegments(model.features);
-    const byFolder = new Map<string, readonly string[]>();
-    for (const f of model.features) {
-        const own = segments.get(f.id) ?? [];
-        for (const folder of [
-            f.root,
-            f.readme === undefined ? undefined : posixDirname(f.readme)
-        ]) {
-            if (folder !== undefined && !byFolder.has(folder)) {
-                byFolder.set(folder, own);
-            }
-        }
-    }
+    const byFolder = featureFolders(model.features, segments);
     const html = new Map(
         model.features.flatMap(f => {
             const rendered = f.readme === undefined ? undefined : readme(f.readme);

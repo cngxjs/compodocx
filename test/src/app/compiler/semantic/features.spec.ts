@@ -239,6 +239,24 @@ describe('feature detection', () => {
             expect(readmeOf({ ...CASE, readmes: [readme] }, '@x/ui#toast')).toBe(readme);
         });
 
+        it('takes the common folder of its symbols as its root', () => {
+            const rootOf = (c: Case): string | undefined =>
+                detect({ entryPoints: [ENTRY], ...c }).model.features.find(
+                    x => x.id === '@x/ui#toast'
+                )?.root;
+            expect(rootOf(CASE)).toBe(TOAST);
+            const tagged: Case = {
+                files: CASE.files,
+                tags: Object.fromEntries(CASE.files.map(file => [file, 'toast']))
+            };
+            expect(rootOf(tagged)).toBe(TOAST);
+            const spread: Case = {
+                files: ['lib/ui/toast.ts', `${TOAST}/toast.ts`],
+                config: { features: { 'lib/ui/**': 'toast' } }
+            };
+            expect(rootOf(spread)).toBe('lib/ui');
+        });
+
         it('does the same for a tag', () => {
             const readme = `${TOAST}/README.md`;
             const tagged: Case = {
