@@ -735,7 +735,7 @@ A README next to a source file (`card.component.md` beside `card.component.ts`) 
 
 ### `@` in descriptions and tag texts
 
-TypeScript reads every `@word` that follows white space in a JSDoc comment as a block tag, at the start of a line and in the middle of one. The comment text then ends at that word, and the word shows up as a tag in `jsdoctags`. Inside a fenced code block (` ``` ` or `~~~`) compodocx keeps such lines as code, so Angular control flow and decorator examples are safe there:
+TypeScript reads every `@word` that follows white space in a JSDoc comment as a block tag, at the start of a line and in the middle of one. The comment text then ends at that word, and the word shows up as a tag in `jsdoctags`. Inside a fenced code block (` ``` ` or `~~~`) and inside inline code compodocx keeps such words as code, so Angular control flow and decorator examples are safe there:
 
 ````ts
 /**
@@ -751,4 +751,4 @@ TypeScript reads every `@word` that follows white space in a JSDoc comment as a 
  */
 ````
 
-Everywhere else, write the word as inline code: `` Use the `@switch` block `` or `` ### With `@switch` `` instead of `Use the @switch block`. A word in backticks is never read as a tag. A real tag after text on the same line still works, for example `/** Delay in ms. @defaultValue 300 */`.
+Everywhere else, write the word as inline code: `` Use the `@switch` block `` or `` ### With `@switch` `` instead of `Use the @switch block`. Inline code may hold more than the word, as in `` `ng add @scope/pkg` ``, but it has to open and close on the same line: a code span across a line break does not protect the `@`. A real tag after text on the same line still works, for example `/** Delay in ms. @defaultValue 300 */`.
