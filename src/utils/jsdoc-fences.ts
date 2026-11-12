@@ -1,12 +1,14 @@
 import { ts } from 'ts-morph';
 
 /**
- * TypeScript reads every line of a JSDoc comment that starts with `@` as a
- * block tag, also inside a fenced code block. A template example with
- * `@if` or a decorator example with `@Component` then turns into tags named
- * `if` or `Component`, and the description (or the text of the tag before
- * them) ends at that line. This module finds the fenced blocks of a comment
- * and repairs the parsed JSDoc nodes before anyone reads their tags.
+ * TypeScript reads every `@word` after white space in a JSDoc comment as a
+ * block tag, also inside a fenced code block or an inline code span. A
+ * template example with `@if`, a decorator example with `@Component` or
+ * inline code like `ng add @scope/pkg` then turns into tags named `if`,
+ * `Component` or `scope`, and the description (or the text of the tag
+ * before them) ends there. This module finds the fenced blocks and the
+ * inline code spans of a comment and repairs the parsed JSDoc nodes before
+ * anyone reads their tags.
  */
 
 /** The text of one fenced block inside a comment, as absolute offsets. */
@@ -94,7 +96,44 @@ export const fencedRanges = (comment: string, offset = 0): readonly FenceRange[]
     return ranges;
 };
 
-const insideFence = (ranges: readonly FenceRange[], position: number): boolean =>
+/**
+ * The inline code spans of one comment, as absolute offsets of the text
+ * between the backticks: a run of backticks up to the next run of the same
+ * length on the same line. A run without a partner on its line and a
+ * backslash-escaped backtick open nothing; a span never crosses a line
+ * break, so a tag at the start of a line is never inside one.
+ */
+export const codeSpans = (comment: string, offset = 0): readonly FenceRange[] => {
+    const spans: FenceRange[] = [];
+    let lineStart = 0;
+    for (const line of comment.split('\n')) {
+        const runs = [...line.matchAll(/`+/g)].map(run => {
+            const escaped = run.index > 0 && line[run.index - 1] === '\\';
+            return { index: run.index, length: run[0].length, escaped };
+        });
+        let open = 0;
+        while (open < runs.length) {
+            const opener = runs[open];
+            const start = opener.escaped ? opener.index + 1 : opener.index;
+            const length = opener.escaped ? opener.length - 1 : opener.length;
+            const close =
+                length === 0 ? -1 : runs.findIndex((run, i) => i > open && run.length === length);
+            if (close === -1) {
+                open += 1;
+                continue;
+            }
+            spans.push({
+                start: offset + lineStart + start + length,
+                end: offset + lineStart + runs[close].index
+            });
+            open = close + 1;
+        }
+        lineStart += line.length + 1;
+    }
+    return spans;
+};
+
+const insideRange = (ranges: readonly FenceRange[], position: number): boolean =>
     ranges.some(range => position >= range.start && position < range.end);
 
 /**
@@ -138,7 +177,8 @@ type MutableJSDoc = { -readonly [K in keyof ts.JSDoc]: ts.JSDoc[K] };
 type MutableTag = { -readonly [K in keyof ts.JSDocTag]: ts.JSDocTag[K] };
 
 /**
- * Removes the tags TypeScript found inside fenced blocks of one JSDoc and
+ * Removes the tags TypeScript found inside fenced blocks or inline code
+ * spans of one JSDoc and
  * rebuilds the text they cut off: the description when the first tag is
  * such a tag, and the text of each real tag directly followed by one.
  * Returns whether anything changed; a JSDoc without such a tag is untouched.
@@ -148,8 +188,9 @@ export const repairJSDoc = (doc: ts.JSDoc, source: string): boolean => {
     if (!tags || tags.length === 0) {
         return false;
     }
-    const ranges = fencedRanges(source.slice(doc.pos, doc.end), doc.pos);
-    const fenced = tags.map(tag => insideFence(ranges, tag.pos));
+    const comment = source.slice(doc.pos, doc.end);
+    const ranges = [...fencedRanges(comment, doc.pos), ...codeSpans(comment, doc.pos)];
+    const fenced = tags.map(tag => insideRange(ranges, tag.pos));
     if (!fenced.includes(true)) {
         return false;
     }
@@ -178,7 +219,8 @@ export const repairJSDoc = (doc: ts.JSDoc, source: string): boolean => {
 };
 
 const repaired = new WeakSet<ts.SourceFile>();
-const MAY_HAVE_FENCE = /```|~~~/;
+/** Files without a backtick or a tilde fence have nothing to repair. */
+const MAY_NEED_REPAIR = /`|~~~/;
 
 /**
  * Repairs every JSDoc of a source file once (see `repairJSDoc`). Must run
@@ -191,7 +233,7 @@ export const repairFencedTags = <T extends ts.SourceFile | undefined>(sourceFile
     }
     repaired.add(sourceFile);
     const source = sourceFile.text;
-    if (!MAY_HAVE_FENCE.test(source)) {
+    if (!MAY_NEED_REPAIR.test(source)) {
         return sourceFile;
     }
     const visit = (node: ts.Node): void => {
