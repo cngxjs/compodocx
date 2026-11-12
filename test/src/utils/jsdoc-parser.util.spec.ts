@@ -1,5 +1,6 @@
 import { Project, SyntaxKind } from 'ts-morph';
 import { JsdocParserUtil } from '../../../src/utils/jsdoc-parser.util';
+import { exampleMarkdown } from '../../../src/utils/utils';
 
 describe('Utils - JsdocParserUtil', () => {
     let jsdocParserUtil: JsdocParserUtil;
@@ -353,6 +354,107 @@ describe('Utils - JsdocParserUtil', () => {
 
             expect(result).to.contain('```html');
             expect(result).to.contain('```');
+        });
+
+        describe('text on the @example line', () => {
+            it('becomes the caption when a code fence follows', () => {
+                const comment = `/** Method.
+ *
+ * @example Call it
+ * \`\`\`ts
+ * k.run();
+ * \`\`\`
+ */`;
+
+                const result = jsdocParserUtil.parseComment(comment);
+
+                expect(result).to.equal(
+                    '\nMethod.\n\n<b><i>Call it</i></b>\n\n```ts\nk.run();\n```'
+                );
+            });
+
+            it('stays text when an empty line separates it from the code fence', () => {
+                const comment = `/** Method.
+ * @example Call it
+ *
+ * \`\`\`ts
+ * k.run();
+ * \`\`\`
+ */`;
+
+                const result = jsdocParserUtil.parseComment(comment);
+
+                expect(result.trimEnd()).to.equal('\nMethod.\n\nCall it\n\n```ts\nk.run();\n```');
+                expect(result).to.include(exampleMarkdown('Call it\n\n```ts\nk.run();\n```'));
+            });
+
+            it('takes the caption out of a <caption> element before a code fence', () => {
+                const comment = `/** Method.
+ *
+ * @example <caption>Tagged caption</caption>
+ * \`\`\`ts
+ * k.reset();
+ * \`\`\`
+ */`;
+
+                const result = jsdocParserUtil.parseComment(comment);
+
+                expect(result).to.equal(
+                    '\nMethod.\n\n<b><i>Tagged caption</i></b>\n\n```ts\nk.reset();\n```'
+                );
+            });
+
+            it('becomes the first code line when no code fence follows', () => {
+                const comment = `/** Method.
+ *
+ * @example k.stop();
+ */`;
+
+                const result = jsdocParserUtil.parseComment(comment);
+
+                expect(result).to.equal('\nMethod.\n\n```html\nk.stop();\n```');
+            });
+
+            it('keeps the following lines after the first code line', () => {
+                const comment = `/** Method.
+ *
+ * @example Basic usage
+ * k.pause();
+ */`;
+
+                const result = jsdocParserUtil.parseComment(comment);
+
+                expect(result).to.equal('\nMethod.\n\n```html\nBasic usage\nk.pause();\n```');
+            });
+
+            it('turns a <caption> element without a code fence into a caption', () => {
+                const comment = `/** Method.
+ *
+ * @example <caption>Tagged</caption>
+ * k.plain();
+ */`;
+
+                const result = jsdocParserUtil.parseComment(comment);
+
+                expect(result).to.equal(
+                    '\nMethod.\n\n<b><i>Tagged</i></b>\n\n```html\nk.plain();\n```'
+                );
+            });
+
+            it('renders the caption like exampleMarkdown does', () => {
+                const comment = `/** Method.
+ * @example <caption>Same</caption>
+ * \`\`\`ts
+ * x();
+ * \`\`\`
+ */`;
+
+                const result = jsdocParserUtil.parseComment(comment);
+
+                expect(result).to.include(
+                    exampleMarkdown('<caption>Same</caption>\n```ts\nx();\n```')
+                );
+            });
         });
     });
 

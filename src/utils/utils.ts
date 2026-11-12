@@ -8,6 +8,7 @@ import {
 } from '../app/compiler/checker-libs';
 import { isInNodeModules } from '../app/compiler/semantic/program';
 import { AngularLifecycleHooks } from './angular-lifecycles-hooks';
+import { exampleCaptionHtml, leadingCaptionLine } from './example-tag-line';
 import { stripExampleUrlTags } from './example-urls';
 import { repairFencedTags } from './jsdoc-fences';
 import { JsdocParserUtil } from './jsdoc-parser.util';
@@ -43,8 +44,12 @@ const formatDiagnosticsHost: ts.FormatDiagnosticsHost = {
  */
 export function exampleMarkdown(raw: string): string {
     const captionMatch = /<caption>([\s\S]*?)<\/caption>/.exec(raw);
-    const caption = captionMatch ? `<b><i>${captionMatch[1].trim()}</i></b>\n\n` : '';
+    const caption = captionMatch ? `${exampleCaptionHtml(captionMatch[1])}\n\n` : '';
     const body = (captionMatch ? raw.replace(captionMatch[0], '') : raw).trim();
+    const leading = captionMatch ? undefined : leadingCaptionLine(body);
+    if (leading) {
+        return `${exampleCaptionHtml(leading.caption)}\n\n${leading.rest}`;
+    }
     if (body.length === 0 || body.includes('```')) {
         return caption + body;
     }

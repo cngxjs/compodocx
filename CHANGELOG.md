@@ -12,6 +12,10 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 - **`siteUrl`.** Links in READMEs, additional pages and JSDoc to the published docs site, with or without a version folder, point at the page in the version being built, so the same link opens the docs on GitHub and stays in the version on the site. A link to a page the build does not have stays absolute and is listed in a `Site links:` warning.
 
+### Fixed
+
+- **Text on the `@example` line.** In the description of a class, a component or a member (method, property), the text after `@example` on the same line was lost. `@example k.stop();` rendered an empty code block, and `@example Call it` followed by a code fence dropped "Call it". When a code fence follows directly, the text is now a caption in bold italics, the same as `<caption>`. With an empty line before the fence it stays plain text, and without a fence it becomes the first line of the code block. Functions now render a single line directly before the fence as a caption too, where it was a plain paragraph before. Examples without text on the `@example` line render as before.
+
 ## [0.16.4] - 2026-11-12
 
 ### Fixed
