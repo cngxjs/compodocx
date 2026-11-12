@@ -62,6 +62,21 @@ describe('CLI semantic analysis', () => {
         );
     });
 
+    it('exports the root folder of every feature', () => {
+        const features: any[] = data.semantic.features;
+        for (const feature of features) {
+            expect(feature.root).toMatch(/^[^\\]*[^/]$/);
+        }
+        // No config glob or tag here, and every entry README sits in the entry root,
+        // so the README folder is the root (features.spec covers the config case).
+        for (const feature of features.filter(f => f.readme)) {
+            expect(path.posix.dirname(feature.readme)).toBe(feature.root);
+        }
+        const button = features.find(f => f.id === '@sem/ui#button');
+        expect(button).toMatchObject({ detector: 'cohesion', root: `${FILE}/ui/src/button` });
+        expect(button).not.toHaveProperty('readme');
+    });
+
     it('logs which detectors decided the features', () => {
         expect(stdout).to.contain(
             'Features: 8 in 5 entry points (config 0, tag 0, cohesion 3, entry point 4, folder 1), 1 family links'

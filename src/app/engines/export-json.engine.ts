@@ -422,6 +422,7 @@ const exportFeatures = (model: FeatureModel): ExportFeature[] => {
         key: feature.key,
         label: feature.label,
         detector: feature.detector,
+        root: feature.root,
         ...(feature.readme ? { readme: feature.readme } : {}),
         buildsOn: buildsOn(feature.id),
         extendedBy: extendedBy(feature.id)

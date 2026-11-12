@@ -17,7 +17,7 @@ export interface Feature {
     readonly key: string;
     /** The key, the last import path segment of a root feature, or the app name. */
     readonly label: string;
-    /** Folder the feature lives in, relative to the cwd. */
+    /** Folder the feature lives in, relative to the cwd; for a config or tag key the common folder of its files. */
     readonly root: string;
     readonly detector: FeatureDetector;
     /** `README.md` of the feature, relative to the cwd. */
@@ -629,8 +629,8 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
             readme
         });
     }
-    // A config or tag key names no folder: the README comes from where the
-    // symbols are, and the one of the entry point stays on its root feature.
+    // A config or tag key names no folder: root and README come from where the
+    // symbols are, and the README of the entry point stays on its root feature.
     for (const [id, feature] of features) {
         if (feature.key === '' || (feature.detector !== 'config' && feature.detector !== 'tag')) {
             continue;
@@ -640,8 +640,10 @@ export const detectFeatures = (input: FeatureInput): FeatureDetection => {
         const stops = new Set(
             entry ? [feature.root, entry.root, posix.dirname(entry.file)] : [feature.root]
         );
-        const readme = nearestReadme(commonRoot(filesOf.get(id) ?? []), stops, fs.isFile);
-        features.set(id, { ...feature, readme });
+        const common = commonRoot(filesOf.get(id) ?? []);
+        const root = common !== '' && isInside(feature.root, common) ? common : feature.root;
+        const readme = nearestReadme(common, stops, fs.isFile);
+        features.set(id, { ...feature, root, readme });
     }
 
     const sorted = [...features.values()].sort(

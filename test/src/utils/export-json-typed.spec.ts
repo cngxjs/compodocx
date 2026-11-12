@@ -463,6 +463,7 @@ describe('export-json semantic facts', () => {
                 key: '',
                 label: 'foo',
                 detector: 'entry-point',
+                root: 'src',
                 readme: 'src/README.md',
                 buildsOn: [],
                 extendedBy: ['@lib/ui#panel']
@@ -473,6 +474,7 @@ describe('export-json semantic facts', () => {
                 key: 'panel',
                 label: 'panel',
                 detector: 'cohesion',
+                root: 'ui/panel',
                 buildsOn: ['@lib/foo#'],
                 extendedBy: []
             },
@@ -481,6 +483,7 @@ describe('export-json semantic facts', () => {
                 key: 'app',
                 label: 'app',
                 detector: 'folder',
+                root: 'app',
                 buildsOn: [],
                 extendedBy: []
             }

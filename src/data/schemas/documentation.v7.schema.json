@@ -1347,6 +1347,10 @@
                         "folder"
                     ]
                 },
+                "root": {
+                    "type": "string",
+                    "description": "Folder the feature lives in, relative to the working directory, POSIX, no\ntrailing slash; for a `config` or `tag` feature the common folder of its files.\nA link to it (or to the folder of `readme`) is a link to the feature page."
+                },
                 "readme": {
                     "type": "string",
                     "description": "README of the feature, relative to the working directory."
@@ -1371,6 +1375,7 @@
                 "key",
                 "label",
                 "detector",
+                "root",
                 "buildsOn",
                 "extendedBy"
             ],
