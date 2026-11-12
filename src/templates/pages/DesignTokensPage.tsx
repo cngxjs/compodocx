@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import type { DesignTokenGroup } from '../../app/styles/design-tokens';
+import { tokenRowDefault, tokenRowHead } from '../blocks/BlockTheming';
 import { HeroCounts } from '../components/HeroCounts';
 import { IconPalette } from '../components/Icons';
 import { pagefindMetaBlock, t } from '../helpers';
@@ -28,26 +29,17 @@ export interface DesignTokensGroupData {
 const fileLabel = (file: string): string => file.slice(file.lastIndexOf('/') + 1);
 
 const TokenRow = (row: DesignTokenRow, anchors: ReadonlyMap<string, string>): string => {
-    const name = Html.escapeHtml(row.name) as string;
     const deprecated = row.deprecated !== null;
+    const fileName = `<code>${Html.escapeHtml(fileLabel(row.file)) as string}</code>`;
     return (
         `<div class="cdx-io-member cdx-io-member--theming${deprecated ? ' cdx-io-member--deprecated' : ''}" id="${row.id}" data-compodoc="design-token">` +
-        `<div class="cdx-io-member-title">` +
-        `<span class="cdx-io-member-name">${deprecated ? `<s>${name}</s>` : name}<a class="cdx-member-permalink" href="#${row.id}">#</a></span>` +
-        (row.type
-            ? `<span class="cdx-io-member-type"><code>${Html.escapeHtml(row.type) as string}</code></span>`
-            : '') +
-        `</div>` +
-        (row.defaultValue
-            ? `<div class="cdx-io-member-default"><span class="cdx-io-member-default-label">${t('default-value')}</span> <code>${Html.escapeHtml(row.defaultValue) as string}</code></div>`
-            : '') +
+        tokenRowHead({ id: row.id, name: row.name, type: row.type, deprecated }) +
         (row.description
             ? `<div class="cdx-io-member-desc cdx-prose">${themingProse(row.description, 0, anchors)}</div>`
             : '') +
+        tokenRowDefault(row.defaultValue) +
         `<p class="cdx-theming-see cdx-theming-defined-in">${t('defined-in')}: ${
-            row.href
-                ? `<a href="${Html.escapeHtml(row.href) as string}"><code>${Html.escapeHtml(fileLabel(row.file)) as string}</code></a>`
-                : `<code>${Html.escapeHtml(fileLabel(row.file)) as string}</code>`
+            row.href ? `<a href="${Html.escapeHtml(row.href) as string}">${fileName}</a>` : fileName
         }</p>` +
         `</div>`
     );
