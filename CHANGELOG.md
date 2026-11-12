@@ -11,6 +11,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 ### Fixed
 
 - **`@` inside inline code.** An `@` after a space inside inline code of a JSDoc comment, as in `` `ng add @scope/pkg` `` or `` `@scope/a -> @scope/b` ``, was still read as a tag (`scope`), and the text ended there. The 0.16.3 docs said that backticks always prevent this. Such words now stay part of the text when the inline code opens and closes on the same line; inline code across a line break is left as TypeScript reads it.
+- **Design tokens page layout.** Each token row on `design-tokens.html` left the first column empty and put name, type, default value, description and "Defined in" in the second one. The rows now read like the Theming tab and the API tables: name and type on the left, description, default value and "Defined in" on the right.
 
 ## [0.16.3] - 2026-11-12
 

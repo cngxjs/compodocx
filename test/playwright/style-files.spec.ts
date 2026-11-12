@@ -59,6 +59,9 @@ test.describe('Style files', () => {
         await page.goto(rootUrl('design-tokens'));
         await expect(page.locator('h2.cdx-section-heading')).toHaveText([/Colour/, /Spacing/]);
         await expect(page.locator('#token-sty-space-md')).toBeVisible();
+        const head = await page.locator('#token-sty-space-md > .cdx-io-member-head').boundingBox();
+        const desc = await page.locator('#token-sty-space-md > .cdx-io-member-desc').boundingBox();
+        expect(head?.x).toBeLessThan(desc?.x ?? 0);
         const definedIn = page.locator('#token-sty-space-md .cdx-theming-defined-in a');
         await expect(definedIn).toHaveText('tokens.css');
         await definedIn.click();

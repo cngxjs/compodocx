@@ -6,7 +6,10 @@ import { buildSymbolTable, withStyleEntries } from '../../../../src/app/links';
 import { designTokenRows } from '../../../../src/app/page-generator/style-page-generator';
 import { themeResolver } from '../../../../src/app/run/styles';
 import { buildStyleModel, designTokens, resolveThemes } from '../../../../src/app/styles';
-import { DesignTokensPage } from '../../../../src/templates/pages/DesignTokensPage';
+import {
+    type DesignTokenRow,
+    DesignTokensPage
+} from '../../../../src/templates/pages/DesignTokensPage';
 
 beforeAll(() => {
     I18nEngine.init('en-US');
@@ -73,6 +76,44 @@ describe('design tokens page', () => {
         expect(html).to.include('cdx-entity-hero-watermark');
         expect(html).to.match(/aria-current="page"[^>]*>Design tokens</);
         expect(html).to.match(/cdx-entity-hero-context"[^>]*>Tokens 4 · Style files 2</);
+    });
+
+    it('lays a row out like the Theming tab: head on the left, details on the right', () => {
+        const row: DesignTokenRow = {
+            id: 'token-brand',
+            name: '--brand',
+            type: '<color>',
+            defaultValue: '#3355ff',
+            description: 'Brand color.',
+            deprecated: 'Use --primary.',
+            file: 'b/color.css',
+            href: './stylesheets/color.html'
+        };
+        const html = DesignTokensPage({
+            groups: [{ name: 'Color', id: 'group-color', tokens: [row] }]
+        });
+        const member = html.slice(html.indexOf('<div class="cdx-io-member '));
+        expect(member).to.match(
+            /^<div class="cdx-io-member cdx-io-member--theming cdx-io-member--deprecated" id="token-brand" data-compodoc="design-token">/
+        );
+        // Left column: the head with name, permalink and type.
+        expect(member).to.include(
+            '<div class="cdx-io-member-head"><div class="cdx-io-member-title">' +
+                '<span class="cdx-io-member-name cdx-member-name--deprecated"><s>--brand</s>' +
+                '<a class="cdx-member-permalink" href="#token-brand">#</a></span>' +
+                '<span class="cdx-io-member-type"><code>&lt;color></code></span></div></div>'
+        );
+        // Right column, after the head: description, default value, defined in.
+        const order = [
+            '<div class="cdx-io-member-head">',
+            '<div class="cdx-io-member-desc cdx-prose">',
+            '<div class="cdx-io-member-default">',
+            '<p class="cdx-theming-see cdx-theming-defined-in">'
+        ].map(part => member.indexOf(part));
+        expect(order.every(index => index >= 0)).toBe(true);
+        expect([...order].sort((a, b) => a - b)).toEqual(order);
+        expect(member).to.include('<code>#3355ff</code>');
+        expect(member).to.include('<a href="./stylesheets/color.html"><code>color.css</code></a>');
     });
 
     it('has nothing to show without an unlinked file with documented tokens', () => {

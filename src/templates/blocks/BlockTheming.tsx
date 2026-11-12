@@ -125,6 +125,47 @@ const renderRelated = (related: readonly RelatedEntry[]): string => {
     return `<p class="cdx-theming-see cdx-theming-related">${t('related')}: ${items}</p>`;
 };
 
+/** What the left column of a token row shows. */
+export interface TokenRowHead {
+    readonly id: string;
+    readonly name: string;
+    readonly type: string;
+    readonly deprecated: boolean;
+    /** Badge HTML under the title; nothing when empty. */
+    readonly badges?: string;
+}
+
+/**
+ * The left column of a token row (name, permalink, type, badges). Shared by
+ * the Theming tab and the design tokens page so both read like the API tables.
+ */
+export const tokenRowHead = (head: TokenRowHead): string => {
+    const escapedName = Html.escapeHtml(head.name) as string;
+    const nameHtml = head.deprecated ? `<s>${escapedName}</s>` : escapedName;
+    const typeHtml = head.type
+        ? `<span class="cdx-io-member-type"><code>${Html.escapeHtml(head.type) as string}</code></span>`
+        : '';
+    return (
+        `<div class="cdx-io-member-head">` +
+        `<div class="cdx-io-member-title">` +
+        `<span class="cdx-io-member-name${
+            head.deprecated ? ' cdx-member-name--deprecated' : ''
+        }">${nameHtml}<a class="cdx-member-permalink" href="#${head.id}">#</a></span>` +
+        typeHtml +
+        `</div>` +
+        (head.badges ? `<div class="cdx-io-member-badges">${head.badges}</div>` : '') +
+        `</div>`
+    );
+};
+
+/** The `Default value` line of a token row; nothing without a value. */
+export const tokenRowDefault = (value: string): string =>
+    value
+        ? `<div class="cdx-io-member-default"><span class="cdx-io-member-default-label">${t(
+              'default-value'
+          )}</span> <code>${Html.escapeHtml(value) as string}</code></div>`
+        : '';
+
 const renderTokenRow = (token: ThemeToken, prose: Prose, depth?: number): string => {
     const related = (token.relatedTo ?? []).map(name => resolveRelated(name, depth ?? 0));
     const custom = renderCustomTemplate('block-theming-token', {
@@ -141,40 +182,25 @@ const renderTokenRow = (token: ThemeToken, prose: Prose, depth?: number): string
     if (token.deprecated !== null) {
         cls.push('cdx-io-member--deprecated');
     }
-    const escapedName = Html.escapeHtml(token.name) as string;
-    const nameHtml = token.deprecated !== null ? `<s>${escapedName}</s>` : escapedName;
-
-    const typeHtml = token.type
-        ? `<span class="cdx-io-member-type"><code>${Html.escapeHtml(token.type) as string}</code></span>`
-        : '';
-
-    const badgesRow = renderHookBadge(token) + renderBadges(token);
     const descHtml = token.description
         ? `<div class="cdx-io-member-desc cdx-prose">${prose(token.description)}</div>`
         : '';
     const deprecatedReason = token.deprecated
         ? `<div class="cdx-member-deprecated">${prose(token.deprecated)}</div>`
         : '';
-    const defaultHtml = token.defaultValue
-        ? `<div class="cdx-io-member-default"><span class="cdx-io-member-default-label">${t(
-              'default-value'
-          )}</span> <code>${Html.escapeHtml(token.defaultValue) as string}</code></div>`
-        : '';
 
     return (
         `<div class="${cls.join(' ')}" id="${id}" data-compodoc="block-theming-token">` +
-        `<div class="cdx-io-member-head">` +
-        `<div class="cdx-io-member-title">` +
-        `<span class="cdx-io-member-name${
-            token.deprecated !== null ? ' cdx-member-name--deprecated' : ''
-        }">${nameHtml}<a class="cdx-member-permalink" href="#${id}">#</a></span>` +
-        typeHtml +
-        `</div>` +
-        (badgesRow ? `<div class="cdx-io-member-badges">${badgesRow}</div>` : '') +
-        `</div>` +
+        tokenRowHead({
+            id,
+            name: token.name,
+            type: token.type,
+            deprecated: token.deprecated !== null,
+            badges: renderHookBadge(token) + renderBadges(token)
+        }) +
         deprecatedReason +
         descHtml +
-        defaultHtml +
+        tokenRowDefault(token.defaultValue) +
         renderExamples(token) +
         renderSeeLinks(token) +
         renderRelated(related) +
