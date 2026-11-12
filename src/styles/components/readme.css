@@ -80,23 +80,23 @@
 }
 
 .cdx-readme h2 {
-    font-size: 1.375rem;
+    font-size: 1.25rem;
     padding-bottom: 0.4rem;
     border-bottom: 1px solid var(--color-cdx-border);
     margin-top: 2.5rem;
 }
 
 .cdx-readme h3 {
-    font-size: 1.125rem;
+    font-size: 1.0625rem;
 }
 
 .cdx-readme h4 {
-    font-size: 1rem;
+    font-size: 0.9375rem;
 }
 
 .cdx-readme h5,
 .cdx-readme h6 {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     color: var(--color-cdx-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.02em;

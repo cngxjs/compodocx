@@ -12,6 +12,15 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 - **`siteUrl`.** Links in READMEs, additional pages and JSDoc to the published docs site, with or without a version folder, point at the page in the version being built, so the same link opens the docs on GitHub and stays in the version on the site. A link to a page the build does not have stays absolute and is listed in a `Site links:` warning.
 
+### Changed
+
+- **Section headings.** Section headings ("Overview", "Inputs", "Index"), block headings ("Metadata"), the group labels in the member index and the overview dashboard headings are no longer set in uppercase with wide letter spacing. They are 2px larger: 15px, the index group labels 13px, the dashboard headings 14px.
+- **Markdown headings on feature and additional pages.** Headings below the page title step down more evenly: h2 1.25rem (was 1.375rem), h3 1.0625rem (was 1.125rem), h4 0.9375rem (was 1rem), h5 and h6 0.875rem (was 0.9375rem, still uppercase). The page title (h1) is unchanged. The README on the index page, the CHANGELOG page and JSDoc descriptions keep their sizes.
+
+### Fixed
+
+- **Text on the `@example` line.** In the description of a class, a component or a member (method, property), the text after `@example` on the same line was lost. `@example k.stop();` rendered an empty code block, and `@example Call it` followed by a code fence dropped "Call it". When a code fence follows directly, the text is now a caption in bold italics, the same as `<caption>`. With an empty line before the fence it stays plain text, and without a fence it becomes the first line of the code block. Functions now render a single line directly before the fence as a caption too, where it was a plain paragraph before. Examples without text on the `@example` line render as before.
+
 ## [0.16.4] - 2026-11-12
 
 ### Fixed

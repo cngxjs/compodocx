@@ -36,6 +36,23 @@ describe('exampleMarkdown', () => {
         );
     });
 
+    it('turns one line directly before a fence into a caption', () => {
+        expect(exampleMarkdown('Call caseA\n```ts\ncaseA(1);\n```')).toBe(
+            '<b><i>Call caseA</i></b>\n\n```ts\ncaseA(1);\n```'
+        );
+    });
+
+    it('keeps several lines before a fence as markdown', () => {
+        const body = 'First line\nsecond line\n```ts\nfoo();\n```';
+        expect(exampleMarkdown(body)).toBe(body);
+    });
+
+    it('keeps text before a fence as code when no fence follows', () => {
+        expect(exampleMarkdown('Basic usage\ncaseC(3);')).toBe(
+            '```html\nBasic usage\ncaseC(3);\n```'
+        );
+    });
+
     it('returns an empty string for an empty body', () => {
         expect(exampleMarkdown('   ')).toBe('');
     });

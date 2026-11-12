@@ -1,5 +1,6 @@
 import { SyntaxKind, ts } from 'ts-morph';
 
+import { exampleCaptionHtml, exampleFollower, splitExampleTagLine } from './example-tag-line';
 import * as _ts from './ts-internal';
 
 /** JSDoc comments and tags per node, kept off the TypeScript nodes. */
@@ -137,9 +138,11 @@ export class JsdocParserUtil {
                 exampleHasCodeFence = false;
                 // Check if the next non-empty line has a code fence
                 const lines = text.split(/\r\n?|\n/);
+                let gapBeforeFence = false;
                 for (let i = index + 1; i < lines.length; i++) {
                     const nextLine = lines[i].replace(/^\s*\*? ?/, '').replace(/\s*$/, '');
                     if (nextLine === '') {
+                        gapBeforeFence = true;
                         continue; // Skip empty lines
                     }
                     if (CODE_FENCE.test(nextLine)) {
@@ -148,10 +151,28 @@ export class JsdocParserUtil {
                     break; // Only check the first non-empty line
                 }
 
-                if (!exampleHasCodeFence) {
+                const rest = /^@example\b(.*)$/.exec(line)?.[1] ?? '';
+                const follower = exampleFollower(exampleHasCodeFence, gapBeforeFence);
+                const { caption, text: lead, code } = splitExampleTagLine(rest, follower);
+                for (const paragraph of [caption && exampleCaptionHtml(caption), lead]) {
+                    if (!paragraph) {
+                        continue;
+                    }
+                    if (!comment.endsWith('\n')) {
+                        readBareLine('');
+                    }
+                    readBareLine(paragraph);
+                    readBareLine('');
+                }
+                if (exampleHasCodeFence) {
+                    // the example brings its own fence
+                    return;
+                }
+                if (code === '') {
                     line = '```html';
                 } else {
-                    // Skip the @example line if it already has code fences
+                    readBareLine('```html');
+                    readBareLine(code);
                     return;
                 }
             }

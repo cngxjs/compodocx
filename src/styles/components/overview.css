@@ -102,7 +102,7 @@ a.cdx-overview-kpi:hover {
 }
 
 .cdx-overview-section-heading {
-    @apply text-xs font-semibold uppercase tracking-wider text-[var(--cdx-text-muted)] mb-3;
+    @apply text-sm font-semibold text-[var(--cdx-text-muted)] mb-3;
 }
 
 .cdx-overview-inventory {

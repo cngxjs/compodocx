@@ -139,11 +139,9 @@
 
 .cdx-section-heading {
     font-family: var(--font-sans);
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--color-cdx-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     margin-top: 3rem;
     margin-bottom: 1.25rem;
     padding-top: 1.5rem;
@@ -460,10 +458,8 @@ a.cdx-chip:hover {
 
 .cdx-index-group-label {
     font-family: var(--font-sans);
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
     color: color-mix(in srgb, var(--color-cdx-text-muted) 60%, transparent);
     margin: 0 0 var(--spacing-cdx-sm);
     padding-bottom: var(--spacing-cdx-xs);
