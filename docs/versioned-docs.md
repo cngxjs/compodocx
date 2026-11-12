@@ -72,6 +72,18 @@ Page URLs follow the feature a symbol belongs to (`<entry point>/<feature>/<Name
 
 Keys are old page paths relative to the version folder (an anchor is allowed, for the old `miscellaneous/functions.html#name` collection anchors), values are where that page or section is now. The switcher looks the page up in the target version's map; when the target was built before maps existed, it reads the current version's map backwards to find the old path. If neither finds the page, it opens the target version's root. A web server can use the same map for HTTP redirects; compodocx writes no stub pages.
 
+## Links to the published site
+
+READMEs are read on GitHub and npm as well as on the docs site, so a link to an API page there has to be absolute: `[API](https://example.github.io/lib/main/forms/select/)`. On the site, such a link would always open `main`, also from the pages of `v1.2.0`. Set `siteUrl` to the root of the site (the folder above the version folders) to keep these links in the version being built:
+
+```json
+{ "siteUrl": "https://example.github.io/lib/" }
+```
+
+Every link in READMEs, additional pages and JSDoc that starts with `siteUrl` is looked up among the pages of the build, first as written after the root, then without its first folder (the version label). So `main/forms/select/`, `v1.2.0/forms/select/` and `forms/select/` all point at `forms/select/index.html` of the version being built, also when `versions.json` does not know the label yet. A link that ends in `/` names the `index.html` of that folder; query and anchor are kept. An old page path listed in `redirects.json` is followed to the current page.
+
+A link to a page the build does not have stays absolute and is listed in one warning, `Site links: N links to pages this build does not have`; `--verbose` lists them. The JSON and llm-md exports keep the links as written.
+
 ## Building several versions
 
 Check out each version and build it into the same `-d` folder:
