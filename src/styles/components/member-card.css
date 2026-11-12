@@ -22,11 +22,9 @@
 
 [data-compodoc^='block-'] > h3 {
     font-family: var(--font-sans);
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--color-cdx-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
     margin-top: 3rem;
     margin-bottom: 1.25rem;
     padding-top: 1.5rem;
