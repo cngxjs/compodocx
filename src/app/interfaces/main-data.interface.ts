@@ -308,6 +308,11 @@ export interface MainDataInterface {
     aiGeneratedNote: string;
     /** Base that relative `<example-url>` tags are appended to; `''` keeps them as written. */
     exampleUrlBase: string;
+    /**
+     * Root URL of the published docs site, trailing slash added; links to it
+     * point at the pages of this build. `''` keeps them as written.
+     */
+    siteUrl: string;
     referencesName: string;
     collapsedAll: boolean;
     /** Where each member role shows in the feature sidebar (config-only `menuFeatureSections`). */

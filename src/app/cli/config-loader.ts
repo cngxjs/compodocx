@@ -129,6 +129,12 @@ export function loadConfigFile(opts: LoadConfigOptions): ConfigFileResult {
     return ok({ config, explorerResult });
 }
 
+/** A `siteUrl` value trimmed, with a trailing slash unless empty. */
+const siteRoot = (value: string): string => {
+    const url = value.trim();
+    return url === '' || url.endsWith('/') ? url : `${url}/`;
+};
+
 const isStringList = (value: unknown): value is string[] =>
     Array.isArray(value) && value.every(item => typeof item === 'string');
 
@@ -276,7 +282,7 @@ function applyMenuFeatureSections(
  *    `--maxSearchResults` / `--searchFacetLimit` /
  *    missing custom-theme file / `--tsconfig` boolean.
  *  - `process.exit(2)` for invalid `menuLayout` / `collapsedAll` / `featuresName` / `aiGeneratedNote` / `exampleUrlBase` /
- *    `referencesName` config.
+ *    `siteUrl` / `referencesName` config.
  *  - Mutates `logger.quiet`, `logger.verbose` and `logger.routeToStderr`.
  *  - Mutates `I18nEngine` via the language-availability warning.
  *
@@ -1071,6 +1077,17 @@ export function applyConfigToMainData(
     }
     if (program.getOptionValueSource('exampleUrlBase') === 'cli') {
         mainData.exampleUrlBase = String(programOptions.exampleUrlBase).trim();
+    }
+
+    if (configFile.siteUrl !== undefined) {
+        if (typeof configFile.siteUrl !== 'string') {
+            logger.error(`Invalid siteUrl value "${configFile.siteUrl}". Expected string.`);
+            process.exit(2);
+        }
+        mainData.siteUrl = siteRoot(configFile.siteUrl);
+    }
+    if (program.getOptionValueSource('siteUrl') === 'cli') {
+        mainData.siteUrl = siteRoot(String(programOptions.siteUrl));
     }
 
     if (configFile.referencesName !== undefined) {

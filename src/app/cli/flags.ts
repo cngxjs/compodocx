@@ -259,6 +259,11 @@ Note: Certain tabs will only be shown if applicable to a given dependency`,
             COMPODOC_DEFAULTS.exampleUrlBase
         )
         .option(
+            '--siteUrl <url>',
+            'Root URL of the published docs site; links to it point at the pages of this build',
+            COMPODOC_DEFAULTS.siteUrl
+        )
+        .option(
             '--showEffects',
             'Show Angular effect() entries in a dedicated Effects block',
             COMPODOC_DEFAULTS.showEffects

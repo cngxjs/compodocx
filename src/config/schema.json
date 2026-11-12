@@ -613,6 +613,13 @@
             "default": "",
             "examples": ["https://example.github.io/demo"]
         },
+        "siteUrl": {
+            "$id": "/properties/siteUrl",
+            "type": "string",
+            "title": "Root URL of the published docs site (above the version folders of a versioned site). Links in READMEs, additional pages and JSDoc that start with it point at the page in the version being built, with or without a version folder after the root. A link to a page the build does not have stays absolute and is listed in one warning. Empty keeps the links as written.",
+            "default": "",
+            "examples": ["https://example.github.io/lib/"]
+        },
         "referencesName": {
             "$id": "/properties/referencesName",
             "type": "string",

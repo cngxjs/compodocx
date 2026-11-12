@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Added
+
+- **`siteUrl`.** Links in READMEs, additional pages and JSDoc to the published docs site, with or without a version folder, point at the page in the version being built, so the same link opens the docs on GitHub and stays in the version on the site. A link to a page the build does not have stays absolute and is listed in a `Site links:` warning.
+
 ## [0.16.4] - 2026-11-12
 
 ### Fixed

@@ -23,6 +23,11 @@ import {
     rewriteLegacyLinks,
     withAliases
 } from '../links/redirects';
+import {
+    type MissingSiteLink,
+    missingSiteLinksReport,
+    rewriteSiteLinks
+} from '../links/site-links';
 import { isAdditionalGroup } from './additional-page-tree';
 import {
     contentVersion,
@@ -142,6 +147,8 @@ export class PageWriter {
     private markdown?: MarkdownPages;
     /** `.md` links without a page found by the current run. */
     private readonly missingMarkdown: MissingMarkdownLink[] = [];
+    /** Links to the docs site (`siteUrl`) without a page, found by the current run. */
+    private readonly missingSite: MissingSiteLink[] = [];
 
     /**
      * The page of every Markdown file that has one, built once per run: the
@@ -202,18 +209,53 @@ export class PageWriter {
     }
 
     /**
-     * Log the `.md` links without a page found since `processPages`, once
-     * per run after every page (additional pages included) is written: a
-     * count line as a warning, the links with `--verbose`.
+     * Links of a page to the published docs site (`siteUrl`) pointed at the
+     * pages of this build, before the old paths among them are redirected.
+     * Links without a page stay absolute and are kept for the report.
+     */
+    private withSiteLinks(
+        html: string,
+        page: PageInterface,
+        pages: ReadonlySet<string>,
+        redirects: Redirects
+    ): string {
+        const siteUrl = Configuration.mainData.siteUrl ?? '';
+        if (siteUrl === '') {
+            return html;
+        }
+        const result = rewriteSiteLinks(
+            html,
+            { siteUrl, depth: page.depth ?? ROOT_DEPTH },
+            pages,
+            redirects
+        );
+        const source = pageOutputPath(page);
+        for (const target of result.missing) {
+            this.missingSite.push({ source, target });
+        }
+        return result.html;
+    }
+
+    /**
+     * Log the `.md` links and the site links without a page found since
+     * `processPages`, once per run after every page (additional pages
+     * included) is written: a count line each as a warning, the links with
+     * `--verbose`.
      */
     public reportMarkdownLinks(): void {
-        const report = missingMarkdownLinksReport(this.missingMarkdown);
+        const reports = [
+            missingMarkdownLinksReport(this.missingMarkdown),
+            missingSiteLinksReport(this.missingSite)
+        ];
         this.missingMarkdown.length = 0;
-        if (report === undefined) {
-            return;
+        this.missingSite.length = 0;
+        for (const report of reports) {
+            if (report === undefined) {
+                continue;
+            }
+            logger.warn(report.summary);
+            logger.debug(report.details.join('\n'));
         }
-        logger.warn(report.summary);
-        logger.debug(report.details.join('\n'));
     }
 
     /**
@@ -248,8 +290,9 @@ export class PageWriter {
         logger.info('Process page', page.name);
 
         const { redirects, pages } = this.legacyLinks();
+        const html = this.withMarkdownLinks(HtmlEngine.render(Configuration.mainData, page), page);
         const htmlData = rewriteLegacyLinks(
-            this.withMarkdownLinks(HtmlEngine.render(Configuration.mainData, page), page),
+            this.withSiteLinks(html, page, pages, redirects),
             pageOutputPath(page),
             page.depth ?? ROOT_DEPTH,
             redirects,
@@ -283,6 +326,7 @@ export class PageWriter {
         this.legacy = undefined;
         this.markdown = undefined;
         this.missingMarkdown.length = 0;
+        this.missingSite.length = 0;
         for (const file of this.written) {
             this.earlier.add(file);
         }
