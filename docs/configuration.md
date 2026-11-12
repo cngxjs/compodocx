@@ -732,3 +732,23 @@ Compodocx recognizes these custom JSDoc tags on any entity or member:
 | `@relatedTo <Name>` (in CSS / SCSS) | Related-symbol links on a token, mixin or style page |
 
 A README next to a source file (`card.component.md` beside `card.component.ts`) fills the README tab of the symbol's page. With `<!-- @aiGenerated [value] -->` (or `@ai`, `@aigen`) as its first line, the tab shows the same banner as a Markdown page above the README. The marker of a README is not part of the JSON or llm-md export.
+
+### `@` in descriptions and tag texts
+
+TypeScript reads every `@word` that follows white space in a JSDoc comment as a block tag, at the start of a line and in the middle of one. The comment text then ends at that word, and the word shows up as a tag in `jsdoctags`. Inside a fenced code block (` ``` ` or `~~~`) compodocx keeps such lines as code, so Angular control flow and decorator examples are safe there:
+
+````ts
+/**
+ * Renders one row:
+ *
+ * ```html
+ * @if (open) {
+ *   <ng-content />
+ * }
+ * ```
+ *
+ * @since 1.2.0
+ */
+````
+
+Everywhere else, write the word as inline code: `` Use the `@switch` block `` or `` ### With `@switch` `` instead of `Use the @switch block`. A word in backticks is never read as a tag. A real tag after text on the same line still works, for example `/** Delay in ms. @defaultValue 300 */`.
