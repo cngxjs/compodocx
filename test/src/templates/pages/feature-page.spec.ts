@@ -150,7 +150,7 @@ describe('feature page', () => {
         ]);
         expect(html).toContain(`href="../${pageOf('component', 'SelectPanel')}"`);
         expect(html).toContain(`href="../${pageOf('directive', 'SelectTrigger')}"`);
-        expect(html).toContain('<td>The panel</td>');
+        expect(html).toContain('<span class="cdx-feature-row-summary">The panel</span>');
         expect(html).toContain('cdx-badge--injection-context');
         expect(html).not.toContain('internalHelper');
     });
@@ -214,7 +214,7 @@ describe('feature page', () => {
 
     it('links the features of other entry points that extend this one', () => {
         expect(render(ROOT)).toContain(
-            `<tr data-cdx-feature-related="${FIELD}"><td><a href="../${featurePage(['ui', 'field'])}"><code>field</code></a></td><td>@x/ui</td></tr>`
+            `<li class="cdx-feature-row" data-cdx-feature-related="${FIELD}"><span class="cdx-feature-row-name"><a href="../${featurePage(['ui', 'field'])}"><code>field</code></a></span><span class="cdx-feature-row-summary"><code>@x/ui</code></span></li>`
         );
         expect(render(MENU)).not.toContain('id="extended-by"');
     });
@@ -223,7 +223,7 @@ describe('feature page', () => {
         const html = render(FIELD);
         expect(sectionIds(html)).toEqual(['builds-on']);
         expect(html).toContain(
-            `<tr data-cdx-feature-related="${ROOT}"><td><a href="../../${featurePage(['select'])}"><code>select</code></a></td><td>@x/select</td></tr>`
+            `<li class="cdx-feature-row" data-cdx-feature-related="${ROOT}"><span class="cdx-feature-row-name"><a href="../../${featurePage(['select'])}"><code>select</code></a></span><span class="cdx-feature-row-summary"><code>@x/select</code></span></li>`
         );
     });
 });

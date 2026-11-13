@@ -69,13 +69,13 @@ const MemberRow = (entry: SymbolEntry, ctx: Context): string => {
     const name = <code>{entry.ref.name}</code>;
     const summary = pageSummary((entry.data as { description?: unknown }).description);
     return (
-        <tr data-cdx-feature-member={entry.ref.kind}>
-            <td>
+        <li class="cdx-feature-row" data-cdx-feature-member={entry.ref.kind}>
+            <span class="cdx-feature-row-name">
                 {href ? <a href={href}>{name}</a> : name}
                 {DiBadges({ facts: entryFacts(ctx.semantic, entry) })}
-            </td>
-            <td>{summary ?? ''}</td>
-        </tr>
+            </span>
+            <span class="cdx-feature-row-summary">{summary ?? ''}</span>
+        </li>
     ) as string;
 };
 
@@ -87,15 +87,7 @@ const Members = (section: MemberSection, members: FeatureMembers, ctx: Context):
     return (
         <section class="cdx-content-section">
             {Heading(section.id, t(section.titleKey), entries.length)}
-            <table class="cdx-table">
-                <thead>
-                    <tr>
-                        <th scope="col">{t('name')}</th>
-                        <th scope="col">{t('description')}</th>
-                    </tr>
-                </thead>
-                <tbody>{entries.map(entry => MemberRow(entry, ctx))}</tbody>
-            </table>
+            <ul class="cdx-feature-rows">{entries.map(entry => MemberRow(entry, ctx))}</ul>
         </section>
     ) as string;
 };
@@ -198,29 +190,23 @@ const Related = (
     return (
         <section class="cdx-content-section">
             {Heading(id, title, cards.length)}
-            <table class="cdx-table">
-                <thead>
-                    <tr>
-                        <th scope="col">{t('name')}</th>
-                        <th scope="col">{t('import')}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {cards.map(
-                        card =>
-                            (
-                                <tr data-cdx-feature-related={card.id}>
-                                    <td>
-                                        <a href={featureHref(card.segments, depth)}>
-                                            <code>{card.label}</code>
-                                        </a>
-                                    </td>
-                                    <td>{card.entryPoint ?? ''}</td>
-                                </tr>
-                            ) as string
-                    )}
-                </tbody>
-            </table>
+            <ul class="cdx-feature-rows">
+                {cards.map(
+                    card =>
+                        (
+                            <li class="cdx-feature-row" data-cdx-feature-related={card.id}>
+                                <span class="cdx-feature-row-name">
+                                    <a href={featureHref(card.segments, depth)}>
+                                        <code>{card.label}</code>
+                                    </a>
+                                </span>
+                                <span class="cdx-feature-row-summary">
+                                    {card.entryPoint ? <code>{card.entryPoint}</code> : ''}
+                                </span>
+                            </li>
+                        ) as string
+                )}
+            </ul>
         </section>
     ) as string;
 };
