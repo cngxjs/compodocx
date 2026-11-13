@@ -19,7 +19,7 @@ import {
     type FeaturePageSection
 } from '../helpers/feature-sections';
 import { entryFacts } from '../helpers/symbol-facts';
-import { hasTheming, themingFor } from '../helpers/theming';
+import { hasTheming, type Theming as ThemingData, themingFor } from '../helpers/theming';
 import { featureRouteRows, RouteTree } from './Routes';
 
 /**
@@ -301,21 +301,80 @@ const FeatureRoutes = (members: FeatureMembers, ctx: Context): string => {
 
 const fileName = (file: string): string => file.slice(file.lastIndexOf('/') + 1);
 
-/**
- * The feature's style pages, its components and directives with a Theming
- * tab (linked to it), and the design tokens page when one of the feature's
- * style files feeds it.
- */
+type ThemedMember = {
+    readonly entry: SymbolEntry;
+    readonly kind: 'component' | 'directive';
+    readonly theming: ThemingData;
+};
+
 /** The feature's components and directives that have a Theming tab. */
-const themedMembers = (members: FeatureMembers, ctx: Context): readonly SymbolEntry[] => {
+const themedMembers = (members: FeatureMembers, ctx: Context): readonly ThemedMember[] => {
     const themedOf = (entries: readonly SymbolEntry[], kind: 'component' | 'directive') =>
-        entries.filter(entry => hasTheming(themingFor(entry.data as never, kind, ctx.mainData)));
+        entries
+            .map(entry => ({
+                entry,
+                kind,
+                theming: themingFor(entry.data as never, kind, ctx.mainData)
+            }))
+            .filter(member => hasTheming(member.theming));
     return [
         ...themedOf(members.components, 'component'),
         ...themedOf(members.directives, 'directive')
     ];
 };
 
+/**
+ * First sentence of the theme overview (the file headings of linked style
+ * files left out), else the member's own summary.
+ */
+const themedSummary = (member: ThemedMember): string | undefined => {
+    const overview = member.theming.overview.replace(/^#### .*$/gm, '').trim();
+    return (
+        pageSummary(overview ? (markedAcl(overview) as string) : '') ??
+        pageSummary((member.entry.data as { description?: unknown }).description)
+    );
+};
+
+/**
+ * A component or directive with a Theming tab: name linked to that tab,
+ * summary, and the documented token and mixin counts.
+ */
+const ThemedRow = (member: ThemedMember, ctx: Context): string => {
+    const { entry, theming } = member;
+    const tokens = theming.tokens.filter(isDocumentedToken).length;
+    const counts = [
+        tokens > 0 ? `<span><b>${tokens}</b> ${t('tokens')}</span>` : '',
+        theming.mixins.length > 0
+            ? `<span><b>${theming.mixins.length}</b> ${t('mixins')}</span>`
+            : ''
+    ].filter(Boolean);
+    const summary = themedSummary(member);
+    return (
+        <li class="cdx-feature-row" data-cdx-feature-theming={member.kind}>
+            <span class="cdx-feature-row-name">
+                <a href={hrefText(hrefFor(symbolTarget(entry), ctx.depth, 'theming'))}>
+                    <code>{entry.ref.name}</code>
+                </a>
+            </span>
+            <span class="cdx-feature-row-summary">
+                {summary ?? ''}
+                {counts.length > 0 ? (
+                    <span class="cdx-feature-card-meta cdx-feature-row-meta">
+                        {counts.join('')}
+                    </span>
+                ) : (
+                    ''
+                )}
+            </span>
+        </li>
+    ) as string;
+};
+
+/**
+ * The feature's style pages, its components and directives with a Theming
+ * tab (linked to it), and the design tokens page when one of the feature's
+ * style files feeds it.
+ */
 const Theming = (members: FeatureMembers, styles: readonly SymbolEntry[], ctx: Context): string => {
     const themed = themedMembers(members, ctx);
     const tokenPage = styles.some(
@@ -342,22 +401,7 @@ const Theming = (members: FeatureMembers, styles: readonly SymbolEntry[], ctx: C
                 ''
             )}
             {themed.length > 0 ? (
-                <ul>
-                    {themed.map(
-                        entry =>
-                            (
-                                <li>
-                                    <a
-                                        href={hrefText(
-                                            hrefFor(symbolTarget(entry), ctx.depth, 'theming')
-                                        )}
-                                    >
-                                        <code>{entry.ref.name}</code>
-                                    </a>
-                                </li>
-                            ) as string
-                    )}
-                </ul>
+                <ul class="cdx-feature-rows">{themed.map(member => ThemedRow(member, ctx))}</ul>
             ) : (
                 ''
             )}
