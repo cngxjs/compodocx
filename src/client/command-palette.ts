@@ -11,6 +11,7 @@ import {
     facetLimit,
     limitFacetValues
 } from './axis-facets';
+import { clientText } from './text';
 
 const DIALOG_ID = 'cdx-command-palette';
 const INPUT_SELECTOR = '.cdx-cp-input';
@@ -287,8 +288,25 @@ interface SearchResult {
  *  narrows to the symbols of one feature), then one per declared
  *  classification axis. Order matches the visual layout. Read once. */
 let facetList: readonly FacetDimension[] | undefined;
+/** The heading of a fixed facet in the page language. */
+const baseFacetLabel = (facet: FacetDimension): string => {
+    switch (facet.dim) {
+        case 'kind':
+            return clientText('facet-kind');
+        case 'lib':
+            return clientText('facet-library');
+        case 'feature':
+            return clientText('facet-feature');
+        default:
+            return facet.label;
+    }
+};
+
 const facets = (): readonly FacetDimension[] => {
-    facetList ??= [...BASE_FACETS, ...axisFacets(getDialog()?.dataset.cdxAxes)];
+    facetList ??= [
+        ...BASE_FACETS.map(facet => ({ ...facet, label: baseFacetLabel(facet) })),
+        ...axisFacets(getDialog()?.dataset.cdxAxes)
+    ];
     return facetList;
 };
 const facetDims = (): readonly string[] => facets().map(facet => facet.dim);
@@ -442,7 +460,7 @@ const renderFacets = (counts: Record<string, Record<string, number>>) => {
         }
         if (hidden > 0) {
             chips.push(
-                `<button type="button" class="cdx-cp-facet-more" data-dim="${escapeAttr(dim)}" aria-expanded="${expanded}">${expanded ? 'Show less' : `+${hidden} more`}</button>`
+                `<button type="button" class="cdx-cp-facet-more" data-dim="${escapeAttr(dim)}" aria-expanded="${expanded}">${expanded ? clientText('show-less') : clientText('facet-more', { count: hidden })}</button>`
             );
         }
         groups.push(
@@ -459,7 +477,7 @@ const renderFacets = (counts: Record<string, Record<string, number>>) => {
     root.innerHTML =
         groups.join('') +
         (anyActive
-            ? `<button type="button" class="cdx-cp-facet-reset">Reset filters</button>`
+            ? `<button type="button" class="cdx-cp-facet-reset">${escapeHtml(clientText('reset-filters'))}</button>`
             : '');
 };
 
@@ -586,7 +604,7 @@ const search = async (query: string) => {
     if (!query.trim() && !hasFilters) {
         list.innerHTML = '';
         empty.hidden = false;
-        empty.textContent = 'Start typing to see results';
+        empty.textContent = clientText('search-start');
         // Surface the global filter counts so an empty palette is a
         // valid "browse the API" entry point - clicking Interface
         // narrows to all interfaces without ever typing. Falls back to
@@ -616,7 +634,7 @@ const search = async (query: string) => {
             return;
         }
         empty.hidden = false;
-        empty.textContent = 'Search unavailable (requires HTTP server)';
+        empty.textContent = clientText('search-unavailable');
         return;
     }
 
@@ -661,7 +679,7 @@ const search = async (query: string) => {
     if (rows.length === 0) {
         list.innerHTML = '';
         empty.hidden = false;
-        empty.textContent = `No results for "${query}"`;
+        empty.textContent = clientText('search-no-results', { query });
         activeIndex = -1;
         return;
     }
@@ -744,7 +762,7 @@ export const openCommandPalette = () => {
     }
     if (empty) {
         empty.hidden = false;
-        empty.textContent = 'Start typing to see results';
+        empty.textContent = clientText('search-start');
     }
     activeIndex = -1;
     lastQuery = initialQuery;

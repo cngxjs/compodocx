@@ -258,7 +258,7 @@ export const UnitTestReport = (props: UnitTestReportProps): string => {
                 <button
                     type="button"
                     class="cdx-coverage-filter-clear"
-                    aria-label="Clear filter"
+                    aria-label={t('clear-filter')}
                     data-cdx-coverage-filter-clear
                 >
                     &times;

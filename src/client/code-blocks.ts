@@ -1,4 +1,5 @@
 import { registerLineHandler, updateHash } from './hash-router';
+import { clientText } from './text';
 
 /**
  * The text a copy button puts on the clipboard: the code without the line
@@ -156,7 +157,7 @@ const initCopyButtons = () => {
         if (!pre.hasAttribute('role')) {
             pre.setAttribute('tabindex', '0');
             pre.setAttribute('role', 'region');
-            pre.setAttribute('aria-label', 'Source code');
+            pre.setAttribute('aria-label', clientText('source-code'));
         }
         pre.querySelectorAll('.cdx-line-number, .line-number, .line-numbers-rows span').forEach(
             el => {
@@ -466,11 +467,12 @@ const initExpandableSnippets = () => {
         btn.type = 'button';
         btn.className = 'cdx-code-expand-btn';
         btn.setAttribute('aria-expanded', 'false');
-        btn.textContent = `Show all ${lineCount} lines`;
+        const showAll = clientText('show-all-lines', { count: lineCount });
+        btn.textContent = showAll;
         btn.addEventListener('click', () => {
             const expanded = wrapper.classList.toggle('cdx-code-expanded');
             btn.setAttribute('aria-expanded', String(expanded));
-            btn.textContent = expanded ? 'Show less' : `Show all ${lineCount} lines`;
+            btn.textContent = expanded ? clientText('show-less') : showAll;
         });
         wrapper.appendChild(btn);
     });

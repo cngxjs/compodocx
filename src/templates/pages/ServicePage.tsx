@@ -1,5 +1,6 @@
 import Html from '@kitajs/html';
 import { HeritageRows, MetadataCodeRow, MetadataSection } from '../blocks/MetadataRow';
+import { t } from '../helpers';
 import { renderEntityPage } from './EntityPage';
 
 /**
@@ -15,7 +16,7 @@ const ServiceMetadata = (service: any, depth: number): string => {
         rows.push(MetadataCodeRow('factory', Html.escapeHtml(service.factory) as string));
     }
     rows.push(...HeritageRows(service ?? {}, depth));
-    return MetadataSection({ title: 'Service Metadata', rows });
+    return MetadataSection({ title: t('service-metadata'), rows });
 };
 
 /** Page of a class decorated with Angular's `@Service`. */

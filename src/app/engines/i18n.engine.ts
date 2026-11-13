@@ -85,6 +85,14 @@ class I18nEngine {
         return i18next.t(key, params);
     }
 
+    /** The active language as a BCP 47 tag; the fallback for an unsupported one. */
+    public language(): string {
+        const active = i18next.language;
+        return active && Object.hasOwn(this.availablesLanguages, active)
+            ? active
+            : this.fallbackLanguage;
+    }
+
     public exists(key: string): boolean {
         return i18next.exists(key);
     }

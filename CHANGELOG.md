@@ -20,6 +20,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 ### Fixed
 
 - Pipe and service pages show what the class extends and implements; the decorator metadata used to replace it. Extends and implements are the same linked chips with Title Case labels on every page (classes and interfaces had lowercase labels with plain links).
+- The search palette, the keyboard shortcuts dialog, the version switcher, the expand button of long code blocks, the header buttons and the coverage filter follow `--language` instead of always being English, and `<html lang>` names the page language. A custom `Layout` override without `body[data-cdx-text]` keeps the English texts.
 - A fence in an unknown language is shown as plain text instead of being highlighted as TypeScript.
 - Permalinks on member cards and README headings are visible on keyboard focus.
 - Route paths on the routes page no longer get a second underline on hover.

@@ -633,7 +633,7 @@ export const ComponentPage = (data: any): string => {
                             SourceViewer({
                                 sourceCode: c.stylesData,
                                 lang: 'scss',
-                                label: 'Inline Styles'
+                                label: t('inline-styles')
                             })}
                         {!(c.styleUrlsData?.length > 0) &&
                             !(c.stylesData && c.stylesData !== '') &&

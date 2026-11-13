@@ -6,6 +6,7 @@
  */
 
 import { initLocalGraph, initProjectGraph } from './dependency-graph';
+import { clientText } from './text';
 
 declare const COMPONENT_TEMPLATE: string;
 declare const COMPONENTS: Array<{ name: string; selector: string }>;
@@ -107,7 +108,7 @@ const initDomTree = async () => {
         const svg = select(container)
             .append('svg')
             .attr('role', 'img')
-            .attr('aria-label', 'Component DOM tree')
+            .attr('aria-label', clientText('dom-tree'))
             .style('width', '100%')
             .style('height', '450px')
             .style('border-width', 'var(--color-cdx-graph-border-width, 0)')

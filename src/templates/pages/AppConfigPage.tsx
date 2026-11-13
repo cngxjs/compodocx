@@ -62,7 +62,7 @@ const ProviderCard = (provider: ProviderCall): string =>
             </div>
             {provider.features.length > 0 && (
                 <div class="cdx-provider-features">
-                    <span class="cdx-provider-features-label">Features:</span>
+                    <span class="cdx-provider-features-label">{t('features')}:</span>
                     {provider.features.map(f => (
                         <code class="cdx-provider-feature">{linkedName(f)}</code>
                     ))}
