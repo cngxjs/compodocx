@@ -152,7 +152,7 @@ export const TRANSLATION_SK_SK = {
     'style-file': 'Súbor štýlov',
     'design-tokens': 'Dizajnové tokeny',
     token: 'Token',
-    tokens: 'Tokens',
+    tokens: 'Tokeny',
     total: 'Celkom',
     type: 'Typ',
     'type-aliases': 'Type aliases',

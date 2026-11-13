@@ -153,7 +153,7 @@ export const TRANSLATION_IT_IT = {
     'style-file': 'File di stile',
     'design-tokens': 'Token di design',
     token: 'Token',
-    tokens: 'Tokens',
+    tokens: 'Token',
     total: 'Totale',
     type: 'Tipo',
     'type-aliases': 'Type aliases',

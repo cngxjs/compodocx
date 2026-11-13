@@ -153,7 +153,7 @@ export const TRANSLATION_HU_HU = {
     'style-file': 'Stílusfájl',
     'design-tokens': 'Design tokenek',
     token: 'Token',
-    tokens: 'Tokens',
+    tokens: 'Tokenek',
     total: 'Összesen',
     type: 'Típus',
     'type-aliases': 'Típus álnév',

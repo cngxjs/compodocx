@@ -152,7 +152,7 @@ export const TRANSLATION_PL_PL = {
     'style-file': 'Plik stylów',
     'design-tokens': 'Tokeny projektowe',
     token: 'Token',
-    tokens: 'Tokens',
+    tokens: 'Tokeny',
     total: 'Suma',
     type: 'Typ',
     'type-aliases': 'Aliasy typów',
