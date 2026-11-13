@@ -168,6 +168,7 @@ export const TRANSLATION_EN_US = {
     'role-provider': 'Provider',
     'provided-by': 'Provided by',
     'injected-by': 'Injected by',
+    provides: 'Provides',
     'token-shape-interface': 'Interface',
     'token-shape-signal': 'Signal',
     'token-shape-function': 'Function',

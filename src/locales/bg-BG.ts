@@ -170,6 +170,7 @@ export const TRANSLATION_BG_BG = {
     'role-provider': 'Provider',
     'provided-by': 'Предоставя се от',
     'injected-by': 'Инжектира се от',
+    provides: 'Предоставя',
     'token-shape-interface': 'Интерфейс',
     'token-shape-signal': 'Signal',
     'token-shape-function': 'Функция',

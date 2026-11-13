@@ -170,6 +170,7 @@ export const TRANSLATION_NL_NL = {
     'role-provider': 'Provider',
     'provided-by': 'Geleverd door',
     'injected-by': 'Geïnjecteerd door',
+    provides: 'Levert',
     'token-shape-interface': 'Interface',
     'token-shape-signal': 'Signal',
     'token-shape-function': 'Functie',

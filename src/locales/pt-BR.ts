@@ -170,6 +170,7 @@ export const TRANSLATION_PT_BR = {
     'role-provider': 'Provider',
     'provided-by': 'Fornecido por',
     'injected-by': 'Injetado por',
+    provides: 'Fornece',
     'token-shape-interface': 'Interface',
     'token-shape-signal': 'Signal',
     'token-shape-function': 'Função',

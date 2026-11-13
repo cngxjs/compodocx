@@ -168,6 +168,7 @@ export const TRANSLATION_ZH_TW = {
     'role-provider': 'Provider',
     'provided-by': '提供者',
     'injected-by': '注入者',
+    provides: '提供',
     'token-shape-interface': '介面',
     'token-shape-signal': 'Signal',
     'token-shape-function': '函式',

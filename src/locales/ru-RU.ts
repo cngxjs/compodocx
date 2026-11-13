@@ -171,6 +171,7 @@ export const TRANSLATION_RU_RU = {
     'role-provider': 'Provider',
     'provided-by': 'Предоставляется',
     'injected-by': 'Внедряется в',
+    provides: 'Предоставляет',
     'token-shape-interface': 'Интерфейс',
     'token-shape-signal': 'Signal',
     'token-shape-function': 'Функция',

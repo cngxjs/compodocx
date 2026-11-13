@@ -169,6 +169,7 @@ export const TRANSLATION_KA_GE = {
     'role-provider': 'Provider',
     'provided-by': 'უზრუნველყოფს',
     'injected-by': 'ინექციას აკეთებს',
+    provides: 'უზრუნველყოფს',
     'token-shape-interface': 'ინტერფეისი',
     'token-shape-signal': 'Signal',
     'token-shape-function': 'ფუნქცია',

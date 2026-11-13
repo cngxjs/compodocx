@@ -168,6 +168,7 @@ export const TRANSLATION_KO_KR = {
     'role-provider': 'Provider',
     'provided-by': '제공자',
     'injected-by': '주입 위치',
+    provides: '제공',
     'token-shape-interface': '인터페이스',
     'token-shape-signal': 'Signal',
     'token-shape-function': '함수',

@@ -170,6 +170,7 @@ export const TRANSLATION_HU_HU = {
     'role-provider': 'Provider',
     'provided-by': 'Biztosítja',
     'injected-by': 'Injektálja',
+    provides: 'Biztosítja',
     'token-shape-interface': 'Interfész',
     'token-shape-signal': 'Signal',
     'token-shape-function': 'Függvény',

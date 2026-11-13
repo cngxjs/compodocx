@@ -171,6 +171,7 @@ export const TRANSLATION_FR_FR = {
     'role-provider': 'Provider',
     'provided-by': 'Fourni par',
     'injected-by': 'Injecté par',
+    provides: 'Fournit',
     'token-shape-interface': 'Interface',
     'token-shape-signal': 'Signal',
     'token-shape-function': 'Fonction',

@@ -169,6 +169,7 @@ export const TRANSLATION_SK_SK = {
     'role-provider': 'Provider',
     'provided-by': 'Poskytuje',
     'injected-by': 'Injektuje',
+    provides: 'Poskytuje',
     'token-shape-interface': 'Rozhranie',
     'token-shape-signal': 'Signal',
     'token-shape-function': 'Funkcia',

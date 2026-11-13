@@ -169,6 +169,7 @@ export const TRANSLATION_PL_PL = {
     'role-provider': 'Provider',
     'provided-by': 'Dostarczane przez',
     'injected-by': 'Wstrzykiwane przez',
+    provides: 'Dostarcza',
     'token-shape-interface': 'Interfejs',
     'token-shape-signal': 'Signal',
     'token-shape-function': 'Funkcja',

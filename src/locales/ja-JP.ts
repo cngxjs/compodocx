@@ -169,6 +169,7 @@ export const TRANSLATION_JA_JP = {
     'role-provider': 'Provider',
     'provided-by': '提供元',
     'injected-by': '注入先',
+    provides: '提供',
     'token-shape-interface': 'インターフェース',
     'token-shape-signal': 'Signal',
     'token-shape-function': '関数',
