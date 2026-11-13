@@ -76,17 +76,17 @@ describe('CLI simple generation - extends app', () => {
     it('CharactersService extends AbstractService', () => {
         const file = read(`${distFolder}/${pages.of('injectable', 'CharactersService')}`);
         expect(file).to.contain(
-            `code><a href="${pages.href('injectable', 'AbstractService', depthOf('injectable', 'CharactersService'))}" target="_self" >AbstractService`
+            `class="cdx-chip cdx-chip--injectable" href="${pages.href('injectable', 'AbstractService', depthOf('injectable', 'CharactersService'))}" target="_self">AbstractService</a>`
         );
     });
 
     it('ClockInterface multiple extends', () => {
         const file = read(`${distFolder}/${pages.of('interface', 'ClockInterface')}`);
         expect(file).to.contain(
-            `code><a href="${pages.href('interface', 'TimeInterface', depthOf('interface', 'ClockInterface'))}" target="_self" >TimeInterface`
+            `class="cdx-chip cdx-chip--interface" href="${pages.href('interface', 'TimeInterface', depthOf('interface', 'ClockInterface'))}" target="_self">TimeInterface</a>`
         );
         expect(file).to.contain(
-            `code><a href="${pages.href('interface', 'BooInterface', depthOf('interface', 'ClockInterface'))}" target="_self" >BooInterface`
+            `class="cdx-chip cdx-chip--interface" href="${pages.href('interface', 'BooInterface', depthOf('interface', 'ClockInterface'))}" target="_self">BooInterface</a>`
         );
     });
 });

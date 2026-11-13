@@ -47,8 +47,8 @@ describe('CLI generation - TypeDoc examples', () => {
         const file = read(`${distFolder}/${page}`);
         expect(file).to.contain('This is a interface inheriting from two other interfaces.');
         expect(file).to.contain('This is a interface function of IPrintNameInterface');
-        // Interface metadata-label uses lowercase 'extends' (matches the TS keyword).
-        expect(file).to.contain('cdx-metadata-label">extends</dt>');
+        // Interface metadata label is Title Case like the other rows.
+        expect(file).to.contain('cdx-metadata-label">Extends</dt>');
         expect(file).to.contain(
             `href="${pages.href('interface', 'INameInterface', pages.depthOf(page))}"`
         );
@@ -57,8 +57,8 @@ describe('CLI generation - TypeDoc examples', () => {
     it('classes - BaseClass', () => {
         const file = read(`${distFolder}/${pages.of('class', 'BaseClass')}`);
         expect(file).to.contain('This is a simple base class.');
-        // Class metadata-label uses lowercase 'implements' (matches the TS keyword).
-        expect(file).to.contain('cdx-metadata-label">implements</dt>');
+        // Class metadata label is Title Case like the other rows.
+        expect(file).to.contain('cdx-metadata-label">Implements</dt>');
         expect(file).to.contain('This is a private function.');
     });
 });

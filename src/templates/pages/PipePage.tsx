@@ -1,9 +1,9 @@
 import Html from '@kitajs/html';
-import { MetadataCodeRow, MetadataSection } from '../blocks/MetadataRow';
+import { HeritageRows, MetadataCodeRow, MetadataSection } from '../blocks/MetadataRow';
 import { isInfoSection, t } from '../helpers';
 import { renderEntityPage } from './EntityPage';
 
-const PipeMetadata = (pipe: any): string => {
+const PipeMetadata = (pipe: any, depth: number): string => {
     if (!isInfoSection('metadata')) {
         return '';
     }
@@ -17,6 +17,7 @@ const PipeMetadata = (pipe: any): string => {
     if (pipe.standalone) {
         rows.push(MetadataCodeRow(t('standalone'), String(pipe.standalone)));
     }
+    rows.push(...HeritageRows(pipe, depth));
     return MetadataSection({ rows });
 };
 
@@ -29,7 +30,7 @@ export const PipePage = (data: any): string =>
         navTabs: data.navTabs,
         readmeAiGenerated: data.symbolReadmeAiGenerated,
         disableFilePath: data.disableFilePath,
-        metadataHtml: PipeMetadata(data.pipe),
+        metadataHtml: PipeMetadata(data.pipe, data.depth),
         showMethods: true,
         showProperties: true,
         contextLine: data.pipe?.name ? `{{ value | ${data.pipe.name} }}` : undefined,

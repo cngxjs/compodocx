@@ -2,7 +2,7 @@ import Configuration from '../../app/configuration';
 import { BlockTheming } from '../blocks/BlockTheming';
 import { ContentSlotsSection } from '../blocks/ContentSlots';
 import {
-    MetadataChipsRow,
+    HeritageRows,
     MetadataCodeRow,
     MetadataHostDirectivesRow,
     MetadataSection
@@ -36,8 +36,7 @@ const DirectiveMetadata = (directive: any, depth: number): string => {
         rows.push(MetadataHostDirectivesRow(directive.hostDirectives, depth));
     }
 
-    rows.push(MetadataChipsRow('extends', (directive.extends as string[]) ?? [], depth));
-    rows.push(MetadataChipsRow('implements', (directive.implements as string[]) ?? [], depth));
+    rows.push(...HeritageRows(directive, depth));
 
     return MetadataSection({ rows }) + ContentSlotsSection(directive.slots, depth);
 };

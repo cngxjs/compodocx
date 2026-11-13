@@ -29,6 +29,7 @@ import { HostSection } from '../blocks/HostSection';
 import { ImportStatement } from '../blocks/ImportStatement';
 import { JsdocExamplesBlock } from '../blocks/JsdocExamplesBlock';
 import {
+    HeritageRows,
     MetadataChipsRow,
     MetadataCodeRow,
     MetadataHostDirectivesRow,
@@ -134,8 +135,7 @@ const ComponentMetadata = (c: any, depth: number): string => {
     codeField('assetsDirs', c.assetsDirs);
 
     // Array values → chip rows (implements before imports to match design)
-    rows.push(MetadataChipsRow('extends', (c.extends as string[]) ?? [], depth));
-    rows.push(MetadataChipsRow('implements', (c.implements as string[]) ?? [], depth));
+    rows.push(...HeritageRows(c, depth));
     rows.push(MetadataChipsRow('imports', c.imports ?? [], depth));
 
     // Host directives stay in core metadata (they're component config, not runtime host bindings)

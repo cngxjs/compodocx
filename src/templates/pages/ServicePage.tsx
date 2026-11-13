@@ -1,9 +1,12 @@
 import Html from '@kitajs/html';
-import { MetadataCodeRow, MetadataSection } from '../blocks/MetadataRow';
+import { HeritageRows, MetadataCodeRow, MetadataSection } from '../blocks/MetadataRow';
 import { renderEntityPage } from './EntityPage';
 
-/** `autoProvided` and `factory` of the `@Service` decorator, when written. */
-const ServiceMetadata = (service: any): string => {
+/**
+ * `autoProvided` and `factory` of the `@Service` decorator, when written,
+ * then extends and implements.
+ */
+const ServiceMetadata = (service: any, depth: number): string => {
     const rows: string[] = [];
     if (typeof service?.autoProvided === 'boolean') {
         rows.push(MetadataCodeRow('autoProvided', String(service.autoProvided)));
@@ -11,6 +14,7 @@ const ServiceMetadata = (service: any): string => {
     if (service?.factory) {
         rows.push(MetadataCodeRow('factory', Html.escapeHtml(service.factory) as string));
     }
+    rows.push(...HeritageRows(service ?? {}, depth));
     return MetadataSection({ title: 'Service Metadata', rows });
 };
 
@@ -32,6 +36,6 @@ export const ServicePage = (data: any): string =>
         showAccessors: true,
         contextLine: data.service?.autoProvided === false ? 'autoProvided: false' : undefined,
         showJsdocBadges: true,
-        metadataHtml: ServiceMetadata(data.service),
+        metadataHtml: ServiceMetadata(data.service, data.depth),
         relationships: data.relationships
     });

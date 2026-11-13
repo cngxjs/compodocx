@@ -19,6 +19,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 ### Fixed
 
+- Pipe and service pages show what the class extends and implements; the decorator metadata used to replace it. Extends and implements are the same linked chips with Title Case labels on every page (classes and interfaces had lowercase labels with plain links).
 - A fence in an unknown language is shown as plain text instead of being highlighted as TypeScript.
 - Permalinks on member cards and README headings are visible on keyboard focus.
 - Route paths on the routes page no longer get a second underline on hover.

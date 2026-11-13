@@ -198,14 +198,13 @@ describe('CLI simple generation - big app', () => {
     });
 
     it('should have generated extends information for todo class', () => {
-        // Class `extends X` is rendered as a metadata-card label
-        // (lowercase, matching the TS keyword).
-        expect(todoClassFile).to.contain('cdx-metadata-label">extends</dt>');
+        // Class `extends X` is rendered as a metadata-card row.
+        expect(todoClassFile).to.contain('cdx-metadata-label">Extends</dt>');
     });
 
     it('should have generated implements information for clock class', () => {
         const classFile = read(`${distFolder}/${pages.of('class', 'Clock')}`);
-        expect(classFile).to.contain('cdx-metadata-label">implements</dt>');
+        expect(classFile).to.contain('cdx-metadata-label">Implements</dt>');
     });
 
     it('should have generated interfaces', () => {
@@ -431,8 +430,8 @@ describe('CLI simple generation - big app', () => {
 
     it('should support extends for interface', () => {
         const file = read(`${distFolder}/${pages.of('interface', 'ClockInterface')}`);
-        // Interface metadata-label uses lowercase keyword.
-        expect(file).to.contain('cdx-metadata-label">extends</dt>');
+        // Interface metadata label is Title Case like the other rows.
+        expect(file).to.contain('cdx-metadata-label">Extends</dt>');
     });
 
     it('should support optional', () => {
