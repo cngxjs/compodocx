@@ -1,4 +1,5 @@
 import { escapeHtmlText } from '../../templates/helpers/escape';
+import { ANGULAR_TEMPLATE_TAG_GRAMMAR } from './angular-template-tag.grammar';
 
 type ShikiTransformer = {
     line?: (this: unknown, hast: HastElement, line: number) => void;
@@ -135,7 +136,8 @@ export async function initHighlighter(shikiTheme?: string): Promise<void> {
 
     highlighter = await createHighlighter({
         themes: [THEME_LIGHT, THEME_DARK],
-        langs: SUPPORTED_LANGUAGES
+        // The binding grammar injects into angular-html and angular-ts.
+        langs: [...SUPPORTED_LANGUAGES, ANGULAR_TEMPLATE_TAG_GRAMMAR]
     });
 }
 

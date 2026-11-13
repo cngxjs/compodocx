@@ -44,6 +44,29 @@ describe('highlightCode language fallback', () => {
         );
     });
 
+    it('colours binding values as Angular expressions, not as strings', () => {
+        const stringColour = 'color:#032F62';
+        for (const [binding, value] of [
+            ['[value]="user.name"', 'user.name'],
+            ['(click)="save()"', 'save'],
+            ['[(ngModel)]="query"', 'query'],
+            ['*ngIf="row.ok"', 'row.ok']
+        ]) {
+            const html = highlightCode(`<input ${binding} />`, { lang: 'angular-html' });
+            const valueSpan = new RegExp(
+                `<span style="([^"]*)">${value.replace('.', '\\.')}<`
+            ).exec(html);
+            expect(valueSpan, binding).not.toBeNull();
+            expect(valueSpan?.[1], binding).not.toContain(stringColour);
+        }
+    });
+
+    it('colours bindings inside an inline component template', () => {
+        const code = '@Component({\n  template: `<b (click)="go(a)"></b>`,\n})\nclass X {}';
+        const html = highlightCode(code, { lang: 'angular-ts' });
+        expect(html).toMatch(/<span style="[^"]*">go<\/span>/);
+    });
+
     it('colours an aliased language', () => {
         expect(highlightCode('const a = 1;', { lang: 'ts' })).toContain(KEYWORD_COLOUR);
     });
