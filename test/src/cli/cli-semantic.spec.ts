@@ -136,6 +136,10 @@ describe('CLI semantic analysis', () => {
         expect(cluster).to.contain(
             `href="${pages.href('token', 'FOO_CONFIG', pages.depthOf(clusterFile))}"`
         );
+        // Tokens read like the feature page lists: one row per token, name then summary.
+        expect(cluster).to.match(
+            /<ul class="cdx-feature-rows"><li class="cdx-feature-row" data-cdx-cluster-token="FOO_CONFIG"><span class="cdx-feature-row-name"><a href="[^"]*"><code>FOO_CONFIG<\/code><\/a><\/span><span class="cdx-feature-row-summary">/
+        );
 
         const utilities = fs.readFileSync(path.join(htmlFolder, 'utilities.html'), 'utf8');
         expect(utilities).not.to.contain('>provideFoo<');
