@@ -36,8 +36,36 @@ const SUPPORTED_LANGUAGES = [
     'scss',
     'json',
     'bash',
-    'markdown'
+    'markdown',
+    'yaml',
+    'diff'
 ];
+
+/** Fence names that mean a loaded language under another name. */
+const LANGUAGE_ALIASES: Record<string, string> = {
+    ts: 'typescript',
+    js: 'javascript',
+    sh: 'bash',
+    shell: 'bash',
+    zsh: 'bash',
+    console: 'bash',
+    md: 'markdown',
+    yml: 'yaml'
+};
+
+/**
+ * The loaded language for a requested name: the name itself or its alias,
+ * TypeScript when nothing was asked for, else plain text (never another
+ * language's colours).
+ */
+export const resolveLanguage = (lang: string | undefined): string => {
+    if (!lang || lang === 'none') {
+        return 'typescript';
+    }
+    const name = lang.toLowerCase();
+    const resolved = LANGUAGE_ALIASES[name] ?? name;
+    return SUPPORTED_LANGUAGES.includes(resolved) ? resolved : 'text';
+};
 
 /**
  * Lines longer than this are emitted without colours. Shiki tokenizes the
@@ -112,14 +140,13 @@ export function highlightCode(code: string, optionsOrLang?: HighlightOptions | s
     const opts: HighlightOptions =
         typeof optionsOrLang === 'string' ? { lang: optionsOrLang } : (optionsOrLang ?? {});
 
-    const lang = opts.lang ?? 'typescript';
     const mode = opts.mode ?? 'snippet';
 
     if (!highlighter) {
         return escapeHtmlText(code);
     }
 
-    const resolvedLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : 'typescript';
+    const resolvedLang = resolveLanguage(opts.lang);
 
     const transformers: ShikiTransformer[] = [];
     let foldRegions: FoldRegion[] = [];
