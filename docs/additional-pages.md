@@ -145,6 +145,32 @@ ng serve
 ```
 ````
 
+### Markdown layout hints
+
+Two conventions change how compodocx lays out Markdown in additional pages, the README and the other root files, and feature READMEs. JSDoc comments and READMEs next to source files keep the plain layout. Both render as plain Markdown on GitHub and npm.
+
+**Lead-ins.** A paragraph or list item that starts with a short bold label ending in a period or a colon gets the label in its own column once the page is wide enough; on narrow screens the label sits above the text. The label must come first, be plain text (no code or links inside the bold) and be at most 40 characters long:
+
+```markdown
+**Parts.** The header stays fixed while the rest of the panel scrolls.
+
+**Modality.** Sheet and fullscreen are both modal.
+
+- **Focus.** Focus moves into the panel when it opens.
+- **Close vectors.** Escape, a tap outside the panel and the back gesture close it.
+```
+
+**Inline lists.** An HTML comment `<!-- compodocx: inline -->` directly before a bullet list renders that list as a row of chips, for short items such as browser versions or tags. Only the list right after the comment is affected; numbered lists and other values are left alone:
+
+```markdown
+<!-- compodocx: inline -->
+- Chrome 125+
+- Firefox 131+
+- Safari 18.4+
+```
+
+Everything else gets one base style; compodocx does not guess a layout from the content of a list.
+
 ## Output URLs
 
 For a node titled `Getting Started` referencing `getting-started.md`, compodocx writes:

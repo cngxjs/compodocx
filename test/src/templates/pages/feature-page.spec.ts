@@ -150,7 +150,7 @@ describe('feature page', () => {
         ]);
         expect(html).toContain(`href="../${pageOf('component', 'SelectPanel')}"`);
         expect(html).toContain(`href="../${pageOf('directive', 'SelectTrigger')}"`);
-        expect(html).toContain('<td>The panel</td>');
+        expect(html).toContain('<span class="cdx-feature-row-summary">The panel</span>');
         expect(html).toContain('cdx-badge--injection-context');
         expect(html).not.toContain('internalHelper');
     });
@@ -192,7 +192,7 @@ describe('feature page', () => {
     it('lists the sub-features of an entry point with member count and README summary', () => {
         const html = render(ROOT);
         expect(html).toContain(
-            `<tr data-cdx-feature-card="${MENU}"><td><a href="../${featurePage(['select', 'menu'])}"><code>menu</code></a></td><td>1</td><td>Menu <em>parts</em>.</td></tr>`
+            `<li class="cdx-feature-card" data-cdx-feature-card="${MENU}"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="../${featurePage(['select', 'menu'])}">menu</a></div><p class="cdx-feature-card-summary">Menu <em>parts</em>.</p><p class="cdx-feature-card-meta cdx-feature-card-counts"><span><b>1</b> Members</span></p></li>`
         );
         expect(render(MENU)).not.toContain('data-cdx-feature-card');
     });
@@ -214,7 +214,7 @@ describe('feature page', () => {
 
     it('links the features of other entry points that extend this one', () => {
         expect(render(ROOT)).toContain(
-            `<tr data-cdx-feature-related="${FIELD}"><td><a href="../${featurePage(['ui', 'field'])}"><code>field</code></a></td><td>@x/ui</td></tr>`
+            `<li class="cdx-feature-row" data-cdx-feature-related="${FIELD}"><span class="cdx-feature-row-name"><a href="../${featurePage(['ui', 'field'])}"><code>field</code></a></span><span class="cdx-feature-row-summary"><code>@x/ui</code></span></li>`
         );
         expect(render(MENU)).not.toContain('id="extended-by"');
     });
@@ -223,7 +223,7 @@ describe('feature page', () => {
         const html = render(FIELD);
         expect(sectionIds(html)).toEqual(['builds-on']);
         expect(html).toContain(
-            `<tr data-cdx-feature-related="${ROOT}"><td><a href="../../${featurePage(['select'])}"><code>select</code></a></td><td>@x/select</td></tr>`
+            `<li class="cdx-feature-row" data-cdx-feature-related="${ROOT}"><span class="cdx-feature-row-name"><a href="../../${featurePage(['select'])}"><code>select</code></a></span><span class="cdx-feature-row-summary"><code>@x/select</code></span></li>`
         );
     });
 });
@@ -280,6 +280,14 @@ describe('FeaturePage - Theming section with style files', () => {
                     '/**\n * Background.\n */\n:root { --hl: 1; }\n'
             },
             {
+                file: 'kit/theming/kit.css',
+                content:
+                    '/**\n * Kit skin. More.\n * @overview\n * @themes KitCard, KitHighlight\n */\n' +
+                    '/**\n * Surface.\n * @group surface\n */\n:root { --kit-bg: 1; }\n' +
+                    '/**\n * Gap.\n * @group layout\n */\n:root { --kit-gap: 1; }\n' +
+                    '/**\n * Pad.\n * @group surface\n */\n:root { --kit-pad: 1; }\n'
+            },
+            {
                 file: 'kit/theming/tokens.css',
                 content:
                     '/**\n * Global tokens.\n * @overview\n */\n/**\n * Gap.\n */\n:root { --gap: 1px; }\n'
@@ -307,7 +315,8 @@ describe('FeaturePage - Theming section with style files', () => {
             featureOf: new Map([
                 ['kit/card.ts#KitCard', KIT],
                 ['kit/highlight.ts#KitHighlight', KIT],
-                ['kit/theming/tokens.css#tokens', KIT]
+                ['kit/theming/tokens.css#tokens', KIT],
+                ['kit/theming/kit.css#kit', KIT]
             ]),
             families: []
         }
@@ -327,10 +336,22 @@ describe('FeaturePage - Theming section with style files', () => {
     it('lists the style pages of the feature with summary and token count', () => {
         const html = renderKit(true);
         expect(html).toMatch(
-            /data-cdx-feature-member="style"><a href="[^"]*tokens\.html"><code>tokens\.css<\/code>/
+            /data-cdx-feature-member="style"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="[^"]*tokens\.html"><code>tokens\.css<\/code>/
         );
         expect(html).toContain('Global tokens');
         expect(html).not.toContain('id="utilities"');
+    });
+
+    it('shows token groups and links the themed components on a style card', () => {
+        const html = renderKit(true);
+        const card = html.slice(html.indexOf('<code>kit.css</code>'));
+        expect(card).toContain('<p class="cdx-feature-card-summary">Kit skin</p>');
+        expect(card).toContain(
+            '<p class="cdx-feature-card-meta"><span><b>3</b> Tokens</span><span>surface &middot; layout</span></p>'
+        );
+        expect(card).toMatch(
+            /<p class="cdx-feature-card-for"><span class="cdx-feature-card-for-label">For<\/span><a href="[^"]*KitCard\.html"><code>KitCard<\/code><\/a><a href="[^"]*KitHighlight\.html"><code>KitHighlight<\/code><\/a><\/p>/
+        );
     });
 
     it('lists a directive themed by a linked file and links the design tokens page', () => {
@@ -404,5 +425,84 @@ describe('FeaturePage - Theming section with style files', () => {
     it('has no routes section without routed members or with routes disabled', () => {
         expect(sectionIds(render(MENU, { routing }))).not.toContain('routes');
         expect(sectionIds(render(ROOT, { routing, disableRoutes: true }))).not.toContain('routes');
+    });
+});
+
+describe('FeaturePage - entry points below a parent entry point', () => {
+    const COMMON = '@x/common#';
+    const CHART = '@x/common/chart#';
+    const LEGEND = '@x/common/chart#legend';
+    const AXIS = '@x/common/chart/axis#';
+    const TIMELINE = '@x/common/timeline#';
+    const entry = (id: string, entryPoint: string, key = ''): FeatureModel['features'][number] => ({
+        id,
+        entryPoint,
+        key,
+        label: key || entryPoint.slice(entryPoint.lastIndexOf('/') + 1),
+        root: `lib/${entryPoint.slice(3)}`,
+        detector: 'entry-point',
+        ...(key ? {} : { readme: `lib/${entryPoint.slice(3)}/README.md` })
+    });
+    const commonEngine = {
+        components: [
+            { name: 'ChartView', file: 'lib/common/chart/view.ts' },
+            { name: 'LegendItem', file: 'lib/common/chart/legend/item.ts' }
+        ],
+        interfaces: [{ name: 'ChartPoint', file: 'lib/common/chart/point.ts' }],
+        directives: [{ name: 'AxisTick', file: 'lib/common/chart/axis/tick.ts' }]
+    };
+    const commonSemantic: SemanticModel = {
+        ...emptyModel(),
+        features: {
+            features: [
+                entry(COMMON, '@x/common'),
+                entry(CHART, '@x/common/chart'),
+                entry(LEGEND, '@x/common/chart', 'legend'),
+                entry(AXIS, '@x/common/chart/axis'),
+                entry(TIMELINE, '@x/common/timeline')
+            ],
+            featureOf: new Map([
+                ['lib/common/chart/view.ts#ChartView', CHART],
+                ['lib/common/chart/legend/item.ts#LegendItem', LEGEND],
+                ['type:lib/common/chart/point.ts#ChartPoint', CHART],
+                ['lib/common/chart/axis/tick.ts#AxisTick', AXIS]
+            ]),
+            families: []
+        }
+    };
+    const commonReadmes: Record<string, string> = {
+        'lib/common/chart/README.md': '<h1>Chart</h1><p>Plots <code>series</code>.</p>'
+    };
+    const renderCommon = (id: string): string => {
+        const table = buildSymbolTable(commonEngine as never, { cwd: '/' });
+        const pages = featurePages(commonSemantic, table, undefined, f => commonReadmes[f]);
+        const page = pages.find(p => p.id === id);
+        return FeaturePage({
+            feature: page,
+            symbols: table,
+            semantic: commonSemantic,
+            depth: page?.segments.length
+        }).replace(/ __(self|source)="[^"]*"/g, '');
+    };
+
+    it('lists its child entry points as cards with import, summary and counts', () => {
+        const html = renderCommon(COMMON);
+        expect(sectionIds(html)[0]).toBe('entry-points');
+        const chart = html.slice(html.indexOf(`data-cdx-feature-card="${CHART}"`));
+        expect(chart).toMatch(
+            /^data-cdx-feature-card="@x\/common\/chart#"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="[^"]*">chart<\/a><\/div><code class="cdx-feature-card-import">@x\/common\/chart<\/code><p class="cdx-feature-card-summary">Plots <code>series<\/code>.<\/p><p class="cdx-feature-card-meta cdx-feature-card-counts"><span><b>1<\/b> Features<\/span><span><b>3<\/b> Members<\/span><\/p><\/li>/
+        );
+        expect(html).toContain(`data-cdx-feature-card="${TIMELINE}"`);
+        expect(jumpLinks(html)[0]).toEqual(['entry-points', '2']);
+    });
+
+    it('does not list grandchild entry points on the grandparent', () => {
+        expect(renderCommon(COMMON)).not.toContain(`data-cdx-feature-card="${AXIS}"`);
+        expect(renderCommon(CHART)).toContain(`data-cdx-feature-card="${AXIS}"`);
+    });
+
+    it('has no Entry points section without child entry points', () => {
+        expect(sectionIds(renderCommon(TIMELINE))).not.toContain('entry-points');
+        expect(sectionIds(renderCommon(LEGEND))).not.toContain('entry-points');
     });
 });

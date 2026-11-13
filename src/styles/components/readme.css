@@ -135,7 +135,7 @@
 .cdx-readme ul,
 .cdx-readme ol {
     margin: 0 0 1rem 0;
-    padding-left: 1.5rem;
+    padding-left: 1.25rem;
 }
 
 .cdx-readme ul {
@@ -147,17 +147,147 @@
 }
 
 .cdx-readme li {
-    margin-bottom: 0.375rem;
+    margin: 0;
 }
 
-.cdx-readme li:last-child {
-    margin-bottom: 0;
+.cdx-readme li + li {
+    margin-top: 0.625rem;
+}
+
+.cdx-readme li::marker {
+    color: var(--color-cdx-text-muted);
+    font-size: 0.9em;
+}
+
+.cdx-readme ol > li::marker {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Line length and wrapping: running text stops at 72 characters; tables,
+   code blocks and images keep the full width. */
+.cdx-readme > :is(p, ul, ol, blockquote) {
+    max-width: 72ch;
+}
+
+.cdx-readme :is(p, li) {
+    text-wrap: pretty;
+}
+
+/* Lead-ins cap their text column instead, so the label column comes on top. */
+.cdx-readme > p.cdx-leadin,
+.cdx-readme > :is(ul, ol):has(> li.cdx-leadin) {
+    max-width: calc(72ch + 9rem + var(--spacing-cdx-2xl));
 }
 
 .cdx-readme li > ul,
 .cdx-readme li > ol {
     margin-top: 0.375rem;
     margin-bottom: 0.375rem;
+}
+
+/* --- Lead-ins: `**Label.** Text` paragraphs and list items (markdown-lead-in.ts). The
+       label gets its own column once the content is 40rem wide and drops
+       its period there; below that it sits above the text. --- */
+
+.cdx-readme p.cdx-leadin,
+.cdx-readme li > p.cdx-leadin:first-child {
+    display: grid;
+    gap: 2px var(--spacing-cdx-2xl);
+}
+
+.cdx-readme li > p.cdx-leadin:first-child {
+    margin: 0;
+}
+
+.cdx-readme .cdx-leadin-label {
+    font-weight: 600;
+    color: var(--color-cdx-text);
+}
+
+.cdx-readme .cdx-leadin-text {
+    min-width: 0;
+    max-width: 72ch;
+}
+
+/* A run of lead-in paragraphs reads as one list of entries: a hairline
+   between neighbours, air above and below each, a slightly narrower and
+   looser text column. */
+.cdx-readme > p.cdx-leadin {
+    margin: 0;
+    padding: var(--spacing-cdx-lg) 0;
+}
+
+.cdx-readme > p.cdx-leadin + p.cdx-leadin {
+    border-top: 1px solid var(--color-cdx-border);
+}
+
+.cdx-readme > :not(.cdx-leadin) + p.cdx-leadin,
+.cdx-readme > p.cdx-leadin:first-child {
+    padding-top: 0;
+}
+
+.cdx-readme > p.cdx-leadin + :not(.cdx-leadin) {
+    margin-top: var(--spacing-cdx-sm);
+}
+
+.cdx-readme > p.cdx-leadin > :is(.cdx-leadin-label, .cdx-leadin-text) {
+    line-height: 1.7;
+}
+
+.cdx-readme > p.cdx-leadin > .cdx-leadin-text {
+    max-width: 66ch;
+}
+
+/* A grid would drop the list marker, so a lead-in item stays a list item:
+   label and text stack, and the label floats into its column when wide. */
+.cdx-readme li.cdx-leadin > .cdx-leadin-label,
+.cdx-readme li.cdx-leadin > .cdx-leadin-text {
+    display: block;
+}
+
+.cdx-readme li.cdx-leadin::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+@container content (min-width: 40rem) {
+    .cdx-readme p.cdx-leadin,
+    .cdx-readme li > p.cdx-leadin:first-child {
+        grid-template-columns: 9rem minmax(0, 1fr);
+    }
+
+    .cdx-readme li.cdx-leadin > .cdx-leadin-label {
+        float: left;
+        width: 9rem;
+    }
+
+    .cdx-readme li.cdx-leadin > .cdx-leadin-text {
+        margin-left: calc(9rem + var(--spacing-cdx-2xl));
+    }
+
+    .cdx-readme .cdx-leadin-punct {
+        display: none;
+    }
+}
+
+/* --- Inline lists: `<!-- compodocx: inline -->` before a bullet list
+       (markdown-directives.ts) renders it as a wrapping row of chips. --- */
+
+.cdx-readme ul.cdx-list-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0;
+    list-style: none;
+}
+
+.cdx-readme ul.cdx-list-inline > li {
+    margin: 0;
+    padding: 2px 10px;
+    border: 1px solid var(--color-cdx-border-strong);
+    border-radius: 999px;
+    font-size: 14px;
 }
 
 /* --- Inline code: one chip for READMEs, additional pages and descriptions.
@@ -169,7 +299,10 @@
 :where(.cdx-readme, .cdx-prose) > code {
     background: color-mix(in srgb, var(--color-cdx-code-inline) 8%, transparent);
     border-radius: var(--radius-cdx-sm);
-    padding: 1px 5px;
+    padding: 0 4px;
+    line-height: 1;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
     font-family: var(--font-code);
     font-size: 0.875em;
     color: var(--color-cdx-code-inline);

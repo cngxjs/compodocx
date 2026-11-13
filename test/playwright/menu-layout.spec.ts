@@ -322,7 +322,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
         await page.waitForLoadState('domcontentloaded');
         await expect(page.locator('h2#components-and-directives')).toHaveCount(1);
         await expect(page.locator('h2#services')).toHaveCount(1);
-        const rows = page.locator('tr[data-cdx-feature-member]');
+        const rows = page.locator('li[data-cdx-feature-member]');
         expect(await rows.count()).toBeGreaterThan(1);
         const link = rows.first().locator('a').first();
         const name = (await link.innerText()).trim();
@@ -337,7 +337,7 @@ test.describe('menuLayout: "feature" sidebar', () => {
         // `users` holds `users/components`; the feature page lists both levels.
         await page.goto(featureUrl(['users']));
         await page.waitForLoadState('domcontentloaded');
-        expect(await page.locator('tr[data-cdx-feature-member]').count()).toBeGreaterThan(1);
+        expect(await page.locator('li[data-cdx-feature-member]').count()).toBeGreaterThan(1);
     });
 
     test('entity hero exposes data-pagefind-filter attributes for the facet UI', async ({

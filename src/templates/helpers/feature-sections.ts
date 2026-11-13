@@ -57,3 +57,26 @@ export const sectionOf = (
             return 'utilities';
     }
 };
+
+/** A member section of the feature page: anchor id, i18n key, member lists. */
+export interface FeaturePageSection {
+    readonly id: string;
+    readonly titleKey: string;
+    readonly lists: readonly FeatureSection[];
+}
+
+/** The member sections of the feature page, in page and jump bar order. */
+export const FEATURE_PAGE_SECTIONS: readonly FeaturePageSection[] = [
+    {
+        id: 'components-and-directives',
+        titleKey: 'components-and-directives',
+        lists: ['components', 'directives']
+    },
+    { id: 'pipes', titleKey: 'pipes', lists: ['pipes'] },
+    { id: 'services', titleKey: 'services', lists: ['services'] },
+    { id: 'configuration', titleKey: 'configuration', lists: ['configuration'] },
+    { id: 'utilities', titleKey: 'utilities', lists: ['utilities'] },
+    { id: 'constants', titleKey: 'constants', lists: ['constants'] },
+    { id: 'types', titleKey: 'types', lists: ['types'] },
+    { id: 'classes', titleKey: 'classes', lists: ['classes'] }
+];

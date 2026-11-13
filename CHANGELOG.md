@@ -6,6 +6,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Added
+
+- **Entry points on a parent entry point page.** The page of an entry point such as `@scope/common` lists the entry points directly below it (`@scope/common/chart`, ...) in a new Entry points section with a jump bar link. Each card shows the name, the import path, the first README paragraph and the number of features and members. An entry point appears on the page of its nearest parent only.
+- **Markdown layout hints.** In the README, additional pages and feature READMEs, a paragraph or list item that starts with a short bold label (`**Parts.** Text`, `- **Focus.** Text`) gets the label in its own column on wide pages and above the text on narrow ones; a run of such paragraphs is separated by thin lines. `<!-- compodocx: inline -->` directly before a bullet list renders that list as a row of chips. Both read as plain Markdown on GitHub and npm; see "Markdown layout hints" in `docs/additional-pages.md`.
+
+### Changed
+
+- **Feature page lists.** Sub features are cards instead of a table row each, with the summary clamped to three lines; the grid falls back to one column on phones. Members, Builds on and Extended by are rows that put the summary below the name on narrow pages and beside it from 40rem content width, instead of a table. Style files in the Theming section are cards with token count, mixin count, token groups and the components and directives they theme. The `data-cdx-feature-card`, `data-cdx-feature-member` and `data-cdx-feature-related` attributes now sit on `li` elements.
+- **Summaries in lists.** The one-line descriptions on feature pages, the utilities page, namespace pages and the dependency injection page keep inline code, emphasis and bold, show links as their text and no longer cut after `e.g.`, `i.e.`, `etc.`, `vs.` or `cf.`. Removed tags no longer leave stray spaces (`(default 500)`, not `(default 500 )`). Search excerpts no longer cut at these abbreviations either.
+- **README and additional page text.** Paragraphs and lists stop at 72 characters per line (tables, code blocks and images keep the full width), list items have an even gap and muted markers, and inline code is a quieter chip: the default `--color-cdx-code-inline` now equals the text colour, the chip is tighter and no longer stretches the line height. Themes that set `--color-cdx-code-inline` keep their colour.
+
 ## [0.17.0] - 2026-11-12
 
 ### Added

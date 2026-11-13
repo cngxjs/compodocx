@@ -1,5 +1,6 @@
 import type { TableKind } from '../../app/links/symbol-id';
 import { linkTagsAsText } from '../../utils/link-parser';
+import { sentenceEnd } from './page-summary';
 
 /**
  * User-facing labels for entity kinds. Surfaced on Pagefind search-result
@@ -83,7 +84,9 @@ export function firstSentence(html: unknown): string | undefined {
     // anchored at end-of-string. Fallback: the entire stripped string when
     // no sentence terminator exists (single-clause descriptions are common).
     // Trim trailing sentence terminators so the excerpt reads naturally.
-    const split = stripped.split(/[.!?](?:\s|$)/)[0] ?? stripped;
+    // `e.g.`, `i.e.` and friends do not end a sentence (`sentenceEnd`).
+    const end = sentenceEnd(stripped);
+    const split = end < 0 ? stripped : stripped.slice(0, end);
     const sentence = split.replace(/[.!?]+$/, '').trim();
     const value = sentence || stripped;
     if (value.length <= 120) {

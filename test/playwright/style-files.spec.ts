@@ -71,9 +71,9 @@ test.describe('Style files', () => {
     test('a feature page lists its style files and the design tokens page', async ({ page }) => {
         await page.goto(featureUrl(['kit', 'theming']));
         const section = page.locator('#theming').locator('..');
-        await expect(section.locator('[data-cdx-feature-member="style"] code')).toHaveText(
-            'tokens.css'
-        );
+        await expect(
+            section.locator('[data-cdx-feature-member="style"] .cdx-feature-card-name code')
+        ).toHaveText('tokens.css');
         await expect(section.locator('.cdx-feature-design-tokens a')).toBeVisible();
         await page.goto(featureUrl(['kit', 'highlight']));
         await expect(page.locator('a[href$="StyHighlight.html#theming"]')).toBeVisible();

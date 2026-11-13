@@ -7,7 +7,7 @@ import { symbolTarget } from '../../app/links/resolve';
 import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
 import { DiBadges } from '../components/DiBadges';
 import { IconCube } from '../components/Icons';
-import { firstSentence, t } from '../helpers';
+import { pageSummary, t } from '../helpers';
 import { entryFacts } from '../helpers/symbol-facts';
 
 /**
@@ -45,7 +45,7 @@ const entriesOf = (
 const Row = (entry: SymbolEntry, depth: number, semantic: SemanticModel | undefined): string => {
     const description = (entry.data as { description?: unknown }).description;
     const href = hrefText(hrefFor(symbolTarget(entry), depth));
-    const summary = firstSentence(description);
+    const summary = pageSummary(description);
     const facts = entryFacts(semantic, entry);
     return (
         <tr data-cdx-misc-name={entry.ref.name.toLowerCase()}>

@@ -191,6 +191,8 @@ export const TRANSLATION_ZH_CN = {
     'feature-detector-folder': '从文件夹检测',
     'builds-on': '基于',
     'extended-by': '扩展者',
+    'entry-points': '入口点',
+    'theming-applies-to': '适用于',
     utilities: '工具',
     variables: '变量',
     'view-providers': '视图提供者',

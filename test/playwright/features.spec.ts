@@ -26,7 +26,7 @@ test.describe('Feature pages', () => {
             'A single-select built from small parts'
         );
         const members = page.locator(
-            'h2#components-and-directives + table tr[data-cdx-feature-member]'
+            'h2#components-and-directives + ul li[data-cdx-feature-member]'
         );
         await expect(members).toHaveCount(4);
         await members.filter({ hasText: 'SemSelectListbox' }).locator('a').click();
@@ -50,7 +50,7 @@ test.describe('Feature pages', () => {
         page
     }) => {
         await page.goto(featureUrl(['ui', 'select-field']));
-        const buildsOn = page.locator('tr[data-cdx-feature-related="@sem/core/select#"] a');
+        const buildsOn = page.locator('li[data-cdx-feature-related="@sem/core/select#"] a');
         await expect(page.locator('h2#builds-on')).toHaveCount(1);
         await expect(buildsOn).toHaveText('select');
         await buildsOn.click();
@@ -59,7 +59,7 @@ test.describe('Feature pages', () => {
         ).toBeVisible();
         await expect(page.locator('h2#extended-by')).toHaveCount(1);
         await expect(
-            page.locator('tr[data-cdx-feature-related="@sem/ui#select-field"] a')
+            page.locator('li[data-cdx-feature-related="@sem/ui#select-field"] a')
         ).toHaveText('select-field');
     });
 
@@ -74,7 +74,7 @@ test.describe('Feature pages', () => {
         await expect(page.locator('.cdx-entity-hero[data-cdx-feature="@sem/core#"]')).toBeVisible();
         await expect(page.locator('h2#configuration')).toHaveCount(1);
         await expect(
-            page.locator('tr[data-cdx-feature-member] a', { hasText: 'formatFoo' })
+            page.locator('li[data-cdx-feature-member] a', { hasText: 'formatFoo' })
         ).toHaveCount(1);
     });
 

@@ -11,9 +11,9 @@ import { IconFile, IconNamespace } from '../components/Icons';
 import { KindIcon } from '../components/KindIcon';
 import { NamespaceLine } from '../components/NamespaceLine';
 import {
-    firstSentence,
     pagefindFilterBlock,
     pagefindMetaBlock,
+    pageSummary,
     parseDescription,
     t
 } from '../helpers';
@@ -64,7 +64,7 @@ const MemberRow = (member: NamespaceMemberRow): string => {
                 {member.href ? <a href={member.href}>{name}</a> : name}
                 {aliasTarget(member)}
             </td>
-            <td>{firstSentence(member.description) ?? ''}</td>
+            <td>{pageSummary(member.description) ?? ''}</td>
         </tr>
     ) as string;
 };

@@ -193,6 +193,8 @@ export const TRANSLATION_NL_NL = {
     'feature-detector-folder': 'Afgeleid uit de map',
     'builds-on': 'Bouwt voort op',
     'extended-by': 'Uitgebreid door',
+    'entry-points': 'Ingangspunten',
+    'theming-applies-to': 'Voor',
     utilities: 'Hulpmiddelen',
     variables: 'Variabelen',
     'view-providers': 'View-providers',

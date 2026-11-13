@@ -3,6 +3,8 @@ import decache from 'decache';
 import * as fs from 'fs-extra';
 import { markedAcl } from '../../utils/marked.acl';
 import FileEngine from './file.engine';
+import { applyListDirectives } from './markdown-directives';
+import { leadInListItem, leadInParagraph } from './markdown-lead-in';
 import { highlightCode } from './syntax-highlight.engine';
 
 export interface markdownReadedDatas {
@@ -17,6 +19,9 @@ export class MarkdownEngine {
     private readonly markdownFiles = ['README', 'CHANGELOG', 'LICENSE', 'CONTRIBUTING', 'TODO'];
 
     private markedInstance;
+
+    /** The global renderer plus the lead-in hooks, for markdown page bodies. */
+    private pageRenderer;
 
     private static instance: MarkdownEngine;
     private constructor() {
@@ -71,6 +76,18 @@ export class MarkdownEngine {
             return out;
         };
 
+        // Page bodies only (`render`): `**Label.** Text` paragraphs and list items.
+        // JSDoc and the exports keep marked's default paragraphs and items.
+        this.pageRenderer = new this.markedInstance.Renderer();
+        Object.assign(this.pageRenderer, {
+            code: renderer.code,
+            table: renderer.table,
+            heading: renderer.heading,
+            image: renderer.image,
+            paragraph: (text: string) => leadInParagraph(text),
+            listitem: (text: string, task: boolean) => leadInListItem(text, task)
+        });
+
         this.markedInstance.setOptions({
             renderer: renderer,
             gfm: true,
@@ -84,6 +101,15 @@ export class MarkdownEngine {
         return MarkdownEngine.instance;
     }
 
+    /**
+     * The HTML of a markdown page body (README and root files, additional
+     * pages, feature READMEs): lead-in paragraphs and list items, and the
+     * comment opt-ins applied.
+     */
+    public render(markdown: string): string {
+        return applyListDirectives(this.markedInstance(markdown, { renderer: this.pageRenderer }));
+    }
+
     /** True when `<name>.md` or `<name>` exists in the cwd. */
     public hasTraditionalMarkdown(name: string): boolean {
         const file = process.cwd() + path.sep + name;
@@ -95,7 +121,7 @@ export class MarkdownEngine {
             .catch(_err => FileEngine.get(process.cwd() + path.sep + filepath))
             .then(data => {
                 const returnedData: markdownReadedDatas = {
-                    markdown: this.markedInstance(data),
+                    markdown: this.render(data),
                     rawData: data
                 };
                 return returnedData;
@@ -104,13 +130,13 @@ export class MarkdownEngine {
 
     /** Reads `filepath` (absolute, or relative to the cwd) and renders it. */
     public getTraditionalMarkdownSync(filepath: string): string {
-        return this.markedInstance(FileEngine.getSync(filepath));
+        return this.render(FileEngine.getSync(filepath));
     }
 
     /** Reads `filepath` (absolute, or relative to the cwd): the HTML and the Markdown as written. */
     public getTraditionalMarkdownSyncWithRaw(filepath: string): { html: string; raw: string } {
         const raw = FileEngine.getSync(filepath);
-        return { html: this.markedInstance(raw), raw };
+        return { html: this.render(raw), raw };
     }
 
     public readNeighbourReadmeFile(file: string): string {

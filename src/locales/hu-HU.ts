@@ -193,6 +193,8 @@ export const TRANSLATION_HU_HU = {
     'feature-detector-folder': 'Mappából felismerve',
     'builds-on': 'Erre épül',
     'extended-by': 'Kiterjeszti',
+    'entry-points': 'Belépési pontok',
+    'theming-applies-to': 'Ehhez',
     utilities: 'Segédeszközök',
     variables: 'Változók',
     'view-providers': 'Nézet szolgáltatók',

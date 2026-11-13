@@ -12,8 +12,12 @@ import { isDocumentedToken, type StyleFile } from '../../app/styles/model';
 import { markedAcl } from '../../utils/marked.acl';
 import { DiBadges } from '../components/DiBadges';
 import { IconFolder } from '../components/Icons';
-import { firstSentence, t } from '../helpers';
-import type { FeatureMembers } from '../helpers/feature-sections';
+import { pageSummary, t } from '../helpers';
+import {
+    FEATURE_PAGE_SECTIONS,
+    type FeatureMembers,
+    type FeaturePageSection
+} from '../helpers/feature-sections';
 import { entryFacts } from '../helpers/symbol-facts';
 import { hasTheming, themingFor } from '../helpers/theming';
 import { featureRouteRows, RouteTree } from './Routes';
@@ -27,26 +31,9 @@ import { featureRouteRows, RouteTree } from './Routes';
  * Override name: `feature`.
  */
 
-interface MemberSection {
-    readonly id: string;
-    readonly titleKey: string;
-    readonly lists: readonly (keyof FeatureMembers)[];
-}
+type MemberSection = FeaturePageSection;
 
-const SECTIONS: readonly MemberSection[] = [
-    {
-        id: 'components-and-directives',
-        titleKey: 'components-and-directives',
-        lists: ['components', 'directives']
-    },
-    { id: 'pipes', titleKey: 'pipes', lists: ['pipes'] },
-    { id: 'services', titleKey: 'services', lists: ['services'] },
-    { id: 'configuration', titleKey: 'configuration', lists: ['configuration'] },
-    { id: 'utilities', titleKey: 'utilities', lists: ['utilities'] },
-    { id: 'constants', titleKey: 'constants', lists: ['constants'] },
-    { id: 'types', titleKey: 'types', lists: ['types'] },
-    { id: 'classes', titleKey: 'classes', lists: ['classes'] }
-];
+const SECTIONS = FEATURE_PAGE_SECTIONS;
 
 interface Context {
     readonly table: SymbolTable;
@@ -80,15 +67,15 @@ const Heading = (id: string, title: string, count?: number): string =>
 const MemberRow = (entry: SymbolEntry, ctx: Context): string => {
     const href = memberHref(entry, ctx);
     const name = <code>{entry.ref.name}</code>;
-    const summary = firstSentence((entry.data as { description?: unknown }).description);
+    const summary = pageSummary((entry.data as { description?: unknown }).description);
     return (
-        <tr data-cdx-feature-member={entry.ref.kind}>
-            <td>
+        <li class="cdx-feature-row" data-cdx-feature-member={entry.ref.kind}>
+            <span class="cdx-feature-row-name">
                 {href ? <a href={href}>{name}</a> : name}
                 {DiBadges({ facts: entryFacts(ctx.semantic, entry) })}
-            </td>
-            <td>{summary ?? ''}</td>
-        </tr>
+            </span>
+            <span class="cdx-feature-row-summary">{summary ?? ''}</span>
+        </li>
     ) as string;
 };
 
@@ -100,54 +87,97 @@ const Members = (section: MemberSection, members: FeatureMembers, ctx: Context):
     return (
         <section class="cdx-content-section">
             {Heading(section.id, t(section.titleKey), entries.length)}
-            <table class="cdx-table">
-                <thead>
-                    <tr>
-                        <th scope="col">{t('name')}</th>
-                        <th scope="col">{t('description')}</th>
-                    </tr>
-                </thead>
-                <tbody>{entries.map(entry => MemberRow(entry, ctx))}</tbody>
-            </table>
+            <ul class="cdx-feature-rows">{entries.map(entry => MemberRow(entry, ctx))}</ul>
         </section>
     ) as string;
 };
 
-const SubFeatures = (cards: readonly FeatureCard[], depth: number): string => {
-    if (cards.length === 0) {
-        return '';
-    }
-    return (
-        <section class="cdx-content-section">
-            {Heading('features', t('features'), cards.length)}
-            <table class="cdx-table">
-                <thead>
-                    <tr>
-                        <th scope="col">{t('name')}</th>
-                        <th scope="col">{t('members')}</th>
-                        <th scope="col">{t('description')}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {cards.map(
-                        card =>
-                            (
-                                <tr data-cdx-feature-card={card.id}>
-                                    <td>
-                                        <a href={featureHref(card.segments, depth)}>
-                                            <code>{card.label}</code>
-                                        </a>
-                                    </td>
-                                    <td>{String(card.memberCount)}</td>
-                                    <td>{(card.summary ?? '') as string}</td>
-                                </tr>
-                            ) as string
-                    )}
-                </tbody>
-            </table>
-        </section>
-    ) as string;
+/** Links in a card summary read as their text: the whole card is one link. */
+const unlinked = (html: string): string => html.replace(/<a\b[^>]*>([\s\S]*?)<\/a>/gi, '$1');
+
+/** The footer of a card: its feature count (entry points) and member count. */
+const CardCounts = (card: FeatureCard): string => {
+    const counts = [
+        card.featureCount ? { count: card.featureCount, label: t('features') } : undefined,
+        card.memberCount > 0 ? { count: card.memberCount, label: t('members') } : undefined
+    ].filter(count => count !== undefined);
+    return counts.length === 0
+        ? ''
+        : ((
+              <p class="cdx-feature-card-meta cdx-feature-card-counts">
+                  {counts.map(
+                      count =>
+                          (
+                              <span>
+                                  <b>{String(count.count)}</b> {count.label}
+                              </span>
+                          ) as string
+                  )}
+              </p>
+          ) as string);
 };
+
+/**
+ * Feature cards: name linked to the feature page (the link covers the whole
+ * card), optional import path, README summary and a footer with the feature
+ * count (entry points) and the member count.
+ */
+const FeatureCards = (
+    cards: readonly FeatureCard[],
+    depth: number,
+    options: { readonly importLine: boolean }
+): string =>
+    (
+        <ul class="cdx-feature-cards">
+            {cards.map(
+                card =>
+                    (
+                        <li class="cdx-feature-card" data-cdx-feature-card={card.id}>
+                            <div class="cdx-feature-card-top">
+                                <a
+                                    class="cdx-feature-card-name"
+                                    href={featureHref(card.segments, depth)}
+                                >
+                                    {card.label}
+                                </a>
+                            </div>
+                            {options.importLine && card.entryPoint ? (
+                                <code class="cdx-feature-card-import">{card.entryPoint}</code>
+                            ) : (
+                                ''
+                            )}
+                            {card.summary ? (
+                                <p class="cdx-feature-card-summary">{unlinked(card.summary)}</p>
+                            ) : (
+                                ''
+                            )}
+                            {CardCounts(card)}
+                        </li>
+                    ) as string
+            )}
+        </ul>
+    ) as string;
+
+/** The entry points below this one (parent entry point pages only). */
+const EntryPoints = (cards: readonly FeatureCard[], depth: number): string =>
+    cards.length === 0
+        ? ''
+        : ((
+              <section class="cdx-content-section">
+                  {Heading('entry-points', t('entry-points'), cards.length)}
+                  {FeatureCards(cards, depth, { importLine: true })}
+              </section>
+          ) as string);
+
+const SubFeatures = (cards: readonly FeatureCard[], depth: number): string =>
+    cards.length === 0
+        ? ''
+        : ((
+              <section class="cdx-content-section">
+                  {Heading('features', t('features'), cards.length)}
+                  {FeatureCards(cards, depth, { importLine: false })}
+              </section>
+          ) as string);
 
 /** Features of other entry points, with their import path. */
 const Related = (
@@ -162,53 +192,83 @@ const Related = (
     return (
         <section class="cdx-content-section">
             {Heading(id, title, cards.length)}
-            <table class="cdx-table">
-                <thead>
-                    <tr>
-                        <th scope="col">{t('name')}</th>
-                        <th scope="col">{t('import')}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {cards.map(
-                        card =>
-                            (
-                                <tr data-cdx-feature-related={card.id}>
-                                    <td>
-                                        <a href={featureHref(card.segments, depth)}>
-                                            <code>{card.label}</code>
-                                        </a>
-                                    </td>
-                                    <td>{card.entryPoint ?? ''}</td>
-                                </tr>
-                            ) as string
-                    )}
-                </tbody>
-            </table>
+            <ul class="cdx-feature-rows">
+                {cards.map(
+                    card =>
+                        (
+                            <li class="cdx-feature-row" data-cdx-feature-related={card.id}>
+                                <span class="cdx-feature-row-name">
+                                    <a href={featureHref(card.segments, depth)}>
+                                        <code>{card.label}</code>
+                                    </a>
+                                </span>
+                                <span class="cdx-feature-row-summary">
+                                    {card.entryPoint ? <code>{card.entryPoint}</code> : ''}
+                                </span>
+                            </li>
+                        ) as string
+                )}
+            </ul>
         </section>
     ) as string;
 };
 
-/** A style page row: link, first sentence of its overview, token and mixin counts. */
-const StyleRow = (entry: SymbolEntry, ctx: Context): string => {
+/** Distinct non-empty token groups of a style file, in order of first appearance. */
+const tokenGroups = (file: StyleFile): readonly string[] => [
+    ...new Set(file.tokens.map(token => token.group).filter(group => group !== ''))
+];
+
+/** The components and directives a style file themes, linked where they have a page. */
+const ThemedTargets = (file: StyleFile, ctx: Context): string => {
+    const targets = file.themes.flatMap(id => {
+        const entry = ctx.table?.byId.get(id);
+        return entry ? [entry] : [];
+    });
+    if (targets.length === 0) {
+        return '';
+    }
+    return (
+        <p class="cdx-feature-card-for">
+            <span class="cdx-feature-card-for-label">{t('theming-applies-to')}</span>
+            {targets.map(entry => {
+                const href = memberHref(entry, ctx);
+                const name = <code>{entry.ref.name}</code>;
+                return href ? ((<a href={href}>{name}</a>) as string) : (name as string);
+            })}
+        </p>
+    ) as string;
+};
+
+/**
+ * A style page card: file name linked to its page, first sentence of its
+ * overview, documented token count, mixin count and token groups, and the
+ * components and directives it themes.
+ */
+const StyleCard = (entry: SymbolEntry, ctx: Context): string => {
     const file = entry.data as StyleFile;
-    const summary = firstSentence(file.overview ? (markedAcl(file.overview) as string) : '');
+    const summary = pageSummary(file.overview ? (markedAcl(file.overview) as string) : '');
     const tokens = file.tokens.filter(isDocumentedToken).length;
-    const counts = [
-        tokens > 0 ? `${tokens} ${t('tokens')}` : '',
-        file.mixins.length > 0 ? `${file.mixins.length} ${t('mixins')}` : ''
+    const groups = tokenGroups(file);
+    const meta = [
+        tokens > 0 ? `<span><b>${tokens}</b> ${t('tokens')}</span>` : '',
+        file.mixins.length > 0 ? `<span><b>${file.mixins.length}</b> ${t('mixins')}</span>` : '',
+        groups.length > 0
+            ? `<span>${groups.map(group => Html.escapeHtml(group)).join(' &middot; ')}</span>`
+            : ''
     ].filter(Boolean);
     return (
-        <li data-cdx-feature-member="style">
-            <a href={hrefText(hrefFor(symbolTarget(entry), ctx.depth))}>
-                <code>{fileName(file.file)}</code>
-            </a>
-            {summary ? <span class="cdx-feature-style-summary"> {summary}</span> : ''}
-            {counts.length > 0 ? (
-                <span class="cdx-feature-style-counts"> ({counts.join(', ')})</span>
-            ) : (
-                ''
-            )}
+        <li class="cdx-feature-card" data-cdx-feature-member="style">
+            <div class="cdx-feature-card-top">
+                <a
+                    class="cdx-feature-card-name"
+                    href={hrefText(hrefFor(symbolTarget(entry), ctx.depth))}
+                >
+                    <code>{fileName(file.file)}</code>
+                </a>
+            </div>
+            {summary ? <p class="cdx-feature-card-summary">{summary}</p> : ''}
+            {meta.length > 0 ? <p class="cdx-feature-card-meta">{meta.join('')}</p> : ''}
+            {ThemedTargets(file, ctx)}
         </li>
     ) as string;
 };
@@ -268,7 +328,7 @@ const Theming = (members: FeatureMembers, styles: readonly SymbolEntry[], ctx: C
         <section class="cdx-content-section">
             {Heading('theming', t('theming'), themed.length + styles.length)}
             {styles.length > 0 ? (
-                <ul class="cdx-feature-styles">{styles.map(entry => StyleRow(entry, ctx))}</ul>
+                <ul class="cdx-feature-cards">{styles.map(entry => StyleCard(entry, ctx))}</ul>
             ) : (
                 ''
             )}
@@ -312,6 +372,7 @@ const Theming = (members: FeatureMembers, styles: readonly SymbolEntry[], ctx: C
 const JumpBar = (feature: FeaturePageData, ctx: Context): string => {
     const styles = feature.styles ?? [];
     const links = [
+        { id: 'entry-points', label: t('entry-points'), count: feature.entryPoints.length },
         { id: 'features', label: t('features'), count: feature.subFeatures.length },
         ...SECTIONS.map(section => ({
             id: section.id,
@@ -408,6 +469,7 @@ export const FeaturePage = (data: any): string => {
             ) : (
                 ''
             )}
+            {EntryPoints(feature.entryPoints, ctx.depth)}
             {SubFeatures(feature.subFeatures, ctx.depth)}
             {SECTIONS.map(section => Members(section, feature.members, ctx))}
             {FeatureRoutes(feature.members, ctx)}

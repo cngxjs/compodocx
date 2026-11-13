@@ -13,6 +13,7 @@
 @import "./components/tab-bar.css";
 @import "./components/entity-hero.css";
 @import "./components/content-sections.css";
+@import "./components/feature-lists.css";
 @import "./components/member-card.css";
 @import "./components/code-blocks.css";
 @import "./components/empty-state.css";
@@ -135,7 +136,7 @@
     --color-cdx-snippet-bg: hsl(0 0% 93%);
     --color-cdx-snippet-border: transparent;
     --color-cdx-snippet-radius: var(--radius-cdx-md);
-    --color-cdx-code-inline: #c2185b;
+    --color-cdx-code-inline: hsl(0 0% 12%); /* = --color-cdx-text: a quiet tinted chip */
     --color-cdx-code-dark-surface: hsl(0 0% 14%);
     --color-cdx-scrollbar: hsl(0 0% 50% / 0.4);
     --color-cdx-line-number: hsl(0 0% 50% / 0.5);
@@ -234,7 +235,7 @@
 
     --color-cdx-snippet-bg: hsl(0 0% 16%);
     --color-cdx-snippet-border: transparent;
-    --color-cdx-code-inline: #e09393;
+    --color-cdx-code-inline: hsl(0 0% 92%); /* = --color-cdx-text */
     --color-cdx-code-dark-surface: hsl(0 0% 14%);
     --color-cdx-scrollbar: hsl(0 0% 50% / 0.5);
     --color-cdx-line-number: hsl(0 0% 50% / 0.4);

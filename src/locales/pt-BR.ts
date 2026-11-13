@@ -193,6 +193,8 @@ export const TRANSLATION_PT_BR = {
     'feature-detector-folder': 'Detectado pela pasta',
     'builds-on': 'Baseia-se em',
     'extended-by': 'Estendido por',
+    'entry-points': 'Pontos de entrada',
+    'theming-applies-to': 'Para',
     utilities: 'Utilitários',
     variables: 'Variáveis',
     'view-providers': 'Provedores de view',
