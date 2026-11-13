@@ -122,7 +122,7 @@ export const TRANSLATION_SK_SK = {
     providers: 'Providers',
     pure: 'Pure',
     readme: 'README',
-    reference: 'Reference',
+    reference: 'Referencia',
     references: 'Referencie',
     required: 'Požadovaný',
     reset: 'Resetovať',
