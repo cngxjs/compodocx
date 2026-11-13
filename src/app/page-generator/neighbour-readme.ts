@@ -1,6 +1,5 @@
 import { detectAiGeneratedMarker } from '../../utils/ai-generated.util';
 import { logger } from '../../utils/logger';
-import { markedAcl } from '../../utils/marked.acl';
 import MarkdownEngine from '../engines/markdown.engine';
 
 /** Page fields derived from the neighbour README of a symbol. */
@@ -29,7 +28,7 @@ export const attachNeighbourReadme = (entity: {
     }
     logger.info(` ${entity.name} has a README file, include it`);
     const markdown = MarkdownEngine.readNeighbourReadmeFile(entity.file);
-    entity.readme = markedAcl(markdown);
+    entity.readme = MarkdownEngine.render(markdown);
     const marker = detectAiGeneratedMarker(markdown);
     return marker === false ? {} : { symbolReadmeAiGenerated: marker };
 };

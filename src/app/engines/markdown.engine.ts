@@ -3,6 +3,7 @@ import decache from 'decache';
 import * as fs from 'fs-extra';
 import { markedAcl } from '../../utils/marked.acl';
 import FileEngine from './file.engine';
+import { applyListDirectives } from './markdown-directives';
 import { leadInListItem, leadInParagraph } from './markdown-lead-in';
 import { highlightCode } from './syntax-highlight.engine';
 
@@ -89,6 +90,11 @@ export class MarkdownEngine {
         return MarkdownEngine.instance;
     }
 
+    /** The HTML of a markdown page body, with the comment opt-ins applied. */
+    public render(markdown: string): string {
+        return applyListDirectives(this.markedInstance(markdown));
+    }
+
     /** True when `<name>.md` or `<name>` exists in the cwd. */
     public hasTraditionalMarkdown(name: string): boolean {
         const file = process.cwd() + path.sep + name;
@@ -100,7 +106,7 @@ export class MarkdownEngine {
             .catch(_err => FileEngine.get(process.cwd() + path.sep + filepath))
             .then(data => {
                 const returnedData: markdownReadedDatas = {
-                    markdown: this.markedInstance(data),
+                    markdown: this.render(data),
                     rawData: data
                 };
                 return returnedData;
@@ -109,13 +115,13 @@ export class MarkdownEngine {
 
     /** Reads `filepath` (absolute, or relative to the cwd) and renders it. */
     public getTraditionalMarkdownSync(filepath: string): string {
-        return this.markedInstance(FileEngine.getSync(filepath));
+        return this.render(FileEngine.getSync(filepath));
     }
 
     /** Reads `filepath` (absolute, or relative to the cwd): the HTML and the Markdown as written. */
     public getTraditionalMarkdownSyncWithRaw(filepath: string): { html: string; raw: string } {
         const raw = FileEngine.getSync(filepath);
-        return { html: this.markedInstance(raw), raw };
+        return { html: this.render(raw), raw };
     }
 
     public readNeighbourReadmeFile(file: string): string {

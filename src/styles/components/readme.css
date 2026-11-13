@@ -217,6 +217,25 @@
     }
 }
 
+/* --- Inline lists: `<!-- compodocx: inline -->` before a bullet list
+       (markdown-directives.ts) renders it as a wrapping row of chips. --- */
+
+.cdx-readme ul.cdx-list-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0;
+    list-style: none;
+}
+
+.cdx-readme ul.cdx-list-inline > li {
+    margin: 0;
+    padding: 2px 10px;
+    border: 1px solid var(--color-cdx-border-strong);
+    border-radius: 999px;
+    font-size: 14px;
+}
+
 /* --- Inline code: one chip for READMEs, additional pages and descriptions.
        `:where()` keeps the specificity of a bare `:not(pre) > code`, so a
        theme restyles every surface with one rule. Code in headings reads as
