@@ -16,6 +16,8 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 
 - **One code block.** Fenced code, `@example`, theming examples and sources, playground previews and long values share one block with a toolbar: the language (or the file name) on the left, a copy button on the right. The button is part of the page instead of being added by script, announces the result to screen readers, shows a failed copy and then selects the code. The source viewer uses the same button. The JSON and llm-md exports keep the code without toolbar; a snippet there carries `data-cdx-lang`.
 - **Themed members on feature pages.** The components and directives with a Theming tab are rows like the other member lists (`li.cdx-feature-row[data-cdx-feature-theming]`) with the first sentence of the theme overview (else the member summary) and the number of documented tokens and mixins, instead of a bare list.
+- **Symbol lists on the other pages.** The tokens on a feature type page, the providers without a feature type on the dependency injection page and the members of a namespace are the same rows as on feature pages (name, then summary) instead of a bare list or a two-column table: `li.cdx-feature-row` with `data-cdx-cluster-token`, `data-cdx-di-provider` or `data-cdx-namespace-member`. A namespace alias shows its target on its own line below the name. The feature type and token tables on the dependency injection page and the utilities tables keep their columns (providers and features, shape and providers, used-by count).
+- **Provides.** What a provider provides is a headed chip list (`id="provides"`) like Provided by, Injected by and Used by, instead of one `Tokens: a, b` line per kind; the `cdx-di-provided-tokens` class is gone.
 
 ### Fixed
 
@@ -24,6 +26,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 - A fence in an unknown language is shown as plain text instead of being highlighted as TypeScript.
 - Permalinks on member cards and README headings are visible on keyboard focus.
 - Route paths on the routes page no longer get a second underline on hover.
+- Used by, Provided by, Injected by and Provides chips for tokens, functions, constants, type aliases, enums, style files and namespaces have their kind colour instead of grey.
 
 ## [0.18.0] - 2026-11-13
 
