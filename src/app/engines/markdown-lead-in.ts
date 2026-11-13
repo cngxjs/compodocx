@@ -26,3 +26,14 @@ export function leadInParagraph(text: string): string {
     const parts = leadInParts(text);
     return parts === undefined ? `<p>${text}</p>\n` : `<p class="cdx-leadin">${parts}</p>\n`;
 }
+
+/**
+ * `renderer.listitem` for marked 7: an item of a tight list that opens with a
+ * bold label gets `li.cdx-leadin`. Task items and items of loose lists (their
+ * text starts with `<p>`, which `leadInParagraph` already handled) stay as
+ * marked renders them.
+ */
+export function leadInListItem(text: string, task: boolean): string {
+    const parts = task ? undefined : leadInParts(text);
+    return parts === undefined ? `<li>${text}</li>\n` : `<li class="cdx-leadin">${parts}</li>\n`;
+}

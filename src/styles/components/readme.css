@@ -160,13 +160,18 @@
     margin-bottom: 0.375rem;
 }
 
-/* --- Lead-ins: `**Label.** Text` paragraphs (markdown-lead-in.ts). The
+/* --- Lead-ins: `**Label.** Text` paragraphs and list items (markdown-lead-in.ts). The
        label gets its own column once the content is 40rem wide and drops
        its period there; below that it sits above the text. --- */
 
-.cdx-readme p.cdx-leadin {
+.cdx-readme p.cdx-leadin,
+.cdx-readme li > p.cdx-leadin:first-child {
     display: grid;
     gap: 2px var(--spacing-cdx-2xl);
+}
+
+.cdx-readme li > p.cdx-leadin:first-child {
+    margin: 0;
 }
 
 .cdx-readme .cdx-leadin-label {
@@ -179,9 +184,32 @@
     max-width: 72ch;
 }
 
+/* A grid would drop the list marker, so a lead-in item stays a list item:
+   label and text stack, and the label floats into its column when wide. */
+.cdx-readme li.cdx-leadin > .cdx-leadin-label,
+.cdx-readme li.cdx-leadin > .cdx-leadin-text {
+    display: block;
+}
+
+.cdx-readme li.cdx-leadin::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
 @container content (min-width: 40rem) {
-    .cdx-readme p.cdx-leadin {
+    .cdx-readme p.cdx-leadin,
+    .cdx-readme li > p.cdx-leadin:first-child {
         grid-template-columns: 9rem minmax(0, 1fr);
+    }
+
+    .cdx-readme li.cdx-leadin > .cdx-leadin-label {
+        float: left;
+        width: 9rem;
+    }
+
+    .cdx-readme li.cdx-leadin > .cdx-leadin-text {
+        margin-left: calc(9rem + var(--spacing-cdx-2xl));
     }
 
     .cdx-readme .cdx-leadin-punct {

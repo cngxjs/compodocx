@@ -1,6 +1,6 @@
 import { marked } from 'marked';
 import { describe, expect, it } from 'vitest';
-import { leadInParagraph } from '../../../../src/app/engines/markdown-lead-in';
+import { leadInListItem, leadInParagraph } from '../../../../src/app/engines/markdown-lead-in';
 
 /** marked's default paragraph output for the same inline HTML. */
 const markedDefault = (text: string): string => new marked.Renderer().paragraph(text);
@@ -36,5 +36,26 @@ describe('leadInParagraph', () => {
     it('renders a plain paragraph byte-identical to marked', () => {
         const text = 'Just a <em>plain</em> paragraph.\nSecond line.';
         expect(leadInParagraph(text)).toBe(markedDefault(text));
+    });
+});
+
+describe('leadInListItem', () => {
+    const markedItem = (text: string, task: boolean): string =>
+        new marked.Renderer().listitem(text, task, false);
+
+    it('gives a tight item with a bold label li.cdx-leadin', () => {
+        expect(leadInListItem('<strong>Focus.</strong> Moves into the panel.', false)).toBe(
+            '<li class="cdx-leadin"><strong class="cdx-leadin-label">Focus<span class="cdx-leadin-punct">.</span></strong> <span class="cdx-leadin-text">Moves into the panel.</span></li>\n'
+        );
+    });
+
+    it('leaves a task item alone', () => {
+        const text = '<input disabled="" type="checkbox"> <strong>Done.</strong> Text';
+        expect(leadInListItem(text, true)).toBe(markedItem(text, true));
+    });
+
+    it('renders an item without a label byte-identical to marked', () => {
+        const text = 'Chrome 125+';
+        expect(leadInListItem(text, false)).toBe(markedItem(text, false));
     });
 });

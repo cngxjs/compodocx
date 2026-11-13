@@ -3,7 +3,7 @@ import decache from 'decache';
 import * as fs from 'fs-extra';
 import { markedAcl } from '../../utils/marked.acl';
 import FileEngine from './file.engine';
-import { leadInParagraph } from './markdown-lead-in';
+import { leadInListItem, leadInParagraph } from './markdown-lead-in';
 import { highlightCode } from './syntax-highlight.engine';
 
 export interface markdownReadedDatas {
@@ -72,8 +72,9 @@ export class MarkdownEngine {
             return out;
         };
 
-        // `**Label.** Text` paragraphs; others render as marked's default.
+        // `**Label.** Text` paragraphs and list items; others render as marked's default.
         renderer.paragraph = (text: string) => leadInParagraph(text);
+        renderer.listitem = (text: string, task: boolean) => leadInListItem(text, task);
 
         this.markedInstance.setOptions({
             renderer: renderer,
