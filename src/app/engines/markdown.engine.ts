@@ -20,6 +20,9 @@ export class MarkdownEngine {
 
     private markedInstance;
 
+    /** The global renderer plus the lead-in hooks, for markdown page bodies. */
+    private pageRenderer;
+
     private static instance: MarkdownEngine;
     private constructor() {
         decache('marked');
@@ -73,9 +76,17 @@ export class MarkdownEngine {
             return out;
         };
 
-        // `**Label.** Text` paragraphs and list items; others render as marked's default.
-        renderer.paragraph = (text: string) => leadInParagraph(text);
-        renderer.listitem = (text: string, task: boolean) => leadInListItem(text, task);
+        // Page bodies only (`render`): `**Label.** Text` paragraphs and list items.
+        // JSDoc and the exports keep marked's default paragraphs and items.
+        this.pageRenderer = new this.markedInstance.Renderer();
+        Object.assign(this.pageRenderer, {
+            code: renderer.code,
+            table: renderer.table,
+            heading: renderer.heading,
+            image: renderer.image,
+            paragraph: (text: string) => leadInParagraph(text),
+            listitem: (text: string, task: boolean) => leadInListItem(text, task)
+        });
 
         this.markedInstance.setOptions({
             renderer: renderer,
@@ -90,9 +101,13 @@ export class MarkdownEngine {
         return MarkdownEngine.instance;
     }
 
-    /** The HTML of a markdown page body, with the comment opt-ins applied. */
+    /**
+     * The HTML of a markdown page body (README and root files, additional
+     * pages, feature READMEs): lead-in paragraphs and list items, and the
+     * comment opt-ins applied.
+     */
     public render(markdown: string): string {
-        return applyListDirectives(this.markedInstance(markdown));
+        return applyListDirectives(this.markedInstance(markdown, { renderer: this.pageRenderer }));
     }
 
     /** True when `<name>.md` or `<name>` exists in the cwd. */

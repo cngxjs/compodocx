@@ -147,7 +147,7 @@ ng serve
 
 ### Markdown layout hints
 
-Two conventions change how compodocx lays out Markdown in additional pages, the README, feature READMEs and READMEs next to source files. Both render as plain Markdown on GitHub and npm.
+Two conventions change how compodocx lays out Markdown in additional pages, the README and the other root files, and feature READMEs. JSDoc comments and READMEs next to source files keep the plain layout. Both render as plain Markdown on GitHub and npm.
 
 **Lead-ins.** A paragraph or list item that starts with a short bold label ending in a period or a colon gets the label in its own column once the page is wide enough; on narrow screens the label sits above the text. The label must come first, be plain text (no code or links inside the bold) and be at most 40 characters long:
 

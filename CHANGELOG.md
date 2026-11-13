@@ -11,7 +11,7 @@ For the upstream compodoc history that predates the cngx fork, see <https://gith
 ### Added
 
 - **Entry points on a parent entry point page.** The page of an entry point such as `@scope/common` lists the entry points directly below it (`@scope/common/chart`, ...) in a new Entry points section with a jump bar link. Each card shows the name, the import path, the member count, the first README paragraph and the counts per section (features, components and directives, configuration, ...). An entry point appears on the page of its nearest parent only.
-- **Markdown layout hints.** A paragraph or list item that starts with a short bold label (`**Parts.** Text`, `- **Focus.** Text`) gets the label in its own column on wide pages and above the text on narrow ones. `<!-- compodocx: inline -->` directly before a bullet list renders that list as a row of chips. Both read as plain Markdown on GitHub and npm; see "Markdown layout hints" in `docs/additional-pages.md`.
+- **Markdown layout hints.** In the README, additional pages and feature READMEs, a paragraph or list item that starts with a short bold label (`**Parts.** Text`, `- **Focus.** Text`) gets the label in its own column on wide pages and above the text on narrow ones. `<!-- compodocx: inline -->` directly before a bullet list renders that list as a row of chips. Both read as plain Markdown on GitHub and npm; see "Markdown layout hints" in `docs/additional-pages.md`.
 
 ### Changed
 

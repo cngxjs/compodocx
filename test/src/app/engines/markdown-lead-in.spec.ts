@@ -59,3 +59,22 @@ describe('leadInListItem', () => {
         expect(leadInListItem(text, false)).toBe(markedItem(text, false));
     });
 });
+
+describe('lead-in scope', () => {
+    const markdown = '__Usage :__\n  value | firstUpper\n\n- **Focus.** Moves in.\n';
+
+    it('applies to markdown page bodies', async () => {
+        const { default: engine } = await import('../../../../src/app/engines/markdown.engine');
+        const html = engine.render(markdown);
+        expect(html).toContain('<p class="cdx-leadin">');
+        expect(html).toContain('<li class="cdx-leadin">');
+    });
+
+    it('leaves JSDoc and export HTML as marked renders it', async () => {
+        await import('../../../../src/app/engines/markdown.engine');
+        const { markedAcl } = await import('../../../../src/utils/marked.acl');
+        const html = markedAcl(markdown) as string;
+        expect(html).toContain('<p><strong>Usage :</strong>\n  value | firstUpper</p>');
+        expect(html).toContain('<li><strong>Focus.</strong> Moves in.</li>');
+    });
+});
