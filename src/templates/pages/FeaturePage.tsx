@@ -103,8 +103,9 @@ const CardKinds = (card: FeatureCard): string =>
                   {card.kinds.map(
                       kind =>
                           (
-                              <span>
-                                  {t(kind.section)} <b>{String(kind.count)}</b>
+                              <span title={`${t(kind.section)}: ${kind.count}`}>
+                                  <span class="cdx-feature-card-kind">{t(kind.section)}</span>
+                                  <b>{String(kind.count)}</b>
                               </span>
                           ) as string
                   )}

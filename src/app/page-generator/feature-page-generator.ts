@@ -268,28 +268,25 @@ export const featurePages = (
     };
     const inScope = (scope: string): readonly Feature[] =>
         model.features.filter(f => (f.entryPoint ?? '') === scope);
-    /** The card of an entry point: its root feature with counts over all its features. */
+    /**
+     * The card of an entry point: its root feature, its member count and the
+     * counts per section of the root feature's own members plus the number of
+     * its features (the members of those features are on their own pages).
+     */
     const entryPointCard = (root: Feature): FeatureCard => {
         const scope = root.entryPoint ?? '';
-        const features = inScope(scope);
-        const all = features.map(f => members.get(f.id) ?? none);
-        const sectionCount = (lists: readonly FeatureSection[]): number =>
-            all.reduce((sum, m) => sum + lists.reduce((n, list) => n + m[list].length, 0), 0);
+        const own = members.get(root.id) ?? none;
         const kinds = [
-            { section: 'features', count: features.filter(f => f.key !== '').length },
+            { section: 'features', count: inScope(scope).filter(f => f.key !== '').length },
             ...FEATURE_PAGE_SECTIONS.map(section => ({
                 section: section.id,
-                count: sectionCount(section.lists)
+                count: section.lists.reduce((n, list) => n + own[list].length, 0)
             })),
-            {
-                section: 'theming',
-                count: features.reduce((sum, f) => sum + (styles.get(f.id)?.length ?? 0), 0)
-            }
+            { section: 'theming', count: styles.get(root.id)?.length ?? 0 }
         ].filter(kind => kind.count > 0);
         return {
             ...card(root),
             label: scope.slice(scope.lastIndexOf('/') + 1) || root.label,
-            memberCount: all.reduce((sum, m) => sum + memberCount(m), 0),
             kinds
         };
     };

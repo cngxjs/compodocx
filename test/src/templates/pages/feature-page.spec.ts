@@ -485,15 +485,15 @@ describe('FeaturePage - entry points below a parent entry point', () => {
         }).replace(/ __(self|source)="[^"]*"/g, '');
     };
 
-    it('lists its child entry points as cards with import, count and kinds', () => {
+    it('lists its child entry points as cards with import, own member count and kinds', () => {
         const html = renderCommon(COMMON);
         expect(sectionIds(html)[0]).toBe('entry-points');
         const chart = html.slice(html.indexOf(`data-cdx-feature-card="${CHART}"`));
         expect(chart).toMatch(
-            /^data-cdx-feature-card="@x\/common\/chart#"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="[^"]*">chart<\/a><span class="cdx-badge cdx-badge--count">3<\/span><\/div><code class="cdx-feature-card-import">@x\/common\/chart<\/code><p class="cdx-feature-card-summary">Plots <code>series<\/code>.<\/p>/
+            /^data-cdx-feature-card="@x\/common\/chart#"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="[^"]*">chart<\/a><span class="cdx-badge cdx-badge--count">2<\/span><\/div><code class="cdx-feature-card-import">@x\/common\/chart<\/code><p class="cdx-feature-card-summary">Plots <code>series<\/code>.<\/p>/
         );
         expect(chart).toContain(
-            '<p class="cdx-feature-card-kinds"><span>Features <b>1</b></span><span>Components and directives <b>2</b></span><span>Types <b>1</b></span></p>'
+            '<p class="cdx-feature-card-kinds"><span title="Features: 1"><span class="cdx-feature-card-kind">Features</span><b>1</b></span><span title="Components and directives: 1"><span class="cdx-feature-card-kind">Components and directives</span><b>1</b></span><span title="Types: 1"><span class="cdx-feature-card-kind">Types</span><b>1</b></span></p>'
         );
         expect(html).toContain(`data-cdx-feature-card="${TIMELINE}"`);
         expect(jumpLinks(html)[0]).toEqual(['entry-points', '2']);
