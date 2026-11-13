@@ -11,8 +11,8 @@
 
 .cdx-feature-card {
     position: relative;
-    display: grid;
-    align-content: start;
+    display: flex;
+    flex-direction: column;
     gap: 6px;
     min-width: 0;
     padding: 14px var(--spacing-cdx-lg);
@@ -82,36 +82,11 @@
     -webkit-box-orient: vertical;
 }
 
-/* Section counts: two even columns, label left, number right. */
-.cdx-feature-card-kinds {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2px var(--spacing-cdx-lg);
-    margin: 0;
+/* The counts footer sits at the bottom of every card in a row. */
+.cdx-feature-card .cdx-feature-card-counts {
+    margin-top: auto;
     padding-top: var(--spacing-cdx-sm);
     border-top: 1px dashed var(--color-cdx-border);
-    font-size: 12.5px;
-    color: var(--color-cdx-text-secondary);
-}
-
-.cdx-feature-card-kinds > span {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--spacing-cdx-xs);
-    min-width: 0;
-    white-space: nowrap;
-}
-
-.cdx-feature-card-kind {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.cdx-feature-card-kinds b {
-    font-weight: 600;
-    color: var(--color-cdx-text);
-    font-variant-numeric: tabular-nums;
 }
 
 /* Code in a card summary reads as text: monospace, no chip. */

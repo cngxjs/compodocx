@@ -95,28 +95,32 @@ const Members = (section: MemberSection, members: FeatureMembers, ctx: Context):
 /** Links in a card summary read as their text: the whole card is one link. */
 const unlinked = (html: string): string => html.replace(/<a\b[^>]*>([\s\S]*?)<\/a>/gi, '$1');
 
-/** Counts per section of an entry point card, labelled like the jump bar. */
-const CardKinds = (card: FeatureCard): string =>
-    card.kinds && card.kinds.length > 0
-        ? ((
-              <p class="cdx-feature-card-kinds">
-                  {card.kinds.map(
-                      kind =>
+/** The footer of a card: its feature count (entry points) and member count. */
+const CardCounts = (card: FeatureCard): string => {
+    const counts = [
+        card.featureCount ? { count: card.featureCount, label: t('features') } : undefined,
+        card.memberCount > 0 ? { count: card.memberCount, label: t('members') } : undefined
+    ].filter(count => count !== undefined);
+    return counts.length === 0
+        ? ''
+        : ((
+              <p class="cdx-feature-card-meta cdx-feature-card-counts">
+                  {counts.map(
+                      count =>
                           (
-                              <span title={`${t(kind.section)}: ${kind.count}`}>
-                                  <span class="cdx-feature-card-kind">{t(kind.section)}</span>
-                                  <b>{String(kind.count)}</b>
+                              <span>
+                                  <b>{String(count.count)}</b> {count.label}
                               </span>
                           ) as string
                   )}
               </p>
-          ) as string)
-        : '';
+          ) as string);
+};
 
 /**
  * Feature cards: name linked to the feature page (the link covers the whole
- * card), member count, optional import path, README summary and, for entry
- * points, the counts per section.
+ * card), optional import path, README summary and a footer with the feature
+ * count (entry points) and the member count.
  */
 const FeatureCards = (
     cards: readonly FeatureCard[],
@@ -136,9 +140,6 @@ const FeatureCards = (
                                 >
                                     {card.label}
                                 </a>
-                                <span class="cdx-badge cdx-badge--count">
-                                    {String(card.memberCount)}
-                                </span>
                             </div>
                             {options.importLine && card.entryPoint ? (
                                 <code class="cdx-feature-card-import">{card.entryPoint}</code>
@@ -150,7 +151,7 @@ const FeatureCards = (
                             ) : (
                                 ''
                             )}
-                            {CardKinds(card)}
+                            {CardCounts(card)}
                         </li>
                     ) as string
             )}

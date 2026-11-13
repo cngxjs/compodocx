@@ -1,5 +1,4 @@
 import {
-    FEATURE_PAGE_SECTIONS,
     type FeatureMembers,
     type FeatureSection,
     sectionOf
@@ -24,11 +23,8 @@ export interface FeatureCard {
     readonly memberCount: number;
     /** First paragraph of the feature's README, as HTML. */
     readonly summary?: string;
-    /**
-     * Entry point cards only: counts per feature page section (`features`,
-     * the member sections, `theming`), in jump bar order, empty ones left out.
-     */
-    readonly kinds?: readonly { readonly section: string; readonly count: number }[];
+    /** Entry point cards only: the number of features of the entry point. */
+    readonly featureCount?: number;
 }
 
 /** What the `feature` page context receives under `feature`. */
@@ -269,25 +265,20 @@ export const featurePages = (
     const inScope = (scope: string): readonly Feature[] =>
         model.features.filter(f => (f.entryPoint ?? '') === scope);
     /**
-     * The card of an entry point: its root feature, its member count and the
-     * counts per section of the root feature's own members plus the number of
-     * its features (the members of those features are on their own pages).
+     * The card of an entry point: its root feature, the number of its features
+     * and the members of all of them.
      */
     const entryPointCard = (root: Feature): FeatureCard => {
         const scope = root.entryPoint ?? '';
-        const own = members.get(root.id) ?? none;
-        const kinds = [
-            { section: 'features', count: inScope(scope).filter(f => f.key !== '').length },
-            ...FEATURE_PAGE_SECTIONS.map(section => ({
-                section: section.id,
-                count: section.lists.reduce((n, list) => n + own[list].length, 0)
-            })),
-            { section: 'theming', count: styles.get(root.id)?.length ?? 0 }
-        ].filter(kind => kind.count > 0);
+        const features = inScope(scope);
         return {
             ...card(root),
             label: scope.slice(scope.lastIndexOf('/') + 1) || root.label,
-            kinds
+            memberCount: features.reduce(
+                (sum, f) => sum + memberCount(members.get(f.id) ?? none),
+                0
+            ),
+            featureCount: features.filter(f => f.key !== '').length
         };
     };
     const children = childEntryPoints(model.features.filter(f => f.key === ''));

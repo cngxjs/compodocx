@@ -192,7 +192,7 @@ describe('feature page', () => {
     it('lists the sub-features of an entry point with member count and README summary', () => {
         const html = render(ROOT);
         expect(html).toContain(
-            `<li class="cdx-feature-card" data-cdx-feature-card="${MENU}"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="../${featurePage(['select', 'menu'])}">menu</a><span class="cdx-badge cdx-badge--count">1</span></div><p class="cdx-feature-card-summary">Menu <em>parts</em>.</p></li>`
+            `<li class="cdx-feature-card" data-cdx-feature-card="${MENU}"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="../${featurePage(['select', 'menu'])}">menu</a></div><p class="cdx-feature-card-summary">Menu <em>parts</em>.</p><p class="cdx-feature-card-meta cdx-feature-card-counts"><span><b>1</b> Members</span></p></li>`
         );
         expect(render(MENU)).not.toContain('data-cdx-feature-card');
     });
@@ -485,15 +485,12 @@ describe('FeaturePage - entry points below a parent entry point', () => {
         }).replace(/ __(self|source)="[^"]*"/g, '');
     };
 
-    it('lists its child entry points as cards with import, own member count and kinds', () => {
+    it('lists its child entry points as cards with import, summary and counts', () => {
         const html = renderCommon(COMMON);
         expect(sectionIds(html)[0]).toBe('entry-points');
         const chart = html.slice(html.indexOf(`data-cdx-feature-card="${CHART}"`));
         expect(chart).toMatch(
-            /^data-cdx-feature-card="@x\/common\/chart#"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="[^"]*">chart<\/a><span class="cdx-badge cdx-badge--count">2<\/span><\/div><code class="cdx-feature-card-import">@x\/common\/chart<\/code><p class="cdx-feature-card-summary">Plots <code>series<\/code>.<\/p>/
-        );
-        expect(chart).toContain(
-            '<p class="cdx-feature-card-kinds"><span title="Features: 1"><span class="cdx-feature-card-kind">Features</span><b>1</b></span><span title="Components and directives: 1"><span class="cdx-feature-card-kind">Components and directives</span><b>1</b></span><span title="Types: 1"><span class="cdx-feature-card-kind">Types</span><b>1</b></span></p>'
+            /^data-cdx-feature-card="@x\/common\/chart#"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="[^"]*">chart<\/a><\/div><code class="cdx-feature-card-import">@x\/common\/chart<\/code><p class="cdx-feature-card-summary">Plots <code>series<\/code>.<\/p><p class="cdx-feature-card-meta cdx-feature-card-counts"><span><b>1<\/b> Features<\/span><span><b>3<\/b> Members<\/span><\/p><\/li>/
         );
         expect(html).toContain(`data-cdx-feature-card="${TIMELINE}"`);
         expect(jumpLinks(html)[0]).toEqual(['entry-points', '2']);
