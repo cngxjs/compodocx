@@ -135,7 +135,9 @@ describe('CLI namespace aliases', () => {
 
     it('reads {@link} as its link text in the feature summary and the sidebar preview', () => {
         const feature = fs.readFileSync(path.join(htmlFolder, featurePage(['app'])), 'utf8');
-        expect(feature).to.contain('<td>Uses Pt and Api.Point</td>');
+        expect(feature).to.contain(
+            '<span class="cdx-feature-row-summary">Uses Pt and Api.Point</span>'
+        );
         expect(feature).to.not.contain('{@link');
         expect(menuOf(htmlFolder)).to.contain('data-cdx-desc="Uses Pt and Api.Point."');
     });
