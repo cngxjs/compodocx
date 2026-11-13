@@ -101,7 +101,8 @@
 
 /* Route tree on another page (feature page): the path links to its row on
  * the routes page and reads like the path itself until hovered. */
-.cdx-routes-path-link {
+.cdx-routes-path-link,
+.cdx-routes-path-link:hover {
     color: inherit;
     text-decoration: none;
 }

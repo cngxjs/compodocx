@@ -56,7 +56,8 @@ a.cdx-member-permalink {
 .cdx-member-card:hover a.cdx-member-permalink,
 .cdx-io-member:hover a.cdx-member-permalink,
 h3:hover > a.cdx-member-permalink,
-.cdx-section-heading:hover > a.cdx-member-permalink {
+.cdx-section-heading:hover > a.cdx-member-permalink,
+a.cdx-member-permalink:focus-visible {
     opacity: 1;
 }
 

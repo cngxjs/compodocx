@@ -50,7 +50,8 @@
     opacity: 0.5;
 }
 
-:is(.cdx-readme, .cdx-prose) :is(h1, h2, h3, h4, h5, h6) > .cdx-member-permalink:hover {
+:is(.cdx-readme, .cdx-prose) :is(h1, h2, h3, h4, h5, h6) > .cdx-member-permalink:hover,
+:is(.cdx-readme, .cdx-prose) :is(h1, h2, h3, h4, h5, h6) > .cdx-member-permalink:focus-visible {
     opacity: 1;
     color: var(--color-cdx-primary);
 }
