@@ -160,6 +160,35 @@
     margin-bottom: 0.375rem;
 }
 
+/* --- Lead-ins: `**Label.** Text` paragraphs (markdown-lead-in.ts). The
+       label gets its own column once the content is 40rem wide and drops
+       its period there; below that it sits above the text. --- */
+
+.cdx-readme p.cdx-leadin {
+    display: grid;
+    gap: 2px var(--spacing-cdx-2xl);
+}
+
+.cdx-readme .cdx-leadin-label {
+    font-weight: 600;
+    color: var(--color-cdx-text);
+}
+
+.cdx-readme .cdx-leadin-text {
+    min-width: 0;
+    max-width: 72ch;
+}
+
+@container content (min-width: 40rem) {
+    .cdx-readme p.cdx-leadin {
+        grid-template-columns: 9rem minmax(0, 1fr);
+    }
+
+    .cdx-readme .cdx-leadin-punct {
+        display: none;
+    }
+}
+
 /* --- Inline code: one chip for READMEs, additional pages and descriptions.
        `:where()` keeps the specificity of a bare `:not(pre) > code`, so a
        theme restyles every surface with one rule. Code in headings reads as
