@@ -33,7 +33,14 @@ const LANGUAGE_NAMES: Record<string, string> = {
     md: 'Markdown',
     yaml: 'YAML',
     yml: 'YAML',
-    diff: 'Diff'
+    diff: 'Diff',
+    'angular-html': 'Angular template',
+    angular: 'Angular template',
+    ng: 'Angular template',
+    'ng-html': 'Angular template',
+    'angular-template': 'Angular template',
+    'angular-ts': 'Angular TypeScript',
+    'ng-ts': 'Angular TypeScript'
 };
 
 export const languageName = (lang: string): string => LANGUAGE_NAMES[lang.toLowerCase()] ?? lang;

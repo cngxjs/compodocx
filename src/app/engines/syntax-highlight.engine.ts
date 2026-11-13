@@ -38,7 +38,9 @@ const SUPPORTED_LANGUAGES = [
     'bash',
     'markdown',
     'yaml',
-    'diff'
+    'diff',
+    'angular-html',
+    'angular-ts'
 ];
 
 /** Fence names that mean a loaded language under another name. */
@@ -50,7 +52,12 @@ const LANGUAGE_ALIASES: Record<string, string> = {
     zsh: 'bash',
     console: 'bash',
     md: 'markdown',
-    yml: 'yaml'
+    yml: 'yaml',
+    angular: 'angular-html',
+    ng: 'angular-html',
+    'ng-html': 'angular-html',
+    'angular-template': 'angular-html',
+    'ng-ts': 'angular-ts'
 };
 
 /**

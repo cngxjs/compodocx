@@ -25,6 +25,7 @@ describe('codeSnippet', () => {
 describe('languageName', () => {
     it('names known languages and keeps unknown ones', () => {
         expect(languageName('yml')).toBe('YAML');
+        expect(languageName('angular-html')).toBe('Angular template');
         expect(languageName('cobol')).toBe('cobol');
     });
 });
