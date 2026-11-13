@@ -7,6 +7,7 @@ import type {
     NamespacePageData
 } from '../../app/page-generator/namespace-page-generator';
 import { FeatureCrumbs } from '../components/FeatureCrumbs';
+import { FeatureRow, FeatureRows } from '../components/FeatureRow';
 import { IconFile, IconNamespace } from '../components/Icons';
 import { KindIcon } from '../components/KindIcon';
 import { NamespaceLine } from '../components/NamespaceLine';
@@ -53,40 +54,22 @@ const KindOf = (member: NamespaceMemberRow): string => {
 };
 
 const MemberRow = (member: NamespaceMemberRow): string => {
-    const name = <code>{member.name}</code>;
-    return (
-        <tr
-            data-cdx-namespace-member={member.kind ?? 'alias'}
-            data-cdx-namespace-alias={member.aliasOf}
-        >
-            <td class="cdx-namespace-member-name">
-                {KindOf(member)}
-                {member.href ? <a href={member.href}>{name}</a> : name}
-                {aliasTarget(member)}
-            </td>
-            <td>{pageSummary(member.description) ?? ''}</td>
-        </tr>
-    ) as string;
+    const name = (<code>{member.name}</code>) as string;
+    const link = member.href ? ((<a href={member.href}>{name}</a>) as string) : name;
+    return FeatureRow({
+        name: KindOf(member) + link + aliasTarget(member),
+        summary: pageSummary(member.description),
+        attrs: {
+            'data-cdx-namespace-member': member.kind ?? 'alias',
+            'data-cdx-namespace-alias': member.aliasOf
+        }
+    });
 };
 
 const Members = (members: readonly NamespaceMemberRow[]): string =>
     members.length === 0
         ? ''
-        : Section(
-              'members',
-              t('members'),
-              (
-                  <table class="cdx-table">
-                      <thead>
-                          <tr>
-                              <th scope="col">{t('name')}</th>
-                              <th scope="col">{t('description')}</th>
-                          </tr>
-                      </thead>
-                      <tbody>{members.map(MemberRow)}</tbody>
-                  </table>
-              ) as string
-          );
+        : Section('members', t('members'), FeatureRows(members.map(MemberRow)));
 
 /**
  * The page of a TypeScript namespace (`<feature folder>/<Ns>.html`): the

@@ -165,12 +165,12 @@ describe('namespace aliases on the namespace page', () => {
             / __(self|source)="[^"]*"/g,
             ''
         );
-        expect(html).not.toContain('<th scope="col">Kind</th>');
+        expect(html).not.toContain('<table');
         expect(html).toMatch(
-            /<tr data-cdx-namespace-member="interface" data-cdx-namespace-alias="Geometry.Point"><td class="cdx-namespace-member-name"><span class="cdx-ref-kind-icon cdx-ref-kind-icon--interface" aria-hidden="true" title="Interface">If<\/span><span class="sr-only">Interface <\/span><a href="..\/core\/Geometry.Point.html"><code>Api.Point<\/code><\/a><span class="cdx-namespace-alias-of">[^<]*Geometry.Point<\/span><\/td><td>The point of the API<\/td>/
+            /<li class="cdx-feature-row" data-cdx-namespace-member="interface" data-cdx-namespace-alias="Geometry.Point"><span class="cdx-feature-row-name"><span class="cdx-ref-kind-icon cdx-ref-kind-icon--interface" aria-hidden="true" title="Interface">If<\/span><span class="sr-only">Interface <\/span><a href="..\/core\/Geometry.Point.html"><code>Api.Point<\/code><\/a><span class="cdx-namespace-alias-of">[^<]*Geometry.Point<\/span><\/span><span class="cdx-feature-row-summary">The point of the API<\/span><\/li>/
         );
         expect(html).toContain(
-            '<tr data-cdx-namespace-member="alias" data-cdx-namespace-alias="Elsewhere.Lost"><td class="cdx-namespace-member-name"><span class="cdx-namespace-kind-blank" aria-hidden="true"></span><code>Api.Lost</code>'
+            '<li class="cdx-feature-row" data-cdx-namespace-member="alias" data-cdx-namespace-alias="Elsewhere.Lost"><span class="cdx-feature-row-name"><span class="cdx-namespace-kind-blank" aria-hidden="true"></span><code>Api.Lost</code>'
         );
     });
 });
