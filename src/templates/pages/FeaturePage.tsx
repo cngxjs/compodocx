@@ -175,41 +175,15 @@ const EntryPoints = (cards: readonly FeatureCard[], depth: number): string =>
               </section>
           ) as string);
 
-const SubFeatures = (cards: readonly FeatureCard[], depth: number): string => {
-    if (cards.length === 0) {
-        return '';
-    }
-    return (
-        <section class="cdx-content-section">
-            {Heading('features', t('features'), cards.length)}
-            <table class="cdx-table">
-                <thead>
-                    <tr>
-                        <th scope="col">{t('name')}</th>
-                        <th scope="col">{t('members')}</th>
-                        <th scope="col">{t('description')}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {cards.map(
-                        card =>
-                            (
-                                <tr data-cdx-feature-card={card.id}>
-                                    <td>
-                                        <a href={featureHref(card.segments, depth)}>
-                                            <code>{card.label}</code>
-                                        </a>
-                                    </td>
-                                    <td>{String(card.memberCount)}</td>
-                                    <td>{(card.summary ?? '') as string}</td>
-                                </tr>
-                            ) as string
-                    )}
-                </tbody>
-            </table>
-        </section>
-    ) as string;
-};
+const SubFeatures = (cards: readonly FeatureCard[], depth: number): string =>
+    cards.length === 0
+        ? ''
+        : ((
+              <section class="cdx-content-section">
+                  {Heading('features', t('features'), cards.length)}
+                  {FeatureCards(cards, depth, { importLine: false })}
+              </section>
+          ) as string);
 
 /** Features of other entry points, with their import path. */
 const Related = (

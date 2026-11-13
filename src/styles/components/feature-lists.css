@@ -1,0 +1,100 @@
+/* Feature page lists: cards for entry points, sub features and style files */
+
+.cdx-feature-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+    gap: var(--spacing-cdx-md);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.cdx-feature-card {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    min-width: 0;
+    padding: 14px var(--spacing-cdx-lg);
+    border: 1px solid var(--color-cdx-border);
+    border-radius: var(--radius-cdx-md);
+    background: var(--color-cdx-bg-elevated);
+    transition:
+        border-color var(--cdx-transition-fast),
+        background var(--cdx-transition-fast);
+}
+
+.cdx-feature-card:hover {
+    border-color: var(--color-cdx-border-strong);
+    background: var(--color-cdx-bg-alt);
+}
+
+.cdx-feature-card:focus-within {
+    outline: 2px solid var(--color-cdx-focus-ring, var(--color-cdx-primary));
+    outline-offset: 2px;
+}
+
+.cdx-feature-card-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-cdx-sm);
+    min-width: 0;
+}
+
+.cdx-feature-card .cdx-feature-card-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-cdx-text);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+}
+
+/* The name link covers the whole card; the card shows the focus ring. */
+.cdx-feature-card .cdx-feature-card-name::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-cdx-md);
+}
+
+.cdx-feature-card .cdx-feature-card-name:focus-visible {
+    outline: none;
+}
+
+.cdx-feature-card-import {
+    font-family: var(--font-code);
+    font-size: 12px;
+    color: var(--color-cdx-text-secondary);
+    background: none;
+    padding: 0;
+    overflow-wrap: anywhere;
+}
+
+.cdx-feature-card-summary {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--color-cdx-text-secondary);
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.cdx-feature-card-kinds {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-cdx-xs) 10px;
+    margin: 0;
+    padding-top: 6px;
+    border-top: 1px dashed var(--color-cdx-border);
+    font-size: 12.5px;
+    color: var(--color-cdx-text-secondary);
+}
+
+.cdx-feature-card-kinds b {
+    font-weight: 600;
+    color: var(--color-cdx-text);
+    font-variant-numeric: tabular-nums;
+}

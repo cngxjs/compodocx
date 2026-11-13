@@ -192,7 +192,7 @@ describe('feature page', () => {
     it('lists the sub-features of an entry point with member count and README summary', () => {
         const html = render(ROOT);
         expect(html).toContain(
-            `<tr data-cdx-feature-card="${MENU}"><td><a href="../${featurePage(['select', 'menu'])}"><code>menu</code></a></td><td>1</td><td>Menu <em>parts</em>.</td></tr>`
+            `<li class="cdx-feature-card" data-cdx-feature-card="${MENU}"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="../${featurePage(['select', 'menu'])}">menu</a><span class="cdx-badge cdx-badge--count">1</span></div><p class="cdx-feature-card-summary">Menu <em>parts</em>.</p></li>`
         );
         expect(render(MENU)).not.toContain('data-cdx-feature-card');
     });
