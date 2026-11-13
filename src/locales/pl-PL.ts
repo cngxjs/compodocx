@@ -193,6 +193,7 @@ export const TRANSLATION_PL_PL = {
     'builds-on': 'Bazuje na',
     'extended-by': 'Rozszerzane przez',
     'entry-points': 'Punkty wejścia',
+    'theming-applies-to': 'Dla',
     utilities: 'Narzędzia pomocnicze',
     variables: 'Zmienne',
     'view-providers': 'Dostawcy widoku',

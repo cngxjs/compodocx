@@ -195,6 +195,7 @@ export const TRANSLATION_RU_RU = {
     'builds-on': 'Основано на',
     'extended-by': 'Расширяется',
     'entry-points': 'Точки входа',
+    'theming-applies-to': 'Для',
     utilities: 'Утилиты',
     variables: 'Переменные',
     'view-providers': 'Провайдеры представления',

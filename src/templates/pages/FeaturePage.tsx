@@ -211,26 +211,62 @@ const Related = (
     ) as string;
 };
 
-/** A style page row: link, first sentence of its overview, token and mixin counts. */
-const StyleRow = (entry: SymbolEntry, ctx: Context): string => {
+/** Distinct non-empty token groups of a style file, in order of first appearance. */
+const tokenGroups = (file: StyleFile): readonly string[] => [
+    ...new Set(file.tokens.map(token => token.group).filter(group => group !== ''))
+];
+
+/** The components and directives a style file themes, linked where they have a page. */
+const ThemedTargets = (file: StyleFile, ctx: Context): string => {
+    const targets = file.themes.flatMap(id => {
+        const entry = ctx.table?.byId.get(id);
+        return entry ? [entry] : [];
+    });
+    if (targets.length === 0) {
+        return '';
+    }
+    return (
+        <p class="cdx-feature-card-for">
+            <span class="cdx-feature-card-for-label">{t('theming-applies-to')}</span>
+            {targets.map(entry => {
+                const href = memberHref(entry, ctx);
+                const name = <code>{entry.ref.name}</code>;
+                return href ? ((<a href={href}>{name}</a>) as string) : (name as string);
+            })}
+        </p>
+    ) as string;
+};
+
+/**
+ * A style page card: file name linked to its page, first sentence of its
+ * overview, documented token count, mixin count and token groups, and the
+ * components and directives it themes.
+ */
+const StyleCard = (entry: SymbolEntry, ctx: Context): string => {
     const file = entry.data as StyleFile;
     const summary = pageSummary(file.overview ? (markedAcl(file.overview) as string) : '');
     const tokens = file.tokens.filter(isDocumentedToken).length;
-    const counts = [
-        tokens > 0 ? `${tokens} ${t('tokens')}` : '',
-        file.mixins.length > 0 ? `${file.mixins.length} ${t('mixins')}` : ''
+    const groups = tokenGroups(file);
+    const meta = [
+        tokens > 0 ? `<span><b>${tokens}</b> ${t('tokens')}</span>` : '',
+        file.mixins.length > 0 ? `<span><b>${file.mixins.length}</b> ${t('mixins')}</span>` : '',
+        groups.length > 0
+            ? `<span>${groups.map(group => Html.escapeHtml(group)).join(' &middot; ')}</span>`
+            : ''
     ].filter(Boolean);
     return (
-        <li data-cdx-feature-member="style">
-            <a href={hrefText(hrefFor(symbolTarget(entry), ctx.depth))}>
-                <code>{fileName(file.file)}</code>
-            </a>
-            {summary ? <span class="cdx-feature-style-summary"> {summary}</span> : ''}
-            {counts.length > 0 ? (
-                <span class="cdx-feature-style-counts"> ({counts.join(', ')})</span>
-            ) : (
-                ''
-            )}
+        <li class="cdx-feature-card" data-cdx-feature-member="style">
+            <div class="cdx-feature-card-top">
+                <a
+                    class="cdx-feature-card-name"
+                    href={hrefText(hrefFor(symbolTarget(entry), ctx.depth))}
+                >
+                    <code>{fileName(file.file)}</code>
+                </a>
+            </div>
+            {summary ? <p class="cdx-feature-card-summary">{summary}</p> : ''}
+            {meta.length > 0 ? <p class="cdx-feature-card-meta">{meta.join('')}</p> : ''}
+            {ThemedTargets(file, ctx)}
         </li>
     ) as string;
 };
@@ -290,7 +326,7 @@ const Theming = (members: FeatureMembers, styles: readonly SymbolEntry[], ctx: C
         <section class="cdx-content-section">
             {Heading('theming', t('theming'), themed.length + styles.length)}
             {styles.length > 0 ? (
-                <ul class="cdx-feature-styles">{styles.map(entry => StyleRow(entry, ctx))}</ul>
+                <ul class="cdx-feature-cards">{styles.map(entry => StyleCard(entry, ctx))}</ul>
             ) : (
                 ''
             )}

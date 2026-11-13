@@ -192,6 +192,7 @@ export const TRANSLATION_ZH_TW = {
     'builds-on': '基於',
     'extended-by': '擴充者',
     'entry-points': '入口點',
+    'theming-applies-to': '適用於',
     utilities: '工具',
     variables: '變數',
     'view-providers': '視圖提供者',

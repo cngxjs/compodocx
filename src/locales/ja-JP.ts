@@ -193,6 +193,7 @@ export const TRANSLATION_JA_JP = {
     'builds-on': '基盤',
     'extended-by': '拡張元',
     'entry-points': 'エントリーポイント',
+    'theming-applies-to': '対象',
     utilities: 'ユーティリティ',
     variables: '変数',
     'view-providers': 'ビュープロバイダー',

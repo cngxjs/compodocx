@@ -193,6 +193,7 @@ export const TRANSLATION_SK_SK = {
     'builds-on': 'Stavia na',
     'extended-by': 'Rozširuje ho',
     'entry-points': 'Vstupné body',
+    'theming-applies-to': 'Pre',
     utilities: 'Pomocné nástroje',
     variables: 'Premenné',
     'view-providers': 'Poskytovatelia zobrazenia',

@@ -195,6 +195,7 @@ export const TRANSLATION_FR_FR = {
     'builds-on': 'S’appuie sur',
     'extended-by': 'Étendu par',
     'entry-points': 'Points d’entrée',
+    'theming-applies-to': 'Pour',
     utilities: 'Utilitaires',
     variables: 'Variables',
     'view-providers': 'Fournisseurs de vue',

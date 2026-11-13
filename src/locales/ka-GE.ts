@@ -193,6 +193,7 @@ export const TRANSLATION_KA_GE = {
     'builds-on': 'ეყრდნობა',
     'extended-by': 'აფართოებს',
     'entry-points': 'შესვლის წერტილები',
+    'theming-applies-to': 'ვისთვის',
     utilities: 'დამხმარე საშუალებები',
     variables: 'ცვლადები',
     'view-providers': 'ხედის პროვაიდერები',

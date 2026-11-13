@@ -192,6 +192,7 @@ export const TRANSLATION_EN_US = {
     'builds-on': 'Builds on',
     'extended-by': 'Extended by',
     'entry-points': 'Entry points',
+    'theming-applies-to': 'For',
     utilities: 'Utilities',
     variables: 'Variables',
     'view-providers': 'View Providers',

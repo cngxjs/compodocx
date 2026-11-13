@@ -195,6 +195,7 @@ export const TRANSLATION_DE_DE = {
     'builds-on': 'Baut auf',
     'extended-by': 'Erweitert durch',
     'entry-points': 'Entry Points',
+    'theming-applies-to': 'Für',
     utilities: 'Hilfsmittel',
     variables: 'Variablen',
     'view-providers': 'View-Provider',

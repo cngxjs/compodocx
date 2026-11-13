@@ -280,6 +280,14 @@ describe('FeaturePage - Theming section with style files', () => {
                     '/**\n * Background.\n */\n:root { --hl: 1; }\n'
             },
             {
+                file: 'kit/theming/kit.css',
+                content:
+                    '/**\n * Kit skin. More.\n * @overview\n * @themes KitCard, KitHighlight\n */\n' +
+                    '/**\n * Surface.\n * @group surface\n */\n:root { --kit-bg: 1; }\n' +
+                    '/**\n * Gap.\n * @group layout\n */\n:root { --kit-gap: 1; }\n' +
+                    '/**\n * Pad.\n * @group surface\n */\n:root { --kit-pad: 1; }\n'
+            },
+            {
                 file: 'kit/theming/tokens.css',
                 content:
                     '/**\n * Global tokens.\n * @overview\n */\n/**\n * Gap.\n */\n:root { --gap: 1px; }\n'
@@ -307,7 +315,8 @@ describe('FeaturePage - Theming section with style files', () => {
             featureOf: new Map([
                 ['kit/card.ts#KitCard', KIT],
                 ['kit/highlight.ts#KitHighlight', KIT],
-                ['kit/theming/tokens.css#tokens', KIT]
+                ['kit/theming/tokens.css#tokens', KIT],
+                ['kit/theming/kit.css#kit', KIT]
             ]),
             families: []
         }
@@ -327,10 +336,22 @@ describe('FeaturePage - Theming section with style files', () => {
     it('lists the style pages of the feature with summary and token count', () => {
         const html = renderKit(true);
         expect(html).toMatch(
-            /data-cdx-feature-member="style"><a href="[^"]*tokens\.html"><code>tokens\.css<\/code>/
+            /data-cdx-feature-member="style"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="[^"]*tokens\.html"><code>tokens\.css<\/code>/
         );
         expect(html).toContain('Global tokens');
         expect(html).not.toContain('id="utilities"');
+    });
+
+    it('shows token groups and links the themed components on a style card', () => {
+        const html = renderKit(true);
+        const card = html.slice(html.indexOf('<code>kit.css</code>'));
+        expect(card).toContain('<p class="cdx-feature-card-summary">Kit skin</p>');
+        expect(card).toContain(
+            '<p class="cdx-feature-card-meta"><span><b>3</b> Tokens</span><span>surface &middot; layout</span></p>'
+        );
+        expect(card).toMatch(
+            /<p class="cdx-feature-card-for"><span class="cdx-feature-card-for-label">For<\/span><a href="[^"]*KitCard\.html"><code>KitCard<\/code><\/a><a href="[^"]*KitHighlight\.html"><code>KitHighlight<\/code><\/a><\/p>/
+        );
     });
 
     it('lists a directive themed by a linked file and links the design tokens page', () => {

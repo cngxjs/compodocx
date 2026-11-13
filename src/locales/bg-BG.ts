@@ -194,6 +194,7 @@ export const TRANSLATION_BG_BG = {
     'builds-on': 'Надгражда',
     'extended-by': 'Разширено от',
     'entry-points': 'Входни точки',
+    'theming-applies-to': 'За',
     utilities: 'Помощни средства',
     variables: 'Променливи',
     'view-providers': 'Доставчици за изглед',

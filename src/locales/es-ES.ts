@@ -194,6 +194,7 @@ export const TRANSLATION_ES_ES = {
     'builds-on': 'Se basa en',
     'extended-by': 'Ampliado por',
     'entry-points': 'Puntos de entrada',
+    'theming-applies-to': 'Para',
     utilities: 'Utilidades',
     variables: 'Variables',
     'view-providers': 'Proveedores de vista',

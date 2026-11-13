@@ -140,3 +140,42 @@
     font-size: 15px;
     color: var(--color-cdx-text-secondary);
 }
+
+/* Style file cards: token, mixin and group line, themed components */
+
+.cdx-feature-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-cdx-xs) 10px;
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--color-cdx-text-secondary);
+}
+
+.cdx-feature-card-meta b {
+    font-weight: 600;
+    color: var(--color-cdx-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.cdx-feature-card-for {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--spacing-cdx-xs);
+    margin: 0;
+    padding-top: var(--spacing-cdx-sm);
+    border-top: 1px dashed var(--color-cdx-border);
+    font-size: 12.5px;
+}
+
+.cdx-feature-card-for-label {
+    padding-right: 2px;
+    color: var(--color-cdx-text-secondary);
+}
+
+.cdx-feature-card-for code {
+    font-size: 11.5px;
+}

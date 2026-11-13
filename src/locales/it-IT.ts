@@ -194,6 +194,7 @@ export const TRANSLATION_IT_IT = {
     'builds-on': 'Si basa su',
     'extended-by': 'Esteso da',
     'entry-points': 'Punti di ingresso',
+    'theming-applies-to': 'Per',
     utilities: 'Utilità',
     variables: 'Variabili',
     'view-providers': 'Provider di vista',
