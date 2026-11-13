@@ -208,6 +208,13 @@ describe('CLI semantic analysis', () => {
         expect(landing).to.contain(`href="./${pages.cluster('FooFeature')}"`);
         expect(landing).to.contain(`href="${pages.href('provider', 'provideFooLimit', 0)}"`);
         expect(landing).to.contain(`href="${pages.href('token', 'FOO_CONFIG', 0)}"`);
+        // Providers without a feature type are feature rows; the cluster and token tables stay.
+        expect(landing).to.match(
+            /<li class="cdx-feature-row" data-cdx-di-provider="provideFooLimit"><span class="cdx-feature-row-name"><a href="[^"]*"><code>provideFooLimit<\/code><\/a>/
+        );
+        const otherProviders = landing.match(/id="other-providers"[\s\S]*?<\/section>/)?.[0];
+        expect(otherProviders).to.contain('cdx-feature-rows');
+        expect(otherProviders).not.to.contain('<table');
         const menu = menuOf(htmlFolder);
         expect(menu).to.contain('id="dependency-injection-links"');
         expect(menu).not.to.contain('id="tokens-links"');
