@@ -194,6 +194,7 @@ export const TRANSLATION_FR_FR = {
     'feature-detector-folder': 'Déduit du dossier',
     'builds-on': 'S’appuie sur',
     'extended-by': 'Étendu par',
+    'entry-points': 'Points d’entrée',
     utilities: 'Utilitaires',
     variables: 'Variables',
     'view-providers': 'Fournisseurs de vue',

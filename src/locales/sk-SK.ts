@@ -192,6 +192,7 @@ export const TRANSLATION_SK_SK = {
     'feature-detector-folder': 'Zistené z priečinka',
     'builds-on': 'Stavia na',
     'extended-by': 'Rozširuje ho',
+    'entry-points': 'Vstupné body',
     utilities: 'Pomocné nástroje',
     variables: 'Premenné',
     'view-providers': 'Poskytovatelia zobrazenia',

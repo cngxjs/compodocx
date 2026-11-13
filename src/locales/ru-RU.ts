@@ -194,6 +194,7 @@ export const TRANSLATION_RU_RU = {
     'feature-detector-folder': 'Определено по папке',
     'builds-on': 'Основано на',
     'extended-by': 'Расширяется',
+    'entry-points': 'Точки входа',
     utilities: 'Утилиты',
     variables: 'Переменные',
     'view-providers': 'Провайдеры представления',

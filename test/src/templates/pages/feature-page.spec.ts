@@ -406,3 +406,85 @@ describe('FeaturePage - Theming section with style files', () => {
         expect(sectionIds(render(ROOT, { routing, disableRoutes: true }))).not.toContain('routes');
     });
 });
+
+describe('FeaturePage - entry points below a parent entry point', () => {
+    const COMMON = '@x/common#';
+    const CHART = '@x/common/chart#';
+    const LEGEND = '@x/common/chart#legend';
+    const AXIS = '@x/common/chart/axis#';
+    const TIMELINE = '@x/common/timeline#';
+    const entry = (id: string, entryPoint: string, key = ''): FeatureModel['features'][number] => ({
+        id,
+        entryPoint,
+        key,
+        label: key || entryPoint.slice(entryPoint.lastIndexOf('/') + 1),
+        root: `lib/${entryPoint.slice(3)}`,
+        detector: 'entry-point',
+        ...(key ? {} : { readme: `lib/${entryPoint.slice(3)}/README.md` })
+    });
+    const commonEngine = {
+        components: [
+            { name: 'ChartView', file: 'lib/common/chart/view.ts' },
+            { name: 'LegendItem', file: 'lib/common/chart/legend/item.ts' }
+        ],
+        interfaces: [{ name: 'ChartPoint', file: 'lib/common/chart/point.ts' }],
+        directives: [{ name: 'AxisTick', file: 'lib/common/chart/axis/tick.ts' }]
+    };
+    const commonSemantic: SemanticModel = {
+        ...emptyModel(),
+        features: {
+            features: [
+                entry(COMMON, '@x/common'),
+                entry(CHART, '@x/common/chart'),
+                entry(LEGEND, '@x/common/chart', 'legend'),
+                entry(AXIS, '@x/common/chart/axis'),
+                entry(TIMELINE, '@x/common/timeline')
+            ],
+            featureOf: new Map([
+                ['lib/common/chart/view.ts#ChartView', CHART],
+                ['lib/common/chart/legend/item.ts#LegendItem', LEGEND],
+                ['type:lib/common/chart/point.ts#ChartPoint', CHART],
+                ['lib/common/chart/axis/tick.ts#AxisTick', AXIS]
+            ]),
+            families: []
+        }
+    };
+    const commonReadmes: Record<string, string> = {
+        'lib/common/chart/README.md': '<h1>Chart</h1><p>Plots <code>series</code>.</p>'
+    };
+    const renderCommon = (id: string): string => {
+        const table = buildSymbolTable(commonEngine as never, { cwd: '/' });
+        const pages = featurePages(commonSemantic, table, undefined, f => commonReadmes[f]);
+        const page = pages.find(p => p.id === id);
+        return FeaturePage({
+            feature: page,
+            symbols: table,
+            semantic: commonSemantic,
+            depth: page?.segments.length
+        }).replace(/ __(self|source)="[^"]*"/g, '');
+    };
+
+    it('lists its child entry points as cards with import, count and kinds', () => {
+        const html = renderCommon(COMMON);
+        expect(sectionIds(html)[0]).toBe('entry-points');
+        const chart = html.slice(html.indexOf(`data-cdx-feature-card="${CHART}"`));
+        expect(chart).toMatch(
+            /^data-cdx-feature-card="@x\/common\/chart#"><div class="cdx-feature-card-top"><a class="cdx-feature-card-name" href="[^"]*">chart<\/a><span class="cdx-badge cdx-badge--count">3<\/span><\/div><code class="cdx-feature-card-import">@x\/common\/chart<\/code><p class="cdx-feature-card-summary">Plots <code>series<\/code>.<\/p>/
+        );
+        expect(chart).toContain(
+            '<p class="cdx-feature-card-kinds"><span>Features <b>1</b></span><span>Components and directives <b>2</b></span><span>Types <b>1</b></span></p>'
+        );
+        expect(html).toContain(`data-cdx-feature-card="${TIMELINE}"`);
+        expect(jumpLinks(html)[0]).toEqual(['entry-points', '2']);
+    });
+
+    it('does not list grandchild entry points on the grandparent', () => {
+        expect(renderCommon(COMMON)).not.toContain(`data-cdx-feature-card="${AXIS}"`);
+        expect(renderCommon(CHART)).toContain(`data-cdx-feature-card="${AXIS}"`);
+    });
+
+    it('has no Entry points section without child entry points', () => {
+        expect(sectionIds(renderCommon(TIMELINE))).not.toContain('entry-points');
+        expect(sectionIds(renderCommon(LEGEND))).not.toContain('entry-points');
+    });
+});

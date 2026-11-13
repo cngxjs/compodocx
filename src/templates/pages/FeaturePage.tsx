@@ -13,7 +13,11 @@ import { markedAcl } from '../../utils/marked.acl';
 import { DiBadges } from '../components/DiBadges';
 import { IconFolder } from '../components/Icons';
 import { pageSummary, t } from '../helpers';
-import type { FeatureMembers } from '../helpers/feature-sections';
+import {
+    FEATURE_PAGE_SECTIONS,
+    type FeatureMembers,
+    type FeaturePageSection
+} from '../helpers/feature-sections';
 import { entryFacts } from '../helpers/symbol-facts';
 import { hasTheming, themingFor } from '../helpers/theming';
 import { featureRouteRows, RouteTree } from './Routes';
@@ -27,26 +31,9 @@ import { featureRouteRows, RouteTree } from './Routes';
  * Override name: `feature`.
  */
 
-interface MemberSection {
-    readonly id: string;
-    readonly titleKey: string;
-    readonly lists: readonly (keyof FeatureMembers)[];
-}
+type MemberSection = FeaturePageSection;
 
-const SECTIONS: readonly MemberSection[] = [
-    {
-        id: 'components-and-directives',
-        titleKey: 'components-and-directives',
-        lists: ['components', 'directives']
-    },
-    { id: 'pipes', titleKey: 'pipes', lists: ['pipes'] },
-    { id: 'services', titleKey: 'services', lists: ['services'] },
-    { id: 'configuration', titleKey: 'configuration', lists: ['configuration'] },
-    { id: 'utilities', titleKey: 'utilities', lists: ['utilities'] },
-    { id: 'constants', titleKey: 'constants', lists: ['constants'] },
-    { id: 'types', titleKey: 'types', lists: ['types'] },
-    { id: 'classes', titleKey: 'classes', lists: ['classes'] }
-];
+const SECTIONS = FEATURE_PAGE_SECTIONS;
 
 interface Context {
     readonly table: SymbolTable;
@@ -112,6 +99,81 @@ const Members = (section: MemberSection, members: FeatureMembers, ctx: Context):
         </section>
     ) as string;
 };
+
+/** Links in a card summary read as their text: the whole card is one link. */
+const unlinked = (html: string): string => html.replace(/<a\b[^>]*>([\s\S]*?)<\/a>/gi, '$1');
+
+/** Counts per section of an entry point card, labelled like the jump bar. */
+const CardKinds = (card: FeatureCard): string =>
+    card.kinds && card.kinds.length > 0
+        ? ((
+              <p class="cdx-feature-card-kinds">
+                  {card.kinds.map(
+                      kind =>
+                          (
+                              <span>
+                                  {t(kind.section)} <b>{String(kind.count)}</b>
+                              </span>
+                          ) as string
+                  )}
+              </p>
+          ) as string)
+        : '';
+
+/**
+ * Feature cards: name linked to the feature page (the link covers the whole
+ * card), member count, optional import path, README summary and, for entry
+ * points, the counts per section.
+ */
+const FeatureCards = (
+    cards: readonly FeatureCard[],
+    depth: number,
+    options: { readonly importLine: boolean }
+): string =>
+    (
+        <ul class="cdx-feature-cards">
+            {cards.map(
+                card =>
+                    (
+                        <li class="cdx-feature-card" data-cdx-feature-card={card.id}>
+                            <div class="cdx-feature-card-top">
+                                <a
+                                    class="cdx-feature-card-name"
+                                    href={featureHref(card.segments, depth)}
+                                >
+                                    {card.label}
+                                </a>
+                                <span class="cdx-badge cdx-badge--count">
+                                    {String(card.memberCount)}
+                                </span>
+                            </div>
+                            {options.importLine && card.entryPoint ? (
+                                <code class="cdx-feature-card-import">{card.entryPoint}</code>
+                            ) : (
+                                ''
+                            )}
+                            {card.summary ? (
+                                <p class="cdx-feature-card-summary">{unlinked(card.summary)}</p>
+                            ) : (
+                                ''
+                            )}
+                            {CardKinds(card)}
+                        </li>
+                    ) as string
+            )}
+        </ul>
+    ) as string;
+
+/** The entry points below this one (parent entry point pages only). */
+const EntryPoints = (cards: readonly FeatureCard[], depth: number): string =>
+    cards.length === 0
+        ? ''
+        : ((
+              <section class="cdx-content-section">
+                  {Heading('entry-points', t('entry-points'), cards.length)}
+                  {FeatureCards(cards, depth, { importLine: true })}
+              </section>
+          ) as string);
 
 const SubFeatures = (cards: readonly FeatureCard[], depth: number): string => {
     if (cards.length === 0) {
@@ -312,6 +374,7 @@ const Theming = (members: FeatureMembers, styles: readonly SymbolEntry[], ctx: C
 const JumpBar = (feature: FeaturePageData, ctx: Context): string => {
     const styles = feature.styles ?? [];
     const links = [
+        { id: 'entry-points', label: t('entry-points'), count: feature.entryPoints.length },
         { id: 'features', label: t('features'), count: feature.subFeatures.length },
         ...SECTIONS.map(section => ({
             id: section.id,
@@ -408,6 +471,7 @@ export const FeaturePage = (data: any): string => {
             ) : (
                 ''
             )}
+            {EntryPoints(feature.entryPoints, ctx.depth)}
             {SubFeatures(feature.subFeatures, ctx.depth)}
             {SECTIONS.map(section => Members(section, feature.members, ctx))}
             {FeatureRoutes(feature.members, ctx)}

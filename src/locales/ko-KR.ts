@@ -191,6 +191,7 @@ export const TRANSLATION_KO_KR = {
     'feature-detector-folder': '폴더에서 감지',
     'builds-on': '기반',
     'extended-by': '확장하는 기능',
+    'entry-points': '엔트리 포인트',
     utilities: '유틸리티',
     variables: '변수',
     'view-providers': '뷰 프로바이더',

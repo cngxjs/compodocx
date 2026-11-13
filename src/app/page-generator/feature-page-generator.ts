@@ -1,4 +1,5 @@
 import {
+    FEATURE_PAGE_SECTIONS,
     type FeatureMembers,
     type FeatureSection,
     sectionOf
@@ -6,7 +7,7 @@ import {
 import { COMPODOC_DEFAULTS } from '../../utils/defaults';
 import { logger } from '../../utils/logger';
 import type { Feature, FeatureDetector, FeatureId } from '../compiler/semantic/features';
-import { factKey, type SemanticModel } from '../compiler/semantic/model';
+import { compareText, factKey, type SemanticModel } from '../compiler/semantic/model';
 import Configuration from '../configuration';
 import type { DiView } from '../di/model';
 import MarkdownEngine from '../engines/markdown.engine';
@@ -23,6 +24,11 @@ export interface FeatureCard {
     readonly memberCount: number;
     /** First paragraph of the feature's README, as HTML. */
     readonly summary?: string;
+    /**
+     * Entry point cards only: counts per feature page section (`features`,
+     * the member sections, `theming`), in jump bar order, empty ones left out.
+     */
+    readonly kinds?: readonly { readonly section: string; readonly count: number }[];
 }
 
 /** What the `feature` page context receives under `feature`. */
@@ -39,6 +45,8 @@ export interface FeaturePageData {
     readonly readme?: { readonly file: string; readonly html: string };
     readonly members: FeatureMembers;
     readonly subFeatures: readonly FeatureCard[];
+    /** Root features of the entry points below this one (root features only). */
+    readonly entryPoints: readonly FeatureCard[];
     /** Features of other entry points this one uses. */
     readonly buildsOn: readonly FeatureCard[];
     /** Features of other entry points that use this one. */
@@ -184,6 +192,32 @@ export const featureFolders = (
     return byFolder;
 };
 
+const isBelow = (child: string, parent: string): boolean => child.startsWith(`${parent}/`);
+
+/**
+ * The root features of the entry points directly below each entry point: an
+ * entry point lists another one when its import path is the nearest existing
+ * ancestor of that one's (so `@x/common` lists `@x/common/chart`, not
+ * `@x/common/chart/axis` when `@x/common/chart` exists).
+ */
+const childEntryPoints = (roots: readonly Feature[]): ReadonlyMap<FeatureId, Feature[]> => {
+    const withPath = roots.filter(f => f.entryPoint !== undefined);
+    const children = new Map<FeatureId, Feature[]>();
+    for (const child of withPath) {
+        const path = child.entryPoint ?? '';
+        const parent = withPath
+            .filter(f => isBelow(path, f.entryPoint ?? ''))
+            .sort((a, b) => (b.entryPoint ?? '').length - (a.entryPoint ?? '').length)[0];
+        if (parent) {
+            children.set(parent.id, [...(children.get(parent.id) ?? []), child]);
+        }
+    }
+    for (const list of children.values()) {
+        list.sort((a, b) => compareText(a.entryPoint ?? '', b.entryPoint ?? ''));
+    }
+    return children;
+};
+
 /** The page data of every feature; `readme` renders a README file to HTML. */
 export const featurePages = (
     semantic: SemanticModel,
@@ -232,6 +266,34 @@ export const featurePages = (
             ...(summary ? { summary } : {})
         };
     };
+    const inScope = (scope: string): readonly Feature[] =>
+        model.features.filter(f => (f.entryPoint ?? '') === scope);
+    /** The card of an entry point: its root feature with counts over all its features. */
+    const entryPointCard = (root: Feature): FeatureCard => {
+        const scope = root.entryPoint ?? '';
+        const features = inScope(scope);
+        const all = features.map(f => members.get(f.id) ?? none);
+        const sectionCount = (lists: readonly FeatureSection[]): number =>
+            all.reduce((sum, m) => sum + lists.reduce((n, list) => n + m[list].length, 0), 0);
+        const kinds = [
+            { section: 'features', count: features.filter(f => f.key !== '').length },
+            ...FEATURE_PAGE_SECTIONS.map(section => ({
+                section: section.id,
+                count: sectionCount(section.lists)
+            })),
+            {
+                section: 'theming',
+                count: features.reduce((sum, f) => sum + (styles.get(f.id)?.length ?? 0), 0)
+            }
+        ].filter(kind => kind.count > 0);
+        return {
+            ...card(root),
+            label: scope.slice(scope.lastIndexOf('/') + 1) || root.label,
+            memberCount: all.reduce((sum, m) => sum + memberCount(m), 0),
+            kinds
+        };
+    };
+    const children = childEntryPoints(model.features.filter(f => f.key === ''));
     const byId = new Map(model.features.map(f => [f.id, f] as const));
     const linked = (ids: readonly FeatureId[]): FeatureCard[] =>
         [...new Set(ids)].flatMap(id => {
@@ -263,6 +325,7 @@ export const featurePages = (
                       .filter(f => f.key !== '' && (f.entryPoint ?? '') === scope)
                       .map(card)
                 : [],
+            entryPoints: isRoot ? (children.get(feature.id) ?? []).map(entryPointCard) : [],
             buildsOn: linked(model.families.filter(l => l.from === feature.id).map(l => l.to)),
             extendedBy: linked(model.families.filter(l => l.to === feature.id).map(l => l.from)),
             styles: styles.get(feature.id) ?? []

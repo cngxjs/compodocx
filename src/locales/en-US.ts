@@ -191,6 +191,7 @@ export const TRANSLATION_EN_US = {
     'feature-detector-folder': 'Detected from folder',
     'builds-on': 'Builds on',
     'extended-by': 'Extended by',
+    'entry-points': 'Entry points',
     utilities: 'Utilities',
     variables: 'Variables',
     'view-providers': 'View Providers',

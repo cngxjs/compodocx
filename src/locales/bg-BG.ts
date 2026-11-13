@@ -193,6 +193,7 @@ export const TRANSLATION_BG_BG = {
     'feature-detector-folder': 'Открито от папката',
     'builds-on': 'Надгражда',
     'extended-by': 'Разширено от',
+    'entry-points': 'Входни точки',
     utilities: 'Помощни средства',
     variables: 'Променливи',
     'view-providers': 'Доставчици за изглед',

@@ -191,6 +191,7 @@ export const TRANSLATION_ZH_TW = {
     'feature-detector-folder': '從資料夾偵測',
     'builds-on': '基於',
     'extended-by': '擴充者',
+    'entry-points': '入口點',
     utilities: '工具',
     variables: '變數',
     'view-providers': '視圖提供者',

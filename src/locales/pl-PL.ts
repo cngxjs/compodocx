@@ -192,6 +192,7 @@ export const TRANSLATION_PL_PL = {
     'feature-detector-folder': 'Wykryte z folderu',
     'builds-on': 'Bazuje na',
     'extended-by': 'Rozszerzane przez',
+    'entry-points': 'Punkty wejścia',
     utilities: 'Narzędzia pomocnicze',
     variables: 'Zmienne',
     'view-providers': 'Dostawcy widoku',
