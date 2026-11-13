@@ -67,6 +67,14 @@ describe('highlightCode language fallback', () => {
         expect(html).toMatch(/<span style="[^"]*">go<\/span>/);
     });
 
+    it('colours host binding values as Angular expressions', () => {
+        const code =
+            "@Component({\n  host: { '[class.empty]': 'items().length === 0' },\n})\nclass X {}";
+        const html = highlightCode(code, { lang: 'angular-ts' });
+        expect(html).toMatch(/<span style="[^"]*">items<\/span>/);
+        expect(html).not.toContain("'items().length === 0'");
+    });
+
     it('colours an aliased language', () => {
         expect(highlightCode('const a = 1;', { lang: 'ts' })).toContain(KEYWORD_COLOUR);
     });
