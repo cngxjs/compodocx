@@ -6,6 +6,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Added
+
+- **Angular code fences.** `angular-html` (also `angular`, `ng`, `ng-html`, `angular-template`) highlights Angular templates with control flow, `@let`, bindings and interpolation; `angular-ts` (also `ng-ts`) highlights a component with its inline template and styles. Binding values (`(click)="save()"`, `[class.active]="isActive"`) and the values of a decorator's `host` object are highlighted as expressions, not strings. Fences also accept `ts`, `js`, `sh`, `shell`, `zsh`, `console`, `md`, `yml` and `yaml`, and `diff`.
+
+### Changed
+
+- **One code block.** Fenced code, `@example`, theming examples and sources, playground previews and long values share one block with a toolbar: the language (or the file name) on the left, a copy button on the right. The button is part of the page instead of being added by script, announces the result to screen readers, shows a failed copy and then selects the code. The source viewer uses the same button. The JSON and llm-md exports keep the code without toolbar; a snippet there carries `data-cdx-lang`.
+- **Themed members on feature pages.** The components and directives with a Theming tab are rows like the other member lists (`li.cdx-feature-row[data-cdx-feature-theming]`) with the first sentence of the theme overview (else the member summary) and the number of documented tokens and mixins, instead of a bare list.
+
+### Fixed
+
+- A fence in an unknown language is shown as plain text instead of being highlighted as TypeScript.
+- Permalinks on member cards and README headings are visible on keyboard focus.
+- Route paths on the routes page no longer get a second underline on hover.
+
 ## [0.18.0] - 2026-11-13
 
 ### Added
