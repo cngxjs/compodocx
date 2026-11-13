@@ -151,7 +151,7 @@
   /* --color-cdx-snippet-bg:           hsl(220 14% 96%); */
   /* --color-cdx-snippet-border:       transparent; */
   /* --color-cdx-snippet-radius:       var(--radius-cdx-md); */
-  /* --color-cdx-code-inline:          #c2185b; */
+  /* --color-cdx-code-inline:          hsl(0 0% 12%); */
   /* --color-cdx-code-dark-surface:    hsl(225 16% 14%); */
   /* --color-cdx-scrollbar:            hsl(220 10% 50% / 0.4); */
   /* --color-cdx-line-number:          hsl(220 10% 50% / 0.5); */
