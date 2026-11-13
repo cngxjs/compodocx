@@ -12,6 +12,7 @@ import {
 import { highlightCode } from '../../app/engines/syntax-highlight.engine';
 import { isErr } from '../../lib';
 import { logger } from '../../utils/logger';
+import { codeSnippet } from '../components/CodeBlock';
 import type { ComponentPlaygroundBlock } from '../helpers/jsdoc';
 
 const slugifyId = (raw: string): string =>
@@ -197,7 +198,7 @@ export function BlockPlayground(props: BlockPlaygroundProps): string {
     return (
         `<section class="cdx-content-section" data-compodoc="block-playground" id="${blockId}">` +
         `<h3 class="cdx-section-heading" id="${titleId}">${escapedTitle}</h3>` +
-        `<div class="cdx-playground-snippet">${highlighted}</div>` +
+        codeSnippet(highlighted, { lang: previewLang, className: 'cdx-playground-snippet' }) +
         `<button type="button" class="cdx-playground-launch" data-cdx-stackblitz-manifest="${blockId}" aria-describedby="${titleId}">` +
         `${stackblitzIcon}<span>Open in StackBlitz</span>` +
         `</button>` +

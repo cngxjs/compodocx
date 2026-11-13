@@ -236,5 +236,8 @@ export const TRANSLATION_NL_NL = {
     'graph-impact-none': 'Niets van wat getoond wordt gebruikt het',
     'graph-impact-hint': 'Klik er opnieuw op of op de achtergrond om te wissen',
     'graph-relations-list': 'Relaties in de afhankelijkheidsgraaf',
-    'graph-no-feature': 'Zonder feature'
+    'graph-no-feature': 'Zonder feature',
+    copy: 'Kopiëren',
+    copied: 'Gekopieerd',
+    'copy-failed': 'Kopiëren mislukt, code geselecteerd'
 };

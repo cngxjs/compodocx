@@ -236,5 +236,8 @@ export const TRANSLATION_BG_BG = {
     'graph-impact-none': 'Нищо от показаното не го използва',
     'graph-impact-hint': 'Щракнете отново върху него или върху фона, за да изчистите',
     'graph-relations-list': 'Връзки в графа на зависимостите',
-    'graph-no-feature': 'Без функционалност'
+    'graph-no-feature': 'Без функционалност',
+    copy: 'Копиране',
+    copied: 'Копирано',
+    'copy-failed': 'Копирането не успя, кодът е маркиран'
 };

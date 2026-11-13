@@ -235,5 +235,8 @@ export const TRANSLATION_SK_SK = {
     'graph-impact-none': 'Nič zo zobrazeného ho nepoužíva',
     'graph-impact-hint': 'Kliknite naň znova alebo na pozadie na zrušenie',
     'graph-relations-list': 'Vzťahy v grafe závislostí',
-    'graph-no-feature': 'Bez funkcie'
+    'graph-no-feature': 'Bez funkcie',
+    copy: 'Kopírovať',
+    copied: 'Skopírované',
+    'copy-failed': 'Kopírovanie zlyhalo, kód je označený'
 };

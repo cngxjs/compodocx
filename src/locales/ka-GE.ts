@@ -235,5 +235,8 @@ export const TRANSLATION_KA_GE = {
     'graph-impact-none': 'ნაჩვენებთაგან არაფერი იყენებს',
     'graph-impact-hint': 'გასასუფთავებლად კვლავ დააწკაპუნეთ მასზე ან ფონზე',
     'graph-relations-list': 'კავშირები დამოკიდებულებების გრაფში',
-    'graph-no-feature': 'ფუნქციის გარეშე'
+    'graph-no-feature': 'ფუნქციის გარეშე',
+    copy: 'კოპირება',
+    copied: 'დაკოპირდა',
+    'copy-failed': 'კოპირება ვერ მოხერხდა, კოდი მონიშნულია'
 };

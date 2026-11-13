@@ -237,5 +237,8 @@ export const TRANSLATION_RU_RU = {
     'graph-impact-none': 'Ничто из показанного его не использует',
     'graph-impact-hint': 'Щёлкните по нему ещё раз или по фону, чтобы сбросить',
     'graph-relations-list': 'Связи в графе зависимостей',
-    'graph-no-feature': 'Без функции'
+    'graph-no-feature': 'Без функции',
+    copy: 'Копировать',
+    copied: 'Скопировано',
+    'copy-failed': 'Не удалось скопировать, код выделен'
 };

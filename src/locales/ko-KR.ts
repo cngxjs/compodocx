@@ -234,5 +234,8 @@ export const TRANSLATION_KO_KR = {
     'graph-impact-none': '표시된 항목 중 사용하는 것이 없습니다',
     'graph-impact-hint': '다시 클릭하거나 배경을 클릭하면 해제됩니다',
     'graph-relations-list': '의존성 그래프의 관계',
-    'graph-no-feature': '기능 없음'
+    'graph-no-feature': '기능 없음',
+    copy: '복사',
+    copied: '복사됨',
+    'copy-failed': '복사하지 못했습니다. 코드를 선택했습니다'
 };

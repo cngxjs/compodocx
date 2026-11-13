@@ -10,13 +10,6 @@
     gap: var(--spacing-cdx-md);
 }
 
-/* Snippet uses the existing `pre.shiki` chrome from code-blocks.css; no
-   extra wrapper padding (would double up against Shiki's own padding and
-   diverge from @example blocks on the Info tab). */
-.cdx-playground-snippet {
-    display: contents;
-}
-
 .cdx-playground-launch {
     align-self: flex-start;
     display: inline-flex;

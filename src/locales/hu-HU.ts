@@ -236,5 +236,8 @@ export const TRANSLATION_HU_HU = {
     'graph-impact-none': 'Semmi a megjelenítettek közül nem használja',
     'graph-impact-hint': 'Kattintson rá újra vagy a háttérre a törléshez',
     'graph-relations-list': 'Kapcsolatok a függőségi gráfban',
-    'graph-no-feature': 'Funkció nélkül'
+    'graph-no-feature': 'Funkció nélkül',
+    copy: 'Másolás',
+    copied: 'Másolva',
+    'copy-failed': 'A másolás sikertelen, a kód kijelölve'
 };

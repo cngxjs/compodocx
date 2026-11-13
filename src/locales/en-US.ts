@@ -236,5 +236,8 @@ export const TRANSLATION_EN_US = {
     'graph-impact-none': 'Nothing shown here uses it',
     'graph-impact-hint': 'Click it again or the background to clear',
     'graph-relations-list': 'Relations in the dependency graph',
-    'graph-no-feature': 'Without a feature'
+    'graph-no-feature': 'Without a feature',
+    copy: 'Copy',
+    copied: 'Copied',
+    'copy-failed': 'Copy failed, code selected'
 };

@@ -237,5 +237,8 @@ export const TRANSLATION_DE_DE = {
     'graph-impact-none': 'Nichts Angezeigtes nutzt es',
     'graph-impact-hint': 'Erneut darauf oder auf den Hintergrund klicken zum Zurücksetzen',
     'graph-relations-list': 'Beziehungen im Abhängigkeitsgraphen',
-    'graph-no-feature': 'Ohne Feature'
+    'graph-no-feature': 'Ohne Feature',
+    copy: 'Kopieren',
+    copied: 'Kopiert',
+    'copy-failed': 'Kopieren fehlgeschlagen, Code markiert'
 };

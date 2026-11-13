@@ -235,5 +235,8 @@ export const TRANSLATION_JA_JP = {
     'graph-impact-none': '表示中の要素からは使用されていません',
     'graph-impact-hint': 'もう一度クリックするか背景をクリックして解除',
     'graph-relations-list': '依存関係グラフ内の関係',
-    'graph-no-feature': '機能なし'
+    'graph-no-feature': '機能なし',
+    copy: 'コピー',
+    copied: 'コピーしました',
+    'copy-failed': 'コピーに失敗しました。コードを選択しました'
 };

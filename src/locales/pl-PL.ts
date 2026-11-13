@@ -235,5 +235,8 @@ export const TRANSLATION_PL_PL = {
     'graph-impact-none': 'Nic z pokazanych elementów go nie używa',
     'graph-impact-hint': 'Kliknij go ponownie lub tło, aby wyczyścić',
     'graph-relations-list': 'Relacje w grafie zależności',
-    'graph-no-feature': 'Bez funkcji'
+    'graph-no-feature': 'Bez funkcji',
+    copy: 'Kopiuj',
+    copied: 'Skopiowano',
+    'copy-failed': 'Nie udało się skopiować, kod zaznaczony'
 };

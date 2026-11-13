@@ -233,5 +233,8 @@ export const TRANSLATION_ZH_TW = {
     'graph-impact-none': '此處顯示的內容均未使用它',
     'graph-impact-hint': '再次點擊它或點擊背景以清除',
     'graph-relations-list': '相依關係圖中的關係',
-    'graph-no-feature': '無所屬功能'
+    'graph-no-feature': '無所屬功能',
+    copy: '複製',
+    copied: '已複製',
+    'copy-failed': '複製失敗，已選取程式碼'
 };

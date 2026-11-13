@@ -236,5 +236,8 @@ export const TRANSLATION_IT_IT = {
     'graph-impact-none': 'Nulla di ciò che è mostrato lo usa',
     'graph-impact-hint': 'Fai di nuovo clic su di esso o sullo sfondo per cancellare',
     'graph-relations-list': 'Relazioni nel grafo delle dipendenze',
-    'graph-no-feature': 'Senza funzionalità'
+    'graph-no-feature': 'Senza funzionalità',
+    copy: 'Copia',
+    copied: 'Copiato',
+    'copy-failed': 'Copia non riuscita, codice selezionato'
 };
