@@ -82,6 +82,14 @@ test.describe('Feature lists and markdown layout hints', () => {
         expect(await labelBeside(page, paragraph)).toBe(false);
     });
 
+    test('lead-in paragraphs are separated by a hairline', async ({ page }) => {
+        await page.goto(featureUrl(['core']));
+        const borders = await page
+            .locator('.cdx-readme > p.cdx-leadin')
+            .evaluateAll(els => els.map(el => getComputedStyle(el).borderTopWidth));
+        expect(borders).toEqual(['0px', '1px']);
+    });
+
     test('a lead-in list item has a label column on desktop and keeps its marker', async ({
         page
     }) => {

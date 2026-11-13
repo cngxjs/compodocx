@@ -209,6 +209,35 @@
     max-width: 72ch;
 }
 
+/* A run of lead-in paragraphs reads as one list of entries: a hairline
+   between neighbours, air above and below each, a slightly narrower and
+   looser text column. */
+.cdx-readme > p.cdx-leadin {
+    margin: 0;
+    padding: var(--spacing-cdx-lg) 0;
+}
+
+.cdx-readme > p.cdx-leadin + p.cdx-leadin {
+    border-top: 1px solid var(--color-cdx-border);
+}
+
+.cdx-readme > :not(.cdx-leadin) + p.cdx-leadin,
+.cdx-readme > p.cdx-leadin:first-child {
+    padding-top: 0;
+}
+
+.cdx-readme > p.cdx-leadin + :not(.cdx-leadin) {
+    margin-top: var(--spacing-cdx-sm);
+}
+
+.cdx-readme > p.cdx-leadin > :is(.cdx-leadin-label, .cdx-leadin-text) {
+    line-height: 1.7;
+}
+
+.cdx-readme > p.cdx-leadin > .cdx-leadin-text {
+    max-width: 66ch;
+}
+
 /* A grid would drop the list marker, so a lead-in item stays a list item:
    label and text stack, and the label floats into its column when wide. */
 .cdx-readme li.cdx-leadin > .cdx-leadin-label,
