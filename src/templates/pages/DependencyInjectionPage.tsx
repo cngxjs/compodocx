@@ -9,7 +9,7 @@ import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
 import { type ReferencedByEntry, referencedByHref } from '../blocks/ReferencedBySection';
 import { DiBadges } from '../components/DiBadges';
 import { IconInjectable } from '../components/Icons';
-import { firstSentence, t } from '../helpers';
+import { pageSummary, t } from '../helpers';
 import { entryFacts } from '../helpers/symbol-facts';
 import { factKeyEntries } from '../helpers/used-by';
 
@@ -116,7 +116,7 @@ const PlainProviders = (ctx: Context): string =>
                                           {entryLink(ctx, entry)}
                                           {DiBadges({ facts: entryFacts(ctx.semantic, entry) })}
                                       </td>
-                                      <td>{firstSentence(description) ?? ''}</td>
+                                      <td>{pageSummary(description) ?? ''}</td>
                                   </tr>
                               );
                           })}

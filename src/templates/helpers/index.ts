@@ -20,6 +20,7 @@ export { linkTypeHtml, resolveType } from './link-type';
 export { modifIcon, modifIconFromArray } from './modif-icon';
 export { modifKind, modifSlug } from './modif-kind';
 export { oneParameterHas } from './one-parameter-has';
+export { pageSummary, sentenceEnd } from './page-summary';
 export type { PagefindFilterInput, PagefindMetaInput } from './pagefind-meta';
 export {
     deriveLibFromBucket,

@@ -21,6 +21,15 @@ describe('firstSentence', () => {
         expect(firstSentence('<br/><br/>')).toBeUndefined();
     });
 
+    it('does not cut the excerpt after e.g. or i.e.', () => {
+        expect(firstSentence('<p>Any token, e.g. a colour. More.</p>')).toBe(
+            'Any token, e.g. a colour'
+        );
+        expect(firstSentence('<p>One input, i.e. the value. More.</p>')).toBe(
+            'One input, i.e. the value'
+        );
+    });
+
     it('reads an inline {@link} as its link text', () => {
         expect(firstSentence('<p>Uses {@link Pt} and {@link Api.Point}. More.</p>')).toBe(
             'Uses Pt and Api.Point'

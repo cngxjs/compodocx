@@ -12,7 +12,7 @@ import { isDocumentedToken, type StyleFile } from '../../app/styles/model';
 import { markedAcl } from '../../utils/marked.acl';
 import { DiBadges } from '../components/DiBadges';
 import { IconFolder } from '../components/Icons';
-import { firstSentence, t } from '../helpers';
+import { pageSummary, t } from '../helpers';
 import type { FeatureMembers } from '../helpers/feature-sections';
 import { entryFacts } from '../helpers/symbol-facts';
 import { hasTheming, themingFor } from '../helpers/theming';
@@ -80,7 +80,7 @@ const Heading = (id: string, title: string, count?: number): string =>
 const MemberRow = (entry: SymbolEntry, ctx: Context): string => {
     const href = memberHref(entry, ctx);
     const name = <code>{entry.ref.name}</code>;
-    const summary = firstSentence((entry.data as { description?: unknown }).description);
+    const summary = pageSummary((entry.data as { description?: unknown }).description);
     return (
         <tr data-cdx-feature-member={entry.ref.kind}>
             <td>
@@ -192,7 +192,7 @@ const Related = (
 /** A style page row: link, first sentence of its overview, token and mixin counts. */
 const StyleRow = (entry: SymbolEntry, ctx: Context): string => {
     const file = entry.data as StyleFile;
-    const summary = firstSentence(file.overview ? (markedAcl(file.overview) as string) : '');
+    const summary = pageSummary(file.overview ? (markedAcl(file.overview) as string) : '');
     const tokens = file.tokens.filter(isDocumentedToken).length;
     const counts = [
         tokens > 0 ? `${tokens} ${t('tokens')}` : '',
