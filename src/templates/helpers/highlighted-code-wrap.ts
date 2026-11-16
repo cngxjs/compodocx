@@ -1,4 +1,5 @@
 import { highlightCode } from '../../app/engines/syntax-highlight.engine';
+import { codeSnippet } from '../components/CodeBlock';
 
 /** Remove common leading whitespace from all lines (dedent). */
 const dedent = (code: string): string => {
@@ -33,7 +34,7 @@ export const highlightedCodeWrap = (raw: unknown, lang = 'typescript'): string =
     }
     const cleaned = str.includes('\n') ? dedent(str) : str;
     if (cleaned.includes('\n') || cleaned.length > 80) {
-        return highlightCode(cleaned, { lang, mode: 'snippet' });
+        return codeSnippet(highlightCode(cleaned, { lang, mode: 'snippet' }));
     }
     // Short single-line: highlight as snippet, Shiki wraps in <pre><code>
     // but we only want inline <code>, so extract the inner content.

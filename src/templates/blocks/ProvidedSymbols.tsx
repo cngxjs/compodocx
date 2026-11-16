@@ -1,45 +1,35 @@
-import Html from '@kitajs/html';
 import type { SymbolKey } from '../../app/compiler/semantic/model';
 import Configuration from '../../app/configuration';
-import { hrefFor, hrefText } from '../../app/links/layout';
-import { placedLink } from '../../app/links/resolve';
-import { symbolId, type TableKind } from '../../app/links/symbol-id';
 import type { SymbolTable } from '../../app/links/symbol-table';
 import { t } from '../helpers';
+import { factKeyEntries } from '../helpers/used-by';
+import { SymbolChips } from './ReferencedBySection';
 
-/** Kinds a provider provides, in display order, with the label of their line. */
-const PROVIDED_KINDS: ReadonlyArray<{ readonly kind: TableKind; readonly label: string }> = [
-    { kind: 'token', label: 'tokens' },
-    { kind: 'service', label: 'services' },
-    { kind: 'injectable', label: 'injectables' }
-];
+/** Kinds a provider provides; other symbols with the same key are not linked. */
+const PROVIDED_KINDS: ReadonlySet<string> = new Set(['token', 'service', 'injectable']);
 
-/** Links to the token, service and injectable pages a provider provides, one line per kind. */
+/**
+ * The tokens, services and injectables a provider provides, as the same
+ * headed chip list as Provided by, Injected by and Used by (`id="provides"`),
+ * each chip coloured by its kind.
+ */
 export const ProvidedSymbols = (
     keys: readonly SymbolKey[],
     table: SymbolTable,
     depth: number
 ): string =>
-    PROVIDED_KINDS.map(({ kind, label }) => {
-        const links = keys
-            .map(key => table.byId.get(symbolId({ kind, file: key.file, name: key.name })))
-            .flatMap(entry => {
-                const link = entry && placedLink(table, entry, Configuration.mainData.di);
-                return entry && link
-                    ? [
-                          (
-                              <a href={hrefText(hrefFor(link.target, depth, link.anchor))}>
-                                  <code>{entry.ref.name}</code>
-                              </a>
-                          ) as string
-                      ]
-                    : [];
-            });
-        return links.length > 0
-            ? ((
-                  <p class="cdx-di-provided-tokens">
-                      {t(label)}: {links.join(', ')}
-                  </p>
-              ) as string)
-            : '';
-    }).join('');
+    SymbolChips({
+        entries: factKeyEntries(
+            {
+                symbols: table,
+                semantic: Configuration.mainData.semantic,
+                di: Configuration.mainData.di
+            },
+            keys
+        ).filter(entry => PROVIDED_KINDS.has(entry.kind)),
+        depth,
+        id: 'provides',
+        title: t('provides'),
+        className: 'cdx-di-provides',
+        block: 'provides'
+    });

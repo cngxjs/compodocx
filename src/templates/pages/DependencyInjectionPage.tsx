@@ -8,6 +8,7 @@ import type { SymbolId } from '../../app/links/symbol-id';
 import type { SymbolEntry, SymbolTable } from '../../app/links/symbol-table';
 import { type ReferencedByEntry, referencedByHref } from '../blocks/ReferencedBySection';
 import { DiBadges } from '../components/DiBadges';
+import { FeatureRow, FeatureRows } from '../components/FeatureRow';
 import { IconInjectable } from '../components/Icons';
 import { pageSummary, t } from '../helpers';
 import { entryFacts } from '../helpers/symbol-facts';
@@ -92,36 +93,26 @@ const Clusters = (ctx: Context): string =>
               </section>
           ) as string);
 
+const PlainProviderRow = (ctx: Context, entry: SymbolEntry | undefined): string =>
+    entry
+        ? FeatureRow({
+              name: entryLink(ctx, entry) + DiBadges({ facts: entryFacts(ctx.semantic, entry) }),
+              summary: pageSummary((entry.data as { description?: unknown }).description),
+              attrs: { 'data-cdx-di-provider': entry.ref.name }
+          })
+        : '';
+
 const PlainProviders = (ctx: Context): string =>
     ctx.view.plainProviders.length === 0
         ? ''
         : ((
               <section class="cdx-content-section">
                   {Heading('other-providers', t('other-providers'), ctx.view.plainProviders.length)}
-                  <table class="cdx-table">
-                      <thead>
-                          <tr>
-                              <th scope="col">{t('name')}</th>
-                              <th scope="col">{t('description')}</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          {ctx.view.plainProviders.map(id => {
-                              const entry = ctx.table.byId.get(id);
-                              const description = (entry?.data as { description?: unknown })
-                                  ?.description;
-                              return (
-                                  <tr>
-                                      <td>
-                                          {entryLink(ctx, entry)}
-                                          {DiBadges({ facts: entryFacts(ctx.semantic, entry) })}
-                                      </td>
-                                      <td>{pageSummary(description) ?? ''}</td>
-                                  </tr>
-                              );
-                          })}
-                      </tbody>
-                  </table>
+                  {FeatureRows(
+                      ctx.view.plainProviders.map(id =>
+                          PlainProviderRow(ctx, ctx.table.byId.get(id))
+                      )
+                  )}
               </section>
           ) as string);
 

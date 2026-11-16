@@ -15,6 +15,7 @@
  */
 
 import { REDIRECTS_FILE } from '../app/links/layout';
+import { clientText } from './text';
 
 interface ManifestEntry {
     label: string;
@@ -115,7 +116,7 @@ function renderStaticLabel(
     trigger.removeAttribute('aria-expanded');
     trigger.setAttribute(
         'aria-label',
-        `Documentation version: ${widget.dataset.cdxCurrentLabel ?? ''}`
+        clientText('version-label', { label: widget.dataset.cdxCurrentLabel ?? '' })
     );
     widget.dataset.cdxSingleVersion = 'true';
 }
@@ -206,16 +207,15 @@ export function sliceForCap(versions: ManifestEntry[], cap: number): SliceResult
 }
 
 function renderLoading(menu: HTMLElement): void {
-    menu.innerHTML = '<div class="cdx-version-switcher-loading">Loading…</div>';
+    menu.innerHTML = `<div class="cdx-version-switcher-loading">${escapeAttr(clientText('versions-loading'))}</div>`;
 }
 
 function renderUnreachable(menu: HTMLElement): void {
-    menu.innerHTML = '<div class="cdx-version-switcher-empty">No other versions known</div>';
+    menu.innerHTML = `<div class="cdx-version-switcher-empty">${escapeAttr(clientText('versions-none'))}</div>`;
 }
 
 function renderFileProtocolHint(menu: HTMLElement): void {
-    menu.innerHTML =
-        '<div class="cdx-version-switcher-hint">' + 'Open over http to switch versions.' + '</div>';
+    menu.innerHTML = `<div class="cdx-version-switcher-hint">${escapeAttr(clientText('versions-file'))}</div>`;
 }
 
 function renderMenu(menu: HTMLElement, widget: HTMLElement, sliced: SliceResult): void {
@@ -241,8 +241,13 @@ function renderMenu(menu: HTMLElement, widget: HTMLElement, sliced: SliceResult)
         const manifestUrl = getManifestUrl(widget);
         footer =
             '<div class="cdx-version-switcher-footer">' +
-            `Showing ${sliced.shown.length} of ${sliced.total} versions - ` +
-            `<a href="${escapeAttr(manifestUrl)}">see versions.json</a>` +
+            escapeAttr(
+                clientText('versions-showing', {
+                    shown: sliced.shown.length,
+                    total: sliced.total
+                })
+            ) +
+            ` - <a href="${escapeAttr(manifestUrl)}">${escapeAttr(clientText('versions-manifest'))}</a>` +
             '</div>';
     }
     menu.innerHTML = items + footer;

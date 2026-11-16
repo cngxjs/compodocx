@@ -161,8 +161,13 @@ describe('CLI Angular 22 application', () => {
         expect(provided).to.contain('provideAudit');
         expect(page('service', 'Logger')).to.match(/id="provided-by"[\s\S]*provideAudit/);
         const provider = page('provider', 'provideAudit');
-        expect(provider).to.match(/cdx-di-provided-tokens[\s\S]*AuditService/);
-        expect(provider).to.match(/cdx-di-provided-tokens[\s\S]*Logger/);
+        // Provides is the same headed chip list as Provided by, one chip per kind colour.
+        const provides = provider.split('id="provides"')[1]?.split('</section>')[0] ?? '';
+        expect(provides).to.match(
+            /<a class="cdx-chip cdx-chip--service" href="[^"]*" data-cdx-kind="service">AuditService<\/a>/
+        );
+        expect(provides).to.match(/data-cdx-kind="(service|injectable)">Logger<\/a>/);
+        expect(provider).not.to.contain('cdx-di-provided-tokens');
     });
 
     it('counts the providers of a component as provided', () => {

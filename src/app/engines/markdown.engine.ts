@@ -1,6 +1,7 @@
 import * as path from 'node:path';
 import decache from 'decache';
 import * as fs from 'fs-extra';
+import { codeSnippet } from '../../templates/components/CodeBlock';
 import { markedAcl } from '../../utils/marked.acl';
 import FileEngine from './file.engine';
 import { applyListDirectives } from './markdown-directives';
@@ -30,17 +31,14 @@ export class MarkdownEngine {
 
         const renderer = new this.markedInstance.Renderer();
         renderer.code = (code, language) => {
-            if (!language) {
-                language = 'none';
-            }
-
+            const lang = language?.trim().split(/\s+/)[0] || undefined;
             let highlighted: string;
             try {
-                highlighted = highlightCode(code, { lang: language, mode: 'snippet' });
+                highlighted = highlightCode(code, { lang, mode: 'snippet' });
             } catch {
                 highlighted = `<pre class="shiki"><code>${this.escape(code)}</code></pre>`;
             }
-            return `<div class="cdx-code-snippet">${highlighted}</div>`;
+            return codeSnippet(highlighted, { lang });
         };
 
         renderer.table = (header, body) => {

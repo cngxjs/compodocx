@@ -1,5 +1,5 @@
 import Html from '@kitajs/html';
-import { t } from '../helpers';
+import { isInfoSection, t } from '../helpers';
 import { resolveType } from '../helpers/link-type';
 
 /**
@@ -188,6 +188,23 @@ export function MetadataChipsRow(
         return `<span class="cdx-chip${kindClass}">${name}</span>`;
     });
     return MetadataRow(label, `<div class="cdx-chip-list">${chips.join('')}</div>`);
+}
+
+/**
+ * The `extends` and `implements` chip rows of a class-like entity, the same on
+ * every page; none when the `extends` info section is hidden.
+ */
+export function HeritageRows(
+    entity: { readonly extends?: unknown; readonly implements?: unknown },
+    depth: number
+): string[] {
+    if (!isInfoSection('extends')) {
+        return [];
+    }
+    return [
+        MetadataChipsRow('extends', (entity.extends as string[]) ?? [], depth),
+        MetadataChipsRow('implements', (entity.implements as string[]) ?? [], depth)
+    ];
 }
 
 /** Full metadata section: `<section>` + `<h3>` + `<dl>` wrapping pre-rendered rows. */

@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-
+import { withCodeToolbars } from '../../templates/components/CodeBlock';
 import AngularApiUtil from '../../utils/angular-api.util';
 import { buildEntityIndex } from '../../utils/entity-index.util';
 import { logger } from '../../utils/logger';
@@ -290,7 +290,9 @@ export class PageWriter {
         logger.info('Process page', page.name);
 
         const { redirects, pages } = this.legacyLinks();
-        const html = this.withMarkdownLinks(HtmlEngine.render(Configuration.mainData, page), page);
+        const html = withCodeToolbars(
+            this.withMarkdownLinks(HtmlEngine.render(Configuration.mainData, page), page)
+        );
         const htmlData = rewriteLegacyLinks(
             this.withSiteLinks(html, page, pages, redirects),
             pageOutputPath(page),

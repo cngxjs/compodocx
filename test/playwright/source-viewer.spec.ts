@@ -36,7 +36,7 @@ test.describe('Source viewer — chrome', () => {
             'user-card.component.ts'
         );
         await expect(header.locator('.cdx-source-scope')).toHaveCount(1);
-        await expect(header.locator('button.cdx-source-viewer-copy')).toBeVisible();
+        await expect(header.locator('button[data-cdx-copy]')).toBeVisible();
     });
 
     test('typescript icon uses the --typescript lang modifier class', async ({ page }) => {
@@ -50,12 +50,14 @@ test.describe('Source viewer — chrome', () => {
         await context.grantPermissions(['clipboard-read', 'clipboard-write']);
         await page.goto(SOURCE_PAGE());
         await page.locator('a#source-tab').click();
-        const btn = page.locator('#source .cdx-source-viewer-copy');
+        const btn = page.locator('#source button[data-cdx-copy]');
         await btn.click();
-        await expect(btn).toHaveClass(/cdx-source-viewer-copy--copied/);
+        await expect(btn).toHaveAttribute('data-cdx-state', 'copied');
         const copied = await page.evaluate(() => navigator.clipboard.readText());
         expect(copied.length).toBeGreaterThan(100);
         expect(copied).toContain('UserCardComponent');
+        // Line numbers and fold labels are not part of the copied code
+        expect(copied).toMatch(/^import /);
     });
 
     test('body pre contains member markers with depth attributes', async ({ page }) => {

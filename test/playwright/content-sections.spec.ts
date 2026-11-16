@@ -289,7 +289,7 @@ test.describe('Content Sections', () => {
 
             const card = page.locator('.cdx-metadata-card');
             if ((await card.count()) > 0) {
-                const extendsLabel = card.locator('.cdx-metadata-label', { hasText: 'extends' });
+                const extendsLabel = card.locator('.cdx-metadata-label', { hasText: 'Extends' });
                 if ((await extendsLabel.count()) > 0) {
                     await expect(extendsLabel).toBeVisible();
                 }

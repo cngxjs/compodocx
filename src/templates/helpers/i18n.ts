@@ -1,5 +1,8 @@
 import I18nEngine from '../../app/engines/i18n.engine';
 
+/** The page language for `<html lang>`. */
+export const pageLanguage = (): string => I18nEngine.language();
+
 /**
  * Translate a key using the i18n engine. Equivalent to {{t "key"}} in Handlebars.
  * The key is looked up as given, then lowercased (locale keys are lowercase,

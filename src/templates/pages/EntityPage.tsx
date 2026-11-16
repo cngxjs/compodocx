@@ -27,6 +27,7 @@ import { ExternalLinks } from '../blocks/ExternalLinks';
 import { HostSection } from '../blocks/HostSection';
 import { ImportStatement } from '../blocks/ImportStatement';
 import { JsdocExamplesBlock } from '../blocks/JsdocExamplesBlock';
+import { HeritageRows, MetadataSection } from '../blocks/MetadataRow';
 import { PlaygroundContent } from '../blocks/PlaygroundContent';
 import { ProvidersSection } from '../blocks/ProvidersSection';
 import { ReferencedBySection, SymbolChips } from '../blocks/ReferencedBySection';
@@ -60,7 +61,6 @@ import {
     isInfoSection,
     isInitialTab,
     isTabEnabled,
-    linkTypeHtml,
     pagefindFilterBlock,
     pagefindMetaBlock,
     parseDescription,
@@ -241,47 +241,9 @@ const hasInfoContent = (e: any, props: EntityInfoProps): boolean =>
         providedByEntries(Configuration.mainData, props.entityKey as EntityKind, e).length > 0
     );
 
-/** Render extends/implements as metadata card rows for entities without decorator metadata */
-const ExtendsMetadataCard = (e: any, depth: number): string => {
-    const hasExtends = e.extends?.length > 0;
-    const hasImplements = e.implements?.length > 0;
-    if (!hasExtends && !hasImplements) {
-        return '';
-    }
-
-    return (
-        <section class="cdx-content-section" data-compodoc="block-metadata">
-            <h3 class="cdx-section-heading" id="metadata">
-                {t('metadata')}
-                <a class="cdx-member-permalink" href="#metadata">
-                    #
-                </a>
-            </h3>
-            <dl class="cdx-metadata-card">
-                {hasExtends && (
-                    <div class="cdx-metadata-row">
-                        <dt class="cdx-metadata-label">extends</dt>
-                        <dd class="cdx-metadata-value">
-                            {(e.extends as string[])
-                                .map(ext => linkTypeHtml(ext, { depth }))
-                                .join(' ')}
-                        </dd>
-                    </div>
-                )}
-                {hasImplements && (
-                    <div class="cdx-metadata-row">
-                        <dt class="cdx-metadata-label">implements</dt>
-                        <dd class="cdx-metadata-value">
-                            {(e.implements as string[])
-                                .map(impl => linkTypeHtml(impl, { depth }))
-                                .join(' ')}
-                        </dd>
-                    </div>
-                )}
-            </dl>
-        </section>
-    ) as string;
-};
+/** The extends/implements card of an entity without decorator metadata. */
+const ExtendsMetadataCard = (e: any, depth: number): string =>
+    MetadataSection({ rows: HeritageRows(e, depth) });
 
 /**
  * Overview-style content for class-like entities: description, examples,
@@ -385,7 +347,7 @@ const InfoContent = (props: EntityInfoProps): string => {
             {isInfoSection('metadata') &&
                 (props.metadataHtml
                     ? props.metadataHtml
-                    : isInfoSection('extends') && props.showExtends !== false
+                    : props.showExtends !== false
                       ? ExtendsMetadataCard(e, props.depth)
                       : '')}
 

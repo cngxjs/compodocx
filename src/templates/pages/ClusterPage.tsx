@@ -14,6 +14,7 @@ import { ImportStatement } from '../blocks/ImportStatement';
 import { ProvidedSymbols } from '../blocks/ProvidedSymbols';
 import { type ReferencedByEntry, ReferencedBySection } from '../blocks/ReferencedBySection';
 import { DiBadges } from '../components/DiBadges';
+import { FeatureRow, FeatureRows } from '../components/FeatureRow';
 import { IconFile, IconInjectable } from '../components/Icons';
 import {
     functionSignature,
@@ -21,6 +22,7 @@ import {
     linkTypeHtml,
     pagefindFilterBlock,
     pagefindMetaBlock,
+    pageSummary,
     parseDescription,
     t
 } from '../helpers';
@@ -172,31 +174,25 @@ const MemberGroup = (
           ) as string)
         : '';
 
+const TokenRow = (token: any, depth: number): string => {
+    const target = itemTarget(Configuration.mainData.symbols, 'token', token);
+    return FeatureRow({
+        name: (
+            <a href={hrefText(hrefFor(target, depth))}>
+                <code>{token.name}</code>
+            </a>
+        ) as string,
+        summary: pageSummary(token.description),
+        attrs: { 'data-cdx-cluster-token': token.name }
+    });
+};
+
 const TokenList = (tokens: readonly any[], depth: number): string =>
     tokens.length > 0
         ? ((
               <section class="cdx-content-section">
                   {Heading({ id: 'tokens', title: t('tokens') })}
-                  <ul>
-                      {tokens.map(token => (
-                          <li>
-                              <a
-                                  href={hrefText(
-                                      hrefFor(
-                                          itemTarget(
-                                              Configuration.mainData.symbols,
-                                              'token',
-                                              token
-                                          ),
-                                          depth
-                                      )
-                                  )}
-                              >
-                                  <code>{token.name}</code>
-                              </a>
-                          </li>
-                      ))}
-                  </ul>
+                  {FeatureRows(tokens.map(token => TokenRow(token, depth)))}
               </section>
           ) as string)
         : '';

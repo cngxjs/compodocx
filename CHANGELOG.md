@@ -6,6 +6,28 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 For the upstream compodoc history that predates the cngx fork, see <https://github.com/compodoc/compodoc/blob/master/CHANGELOG.md>.
 
+## [Unreleased]
+
+### Added
+
+- **Angular code fences.** `angular-html` (also `angular`, `ng`, `ng-html`, `angular-template`) highlights Angular templates with control flow, `@let`, bindings and interpolation; `angular-ts` (also `ng-ts`) highlights a component with its inline template and styles. Binding values (`(click)="save()"`, `[class.active]="isActive"`) and the values of a decorator's `host` object are highlighted as expressions, not strings. Fences also accept `ts`, `js`, `sh`, `shell`, `zsh`, `console`, `md`, `yml` and `yaml`, and `diff`.
+
+### Changed
+
+- **One code block.** Fenced code, `@example`, theming examples and sources, playground previews and long values share one block with a toolbar: the language (or the file name) on the left, a copy button on the right. The button is part of the page instead of being added by script, announces the result to screen readers, shows a failed copy and then selects the code. The source viewer uses the same button. The JSON and llm-md exports keep the code without toolbar; a snippet there carries `data-cdx-lang`.
+- **Themed members on feature pages.** The components and directives with a Theming tab are rows like the other member lists (`li.cdx-feature-row[data-cdx-feature-theming]`) with the first sentence of the theme overview (else the member summary) and the number of documented tokens and mixins, instead of a bare list.
+- **Symbol lists on the other pages.** The tokens on a feature type page, the providers without a feature type on the dependency injection page and the members of a namespace are the same rows as on feature pages (name, then summary) instead of a bare list or a two-column table: `li.cdx-feature-row` with `data-cdx-cluster-token`, `data-cdx-di-provider` or `data-cdx-namespace-member`. A namespace alias shows its target on its own line below the name. The feature type and token tables on the dependency injection page and the utilities tables keep their columns (providers and features, shape and providers, used-by count).
+- **Provides.** What a provider provides is a headed chip list (`id="provides"`) like Provided by, Injected by and Used by, instead of one `Tokens: a, b` line per kind; the `cdx-di-provided-tokens` class is gone.
+
+### Fixed
+
+- Pipe and service pages show what the class extends and implements; the decorator metadata used to replace it. Extends and implements are the same linked chips with Title Case labels on every page (classes and interfaces had lowercase labels with plain links).
+- The search palette, the keyboard shortcuts dialog, the version switcher, the expand button of long code blocks, the header buttons and the coverage filter follow `--language` instead of always being English, and `<html lang>` names the page language. A custom `Layout` override without `body[data-cdx-text]` keeps the English texts.
+- A fence in an unknown language is shown as plain text instead of being highlighted as TypeScript.
+- Permalinks on member cards and README headings are visible on keyboard focus.
+- Route paths on the routes page no longer get a second underline on hover.
+- Used by, Provided by, Injected by and Provides chips for tokens, functions, constants, type aliases, enums, style files and namespaces have their kind colour instead of grey.
+
 ## [0.18.0] - 2026-11-13
 
 ### Added

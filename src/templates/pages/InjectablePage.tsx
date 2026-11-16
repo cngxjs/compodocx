@@ -1,6 +1,6 @@
 import Html from '@kitajs/html';
 import { MetadataCodeRow, MetadataSection } from '../blocks/MetadataRow';
-import { formatProvidedIn } from '../helpers';
+import { formatProvidedIn, t } from '../helpers';
 import { renderEntityPage } from './EntityPage';
 
 const TokenMetadata = (injectable: any): string => {
@@ -14,7 +14,7 @@ const TokenMetadata = (injectable: any): string => {
     if (injectable.providedIn) {
         rows.push(MetadataCodeRow('Provided in', formatProvidedIn(injectable.providedIn)));
     }
-    return MetadataSection({ title: 'Token Metadata', rows });
+    return MetadataSection({ title: t('token-metadata'), rows });
 };
 
 export const InjectablePage = (data: any): string =>

@@ -1,14 +1,16 @@
 import { registerLineHandler, updateHash } from './hash-router';
+import { clientText } from './text';
 
-const LANG_MAP: Record<string, string> = {
-    typescript: 'TypeScript',
-    javascript: 'JavaScript',
-    html: 'HTML',
-    css: 'CSS',
-    scss: 'SCSS',
-    json: 'JSON',
-    bash: 'Shell',
-    markdown: 'Markdown'
+/**
+ * The text a copy button puts on the clipboard: the code without the line
+ * numbers and fold summaries the source viewer adds around it.
+ */
+const copyableText = (code: Element): string => {
+    const clone = code.cloneNode(true) as Element;
+    clone.querySelectorAll('.cdx-line-number, .cdx-fold-summary').forEach(el => {
+        el.remove();
+    });
+    return clone.textContent || '';
 };
 
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -70,100 +72,110 @@ export const initCodeBlocks = () => {
     initLinkToSource();
     initLinePermalinks();
     initSourceScope();
-    initLanguageChips();
     initExpandableSnippets();
     registerLineHandler(highlightLineRange);
 };
 
+/** How long the copy button shows its result before it resets. */
+const COPY_RESET_MS = 2000;
+
+let copyBound = false;
+
+/** One polite live region per page, so the result of a copy is announced. */
+const announce = (message: string) => {
+    let region = document.getElementById('cdx-copy-status');
+    if (!region) {
+        region = document.createElement('div');
+        region.id = 'cdx-copy-status';
+        region.className = 'cdx-sr-only';
+        region.setAttribute('aria-live', 'polite');
+        document.body.appendChild(region);
+    }
+    region.textContent = '';
+    region.textContent = message;
+};
+
+/** Select the code so it can be copied by hand when the clipboard refuses. */
+const selectCode = (code: Element) => {
+    const range = document.createRange();
+    range.selectNodeContents(code);
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+};
+
+const showCopyResult = (btn: HTMLButtonElement, state: 'copied' | 'failed') => {
+    const text = btn.querySelector('.cdx-copy-text');
+    const idle = btn.dataset.cdxIdle ?? text?.textContent ?? '';
+    btn.dataset.cdxIdle = idle;
+    const message = (state === 'copied' ? btn.dataset.cdxCopied : btn.dataset.cdxFailed) ?? '';
+    btn.dataset.cdxState = state;
+    if (text) {
+        text.textContent = message;
+    }
+    announce(message);
+    window.clearTimeout(Number(btn.dataset.cdxTimer));
+    btn.dataset.cdxTimer = String(
+        window.setTimeout(() => {
+            delete btn.dataset.cdxState;
+            if (text) {
+                text.textContent = idle;
+            }
+        }, COPY_RESET_MS)
+    );
+};
+
+/** The code a copy button belongs to: its code block or source viewer. */
+const codeOf = (btn: Element): Element | null =>
+    btn.closest('.cdx-code-block, .cdx-source-viewer')?.querySelector('pre code, pre') ?? null;
+
+const copyFrom = (btn: HTMLButtonElement) => {
+    const code = codeOf(btn);
+    if (!code) {
+        return;
+    }
+    const fail = () => {
+        selectCode(code);
+        showCopyResult(btn, 'failed');
+    };
+    if (!navigator.clipboard?.writeText) {
+        fail();
+        return;
+    }
+    navigator.clipboard
+        .writeText(copyableText(code))
+        .then(() => showCopyResult(btn, 'copied'), fail);
+};
+
+/**
+ * Scrollable code is a focusable region, and every copy button rendered by
+ * the server (code blocks, source viewer headers) copies its block. One
+ * delegated listener serves pages the SPA router swaps in later.
+ */
 const initCopyButtons = () => {
-    // Floating copy button for bare <pre> blocks outside a source viewer
-    // (inline code snippets in markdown, examples, etc.)
     document.querySelectorAll<HTMLElement>('pre:has(> code), pre.shiki').forEach(pre => {
         if (!pre.hasAttribute('role')) {
             pre.setAttribute('tabindex', '0');
             pre.setAttribute('role', 'region');
-            pre.setAttribute('aria-label', 'Source code');
+            pre.setAttribute('aria-label', clientText('source-code'));
         }
         pre.querySelectorAll('.cdx-line-number, .line-number, .line-numbers-rows span').forEach(
             el => {
                 el.setAttribute('aria-hidden', 'true');
             }
         );
-
-        // Source-viewer blocks have their own copy button in the header;
-        // signatures and definitions are read, not copied.
-        if (pre.closest('.cdx-source-viewer') || pre.classList.contains('cdx-derived-body')) {
-            return;
-        }
-        // Idempotency: skip if either the button or its wrapping container
-        // is already in place (covers SPA re-init and pre-existing markup).
-        if (
-            pre.parentElement?.querySelector(':scope > .cdx-code-copy') ||
-            pre.parentElement?.classList.contains('cdx-code-copy-wrap')
-        ) {
-            return;
-        }
-
-        const btn = document.createElement('button');
-        btn.className = 'cdx-code-copy';
-        btn.textContent = 'Copy';
-        btn.setAttribute('aria-label', 'Copy code');
-        btn.addEventListener('click', () => {
-            const code = pre.querySelector('code');
-            if (code) {
-                navigator.clipboard.writeText(code.textContent || '').then(() => {
-                    btn.textContent = 'Copied!';
-                    btn.setAttribute('aria-label', 'Copied!');
-                    btn.classList.add('cdx-code-copy--copied');
-                    setTimeout(() => {
-                        btn.textContent = 'Copy';
-                        btn.setAttribute('aria-label', 'Copy code');
-                        btn.classList.remove('cdx-code-copy--copied');
-                    }, 2000);
-                });
-            }
-        });
-        // Place the button OUTSIDE `<pre>` so it doesn't scroll with the
-        // horizontally-scrolling code content. If `<pre>` is already wrapped
-        // by `.cdx-code-snippet` (markdown-rendered fences) we reuse that
-        // positioned wrapper; otherwise we insert a thin one.
-        const existingWrapper = pre.parentElement?.classList.contains('cdx-code-snippet')
-            ? pre.parentElement
-            : null;
-        let wrapper: HTMLElement;
-        if (existingWrapper) {
-            wrapper = existingWrapper;
-        } else {
-            wrapper = document.createElement('div');
-            wrapper.className = 'cdx-code-copy-wrap';
-            pre.parentNode?.insertBefore(wrapper, pre);
-            wrapper.appendChild(pre);
-        }
-        wrapper.appendChild(btn);
     });
-
-    // Wire up the integrated `.cdx-source-viewer-copy` button in each
-    // source viewer tab header.
-    document.querySelectorAll<HTMLButtonElement>('.cdx-source-viewer-copy').forEach(btn => {
-        if (btn.dataset.cdxBound) {
-            return;
+    if (copyBound) {
+        return;
+    }
+    copyBound = true;
+    document.addEventListener('click', event => {
+        const btn = (event.target as Element | null)?.closest<HTMLButtonElement>(
+            'button[data-cdx-copy]'
+        );
+        if (btn) {
+            copyFrom(btn);
         }
-        btn.dataset.cdxBound = '1';
-        btn.addEventListener('click', () => {
-            const viewer = btn.closest('.cdx-source-viewer');
-            const code = viewer?.querySelector('pre code');
-            if (!code) {
-                return;
-            }
-            navigator.clipboard.writeText(code.textContent || '').then(() => {
-                btn.classList.add('cdx-source-viewer-copy--copied');
-                btn.setAttribute('aria-label', 'Copied!');
-                setTimeout(() => {
-                    btn.classList.remove('cdx-source-viewer-copy--copied');
-                    btn.setAttribute('aria-label', 'Copy source');
-                }, 2000);
-            });
-        });
     });
 };
 
@@ -429,33 +441,6 @@ const escapeHtmlClient = (str: string) =>
 
 const escapeAttr = (str: string) => str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-const initLanguageChips = () => {
-    document.querySelectorAll<HTMLElement>('pre:has(> code), pre.shiki').forEach(pre => {
-        if (pre.querySelector('.cdx-code-lang-chip') || pre.closest('.cdx-source-viewer')) {
-            return;
-        }
-
-        const code = pre.querySelector('code');
-        if (!code) {
-            return;
-        }
-
-        const langClass = Array.from(code.classList).find(c => c.startsWith('language-'));
-        if (!langClass) {
-            return;
-        }
-
-        const lang = langClass.replace('language-', '');
-        const label = LANG_MAP[lang] || lang.toUpperCase();
-
-        const chip = document.createElement('span');
-        chip.className = 'cdx-code-lang-chip';
-        chip.textContent = label;
-        pre.style.position = 'relative';
-        pre.appendChild(chip);
-    });
-};
-
 const initExpandableSnippets = () => {
     document.querySelectorAll<HTMLElement>('pre:has(> code), pre.shiki').forEach(pre => {
         if (pre.closest('.cdx-source-viewer') || pre.dataset.cdxExpandChecked) {
@@ -479,11 +464,15 @@ const initExpandableSnippets = () => {
         wrapper.appendChild(pre);
 
         const btn = document.createElement('button');
+        btn.type = 'button';
         btn.className = 'cdx-code-expand-btn';
-        btn.textContent = `Show all ${lineCount} lines`;
-        btn.setAttribute('aria-label', `Expand code block to show all ${lineCount} lines`);
+        btn.setAttribute('aria-expanded', 'false');
+        const showAll = clientText('show-all-lines', { count: lineCount });
+        btn.textContent = showAll;
         btn.addEventListener('click', () => {
-            wrapper.classList.add('cdx-code-expanded');
+            const expanded = wrapper.classList.toggle('cdx-code-expanded');
+            btn.setAttribute('aria-expanded', String(expanded));
+            btn.textContent = expanded ? clientText('show-less') : showAll;
         });
         wrapper.appendChild(btn);
     });

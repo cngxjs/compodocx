@@ -123,7 +123,7 @@ pre.line-numbers code {
  *     |   +- .cdx-source-viewer-icon   (file-type icon)
  *     |   +- .cdx-source-viewer-path   (file path, breadcrumb-like)
  *     |   +- .cdx-source-scope          (client-injected scope)
- *     |   +- .cdx-source-viewer-copy    (integrated copy button)
+ *     |   +- .cdx-copy                  (shared copy button, see below)
  *     +- .cdx-source-viewer-body   (<pre> Shiki output, scrollable)
  *
  * The viewer has its OWN scroll context — `max-height` + `overflow-y`
@@ -247,35 +247,6 @@ pre.line-numbers code {
 
 .cdx-source-scope:empty {
     flex: 1 1 auto;
-}
-
-.cdx-source-viewer-copy {
-    @apply inline-flex items-center justify-center cursor-pointer;
-    width: 26px;
-    height: 26px;
-    padding: 0;
-    border: 1px solid transparent;
-    border-radius: var(--radius-cdx-sm);
-    background: transparent;
-    color: var(--color-cdx-text-muted);
-    flex-shrink: 0;
-    transition: var(--cdx-transition-fast);
-}
-
-.cdx-source-viewer-copy:hover {
-    background: var(--color-cdx-bg-elevated);
-    border-color: var(--color-cdx-border);
-    color: var(--color-cdx-text);
-}
-
-.cdx-source-viewer-copy--copied {
-    background: color-mix(in srgb, var(--color-cdx-primary) 12%, transparent);
-    border-color: color-mix(in srgb, var(--color-cdx-primary) 30%, transparent);
-    color: var(--color-cdx-primary);
-}
-
-.cdx-source-viewer-copy .cdx-icon {
-    margin-right: 0;
 }
 
 /* Sticky scroll stack */
@@ -453,91 +424,146 @@ pre.line-numbers code {
     display: none;
 }
 
-/* --- Copy button --- */
-
-.cdx-code-copy {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    padding: var(--spacing-cdx-xs) var(--spacing-cdx-sm);
-    border: 1px solid var(--color-cdx-border);
-    border-radius: var(--radius-cdx-sm);
-    background: var(--color-cdx-bg-elevated);
-    color: var(--color-cdx-text-muted);
-    font-size: 12px;
-    cursor: pointer;
-    opacity: 0;
-    transition:
-        opacity var(--cdx-transition-fast),
-        color var(--cdx-transition-fast),
-        background var(--cdx-transition-fast);
-}
-
-/* Auto-inserted by `code-blocks.ts` around standalone <pre> blocks that
-   don't already have a positioned wrapper (.cdx-code-snippet already
-   carries position: relative via the @apply rule below). */
-.cdx-code-copy-wrap {
-    position: relative;
-}
-
-/* The button sits as a SIBLING of the scrolling <pre> (not inside it) so
-   horizontal scroll inside <pre> doesn't drag the button off-screen.
-   Hover/focus on either wrapper variant reveals it. */
-.cdx-code-copy-wrap:hover .cdx-code-copy,
-.cdx-code-snippet:hover .cdx-code-copy,
-.cdx-code-copy:focus-visible {
-    opacity: 1;
-}
-
-.cdx-code-copy:hover {
-    color: var(--color-cdx-text);
-    background: var(--color-cdx-bg-alt);
-}
-
-.cdx-code-copy.cdx-code-copy--copied {
-    color: var(--color-cdx-copy-success);
-    transform: scale(1);
-    animation: cdx-copy-flash 300ms ease;
-}
-
-@keyframes cdx-copy-flash {
-    from {
-        transform: scale(0.8);
-    }
-    to {
-        transform: scale(1);
-    }
-}
-
-/* --- Snippet (Type B) --- */
+/* --- Code block (Type B): a card with a toolbar ---
+ *
+ * Every copyable snippet is a `div.cdx-code-snippet` (codeSnippet in
+ * src/templates/components/CodeBlock.tsx); on HTML pages the page writer
+ * makes it a `.cdx-code-block` with a `.cdx-code-bar`: label left, copy
+ * button right. The card carries border, background and radius; the
+ * Shiki <pre> inside is flat.
+ */
 
 .cdx-code-snippet {
-    @apply relative;
+    position: relative;
+    margin: var(--spacing-cdx-lg) 0;
+    border: 1px solid var(--color-cdx-snippet-border);
+    border-radius: var(--color-cdx-snippet-radius, var(--radius-cdx-md));
+    background: var(--color-cdx-snippet-bg);
+    overflow: hidden;
 }
 
-.cdx-code-snippet pre {
-    padding: 0.75rem;
+.cdx-code-snippet pre.shiki,
+.dark .cdx-code-snippet pre.shiki {
+    margin: 0;
+    border: 0 !important;
+    border-radius: 0;
+    background-color: transparent !important;
+    padding: var(--spacing-cdx-sm) var(--spacing-cdx-md) var(--spacing-cdx-md);
 }
 
-.cdx-code-lang-chip {
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: var(--spacing-cdx-xs) var(--spacing-cdx-sm);
-    font-size: 10px;
+.cdx-code-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-cdx-sm);
+    min-height: 34px;
+    padding: 3px 5px 3px var(--spacing-cdx-md);
+    border-bottom: 1px solid var(--color-cdx-snippet-border);
+    background: color-mix(in srgb, var(--color-cdx-snippet-bg) 94%, var(--color-cdx-text) 6%);
+}
+
+.cdx-code-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-family: var(--font-code);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--color-cdx-lang-chip);
-    background: var(--color-cdx-lang-chip-bg);
-    border-radius: 0 var(--radius-cdx-md) 0 var(--radius-cdx-sm);
-    pointer-events: none;
-    user-select: none;
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    color: var(--color-cdx-text-secondary);
 }
 
-pre:hover > .cdx-code-lang-chip {
+/* --- Copy button: code blocks and source viewer headers --- */
+
+.cdx-copy {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    margin-left: auto;
+    padding: 0 9px 0 7px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-cdx-sm);
+    background: transparent;
+    color: var(--color-cdx-text-secondary);
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        background-color var(--cdx-transition-fast),
+        border-color var(--cdx-transition-fast),
+        color var(--cdx-transition-fast);
+}
+
+.cdx-copy:hover {
+    background: var(--color-cdx-bg-elevated);
+    border-color: var(--color-cdx-border);
+    color: var(--color-cdx-text);
+}
+
+.cdx-copy:focus-visible {
+    outline: 2px solid var(--color-cdx-focus-ring);
+    outline-offset: 1px;
+}
+
+.cdx-copy-icon {
+    display: inline-grid;
+    width: 14px;
+    height: 14px;
+}
+
+.cdx-copy-icon > span {
+    display: inline-flex;
+    grid-area: 1 / 1;
+    transition:
+        opacity 150ms ease,
+        transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.cdx-copy-icon-done,
+.cdx-copy[data-cdx-state="copied"] .cdx-copy-icon-idle {
     opacity: 0;
-    transition: opacity var(--cdx-transition-fast);
+    transform: scale(0.5);
+}
+
+.cdx-copy[data-cdx-state="copied"] .cdx-copy-icon-done {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.cdx-copy[data-cdx-state="copied"] {
+    background: color-mix(in srgb, var(--color-cdx-copy-success) 12%, transparent);
+    border-color: color-mix(in srgb, var(--color-cdx-copy-success) 35%, transparent);
+    color: var(--color-cdx-copy-success);
+}
+
+.cdx-copy[data-cdx-state="failed"] {
+    border-color: color-mix(in srgb, var(--color-cdx-danger) 40%, transparent);
+    color: var(--color-cdx-danger);
+}
+
+@media (max-width: 30rem) {
+    .cdx-copy-text {
+        @apply sr-only;
+    }
+
+    .cdx-copy {
+        padding: 0 6px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cdx-copy,
+    .cdx-copy-icon > span {
+        transition: none;
+    }
+}
+
+.cdx-sr-only {
+    @apply sr-only;
 }
 
 .cdx-code-expandable {
@@ -571,8 +597,9 @@ pre:hover > .cdx-code-lang-chip {
     max-height: none;
 }
 
+/* Expanded, the button stays below the code to collapse it again */
 .cdx-code-expanded .cdx-code-expand-btn {
-    display: none;
+    position: static;
 }
 
 /* --- Selection color (entity-themed) --- */

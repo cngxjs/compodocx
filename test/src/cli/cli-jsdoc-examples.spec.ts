@@ -64,7 +64,7 @@ describe('CLI generation - JSDoc @example language specifications', () => {
 
         it('should render one Shiki snippet per fenced @example', () => {
             const snippets = examplesSection.match(
-                /<div class="cdx-code-snippet"><pre class="shiki/g
+                /<div class="cdx-code-snippet cdx-code-block"[^>]*><div class="cdx-code-bar">(?:(?!<\/div>)[\s\S])*<\/div><pre class="shiki/g
             );
             expect(snippets?.length).to.equal(3);
         });
@@ -116,7 +116,7 @@ describe('CLI generation - JSDoc @example language specifications', () => {
 
         it('should render the method example as a Shiki snippet', () => {
             expect(directiveFile).to.match(
-                /cdx-code-snippet"><pre class="shiki(?:(?!<\/pre>)[\s\S])*\/\/ Method usage/
+                /cdx-code-snippet cdx-code-block"[^>]*><div class="cdx-code-bar">(?:(?!<\/div>)[\s\S])*<\/div><pre class="shiki(?:(?!<\/pre>)[\s\S])*\/\/ Method usage/
             );
             const text = directiveFile.replace(/<[^>]+>/g, '');
             expect(text).to.contain('const test = new TestClass();');

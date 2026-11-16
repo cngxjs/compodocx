@@ -10,6 +10,8 @@ import { ENTITIES_SCRIPT, MENU_SCRIPT } from '../app/page-generator/shared-scrip
 import { VersionSwitcher } from './blocks/VersionSwitcher';
 import { IconMoon, IconPalette, IconSearch, IconSun } from './components/Icons';
 import { relativeUrl } from './helpers';
+import { clientTextAttribute } from './helpers/client-text';
+import { pageLanguage, t } from './helpers/i18n';
 
 export type PageData = {
     readonly documentationMainName: string;
@@ -96,7 +98,7 @@ const CommandPalette = (props: { readonly axes?: string; readonly facetLimit?: n
         <dialog
             id="cdx-command-palette"
             class="cdx-cp"
-            aria-label="Search documentation"
+            aria-label={t('search-documentation')}
             data-cdx-axes={props.axes}
             data-cdx-facet-limit={props.facetLimit}
         >
@@ -120,7 +122,7 @@ const CommandPalette = (props: { readonly axes?: string; readonly facetLimit?: n
                     <input
                         class="cdx-cp-input"
                         type="text"
-                        placeholder="Search documentation..."
+                        placeholder={t('search-placeholder')}
                         autocomplete="off"
                         spellcheck="false"
                         role="combobox"
@@ -128,7 +130,7 @@ const CommandPalette = (props: { readonly axes?: string; readonly facetLimit?: n
                         aria-controls="cdx-cp-listbox"
                         aria-autocomplete="list"
                     />
-                    <button class="cdx-cp-close" aria-label="Close search" type="button">
+                    <button class="cdx-cp-close" aria-label={t('close-search')} type="button">
                         <svg
                             width="16"
                             height="16"
@@ -145,28 +147,28 @@ const CommandPalette = (props: { readonly axes?: string; readonly facetLimit?: n
                         </svg>
                     </button>
                 </div>
-                <section class="cdx-cp-facets" hidden aria-label="Filter results">
+                <section class="cdx-cp-facets" hidden aria-label={t('filter-results')}>
                     {/* Populated by command-palette.ts when pagefind.filters()
                           returns at least two values for any dimension. */}
                 </section>
                 <div class="cdx-cp-body" id="cdx-cp-listbox" role="listbox">
                     <div class="cdx-cp-results"></div>
                     <div class="cdx-cp-empty" hidden aria-live="polite">
-                        No results
+                        {t('empty-search-title')}
                     </div>
                     <div class="cdx-cp-loading" hidden aria-live="polite">
-                        Loading search...
+                        {t('loading-search')}
                     </div>
                 </div>
                 <div class="cdx-cp-footer">
                     <span>
-                        <kbd>Enter</kbd> to select
+                        <kbd>Enter</kbd> {t('palette-select')}
                     </span>
                     <span>
-                        <kbd>Arrow Down</kbd> <kbd>Arrow Up</kbd> to navigate
+                        <kbd>Arrow Down</kbd> <kbd>Arrow Up</kbd> {t('palette-navigate')}
                     </span>
                     <span>
-                        <kbd>Esc</kbd> to close
+                        <kbd>Esc</kbd> {t('palette-close')}
                     </span>
                 </div>
             </div>
@@ -284,10 +286,10 @@ const SidebarHeader = (props: {
                     type="button"
                     class="cdx-search-trigger"
                     data-cdx-search-trigger
-                    aria-label="Search documentation"
+                    aria-label={t('search-documentation')}
                 >
                     {IconSearch()}
-                    <span class="cdx-search-trigger-label">Search...</span>
+                    <span class="cdx-search-trigger-label">{t('search-trigger')}</span>
                     <span class="cdx-search-trigger-hint">
                         <kbd class="cdx-kbd cdx-kbd--mac">&#8984;</kbd>
                         <kbd class="cdx-kbd cdx-kbd--other">Ctrl</kbd>
@@ -326,23 +328,23 @@ const ContentActions = (props: {
                     <button
                         type="button"
                         class="cdx-sidebar-action"
-                        aria-label="Switch theme"
+                        aria-label={t('switch-theme')}
                         aria-haspopup="listbox"
                         aria-expanded="false"
                     >
                         {IconPalette()}
                     </button>
-                    <ul class="cdx-theme-picker-menu" aria-label="Theme" hidden>
-                        {BUILTIN_THEMES.map(t => (
+                    <ul class="cdx-theme-picker-menu" aria-label={t('theme')} hidden>
+                        {BUILTIN_THEMES.map(theme => (
                             <li
-                                data-cdx-theme={t.id}
-                                aria-current={t.id === activeTheme ? 'true' : undefined}
+                                data-cdx-theme={theme.id}
+                                aria-current={theme.id === activeTheme ? 'true' : undefined}
                             >
                                 <span
                                     class="cdx-theme-swatch"
-                                    style={`--swatch: ${t.swatch}`}
+                                    style={`--swatch: ${theme.swatch}`}
                                 ></span>
-                                {t.name}
+                                {theme.name}
                             </li>
                         ))}
                     </ul>
@@ -352,7 +354,7 @@ const ContentActions = (props: {
                 <button
                     type="button"
                     class="cdx-sidebar-action cdx-dark-toggle"
-                    aria-label="Toggle dark mode"
+                    aria-label={t('toggle-dark-mode')}
                     aria-pressed="false"
                 >
                     {IconMoon('icon-moon')}
@@ -393,7 +395,7 @@ export const Layout = (props: LayoutProps): string => {
 
     return ('<!doctype html>\n' +
     (
-        <html class="no-js" lang="en">
+        <html class="no-js" lang={pageLanguage()}>
             <head>
                 <meta charset="utf-8" />
                 <meta http-equiv="x-ua-compatible" content="ie=edge" />
@@ -419,7 +421,7 @@ export const Layout = (props: LayoutProps): string => {
                     <script>{`(function(){try{var t=localStorage.getItem('compodocx-theme');if(t&&t!=='default'){var l=document.getElementById('cdx-theme-link');if(l)l.href=l.getAttribute('data-base')+'styles/'+t+'.css'}}catch(e){}}())`}</script>
                 )}
             </head>
-            <body>
+            <body data-cdx-text={clientTextAttribute()}>
                 {/* Classic deferred script, not a module: browsers block module
                     scripts on file://, and `defer` keeps the module timing
                     (runs once the document is parsed, in document order). */}
@@ -446,7 +448,7 @@ export const Layout = (props: LayoutProps): string => {
                                 type="button"
                                 class="cdx-sidebar-action"
                                 data-cdx-search-trigger
-                                aria-label="Search documentation (Ctrl+K)"
+                                aria-label={t('search-shortcut-label')}
                             >
                                 {IconSearch()}
                             </button>
@@ -456,23 +458,25 @@ export const Layout = (props: LayoutProps): string => {
                                 <button
                                     type="button"
                                     class="cdx-sidebar-action"
-                                    aria-label="Switch theme"
+                                    aria-label={t('switch-theme')}
                                     aria-haspopup="listbox"
                                     aria-expanded="false"
                                 >
                                     {IconPalette()}
                                 </button>
-                                <ul class="cdx-theme-picker-menu" aria-label="Theme" hidden>
-                                    {BUILTIN_THEMES.map(t => (
+                                <ul class="cdx-theme-picker-menu" aria-label={t('theme')} hidden>
+                                    {BUILTIN_THEMES.map(theme => (
                                         <li
-                                            data-cdx-theme={t.id}
-                                            aria-current={t.id === 'default' ? 'true' : undefined}
+                                            data-cdx-theme={theme.id}
+                                            aria-current={
+                                                theme.id === 'default' ? 'true' : undefined
+                                            }
                                         >
                                             <span
                                                 class="cdx-theme-swatch"
-                                                style={`--swatch: ${t.swatch}`}
+                                                style={`--swatch: ${theme.swatch}`}
                                             ></span>
-                                            {t.name}
+                                            {theme.name}
                                         </li>
                                     ))}
                                 </ul>
@@ -484,7 +488,7 @@ export const Layout = (props: LayoutProps): string => {
                             <button
                                 type="button"
                                 class="cdx-sidebar-action cdx-dark-toggle"
-                                aria-label="Toggle dark mode"
+                                aria-label={t('toggle-dark-mode')}
                                 aria-pressed="false"
                             >
                                 {IconMoon('icon-moon')}
@@ -501,7 +505,7 @@ export const Layout = (props: LayoutProps): string => {
                         <button
                             type="button"
                             class="cdx-mobile-toggle"
-                            aria-label="Open navigation"
+                            aria-label={t('open-navigation')}
                             aria-expanded="false"
                             data-cdx-mobile-toggle="#sidebar"
                         >
@@ -528,8 +532,12 @@ export const Layout = (props: LayoutProps): string => {
                 <div class="cdx-backdrop" aria-hidden="true"></div>
 
                 {/* Sidebar */}
-                <nav class="cdx-sidebar menu" id="sidebar" aria-label="Documentation">
-                    <button class="cdx-sidebar-close" type="button" aria-label="Close navigation">
+                <nav class="cdx-sidebar menu" id="sidebar" aria-label={t('documentation')}>
+                    <button
+                        class="cdx-sidebar-close"
+                        type="button"
+                        aria-label={t('close-navigation')}
+                    >
                         <svg
                             width="20"
                             height="20"

@@ -355,6 +355,27 @@ a.cdx-chip:hover {
 .cdx-chip--entity {
     --cdx-chip-color: var(--color-cdx-entity-component);
 }
+.cdx-chip--token {
+    --cdx-chip-color: var(--color-cdx-entity-token, #475569);
+}
+.cdx-chip--function {
+    --cdx-chip-color: var(--color-cdx-entity-function);
+}
+.cdx-chip--variable {
+    --cdx-chip-color: var(--color-cdx-entity-variable);
+}
+.cdx-chip--typealias {
+    --cdx-chip-color: var(--color-cdx-entity-typealias);
+}
+.cdx-chip--enumeration {
+    --cdx-chip-color: var(--color-cdx-entity-enum);
+}
+.cdx-chip--style {
+    --cdx-chip-color: var(--color-cdx-entity-style);
+}
+.cdx-chip--namespace {
+    --cdx-chip-color: var(--color-cdx-entity-namespace);
+}
 
 @media (prefers-reduced-motion: reduce) {
     .cdx-chip {

@@ -10,7 +10,7 @@ import { CngxActionButton } from "@cngx/ui";
 
 #### Quick Start
 
-```typescript
+```angular-ts
 import { Component } from "@angular/core";
 import { CngxActionButton } from "@cngx/ui";
 
@@ -81,8 +81,8 @@ A screen-reader-only `aria-live` region announces state transitions without visu
 
 ##### Example: Composition Pattern
 
-```typescript
-// Bind button state to an alert
+```angular-html
+<!-- Bind button state to an alert -->
 <cngx-action-button #btn="cngxActionButton" [action]="save">
   Save
 </cngx-action-button>
@@ -93,8 +93,8 @@ A screen-reader-only `aria-live` region announces state transitions without visu
 
 All colors and spacing use CSS Custom Properties with Material 3 defaults. Override at any scope:
 
-```scss
-// Override defaults in your component or global styles
+```css
+/* Override defaults in your component or global styles */
 :host {
     --cngx-action-btn-transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --cngx-action-btn-radius: 8px;
@@ -107,8 +107,8 @@ All colors and spacing use CSS Custom Properties with Material 3 defaults. Overr
 
 ### Basic Usage
 
-```typescript
-// Minimal setup — use default variant and labels
+```angular-html
+<!-- Minimal setup — use default variant and labels -->
 <cngx-action-button [action]="save">
   Save
 </cngx-action-button>
@@ -116,7 +116,7 @@ All colors and spacing use CSS Custom Properties with Material 3 defaults. Overr
 
 ### With String Labels
 
-```typescript
+```angular-html
 <cngx-action-button
   [action]="save"
   pendingLabel="Saving..."
@@ -128,7 +128,7 @@ All colors and spacing use CSS Custom Properties with Material 3 defaults. Overr
 
 ### With Template Slots
 
-```typescript
+```angular-html
 <cngx-action-button [action]="save">
   Save Draft
   <ng-template cngxPending>
@@ -145,8 +145,8 @@ All colors and spacing use CSS Custom Properties with Material 3 defaults. Overr
 
 ### With Toast Feedback
 
-```typescript
-// Requires provideFeedback(withToasts()) or provideToasts() in app config
+```angular-html
+<!-- Requires provideFeedback(withToasts()) or provideToasts() in app config -->
 <cngx-action-button
   [action]="save"
   toastSuccess="Document saved"
@@ -157,7 +157,7 @@ All colors and spacing use CSS Custom Properties with Material 3 defaults. Overr
 
 ### With External State
 
-```typescript
+```angular-ts
 // Derive button status from a separate async state (e.g., a data source)
 @Component({...})
 export class MyComponent {
@@ -165,8 +165,10 @@ export class MyComponent {
 
   save = () => this.saveState.execute(() => this.http.post('/api/draft', {}));
 }
+```
 
-// In template
+```angular-html
+<!-- In template -->
 <cngx-action-button [action]="save" [externalState]="saveState.state">
   Save
 </cngx-action-button>
@@ -174,7 +176,7 @@ export class MyComponent {
 
 ### Variants
 
-```typescript
+```angular-html
 <cngx-action-button [action]="save" variant="primary">
   Primary Action
 </cngx-action-button>
@@ -190,7 +192,7 @@ export class MyComponent {
 
 ### Accessibility-First: SR Announcements
 
-```typescript
+```angular-html
 <cngx-action-button
   [action]="deleteItem"
   succeededAnnouncement="Item deleted successfully"

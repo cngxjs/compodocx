@@ -177,32 +177,32 @@ describe('CLI Export', () => {
 
             // Property
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">component property</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">component property</div>'
             );
 
             // Input
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">component input</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">component input</div>'
             );
 
             // Accessor
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">component accessor</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">component accessor</div>'
             );
 
             // HostBinding
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">component hostBinding</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">component hostBinding</div>'
             );
 
             // HostListener
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">component hostListener</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">component hostListener</div>'
             );
 
             // Output
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">component output</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">component output</div>'
             );
 
             // Method
@@ -215,32 +215,32 @@ describe('CLI Export', () => {
 
             // Property
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">directive property</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">directive property</div>'
             );
 
             // Input
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">directive input</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">directive input</div>'
             );
 
             // Accessor
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">directive accessor</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">directive accessor</div>'
             );
 
             // HostBinding
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">directive hostBinding</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">directive hostBinding</div>'
             );
 
             // HostListener
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">directive hostListener</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">directive hostListener</div>'
             );
 
             // Output
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">directive output</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">directive output</div>'
             );
 
             // Method
@@ -253,7 +253,7 @@ describe('CLI Export', () => {
 
             // Property
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">pipe property</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">pipe property</div>'
             );
 
             // Method
@@ -266,12 +266,12 @@ describe('CLI Export', () => {
 
             // Property
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">interface property</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">interface property</div>'
             );
 
             // Method
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">interface method</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">interface method</div>'
             );
         });
 
@@ -280,32 +280,32 @@ describe('CLI Export', () => {
 
             // Property
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">class property</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">class property</div>'
             );
 
             // Input
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">class input</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">class input</div>'
             );
 
             // Accessor
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">class accessor</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">class accessor</div>'
             );
 
             // HostBinding
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">class hostBinding</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">class hostBinding</div>'
             );
 
             // HostListener
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">class hostListener</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">class hostListener</div>'
             );
 
             // Output
             expect(file).to.contain(
-                '"comment":"<div class=\\"cdx-code-snippet\\">class output</div>'
+                '"comment":"<div class=\\"cdx-code-snippet\\" data-cdx-lang=\\"html\\">class output</div>'
             );
 
             // Method

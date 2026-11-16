@@ -8,6 +8,7 @@ import type {
     ThemeTokenGroup
 } from '../../utils/theme-doc-parser';
 import { groupThemeTokens } from '../../utils/theme-doc-parser';
+import { codeSnippet } from '../components/CodeBlock';
 import { isThemingSection, t } from '../helpers';
 import { dropLeadingText } from '../helpers/linked-highlight';
 import { themingProse } from '../helpers/theming-prose';
@@ -83,10 +84,10 @@ const renderExamples = (token: { readonly examples: readonly string[] }): string
             const fence = example.match(/^```(\w+)\n([\s\S]*?)\n```$/);
             const lang = fence ? fence[1] : 'css';
             const code = fence ? fence[2] : example;
-            return `<div class="cdx-theming-example">${highlightCode(code, {
+            return codeSnippet(highlightCode(code, { lang, mode: 'snippet' }), {
                 lang,
-                mode: 'snippet'
-            })}</div>`;
+                className: 'cdx-theming-example'
+            });
         })
         .join('');
 
@@ -405,13 +406,12 @@ const renderSourcePanel = (sources: StyleSource[]): string => {
             const label = src.file.startsWith('<inline-style-')
                 ? src.file
                 : src.file.split('/').slice(-2).join('/');
-            return (
-                `<section class="cdx-theming-source-file">` +
-                `<h5 class="cdx-theming-source-file-name">${
-                    Html.escapeHtml(label) as string
-                }</h5>` +
-                highlightCode(src.content, { lang: src.language, mode: 'snippet' }) +
-                `</section>`
+            return codeSnippet(
+                highlightCode(src.content, { lang: src.language, mode: 'snippet' }),
+                {
+                    label,
+                    className: 'cdx-theming-source-file'
+                }
             );
         })
         .join('');

@@ -140,6 +140,33 @@
     color: var(--color-cdx-text-secondary);
 }
 
+.cdx-feature-row-meta {
+    margin-top: 2px;
+}
+
+/* Namespace member rows: the kind icon (or a blank of its width) before the
+ * name, the target an `export import` alias points to after it. */
+[data-cdx-namespace-member] .cdx-ref-kind-icon,
+.cdx-namespace-kind-blank {
+    flex: none;
+}
+
+.cdx-namespace-kind-blank {
+    display: inline-block;
+    width: var(--cdx-ref-icon);
+}
+
+/* The alias target gets its own line, aligned with the name after the icon. */
+.cdx-namespace-alias-of {
+    @apply text-xs;
+    flex-basis: 100%;
+    margin-top: -4px;
+    padding-left: calc(var(--cdx-ref-icon) + 6px);
+    color: var(--color-cdx-text-secondary);
+    font-family: var(--font-code);
+    overflow-wrap: anywhere;
+}
+
 /* Style file cards: token, mixin and group line, themed components */
 
 .cdx-feature-card-meta {

@@ -5,6 +5,7 @@
 
 import { openCommandPalette } from './command-palette';
 import { updateHash } from './hash-router';
+import { clientText } from './text';
 
 const DIALOG_ID = 'cdx-shortcuts-dialog';
 let currentMemberIndex = -1;
@@ -29,6 +30,10 @@ const isSuppressed = (): boolean => {
     return false;
 };
 
+/** Text for `innerHTML`: the translations are plain text. */
+const escapeText = (s: string): string =>
+    s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c] as string);
+
 /** Create the shortcuts overlay dialog (once) */
 const createDialog = (): HTMLDialogElement => {
     const existing = document.getElementById(DIALOG_ID) as HTMLDialogElement;
@@ -40,25 +45,32 @@ const createDialog = (): HTMLDialogElement => {
     dialog.id = DIALOG_ID;
     dialog.className = 'cdx-cp';
     dialog.setAttribute('aria-modal', 'true');
-    dialog.setAttribute('aria-label', 'Keyboard shortcuts');
+    dialog.setAttribute('aria-label', clientText('shortcuts'));
     const mod = navigator.platform.includes('Mac') ? '⌘' : 'Ctrl';
     const row = (key: string, desc: string) =>
         `<div class="cdx-shortcut-row"><dt>${key}</dt><dd>${desc}</dd></div>`;
+    const text = (key: Parameters<typeof clientText>[0]) => escapeText(clientText(key));
     const kbd = (k: string, cls = '') => `<kbd${cls ? ` class="${cls}"` : ''}>${k}</kbd>`;
     const section = (title: string, rows: string) =>
         `<section><h3>${title}</h3><dl>${rows}</dl></section>`;
 
     dialog.innerHTML =
         '<div class="cdx-shortcuts-panel">' +
-        '<h2>Keyboard Shortcuts</h2>' +
+        `<h2>${text('shortcuts')}</h2>` +
         '<div class="cdx-shortcuts-grid">' +
-        section('Navigation', row(kbd('p'), 'Previous entity') + row(kbd('n'), 'Next entity')) +
-        section('Page', row(kbd('j'), 'Next member') + row(kbd('k'), 'Previous member')) +
         section(
-            'Search',
-            row(kbd('/'), 'Open search') +
-                row(kbd(mod, 'cdx-kbd-mod') + kbd('K'), 'Open search') +
-                row(kbd('?'), 'This dialog')
+            text('shortcuts-navigation'),
+            row(kbd('p'), text('previous-entity')) + row(kbd('n'), text('next-entity'))
+        ) +
+        section(
+            text('shortcuts-page'),
+            row(kbd('j'), text('next-member')) + row(kbd('k'), text('previous-member'))
+        ) +
+        section(
+            text('shortcuts-search'),
+            row(kbd('/'), text('open-search')) +
+                row(kbd(mod, 'cdx-kbd-mod') + kbd('K'), text('open-search')) +
+                row(kbd('?'), text('this-dialog'))
         ) +
         '</div></div>';
     document.body.appendChild(dialog);

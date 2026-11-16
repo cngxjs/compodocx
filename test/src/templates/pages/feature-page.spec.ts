@@ -362,6 +362,17 @@ describe('FeaturePage - Theming section with style files', () => {
         );
     });
 
+    it('renders the themed members as rows with summary and counts', () => {
+        const html = renderKit(true);
+        const rows = html.slice(html.indexOf('data-cdx-feature-theming'));
+        expect(rows).toMatch(
+            /^data-cdx-feature-theming="component"><span class="cdx-feature-row-name"><a href="[^"]*KitCard\.html#theming"><code>KitCard<\/code><\/a><\/span><span class="cdx-feature-row-summary">Kit skin<span class="cdx-feature-card-meta cdx-feature-row-meta"><span><b>3<\/b> Tokens<\/span><\/span><\/span><\/li>/
+        );
+        expect(rows).toMatch(
+            /data-cdx-feature-theming="directive"><span class="cdx-feature-row-name"><a href="[^"]*KitHighlight\.html#theming"><code>KitHighlight<\/code><\/a><\/span><span class="cdx-feature-row-summary">Highlight<span class="cdx-feature-card-meta cdx-feature-row-meta"><span><b>4<\/b> Tokens/
+        );
+    });
+
     it('links the Theming section from the jump bar only when it is rendered', () => {
         expect(renderKit(true)).toContain('class="cdx-feature-jump-link" href="#theming"');
         expect(renderKit(false)).not.toContain('href="#theming"');

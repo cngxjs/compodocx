@@ -798,7 +798,7 @@ test.describe('Keyboard navigation', () => {
         );
         const dialog = page.locator('#cdx-shortcuts-dialog');
         await expect(dialog).toBeVisible();
-        await expect(dialog).toContainText('Keyboard Shortcuts');
+        await expect(dialog).toContainText('Keyboard shortcuts');
     });
 
     test('Escape closes shortcut overlay', async ({ page }) => {

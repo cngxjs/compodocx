@@ -39,8 +39,8 @@
 }
 
 /* Token-row extras that don't have a direct counterpart in the API blocks */
-.cdx-theming-example {
-    margin-top: var(--spacing-cdx-sm);
+.cdx-code-snippet.cdx-theming-example {
+    margin: var(--spacing-cdx-sm) 0 0;
 }
 
 .cdx-theming-see {
@@ -73,17 +73,10 @@
     margin-bottom: var(--spacing-cdx-md);
 }
 
-.cdx-theming-source-file {
-    margin-top: var(--spacing-cdx-md);
+.cdx-code-snippet.cdx-theming-source-file {
+    margin: var(--spacing-cdx-md) 0 0;
 }
 
-.cdx-theming-source-file:first-of-type {
+.cdx-code-snippet.cdx-theming-source-file:first-of-type {
     margin-top: 0;
-}
-
-.cdx-theming-source-file-name {
-    font-family: var(--font-code);
-    font-size: 0.8125rem;
-    color: var(--color-cdx-text-muted);
-    margin-bottom: var(--spacing-cdx-xs);
 }

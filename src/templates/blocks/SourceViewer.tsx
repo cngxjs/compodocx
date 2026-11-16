@@ -1,6 +1,7 @@
 import Html from '@kitajs/html';
 import { highlightCode } from '../../app/engines/syntax-highlight.engine';
-import { IconCopy, IconFileCss, IconFileHtml, IconFileTs } from '../components/Icons';
+import { CopyButton } from '../components/CodeBlock';
+import { IconFileCss, IconFileHtml, IconFileTs } from '../components/Icons';
 import { shortPath } from '../helpers/short-url';
 
 /**
@@ -27,8 +28,8 @@ import { shortPath } from '../helpers/short-url';
  * - Body: Shiki-highlighted code with line numbers, member markers,
  *   and fold regions (all handled inside `highlightCode`).
  *
- * When no `filePath` is set the tab header is omitted entirely (used by
- * the "Inline Styles" case where the label is baked into the path arg).
+ * The header (and its copy button) is always there; without a `filePath`
+ * or `label` (an inline template) its path stays empty.
  */
 export type SourceViewerLang = 'typescript' | 'html' | 'scss';
 
@@ -60,23 +61,14 @@ export const SourceViewer = (props: SourceViewerProps): string => {
 
     return (
         <div class={`cdx-source-viewer ${langClass(props.lang)}`} data-cdx-lang={props.lang}>
-            {displayLabel && (
-                <div class="cdx-source-viewer-header">
-                    <span class="cdx-source-viewer-icon" aria-hidden="true">
-                        {fileIconFor(props.lang)}
-                    </span>
-                    <span class="cdx-source-viewer-path">{displayLabel}</span>
-                    <span class="cdx-source-scope" aria-live="polite"></span>
-                    <button
-                        type="button"
-                        class="cdx-source-viewer-copy"
-                        title="Copy source"
-                        aria-label="Copy source"
-                    >
-                        {IconCopy()}
-                    </button>
-                </div>
-            )}
+            <div class="cdx-source-viewer-header">
+                <span class="cdx-source-viewer-icon" aria-hidden="true">
+                    {fileIconFor(props.lang)}
+                </span>
+                <span class="cdx-source-viewer-path">{displayLabel}</span>
+                <span class="cdx-source-scope" aria-live="polite"></span>
+                {CopyButton()}
+            </div>
             <div class="cdx-source-viewer-sticky-stack" aria-hidden="true"></div>
             <div class="cdx-source-viewer-body">
                 {highlightCode(props.sourceCode, { lang: props.lang, mode: 'source' })}

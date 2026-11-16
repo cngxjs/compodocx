@@ -1,4 +1,5 @@
 import { escapeHtmlText } from '../../templates/helpers/escape';
+import { ANGULAR_EXTRA_GRAMMARS } from './angular-grammars';
 
 type ShikiTransformer = {
     line?: (this: unknown, hast: HastElement, line: number) => void;
@@ -36,8 +37,43 @@ const SUPPORTED_LANGUAGES = [
     'scss',
     'json',
     'bash',
-    'markdown'
+    'markdown',
+    'yaml',
+    'diff',
+    'angular-html',
+    'angular-ts'
 ];
+
+/** Fence names that mean a loaded language under another name. */
+const LANGUAGE_ALIASES: Record<string, string> = {
+    ts: 'typescript',
+    js: 'javascript',
+    sh: 'bash',
+    shell: 'bash',
+    zsh: 'bash',
+    console: 'bash',
+    md: 'markdown',
+    yml: 'yaml',
+    angular: 'angular-html',
+    ng: 'angular-html',
+    'ng-html': 'angular-html',
+    'angular-template': 'angular-html',
+    'ng-ts': 'angular-ts'
+};
+
+/**
+ * The loaded language for a requested name: the name itself or its alias,
+ * TypeScript when nothing was asked for, else plain text (never another
+ * language's colours).
+ */
+export const resolveLanguage = (lang: string | undefined): string => {
+    if (!lang || lang === 'none') {
+        return 'typescript';
+    }
+    const name = lang.toLowerCase();
+    const resolved = LANGUAGE_ALIASES[name] ?? name;
+    return SUPPORTED_LANGUAGES.includes(resolved) ? resolved : 'text';
+};
 
 /**
  * Lines longer than this are emitted without colours. Shiki tokenizes the
@@ -100,7 +136,8 @@ export async function initHighlighter(shikiTheme?: string): Promise<void> {
 
     highlighter = await createHighlighter({
         themes: [THEME_LIGHT, THEME_DARK],
-        langs: SUPPORTED_LANGUAGES
+        // The extra Angular grammars inject into angular-html and angular-ts.
+        langs: [...SUPPORTED_LANGUAGES, ...ANGULAR_EXTRA_GRAMMARS]
     });
 }
 
@@ -112,14 +149,13 @@ export function highlightCode(code: string, optionsOrLang?: HighlightOptions | s
     const opts: HighlightOptions =
         typeof optionsOrLang === 'string' ? { lang: optionsOrLang } : (optionsOrLang ?? {});
 
-    const lang = opts.lang ?? 'typescript';
     const mode = opts.mode ?? 'snippet';
 
     if (!highlighter) {
         return escapeHtmlText(code);
     }
 
-    const resolvedLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : 'typescript';
+    const resolvedLang = resolveLanguage(opts.lang);
 
     const transformers: ShikiTransformer[] = [];
     let foldRegions: FoldRegion[] = [];

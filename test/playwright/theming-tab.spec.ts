@@ -122,7 +122,7 @@ test.describe('Theming tab — source panel', () => {
         await details.locator('summary').click();
         await expect(details).toHaveAttribute('open', '');
         // The fixture uses inline styles[], rendered as <inline-style-0>
-        await expect(details.locator('.cdx-theming-source-file-name')).toContainText(
+        await expect(details.locator('.cdx-theming-source-file .cdx-code-label')).toContainText(
             'inline-style'
         );
     });
