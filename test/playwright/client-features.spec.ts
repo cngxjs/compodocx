@@ -89,7 +89,6 @@ test.describe('Mobile menu auto-close on resize', () => {
         await expect(sidebar).toHaveClass(/cdx-sidebar--open/);
 
         await page.setViewportSize({ width: 1024, height: 768 });
-        await page.waitForTimeout(200);
         await expect(sidebar).not.toHaveClass(/cdx-sidebar--open/);
     });
 });
