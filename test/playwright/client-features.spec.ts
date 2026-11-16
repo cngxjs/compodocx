@@ -54,8 +54,13 @@ test.describe('Mobile menu', () => {
         await page.locator('[data-cdx-mobile-toggle]').click();
         await expect(sidebar).toHaveClass(/cdx-sidebar--open/);
 
-        // Close via backdrop (force: true avoids intercepted pointer from sidebar overlay)
-        await page.locator('.cdx-backdrop').click({ force: true });
+        // The open sidebar covers the left 318px of the backdrop, its centre
+        // included, so click the uncovered strip on the right. Without force,
+        // Playwright checks that the backdrop itself receives the click.
+        const backdrop = page.locator('.cdx-backdrop');
+        const box = await backdrop.boundingBox();
+        expect(box).not.toBeNull();
+        await backdrop.click({ position: { x: box!.width - 10, y: box!.height / 2 } });
         await expect(sidebar).not.toHaveClass(/cdx-sidebar--open/);
     });
 
@@ -70,7 +75,6 @@ test.describe('Mobile menu', () => {
         const link = sidebar.locator('a[data-type="entity-link"]').first();
         await link.scrollIntoViewIfNeeded();
         await link.click();
-        await page.waitForTimeout(300);
         await expect(sidebar).not.toHaveClass(/cdx-sidebar--open/);
     });
 });
@@ -85,7 +89,6 @@ test.describe('Mobile menu auto-close on resize', () => {
         await expect(sidebar).toHaveClass(/cdx-sidebar--open/);
 
         await page.setViewportSize({ width: 1024, height: 768 });
-        await page.waitForTimeout(200);
         await expect(sidebar).not.toHaveClass(/cdx-sidebar--open/);
     });
 });
